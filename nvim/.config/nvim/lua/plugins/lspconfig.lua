@@ -43,7 +43,7 @@ return {
 		require("lsp.taplo")
 
 		-- 诊断图标
-		local signs = { Error = "⊗", Warn = "⨻", Hint = "󰌶", Info = "󰙎" }
+		local signs = { Error = "⊗", Warn = "", Hint = "󰌶", Info = "󰙎" }
 		for type, icon in pairs(signs) do
 			local hl = "DiagnosticSign" .. type
 			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
@@ -53,7 +53,7 @@ return {
 		vim.diagnostic.config({
 			virtual_text = {
 				source = "always", -- Or "if_many"
-				prefix = "⚠", -- Could be '●', '▎', 'x'
+				prefix = "▪", -- Could be '●', '▎', 'x'
 			},
 			float = {
 				source = "always", -- Or "if_many"

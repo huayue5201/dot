@@ -83,37 +83,42 @@ zinit ice as"command" from"gh-r" \
           atpull"%atclone" src"init.zsh"
 zinit light starship/starship
 
-# 历史命令补全
-zinit for \
-    light-mode \
-  zsh-users/zsh-autosuggestions \
-    light-mode \
-  zdharma-continuum/fast-syntax-highlighting \
-  zdharma-continuum/history-search-multi-word \
-    light-mode \
-    pick"async.zsh" \
-    src"pure.zsh" \
-  sindresorhus/pure
+# 命令提示
+zinit ice wait lucid
+zinit light zsh-users/zsh-autosuggestions
 
+# 文本高亮
+zinit ice wait lucid
+zinit light zdharma-continuum/fast-syntax-highlighting
+
+# 命令补全
+zi for \
+    atload"zicompinit; zicdreplay" \
+    blockf \
+    lucid \
+    wait \
+  zsh-users/zsh-completions
+
+# https://github.com/jeffreytse/zsh-vi-mode
 # vim操作模式支持
 zinit ice depth=1
 zinit light jeffreytse/zsh-vi-mode
+# 按键兼容
+zinit ice lucid wait
+zinit snippet OMZP::fzf
 
 # https://github.com/cantino/mcfly
 zinit ice lucid wait"0a" from"gh-r" as"program" atload'eval "$(mcfly init zsh)"'
 zinit light cantino/mcfly
-# mcfly配色
-if [[ "$(defaults read -g AppleInterfaceStyle 2&>/dev/null)" != "Dark" ]]; then
-    export MCFLY_LIGHT=TRUE
-fi
-
-
-# Load a few important annexes, without Turbo
-# (this is currently required for annexes)
-zinit light-mode for \
-    zdharma-continuum/zinit-annex-as-monitor \
-    zdharma-continuum/zinit-annex-bin-gem-node \
-    zdharma-continuum/zinit-annex-patch-dl \
-    zdharma-continuum/zinit-annex-rust
-
-### End of Zinit's installer chunk
+# 使用vim按键模式
+export MCFLY_KEY_SCHEME=vim
+# 启用模糊搜索
+export MCFLY_FUZZY=2
+# 主题设置 TOP和BOTTOM
+export MCFLY_INTERFACE_VIEW=BOTTOM
+# 提示符
+export MCFLY_PROMPT="❯"
+# mcfly配色,macos根据系统更改配色
+# if [[ "$(defaults read -g AppleInterfaceStyle 2&>/dev/null)" != "Dark" ]]; then
+#     export MCFLY_LIGHT=TRUE
+# fi

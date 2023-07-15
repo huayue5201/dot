@@ -3,6 +3,7 @@
 
 return {
 	"nvim-telescope/telescope.nvim",
+	event = "VeryLazy", -- keep for lazy loading
 	cmd = "Telescope",
 	keys = {
 		{ "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "文件查找" },
