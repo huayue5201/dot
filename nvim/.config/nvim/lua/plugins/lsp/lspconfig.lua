@@ -21,14 +21,14 @@ return {
 		}
 
 		-- 回调函数
-		local on_attach = function(client, bufnr) end
+		-- local on_attach = function(client, bufnr) end
 
 		-- nvim-cmp
 		-- Set up lspconfig.
 		local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
 
 		-- Enable some language servers with the additional completion capabilities offered by nvim-cmp
-		local servers = { "rust_analyzer", "tsserver", "lua_ls", "emmet_ls" }
+		local servers = { "rust_analyzer", "tsserver", "lua_ls", "taplo" }
 		for _, lsp in ipairs(servers) do
 			lspconfig[lsp].setup({
 				-- on_attach = my_custom_on_attach,
@@ -37,10 +37,10 @@ return {
 		end
 
 		-- 加载lsp配置文件 lua/lsp/...
-		require("lsp.lua_ls")
-		require("lsp.tsserver")
-		require("lsp.rust_analyzer")
-		require("lsp.taplo")
+		require("lsp-sever.lua_ls")
+		require("lsp-sever.tsserver")
+		require("lsp-sever.rust_analyzer")
+		require("lsp-sever.taplo")
 
 		-- 诊断图标
 		local signs = { Error = "⊗", Warn = "", Hint = "󰌶", Info = "󰙎" }

@@ -30,8 +30,8 @@ window:
   startup_mode: Maximized
   # 窗口修饰
   # - full: 有边界 + 标题栏
-  # - none: 无边界 + 标题栏
-  decorations: buttonless
+  # buttonless: 无边界 + 无标题栏
+  decorations: full
 
 scrolling:
   # 历史保留行数

@@ -19,10 +19,15 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
 	spec = {
 		{ import = "plugins" },
+		{ import = "plugins.lsp" },
+		{ import = "plugins.UI" },
+		{ import = "plugins.treesitter" },
+		{ import = "plugins.Completion" },
+		{ import = "plugins.Search" },
 	},
 	ui = { border = "double" },
 	defaults = { lazy = true, version = false }, -- always use the latest git commit
-	install = { colorscheme = { "onedark" } },
+	install = { colorscheme = { "kanagawa" } },
 	-- checker = { enabled = true },-- 自动更新
 	performance = {
 		rtp = {
