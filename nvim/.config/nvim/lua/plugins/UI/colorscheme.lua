@@ -8,8 +8,13 @@ return {
 	config = function()
 		require("github-theme").setup({
 			-- ...
+			options = {
+				-- transparent = true, -- 删除背景
+				dim_inactive = true,
+			},
 		})
 
 		vim.cmd("colorscheme github_dark")
+		-- vim.cmd('colorscheme github_light_colorblind')
 	end,
 }
