@@ -13,7 +13,6 @@ return {
 		},
 		{ "nvim-treesitter/nvim-treesitter" },
 	},
-	event = { "WinNew" },
 	config = function()
 		local fn = vim.fn
 
