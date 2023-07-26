@@ -4,7 +4,6 @@
 
 return {
 	"keaising/im-select.nvim",
-	-- event = "VeryLazy", -- keep for lazy loading
 	event = "InsertEnter", -- keep for lazy loading
 	opts = {
 		-- 设置系统输入法,用im-select可检测当前系统输入法名称

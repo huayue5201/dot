@@ -23,7 +23,6 @@ require("lazy").setup({
 		{ import = "plugins.ui" },
 		{ import = "plugins.treesitter" },
 		{ import = "plugins.Completion" },
-		{ import = "plugins.Search" },
 	},
 	ui = { border = "double" },
 	defaults = { lazy = true, version = false }, -- always use the latest git commit

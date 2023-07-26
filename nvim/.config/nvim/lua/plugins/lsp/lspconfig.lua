@@ -6,10 +6,6 @@
 return {
 	"neovim/nvim-lspconfig",
 	event = { "BufReadPre", "BufNewFile" },
-	dependencies = {
-		"williamboman/mason-lspconfig.nvim",
-		"jose-elias-alvarez/null-ls.nvim",
-	},
 	config = function()
 		local lspconfig = require("lspconfig")
 
@@ -38,7 +34,7 @@ return {
 
 		-- 加载lsp配置文件 lua/lsp/...
 		require("lsp-sever.lua_ls")
-		require("lsp-sever.tsserver")
+		-- require("lsp-sever.tsserver")
 		require("lsp-sever.rust_analyzer")
 		require("lsp-sever.taplo")
 
@@ -64,13 +60,12 @@ return {
 
 		-- 查看当前buffer内错误
 		vim.keymap.set("n", "<space>tb", vim.diagnostic.setloclist, { desc = "查看当前buffer内错误" })
-		-- 查看所有错误
-		vim.keymap.set("n", "<leader>tw", require("telescope.builtin").diagnostics, { desc = "查看所有错误" })
 		-- 跳转到下一个错误
 		vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到下一个错误" })
 		-- 跳转到上一个错误
 		vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "跳转到上一个错误" })
-
+		-- 查看所有错误
+		vim.keymap.set("n", "<space>tw", vim.diagnostic.setloclist, { desc = "查看所有错误" })
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 			callback = function(ev)
@@ -86,57 +81,19 @@ return {
 				-- 重命名
 				vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename, { desc = "重命名" }, opts)
 				-- 查看引用
-				vim.keymap.set("n", "gr", require("telescope.builtin").lsp_references, { desc = "查看引用" }, opts)
+				vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "查看引用" }, opts)
 				-- 跳转到实现
-				vim.keymap.set(
-					"n",
-					"gi",
-					require("telescope.builtin").lsp_implementations,
-					{ desc = "跳转到实现" },
-					opts
-				)
+				vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "跳转到实现" }, opts)
 				-- 跳转到定义
-				vim.keymap.set(
-					"n",
-					"gd",
-					require("telescope.builtin").lsp_definitions,
-					{ desc = "跳转到定义" },
-					opts
-				)
+				vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "跳转到定义" }, opts)
 				-- 跳转到类型定义
-				vim.keymap.set(
-					"n",
-					"gt",
-					require("telescope.builtin").lsp_type_definitions,
-					{ desc = "跳转到类型定义" },
-					opts
-				)
+				vim.keymap.set("n", "<space>D", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opts)
 				-- 查看传入调用
-				vim.keymap.set(
-					"n",
-					"gl",
-					require("telescope.builtin").lsp_incoming_calls,
-					{ desc = "查看传入调用" },
-					opts
-				)
 				-- 查看传出调用
-				vim.keymap.set(
-					"n",
-					"gL",
-					require("telescope.builtin").lsp_outgoing_calls,
-					{ desc = "查看传出调用" },
-					opts
-				)
-				-- 查找lsp符号
-				vim.keymap.set(
-					"n",
-					"<leader>fl",
-					"<cmd>Telescope lsp_workspace_symbols<cr>",
-					{ desc = "查找lsp符号" },
-					opts
-				)
 				-- 查看文档
 				vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "查看文档" }, opts)
+				-- 查看签名帮助
+				vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { desc = "签名帮助" }, opts)
 				-- 添加workspace
 				vim.keymap.set("n", "<space>wa", vim.lsp.buf.add_workspace_folder, { desc = "添加workspace" }, opts)
 				-- 重命名workspace

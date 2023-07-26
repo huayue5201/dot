@@ -4,7 +4,7 @@ return {
 	"folke/todo-comments.nvim",
 	event = { "BufReadPre", "BufNewFile" },
 	keys = {
-		{ "<leader>to", "<cmd>TodoTelescope<cr>", desc = "todo检索" },
+		{ "<leader>to", "<cmd>TodoQuickFix<cr>", desc = "todo检索" },
 	},
 	dependencies = { "nvim-lua/plenary.nvim" },
 	opts = {
