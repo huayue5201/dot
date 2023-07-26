@@ -2,7 +2,9 @@
 
 return {
 	"nvimdev/guard.nvim",
-	cmd = "GuardFmt",
+	keys = {
+		{ mode = { "n", "v" }, ";F", "<cmd>GuardFmt<cr>", desc = "格式化" },
+	},
 	config = function()
 		local ft = require("guard.filetype")
 		-- use stylua to format lua files and no linter
