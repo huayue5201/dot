@@ -27,7 +27,7 @@ return {
 		local servers = { "rust_analyzer", "tsserver", "lua_ls", "taplo" }
 		for _, lsp in ipairs(servers) do
 			lspconfig[lsp].setup({
-				-- on_attach = my_custom_on_attach,
+				-- on_attach = on_attach,
 				capabilities = { cmp_capabilities, fold_capabilities },
 			})
 		end
