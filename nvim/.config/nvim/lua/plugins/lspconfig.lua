@@ -93,7 +93,7 @@ return {
 				-- 查看文档
 				vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "查看文档" }, opts)
 				-- 查看签名帮助
-				vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, { desc = "签名帮助" }, opts)
+				vim.keymap.set({ "n", "i" }, "<C-k>", vim.lsp.buf.signature_help, { desc = "签名帮助" }, opts)
 				-- 添加workspace
 				vim.keymap.set("n", "<space>wa", vim.lsp.buf.add_workspace_folder, { desc = "添加workspace" }, opts)
 				-- 重命名workspace
