@@ -8,11 +8,11 @@ return {
 	opts = {
 		load = {
 			-- 基础模块
-			["core.defaults"] = {}, -- Loads default behaviour
-			-- 标记图标渲染
-			["core.concealer"] = {}, -- Adds pretty icons to your documents
+			["core.defaults"] = {},
+			-- 把标记符渲染成图标
+			["core.concealer"] = {},
 			-- neorg workspaces管理
-			["core.dirman"] = { -- Manages Neorg workspaces
+			["core.dirman"] = {
 				config = {
 					workspaces = {
 						notes = "~/notes",

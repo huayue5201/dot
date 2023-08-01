@@ -63,6 +63,9 @@ font:
     family: 'JetBrainsMono Nerd Font'
     style: Bold Italic
 
+env:
+  TERM: alacritty-direct
+
 colors:
   primary:
     background: '0x1f1f28'
