@@ -8,8 +8,8 @@ vim.cmd([[
 
 -- yy高亮复制范围
 vim.cmd([[
-  augroup YankHighlight
-  autocmd!
-  autocmd TextYankPost * silent! lua vim.highlight.on_yank()
-  augroup end
+    augroup YankHighlight
+    autocmd!
+    autocmd TextYankPost * silent! lua vim.highlight.on_yank()
+    augroup end
  ]])
