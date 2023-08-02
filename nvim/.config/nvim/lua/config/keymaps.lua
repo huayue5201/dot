@@ -9,6 +9,9 @@ vim.keymap.set("v", "<", "<gv")
 vim.keymap.set("n", "<c-q>", "<cmd>bdelete<cr>", { desc = "删除buffer" })
 vim.keymap.set("t", "<c-q>", "<cmd>bdelete<cr>", { desc = "删除buffer" })
 
+-- 打开quickfix窗口
+vim.keymap.set("n", "<leader>q", "<cmd>copen<cr>", { desc = "打开quickfix" })
+
 -- 删除所有标记
 vim.keymap.set("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除所有标记" })
 
