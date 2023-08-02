@@ -37,6 +37,7 @@ return {
 		-- require("lsp-sever.tsserver")
 		require("lsp-sever.rust_analyzer")
 		require("lsp-sever.taplo")
+		require("lsp-sever.efm")
 
 		-- 诊断图标
 		local signs = { Error = "⊗", Warn = "", Hint = "󰌶", Info = "󰙎" }
