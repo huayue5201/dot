@@ -2,6 +2,7 @@
 
 return {
 	"gbprod/yanky.nvim",
+	-- https://github.com/kkharji/sqlite.lua
 	dependencies = "kkharji/sqlite.lua",
 	event = { "BufReadPre", "BufNewFile" },
 	config = function()

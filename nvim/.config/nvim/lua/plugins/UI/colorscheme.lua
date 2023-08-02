@@ -8,6 +8,7 @@ return {
 	config = function()
 		require("kanagawa").setup({
 			-- 启动编译
+			-- WARN: 每次修改配置需要重新编译 :KanagawaCompile
 			compile = true,
 			-- 额外配置
 			overrides = function(colors)

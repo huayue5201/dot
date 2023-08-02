@@ -1,5 +1,5 @@
 -- https://github.com/keaising/im-select.nvim
--- WARNING:该插件依赖外部程序im-select
+-- WARN:该插件依赖外部程序im-select
 -- https://github.com/daipeihust/im-select
 
 return {
