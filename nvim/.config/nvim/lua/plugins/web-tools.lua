@@ -1,4 +1,6 @@
 -- https://github.com/ray-x/web-tools.nvim
+-- WARN: 需依赖外部程序browser-sync (MACOS:npm install -g browser-sync)
+-- https://github.com/BrowserSync/browser-sync
 
 return {
 	"ray-x/web-tools.nvim",

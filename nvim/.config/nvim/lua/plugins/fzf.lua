@@ -1,4 +1,5 @@
 -- https://github.com/ibhagwan/fzf-lua
+-- WARN: 需依赖外部程序fzf(MACOS:brew install fzf)
 
 return {
 	"ibhagwan/fzf-lua",
@@ -12,6 +13,12 @@ return {
 	},
 	config = function()
 		-- calling `setup` is optional for customization
-		require("fzf-lua").setup({})
+		require("fzf-lua").setup({
+			-- 窗口大小设置
+			winopts_fn = function()
+				-- smaller width if neovim win has over 80 columns
+				return { width = vim.o.columns > 80 and 0.65 or 0.85 }
+			end,
+		})
 	end,
 }

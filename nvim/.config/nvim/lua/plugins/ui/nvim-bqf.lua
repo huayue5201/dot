@@ -1,4 +1,5 @@
 -- https://github.com/kevinhwang91/nvim-bqf
+-- WARN: 需依赖外部程序fzf(MACOS:brew install fzf)
 
 return {
 	"kevinhwang91/nvim-bqf",

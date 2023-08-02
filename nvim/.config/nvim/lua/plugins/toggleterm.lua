@@ -10,7 +10,14 @@ return {
 		-- 终端配置
 		require("toggleterm").setup({
 			persist_size = true,
-			size = 20,
+			--终端大小设置
+			size = function(term)
+				if term.direction == "horizontal" then
+					return 22
+				elseif term.direction == "vertical" then
+					return vim.o.columns * 0.4
+				end
+			end,
 			open_mapping = [[<c-\>]], -- 开关键
 			-- 终端样式设置vertical/horizontal/tab/float
 			-- 从下面弹出
