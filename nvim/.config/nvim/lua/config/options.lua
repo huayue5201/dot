@@ -5,7 +5,7 @@ vim.g.maplocalleader = ";"
 -- 禁用自带插件
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
-vim.g.loaded_matchit = 1
+-- vim.g.loaded_matchit = 1
 
 -- 使用空格替代 tab
 vim.bo.expandtab = true
