@@ -7,6 +7,11 @@ return {
 	ft = "qf",
 	dependencies = {
 		{
+			-- quickfix类容格式化
+			"ashfinal/qfview.nvim",
+			opts = {},
+		},
+		{
 			"junegunn/fzf",
 			build = function()
 				vim.fn["fzf#install"]()

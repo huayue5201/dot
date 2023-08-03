@@ -6,11 +6,6 @@
 return {
 	"neovim/nvim-lspconfig",
 	event = { "BufReadPre", "BufNewFile" },
-	dependencies = {
-		-- quickfix类容格式化
-		"ashfinal/qfview.nvim",
-		opts = {},
-	},
 	config = function()
 		local lspconfig = require("lspconfig")
 
