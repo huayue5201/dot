@@ -64,9 +64,9 @@ return {
 			winbar = true,
 			statusline = false,
 			sources = {
-				{ source = "filesystem", display_name = " 󰉓 Files " },
-				{ source = "buffers", display_name = "  Buffers" },
-				{ source = "git_status", display_name = " 󰊢 Git " },
+				{ source = "filesystem", display_name = " 󰉓 Files" },
+				{ source = "buffers", display_name = " Buffers" },
+				{ source = "git_status", display_name = "󰊢 Git " },
 			},
 		},
 		-- Nerd Fonts v3用户的配置
