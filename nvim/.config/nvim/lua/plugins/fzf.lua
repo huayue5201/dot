@@ -3,7 +3,7 @@
 
 return {
 	"ibhagwan/fzf-lua",
-	-- optional for icon support
+	-- https://github.com/nvim-tree/nvim-web-devicons
 	dependencies = { "nvim-tree/nvim-web-devicons" },
 	keys = {
 		{ "<leader>f", "<cmd>FzfLua files<cr>", desc = "文件检索" },

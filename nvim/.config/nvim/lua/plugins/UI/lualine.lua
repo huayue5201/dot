@@ -2,6 +2,8 @@
 
 return {
 	"nvim-lualine/lualine.nvim",
+	-- https://github.com/nvim-tree/nvim-web-devicons
+	dependencies = "nvim-tree/nvim-web-devicons",
 	event = "VeryLazy", -- keep for lazy loading
 	config = function()
 		-- 禁用 showmode， lualine 已经显示了当前模式

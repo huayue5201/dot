@@ -7,7 +7,8 @@ return {
 	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
-		"nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+		-- https://github.com/nvim-tree/nvim-web-devicons
+		"nvim-tree/nvim-web-devicons",
 		"MunifTanjim/nui.nvim",
 	},
 	opts = {
