@@ -60,8 +60,8 @@ return {
 					border = "none",
 					floating_preview_opts = {},
 					peek_definition_code = {
-						["<leader>k"] = "@function.outer",
-						["<leader>K"] = "@class.outer",
+						[";k"] = "@function.outer",
+						[";K"] = "@class.outer",
 					},
 				},
 				select = {

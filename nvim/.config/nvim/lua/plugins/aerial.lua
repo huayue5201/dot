@@ -3,7 +3,7 @@
 return {
 	"stevearc/aerial.nvim",
 	keys = {
-		{ "<leader>tl", "<cmd>AerialToggle!<CR>", desc = "大纲" },
+		{ "<leader>te", "<cmd>AerialToggle!<CR>", desc = "大纲" },
 	},
 	opts = {
 		backends = { "lsp", "treesitter", "markdown", "man" },

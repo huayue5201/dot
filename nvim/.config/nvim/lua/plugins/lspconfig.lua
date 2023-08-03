@@ -54,23 +54,23 @@ return {
 		-- 显示诊断来源
 		vim.diagnostic.config({
 			virtual_text = {
-				source = "always", -- Or "if_many"
+				source = "if_many", -- Or "if_many"
 				prefix = "▪",
 			},
 			float = {
-				source = "always", -- Or "if_many"
+				source = "if_many", -- Or "if_many"
 			},
 		})
 
 		-- keys
 		-- 查看当前buffer内错误
-		vim.keymap.set("n", "<space>tb", vim.diagnostic.setloclist, { desc = "查看所有错误" })
+		vim.keymap.set("n", "<space>wb", vim.diagnostic.setloclist, { desc = "查看所有错误" })
 		-- 跳转到下一个错误
 		vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到下一个错误" })
 		-- 跳转到上一个错误
 		vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "跳转到上一个错误" })
 		-- 浮窗查看错误信息
-		vim.keymap.set("n", "<space>l", vim.diagnostic.open_float, { desc = "浮窗查看错误信息" })
+		vim.keymap.set("n", "<space>p", vim.diagnostic.open_float, { desc = "浮窗查看错误信息" })
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 			callback = function(ev)
