@@ -41,7 +41,7 @@ return {
 		require("lsp-sever.rust_analyzer")
 		-- toml-sever
 		require("lsp-sever.taplo")
-		-- 通用lsp-sever,提供外部检测、格式等功能
+		-- 通用lsp-sever,提供外部检测、格式化等功能
 		require("lsp-sever.efm")
 
 		-- 诊断图标
