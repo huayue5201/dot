@@ -6,7 +6,7 @@ require("lspconfig").efm.setup({
 		rootMarkers = { ".git/" },
 		languages = {
 			lua = {
-				--  WARN: 需要安装stylua程序
+				--  WARN: 需要安装stylua程序 (brew install stylua)
 				-- https://github.com/JohnnyMorganz/StyLua
 				{ formatCommand = "stylua -", formatStdin = true },
 			},
