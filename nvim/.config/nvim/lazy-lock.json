@@ -8,7 +8,7 @@
   "cmp-path": { "branch": "main", "commit": "91ff86cd9c29299a64f968ebb45846c485725f23" },
   "flash.nvim": { "branch": "main", "commit": "967117690bd677cb7b6a87f0bc0077d2c0be3a27" },
   "fzf": { "branch": "master", "commit": "89b9189efa56bcd5e6e39bd864acfb781b38556d" },
-  "fzf-lua": { "branch": "main", "commit": "2fa4913c7db0c22e02c003c6f09b7ebb2d0ed367" },
+  "fzf-lua": { "branch": "main", "commit": "77c24ecce152bc32c0e99620cab5d03309ed3438" },
   "gitsigns.nvim": { "branch": "main", "commit": "5d73da785a3c05fd63ac31769079db05169a6ec7" },
   "harpoon": { "branch": "master", "commit": "21f4c47c6803d64ddb934a5b314dcb1b8e7365dc" },
   "im-select.nvim": { "branch": "master", "commit": "d235c40d1596c873ad108b9a121233c26e6c0c13" },

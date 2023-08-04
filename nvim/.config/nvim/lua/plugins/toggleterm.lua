@@ -5,11 +5,13 @@ return {
 	version = "*",
 	keys = {
 		{ "<c-\\>" },
+		{ "<c-l>", mode = { "n", "t" }, [[<cmd>lua require("config.toggle_terminal").init_or_toggle()<cr>]] },
 	},
 	config = function()
 		-- 终端配置
 		require("toggleterm").setup({
-			persist_size = true,
+			-- 终端界面颜色加深
+			shade_terminals = true,
 			--终端大小设置
 			size = function(term)
 				if term.direction == "horizontal" then
@@ -39,8 +41,5 @@ return {
 
 		-- if you only want these mappings for toggle term use term://*toggleterm#* instead
 		vim.cmd("autocmd! TermOpen term://* lua set_terminal_keymaps()")
-
-		-- 打开或关闭所有终端
-		vim.keymap.set({ "n", "i", "t" }, "<C-x>", "<cmd>ToggleTermToggleAll<cr>")
 	end,
 }
