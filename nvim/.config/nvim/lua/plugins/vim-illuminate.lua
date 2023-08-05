@@ -4,6 +4,12 @@ return {
 	"RRethy/vim-illuminate",
 	event = { "BufReadPre", "BufNewFile" },
 	config = function()
+		-- 高亮设置
+		vim.cmd([[
+			hi def IlluminatedWordText gui=underline
+			hi def IlluminatedWordRead gui=underline
+			hi def IlluminatedWordWrite gui=underline
+		]])
 		require("illuminate").configure({
 			-- providers: provider used to get references in the buffer, ordered by priority
 			providers = {

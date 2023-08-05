@@ -3,7 +3,8 @@
 return {
 	"stevearc/aerial.nvim",
 	keys = {
-		{ "<leader>te", "<cmd>AerialToggle!<CR>", desc = "大纲" },
+		{ "<leader>te", "<cmd>AerialToggle!<CR>", desc = "大纲/侧边栏" },
+		{ "<leader>tw", "<cmd>AerialNavToggle<CR>", desc = "大纲/浮窗" },
 	},
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter",
