@@ -3,32 +3,35 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = ";"
 
 -- 禁用自带插件
-vim.g.loaded_netrw = 1
+vim.g.loaded_netrw = 1 -- 文件管理器
 vim.g.loaded_netrwPlugin = 1
 -- vim.g.loaded_matchit = 1
 
--- 使用空格替代 tab
-vim.bo.expandtab = true
--- NORMAL 模式下 >> << 和 INSERT 模式下 CTRL-T CTRL-D 的缩进长度
+-- 鼠标
+vim.o.mouse = "a" -- 开启鼠标支持
+vim.o.mousemoveevent = true -- 鼠标悬停事件
+
+-- 代码折叠
+vim.o.foldmethod = "expr"
+vim.o.foldexpr = "nvim_treesitter#foldexpr()" -- treesitter做为折叠引擎
+vim.o.foldenable = false -- 禁用自动折叠
+vim.o.foldlevel = 99 -- 最大折叠层级
+
+-- 代码缩进
+vim.o.expandtab = true -- 使用空格替代tab
+vim.o.tabstop = 3 -- 1个tab显示为3个空格
+vim.o.softtabstop = 3 -- INSERT模式下1个tab代表3个空格
+vim.g.autoindent = true -- 继承前一行的缩进方式
+-- NORMAL模式下>> <<和INSERT模式下CTRL-T CTRL-D的缩进长度
 vim.o.shiftround = true
 vim.o.shiftwidth = 3
--- 1 个 tab 显示为 3 个空格
-vim.o.tabstop = 3
-vim.bo.tabstop = 3
--- INSERT 模式下 1 个 tab 代表 3 个空格
-vim.bo.softtabstop = 3
--- 继承前一行的缩进方式
-vim.g.autoindent = true
+
 -- set termguicolors to enable highlight groups
 vim.o.termguicolors = true
 -- 设定各种文本的字符编码
 vim.o.encoding = "utf-8"
 -- 状态栏样式配置(1、2 、3)
 vim.o.laststatus = 3
--- 是否支持鼠标操作
-vim.o.mouse = "a"
--- 鼠标悬停事件
-vim.o.mousemoveevent = true
 -- 退出vim询问是否保存
 vim.o.confirm = true
 -- 是否显示绝对行号
