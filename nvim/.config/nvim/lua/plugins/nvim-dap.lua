@@ -4,6 +4,7 @@ return {
 	"mfussenegger/nvim-dap",
 	keys = {
 		{ "<leader>d", "<cmd>lua require'dap'.toggle_breakpoint()<cr>", desc = "标记断点" },
+		{ "<leader>rd", "<cmd>lua require'dap'.continue()<cr>", desc = "执行dap调试" },
 	},
 	config = function()
 		-- 标记图标设置

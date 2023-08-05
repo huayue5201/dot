@@ -5,7 +5,12 @@ return {
 	version = "*",
 	keys = {
 		{ "<c-\\>" },
-		{ "<c-l>", mode = { "n", "t" }, [[<cmd>lua require("config.toggle_terminal").init_or_toggle()<cr>]] },
+		{
+			"<c-w>\\",
+			mode = { "n", "t" },
+			[[<cmd>lua require("config.toggle_terminal").init_or_toggle()<cr>]],
+			desc = "打开/关闭所有终端",
+		},
 	},
 	config = function()
 		-- 终端配置
