@@ -8,6 +8,6 @@ return {
 	},
 	config = function()
 		-- 标记图标设置
-		vim.fn.sign_define("DapBreakpoint", { text = "⭕️", texthl = "", linehl = "", numhl = "" })
+		vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "", linehl = "", numhl = "" })
 	end,
 }
