@@ -15,9 +15,9 @@ return {
 		-- neotree是最后一个窗口时自动关闭
 		close_if_last_window = true,
 		event_handlers = {
-			-- 打开文件自动关闭neo-tree
 			{
 				event = "file_opened",
+				-- 打开文件自动关闭neo-tree
 				handler = function(file_path)
 					--auto close
 					require("neo-tree").close_all()
@@ -69,7 +69,7 @@ return {
 				{ source = "git_status", display_name = "󰊢 Git " },
 			},
 		},
-		-- Nerd Fonts v3用户的配置
+		-- Nerd Fonts v3用户的配置,解决图标显示不全等问题
 		default_component_configs = {
 			icon = {
 				folder_empty = "󰜌",
@@ -82,6 +82,7 @@ return {
 				},
 			},
 		},
+		-- 窗口位置及大小
 		window = {
 			position = "left",
 			width = 40,
@@ -89,7 +90,7 @@ return {
 				noremap = true,
 				nowait = true,
 			},
-
+			-- 快捷键配置
 			mappings = {
 				["<space>"] = {
 					"toggle_node",

@@ -1,0 +1,12 @@
+-- https://github.com/mfussenegger/nvim-dap
+
+return {
+	"mfussenegger/nvim-dap",
+	keys = {
+		{ "<leader>d", "<cmd>lua require'dap'.toggle_breakpoint()<cr>", desc = "标记断点" },
+	},
+	config = function()
+		-- 标记图标设置
+		vim.fn.sign_define("DapBreakpoint", { text = "⭕️", texthl = "", linehl = "", numhl = "" })
+	end,
+}
