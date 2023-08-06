@@ -8,7 +8,7 @@ return {
 		{
 			"<c-w>\\",
 			mode = { "n", "t" },
-			[[<cmd>lua require("config.toggle_terminal").init_or_toggle()<cr>]],
+			[[<cmd>lua require("toggle_terminal").init_or_toggle()<cr>]],
 			desc = "打开/关闭所有终端",
 		},
 	},

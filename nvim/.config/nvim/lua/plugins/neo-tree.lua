@@ -4,6 +4,7 @@ return {
 	"nvim-neo-tree/neo-tree.nvim",
 	keys = {
 		{ "<leader>e", "<cmd>Neotree toggle<cr>", desc = "NeoTree" },
+		{ "\\e", "<cmd>Neotree reveal<cr>", desc = "NeoTree" },
 	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
@@ -23,41 +24,13 @@ return {
 					require("neo-tree").close_all()
 				end,
 			},
-			-- 平衡neo-tree打开和关闭的窗口大小
-			--{
-			--  event = "neo_tree_window_before_open",
-			--  handler = function(args)
-			--    print("neo_tree_window_before_open", vim.inspect(args))
-			--  end
-			--},
-			{
-				event = "neo_tree_window_after_open",
-				handler = function(args)
-					if args.position == "left" or args.position == "right" then
-						vim.cmd("wincmd =")
-					end
-				end,
-			},
-			--{
-			--  event = "neo_tree_window_before_close",
-			--  handler = function(args)
-			--    print("neo_tree_window_before_close", vim.inspect(args))
-			--  end
-			--},
-			{
-				event = "neo_tree_window_after_close",
-				handler = function(args)
-					if args.position == "left" or args.position == "right" then
-						vim.cmd("wincmd =")
-					end
-				end,
-			},
 		},
 		-- sources列表
 		sources = {
 			"filesystem",
 			"buffers",
 			"git_status",
+			-- "document_symbols",--  FIX: 不能用
 		},
 		-- wintar开启
 		source_selector = {
@@ -153,12 +126,14 @@ return {
 			},
 		},
 		filesystem = {
-			use_libuv_file_watcher = true, -- This will use the OS level file watchers to detect changes
-			-- instead of relying on nvim autocmd events.
+			-- 这将使用操作系统级文件观察器来检测更改
+			use_libuv_file_watcher = true,
 			window = {
 				mappings = {
+					-- 运行命令
+					["i"] = "run_command",
 					-- 使用系统默认程序打开文件
-					["o"] = "system_open",
+					["<c-o>"] = "system_open",
 					["<bs>"] = "navigate_up",
 					["."] = "set_root",
 					["<c-h>"] = "toggle_hidden",
@@ -179,6 +154,13 @@ return {
 				},
 			},
 			commands = {
+				-- 运行命令
+				run_command = function(state)
+					local node = state.tree:get_node()
+					local path = node:get_id()
+					vim.api.nvim_input(": " .. path .. "<Home>")
+				end,
+				-- 使用系统文件管理器查看文件
 				system_open = function(state)
 					local node = state.tree:get_node()
 					local path = node:get_id()
@@ -189,6 +171,7 @@ return {
 					vim.api.nvim_command(string.format("silent !xdg-open '%s'", path))
 				end,
 			},
+
 			-- harpoon集成
 			components = {
 				harpoon_index = function(config, node, state)
