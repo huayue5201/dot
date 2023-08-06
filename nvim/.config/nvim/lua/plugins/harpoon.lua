@@ -10,5 +10,7 @@ return {
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 	},
-	opts = {},
+	config = function()
+		require("harpoon").setup({})
+	end,
 }

@@ -7,7 +7,7 @@ return {
 		{ "<leader>rd", "<cmd>lua require'dap'.continue()<cr>", desc = "执行dap调试" },
 	},
 	config = function()
-		-- 标记图标设置
+		-- 断点图标设置
 		vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "", linehl = "", numhl = "" })
 	end,
 }

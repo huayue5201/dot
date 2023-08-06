@@ -8,11 +8,6 @@ return {
 	-- event = { "BufReadPre", "BufNewFile" },
 	ft = { "lua", "rust", "toml" },
 	config = function()
-		-- 代码操作
-		vim.cmd([[
-            autocmd CursorHold,CursorHoldI * lua require('code_action_utils').code_action_listener()
-      ]])
-
 		local lspconfig = require("lspconfig")
 
 		-- 回调函数
