@@ -5,16 +5,15 @@
 
 return {
 	"neovim/nvim-lspconfig",
-	event = { "BufReadPre", "BufNewFile" },
+	-- event = { "BufReadPre", "BufNewFile" },
+	ft = { "lua", "rust", "toml" },
 	config = function()
-		local lspconfig = require("lspconfig")
+		-- 代码操作
+		vim.cmd([[
+            autocmd CursorHold,CursorHoldI * lua require('code_action_utils').code_action_listener()
+      ]])
 
-		-- 开启lsp折叠支持
-		local fold_capabilities = vim.lsp.protocol.make_client_capabilities()
-		fold_capabilities.textDocument.foldingRange = {
-			dynamicRegistration = false,
-			lineFoldingOnly = true,
-		}
+		local lspconfig = require("lspconfig")
 
 		-- 回调函数
 		-- local on_attach = function(client, bufnr) end
@@ -28,7 +27,7 @@ return {
 		for _, lsp in ipairs(servers) do
 			lspconfig[lsp].setup({
 				-- on_attach = on_attach,
-				capabilities = { cmp_capabilities, fold_capabilities },
+				capabilities = { cmp_capabilities },
 			})
 		end
 

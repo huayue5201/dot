@@ -5,7 +5,7 @@ vim.g.maplocalleader = ";"
 -- 禁用自带插件
 vim.g.loaded_netrw = 1 -- 文件管理器
 vim.g.loaded_netrwPlugin = 1
--- vim.g.loaded_matchit = 1
+vim.g.loaded_matchit = 1
 
 -- 鼠标
 vim.o.mouse = "a" -- 开启鼠标支持

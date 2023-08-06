@@ -27,8 +27,8 @@ return {
 			sync_install = true,
 			-- 自动安装解析器
 			auto_install = true,
-			-- JoosepAlviste/nvim-ts-context-commentstring
-			context_commentstring = {
+			-- 缩进模块
+			indent = {
 				enable = true,
 			},
 			-- 高亮模块配置
@@ -42,6 +42,9 @@ return {
 						return true
 					end
 				end,
+				-- 关闭vim自带语法高亮引擎，只使用treesitter.
+				-- 设置为true，可能会降低neovim速度。
+				additional_vim_regex_highlighting = false,
 			},
 			-- 增量选择模块
 			incremental_selection = {
@@ -53,7 +56,12 @@ return {
 					scope_incremental = "<TAB>",
 				},
 			},
+			-- JoosepAlviste/nvim-ts-context-commentstring
+			context_commentstring = {
+				enable = true,
+			},
 			-- nvim-treesitter/nvim-treesitter-textobjects
+         -- TODO: nvim-treesitter-textobjects配置未完善
 			textobjects = {
 				lsp_interop = {
 					enable = true,
@@ -68,7 +76,6 @@ return {
 					enable = true,
 					-- Automatically jump forward to textobj, similar to targets.vim
 					lookahead = true,
-
 					keymaps = {
 						-- You can use the capture groups defined in textobjects.scm
 						["af"] = "@function.outer",
