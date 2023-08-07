@@ -26,6 +26,8 @@ vim.g.autoindent = true -- 继承前一行的缩进方式
 vim.o.shiftround = true
 vim.o.shiftwidth = 3
 
+-- 自动切换工作目录
+vim.opt.autochdir=true
 -- set termguicolors to enable highlight groups
 vim.o.termguicolors = true
 -- 设定各种文本的字符编码
@@ -40,8 +42,6 @@ vim.o.number = true
 vim.o.relativenumber = true
 -- 是否启用系统剪切板
 vim.o.clipboard = "unnamedplus"
--- 默认不开启折叠
-vim.o.foldenable = false
 -- 禁止折行显示文本
 vim.o.wrap = false
 -- 光标移动的时候始终保持上下左右至少有 8 个空格的间隔
