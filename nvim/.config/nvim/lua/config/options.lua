@@ -27,7 +27,7 @@ vim.o.shiftround = true
 vim.o.shiftwidth = 3
 
 -- 自动切换工作目录
-vim.opt.autochdir=true
+-- vim.opt.autochdir=true
 -- set termguicolors to enable highlight groups
 vim.o.termguicolors = true
 -- 设定各种文本的字符编码
