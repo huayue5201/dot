@@ -79,6 +79,7 @@ return {
 						fmt = trunc(120, 20, 60),
 					},
 				},
+            -- 使用gitsigns跟踪git信息
 				lualine_c = { custom_fname },
 				-- noice集成配置
 				lualine_x = {

@@ -129,6 +129,19 @@ return {
 			-- 这将使用操作系统级文件观察器来检测更改
 			use_libuv_file_watcher = true,
 			window = {
+            -- 浮窗
+            -- https://github.com/nvim-neo-tree/neo-tree.nvim/wiki/Visual-Customizations
+				popup = {
+					position = { col = "100%", row = "2" },
+					size = function(state)
+						local root_name = vim.fn.fnamemodify(state.path, ":~")
+						local root_len = string.len(root_name) + 4
+						return {
+							width = math.max(root_len, 50),
+							height = vim.o.lines - 6,
+						}
+					end,
+				},
 				mappings = {
 					-- 运行命令
 					["i"] = "run_command",
