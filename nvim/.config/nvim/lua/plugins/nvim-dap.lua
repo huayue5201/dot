@@ -9,6 +9,6 @@ return {
 	config = function()
 		-- 断点图标设置
 		vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "", linehl = "", numhl = "" })
-      -- require("dap-sever.codelldb")
+		-- require("dap-sever.codelldb")
 	end,
 }

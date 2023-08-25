@@ -49,7 +49,9 @@ vim.o.scrolloff = 8
 vim.o.sidescrolloff = 8
 -- 禁止创建备份文件
 vim.o.backup = false
-vim.o.writebackup = false
+-- vim.o.writebackup = false
+-- 禁止产生交换文件
+vim.o.noswapfile = false
 -- 当文件被外部程序修改时，自动加载
 vim.o.autoread = true
 -- 缩短 swap file 的更新时间间隔
