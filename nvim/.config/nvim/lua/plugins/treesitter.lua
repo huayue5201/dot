@@ -3,7 +3,8 @@
 return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
-	event = { "BufReadPost", "BufNewFile" },
+	event = "VeryLazy", -- keep for lazy loading
+	-- event = { "BufReadPost", "BufNewFile" },
 	dependencies = {
 		-- https://github.com/JoosepAlviste/nvim-ts-context-commentstring
 		"JoosepAlviste/nvim-ts-context-commentstring",
