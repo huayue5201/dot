@@ -5,7 +5,6 @@
 
 return {
 	"neovim/nvim-lspconfig",
-	-- event = { "BufReadPre", "BufNewFile" },
 	ft = { "lua", "rust", "toml" },
 	config = function()
 		-- nvim-cmp
