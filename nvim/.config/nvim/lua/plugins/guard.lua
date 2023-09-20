@@ -3,14 +3,19 @@
 
 return {
 	"nvimdev/guard.nvim",
+	dependencies = {
+		"nvimdev/guard-collection",
+	},
 	keys = {
-		{ ";F", mode = { "n", "v" }, "<cmd>GuardFmt<cr>", desc = "格式代码" },
+		{ ";f", mode = { "n", "v" }, "<cmd>GuardFmt<cr>", desc = "格式代码" },
 	},
 	config = function()
 		local ft = require("guard.filetype")
 
-		-- lua格式化程序
+		-- lua格式化
 		ft("lua"):fmt("stylua")
+		-- rust格式化
+		ft("rust"):fmt("lsp")
 
 		require("guard").setup({
 			-- 格式化的时候保存文件
