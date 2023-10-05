@@ -5,7 +5,10 @@
 
 return {
 	"neovim/nvim-lspconfig",
-	ft = { "lua", "rust", "toml" },
+	event = { "BufReadPost", "BufNewFile" },
+	dependencies = {
+		"williamboman/mason.nvim",
+	},
 	config = function()
 		-- nvim-cmp
 		local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -16,7 +19,7 @@ return {
 		-- local on_attach = function(client, bufnr) end
 
 		-- Enable some language servers with the additional completion capabilities offered by nvim-cmp
-		local servers = { "rust_analyzer", "tsserver", "lua_ls", "taplo", "emmet_ls" }
+		local servers = { "rust_analyzer", "tsserver", "lua_ls", "taplo", "emmet_ls", "pyright" }
 		for _, lsp in ipairs(servers) do
 			lspconfig[lsp].setup({
 				-- on_attach = on_attach,
@@ -26,10 +29,10 @@ return {
 
 		-- 加载lsp配置文件 lua/lsp/...
 		require("lsp-sever.lua_ls")
-		-- typescript-sever
 		-- require("lsp-sever.tsserver")
 		require("lsp-sever.emmet_ls")
 		require("lsp-sever.rust_analyzer")
+		require("lsp-sever.pyright")
 		-- toml-sever
 		require("lsp-sever.taplo")
 

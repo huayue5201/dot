@@ -18,6 +18,12 @@ return {
 		"L3MON4D3/LuaSnip",
 	},
 	config = function()
+		local has_words_before = function()
+			unpack = unpack or table.unpack
+			local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+			return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
+		end
+
 		-- 片段引擎
 		local luasnip = require("luasnip")
 		-- autopairs集成
@@ -117,34 +123,41 @@ return {
 				["<C-u>"] = cmp.mapping.scroll_docs(-4), -- Up
 				["<C-d>"] = cmp.mapping.scroll_docs(4), -- Down
 				-- C-b (back) C-f (forward) for snippet placeholder navigation.
-				["<CR>"] = cmp.mapping.confirm({
-					behavior = cmp.ConfirmBehavior.Replace,
-					select = true,
+				["<CR>"] = cmp.mapping({
+					i = function(fallback)
+						if cmp.visible() and cmp.get_active_entry() then
+							cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false })
+						else
+							fallback()
+						end
+					end,
+					s = cmp.mapping.confirm({ select = true }),
+					c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
 				}),
 
-				-- 该映射增加tabout插件的支持
-				["<Tab>"] = function(fallback)
+				["<Tab>"] = cmp.mapping(function(fallback)
 					if cmp.visible() then
 						cmp.select_next_item()
-					elseif luasnip.expand_or_locally_jumpable() then
-						vim.fn.feedkeys(
-							vim.api.nvim_replace_termcodes("<Plug>luasnip-expand-or-jump", true, true, true),
-							""
-						)
+					-- You could replace the expand_or_jumpable() calls with expand_or_locally_jumpable()
+					-- they way you will only jump inside the snippet region
+					elseif luasnip.expand_or_jumpable() then
+						luasnip.expand_or_jump()
+					elseif has_words_before() then
+						cmp.complete()
 					else
 						fallback()
 					end
-				end,
+				end, { "i", "s" }),
 
-				["<S-Tab>"] = function(fallback)
+				["<S-Tab>"] = cmp.mapping(function(fallback)
 					if cmp.visible() then
 						cmp.select_prev_item()
 					elseif luasnip.jumpable(-1) then
-						vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<Plug>luasnip-jump-prev", true, true, true), "")
+						luasnip.jump(-1)
 					else
 						fallback()
 					end
-				end,
+				end, { "i", "s" }),
 
 				-- ... Your other mappings ...
 			}),

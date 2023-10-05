@@ -30,12 +30,11 @@ return {
 			"filesystem",
 			"buffers",
 			"git_status",
-			-- "document_symbols",--  FIX: 不能用
 		},
 		-- wintar开启
 		source_selector = {
 			winbar = true,
-			statusline = false,
+			statusline = true,
 			sources = {
 				{ source = "filesystem", display_name = " 󰉓 Files" },
 				{ source = "buffers", display_name = " Buffers" },
