@@ -4,8 +4,8 @@ return {
 	"folke/noice.nvim",
 	event = "VeryLazy", -- keep for lazy loading
 	keys = {
-		{ "<leader>nd", "<cmd>Noice dismiss<cr>", desc = "清除所有消息" },
-		{ "<leader>tn", "<cmd>Noice<cr>", desc = "查看历史消息" },
+		{ "<leader>cn", "<cmd>Noice dismiss<cr>", desc = "关闭所有消息" },
+		{ "<leader>on", "<cmd>Noice<cr>", desc = "打开历史消息" },
 	},
 	dependencies = {
 		-- https://github.com/MunifTanjim/nui.nvim

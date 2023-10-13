@@ -34,7 +34,7 @@ return {
 		-- wintar开启
 		source_selector = {
 			winbar = true,
-			statusline = true,
+			-- statusline = true,
 			sources = {
 				{ source = "filesystem", display_name = " 󰉓 Files" },
 				{ source = "buffers", display_name = " Buffers" },

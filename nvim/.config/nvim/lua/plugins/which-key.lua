@@ -7,23 +7,26 @@ return {
 		vim.o.timeout = true
 		vim.o.timeoutlen = 500
 	end,
-	opts = {
-		marks = true, -- shows a list of your marks on ' and `
-		key_labels = {
-			-- override the label used to display some keys. It doesn't effect WK in any other way.
-			-- For example:
-			["<space>"] = "SPC",
-			["<cr>"] = "RET",
-			["<tab>"] = "TAB",
-		},
-		window = {
-			border = "double", -- none, single, double, shadow
-		},
-		layout = {
-			height = { min = 4, max = 25 }, -- min and max height of the columns
-			width = { min = 20, max = 50 }, -- min and max width of the columns
-			spacing = 3, -- spacing between columns
-			align = "center", -- align columns left, center or right
-		},
-	},
+	config = function()
+		require("which-key").setup({
+			window = {
+				border = "double",
+			},
+			layout = {
+				align = "center",
+			},
+		})
+		local wk = require("which-key")
+		wk.register({
+			["<leader>o"] = {
+				name = "Open...",
+			},
+			["<leader>c"] = {
+				name = "Close...",
+			},
+			["<leader>t"] = {
+				name = "Toggle...",
+			},
+		})
+	end,
 }

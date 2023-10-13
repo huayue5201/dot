@@ -1,6 +1,6 @@
 -- 把空格键设置为前置按键
 vim.g.mapleader = " "
-vim.g.maplocalleader = ";"
+vim.g.maplocalleader = " "
 
 -- 禁用自带插件
 vim.g.loaded_netrw = 1 -- 文件管理器

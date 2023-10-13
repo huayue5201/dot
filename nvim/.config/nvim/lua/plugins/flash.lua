@@ -3,19 +3,7 @@
 return {
 	"folke/flash.nvim",
 	event = "VeryLazy",
-	opts = {
-		modes = {
-			-- `f`, `F`, `t`, `T`, `;` and `,` motions
-			char = {
-				enabled = true,
-				-- by default all keymaps are enabled, but you can disable some of them,
-				-- by removing them from the list.
-				-- If you rather use another key, you can map them
-				-- to something else, e.g., { [";"] = "L", [","] = H }
-				keys = { "f", "F", "t", "T" },
-			},
-		},
-	},
+	opts = {},
 	keys = {
 		{
 			"s",
@@ -27,7 +15,7 @@ return {
 		},
 		{
 			"S",
-			mode = { "n", "o", "x" },
+			mode = { "n", "x", "o" },
 			function()
 				require("flash").treesitter()
 			end,
@@ -47,7 +35,7 @@ return {
 			function()
 				require("flash").treesitter_search()
 			end,
-			desc = "Flash Treesitter Search",
+			desc = "Treesitter Search",
 		},
 		{
 			"<c-s>",

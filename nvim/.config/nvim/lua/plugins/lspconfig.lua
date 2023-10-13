@@ -8,6 +8,7 @@ return {
 	event = { "BufReadPost", "BufNewFile" },
 	dependencies = {
 		"williamboman/mason.nvim",
+		"nvimtools/none-ls.nvim",
 	},
 	config = function()
 		-- nvim-cmp
@@ -37,7 +38,7 @@ return {
 		require("lsp-sever.taplo")
 
 		-- 诊断图标
-		local signs = { Error = "⊗", Warn = "", Hint = "󰌶", Info = "󰙎" }
+		local signs = { Error = " ⊗", Warn = " ", Hint = " 󰌶", Info = " 󰙎" }
 		for type, icon in pairs(signs) do
 			local hl = "DiagnosticSign" .. type
 			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
@@ -54,11 +55,10 @@ return {
 			},
 		})
 
-		-- keys
 		-- 查看当前buffer内错误
 		vim.keymap.set(
 			"n",
-			"<leader>wx",
+			"<leader>od",
 			"<cmd>lua require('telescope.builtin').diagnostics()<cr>",
 			{ desc = "查看所有错误" }
 		)
@@ -139,9 +139,9 @@ return {
 					print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 				end, { desc = "查看workspace" }, opts)
 				-- 格式化当前buffer
-				-- vim.keymap.set("n", ";f", function()
-				-- 	vim.lsp.buf.format({ async = true })
-				-- end, { desc = "代码格式化" }, opts)
+				vim.keymap.set("n", "<leader>f", function()
+					vim.lsp.buf.format({ async = true })
+				end, { desc = "代码格式化" }, opts)
 			end,
 		})
 	end,

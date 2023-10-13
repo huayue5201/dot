@@ -9,11 +9,11 @@ return {
 		"nvim-telescope/telescope-fzy-native.nvim",
 	},
 	keys = {
-		{ "<leader>f", "<cmd>Telescope find_files<cr>", desc = "文件检索" },
-		{ "<leader>g", "<cmd>Telescope live_grep<cr>", desc = "字符检索" },
-		{ "<leader>b", "<cmd>Telescope buffers<cr>", desc = "buffers检索" },
-		{ "<leader>o", "<cmd>Telescope oldfiles<cr>", desc = "历史检索" },
-		{ "<leader>wp", "<cmd>Telescope persisted<cr>", desc = "会话管理" },
+		{ "<leader>of", "<cmd>Telescope find_files<cr>", desc = "文件检索" },
+		{ "<leader>og", "<cmd>Telescope live_grep<cr>", desc = "字符检索" },
+		{ "<leader>ob", "<cmd>Telescope buffers<cr>", desc = "buffers检索" },
+		{ "<leader>oh", "<cmd>Telescope oldfiles<cr>", desc = "历史检索" },
+		{ "<leader>os", "<cmd>Telescope persisted<cr>", desc = "会话管理" },
 	},
 	config = function()
 		-- https://github.com/olimorris/persisted.nvim 集成

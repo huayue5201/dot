@@ -4,12 +4,13 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
 	event = "VeryLazy", -- keep for lazy loading
-	-- event = { "BufReadPost", "BufNewFile" },
 	dependencies = {
 		-- https://github.com/JoosepAlviste/nvim-ts-context-commentstring
 		"JoosepAlviste/nvim-ts-context-commentstring",
 		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 		"nvim-treesitter/nvim-treesitter-textobjects",
+		-- https://github.com/nvim-treesitter/nvim-treesitter-context
+		"nvim-treesitter/nvim-treesitter-context",
 	},
 	config = function()
 		require("nvim-treesitter.configs").setup({
@@ -61,15 +62,15 @@ return {
 				enable = true,
 			},
 			-- nvim-treesitter/nvim-treesitter-textobjects
-         -- TODO: nvim-treesitter-textobjects配置未完善
+			-- TODO: nvim-treesitter-textobjects配置未完善
 			textobjects = {
 				lsp_interop = {
 					enable = true,
 					border = "none",
 					floating_preview_opts = {},
 					peek_definition_code = {
-						[";k"] = "@function.outer",
-						[";K"] = "@class.outer",
+						["<leader>k"] = "@function.outer",
+						["<leader>k"] = "@class.outer",
 					},
 				},
 				select = {
