@@ -13,6 +13,13 @@ return {
 		-- nvim-cmp
 		local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
 
+		-- ufo折叠插件配置
+		local ufo_capabilities = vim.lsp.protocol.make_client_capabilities()
+		ufo_capabilities.textDocument.foldingRange = {
+			dynamicRegistration = false,
+			lineFoldingOnly = true,
+		}
+
 		local lspconfig = require("lspconfig")
 
 		-- local servers = { "rust_analyzer", "tsserver", "lua_ls", "taplo", "emmet_ls", "pyright" }
@@ -20,7 +27,7 @@ return {
 		for _, lsp in ipairs(language_servers) do
 			lspconfig[lsp].setup({
 				-- on_attach = on_attach,
-				capabilities = { cmp_capabilities },
+				capabilities = { cmp_capabilities, ufo_capabilities },
 			})
 		end
 
