@@ -10,8 +10,6 @@ return {
 	dependencies = {
 		-- https://github.com/MunifTanjim/nui.nvim
 		"MunifTanjim/nui.nvim",
-		-- https://github.com/rcarriga/nvim-notify
-		"rcarriga/nvim-notify",
 	},
 	config = function()
 		require("noice").setup({

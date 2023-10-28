@@ -22,7 +22,8 @@
         "unused-function",
         "duplicate-set-field",
         "duplicate-index",
-        "redundant-parameter"
+        "redundant-parameter",
+        "param-type-mismatch"
     ],
     "diagnostics.globals": [
         "vim",

@@ -12,10 +12,10 @@ vim.o.mouse = "a" -- 开启鼠标支持
 vim.o.mousemoveevent = true -- 鼠标悬停事件
 
 -- 代码折叠
--- vim.o.foldmethod = "expr"
--- vim.o.foldexpr = "nvim_treesitter#foldexpr()" -- treesitter做为折叠引擎
--- vim.o.foldenable = false -- 禁用自动折叠
--- vim.o.foldlevel = 99 -- 最大折叠层级
+vim.o.foldmethod = "expr"
+vim.o.foldexpr = "nvim_treesitter#foldexpr()" -- treesitter做为折叠引擎
+vim.o.foldenable = false -- 禁用自动折叠
+vim.o.foldlevel = 99 -- 最大折叠层级
 
 -- 代码缩进
 vim.o.expandtab = true -- 使用空格替代tab

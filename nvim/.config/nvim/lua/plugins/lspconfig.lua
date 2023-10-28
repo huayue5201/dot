@@ -8,7 +8,6 @@ return {
 	event = { "BufReadPost", "BufNewFile" },
 	dependencies = {
 		"williamboman/mason.nvim",
-		"nvimtools/none-ls.nvim",
 	},
 	config = function()
 		-- nvim-cmp
@@ -16,15 +15,12 @@ return {
 
 		local lspconfig = require("lspconfig")
 
-		-- 回调函数
-		-- local on_attach = function(client, bufnr) end
-
-		-- Enable some language servers with the additional completion capabilities offered by nvim-cmp
-		local servers = { "rust_analyzer", "tsserver", "lua_ls", "taplo", "emmet_ls", "pyright" }
-		for _, lsp in ipairs(servers) do
+		-- local servers = { "rust_analyzer", "tsserver", "lua_ls", "taplo", "emmet_ls", "pyright" }
+		local language_servers = require("lspconfig").util.available_servers()
+		for _, lsp in ipairs(language_servers) do
 			lspconfig[lsp].setup({
 				-- on_attach = on_attach,
-				capabilities = cmp_capabilities,
+				capabilities = { cmp_capabilities },
 			})
 		end
 
@@ -139,7 +135,7 @@ return {
 					print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 				end, { desc = "查看workspace" }, opts)
 				-- 格式化当前buffer
-				vim.keymap.set("n", "<leader>f", function()
+				vim.keymap.set("n", "<leader>wf", function()
 					vim.lsp.buf.format({ async = true })
 				end, { desc = "代码格式化" }, opts)
 			end,

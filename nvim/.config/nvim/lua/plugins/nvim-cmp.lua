@@ -26,12 +26,8 @@ return {
 
 		-- 片段引擎
 		local luasnip = require("luasnip")
-		-- autopairs集成
-		local cmp_autopairs = require("nvim-autopairs.completion.cmp")
 		-- Set up nvim-cmp.
 		local cmp = require("cmp")
-		-- windwp/nvim-autopairs
-		cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
 
 		-- Customization for Pmenu
 		vim.api.nvim_set_hl(0, "PmenuSel", { bg = "#282C34", fg = "NONE" })

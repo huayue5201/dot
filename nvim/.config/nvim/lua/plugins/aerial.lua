@@ -3,7 +3,7 @@
 return {
 	"stevearc/aerial.nvim",
 	keys = {
-		{ "<leader>te", "<cmd>AerialToggle!<CR>", desc = "大纲/侧边栏" },
+		{ "<leader>te", "<cmd>AerialToggle<CR>", desc = "大纲/侧边栏" },
 		{ "<leader>tw", "<cmd>AerialNavToggle<CR>", desc = "大纲/浮窗" },
 	},
 	dependencies = {
@@ -34,6 +34,11 @@ return {
 			hi AerialGuide2 guifg=Blue
       ]])
 		require("aerial").setup({
+			on_attach = function(bufnr)
+				-- Jump forwards/backwards with '{' and '}'
+				vim.keymap.set("n", "{", "<cmd>AerialPrev<CR>", { buffer = bufnr })
+				vim.keymap.set("n", "}", "<cmd>AerialNext<CR>", { buffer = bufnr })
+			end,
 			-- Priority list of preferred backends for aerial.
 			-- This can be a filetype map (see :help aerial-filetype-map)
 			backends = { "treesitter", "lsp", "markdown", "man" },
@@ -43,6 +48,7 @@ return {
 				-- They can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
 				-- min_width and max_width can be a list of mixed types.
 				-- max_width = {40, 0.2} means "the lesser of 40 columns or 20% of total"
+				-- aerial边栏大小
 				max_width = { 40, 0.2 },
 				width = nil,
 				min_width = 35,
@@ -311,7 +317,7 @@ return {
 				-- min_height = {8, 0.1} means "the greater of 8 rows or 10% of total"
 				max_height = 0.9,
 				height = nil,
-				min_height = { 8, 0.1 },
+				min_height = { 8, 0.2 },
 
 				override = function(conf, source_winid)
 					-- This is the config that will be passed to nvim_open_win.
@@ -343,7 +349,7 @@ return {
 					["<C-s>"] = "actions.jump_split",
 					["h"] = "actions.left",
 					["l"] = "actions.right",
-					["<C-c>"] = "actions.close",
+					["q"] = "actions.close",
 				},
 			},
 
