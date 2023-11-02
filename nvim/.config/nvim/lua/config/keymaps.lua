@@ -21,4 +21,4 @@ vim.keymap.set("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除所有标记" })
 vim.keymap.set("n", "<leader>gg", "ggVG", { desc = "全选" })
 
 -- 正常模式下按 ESC 取消高亮显示
-vim.keymap.set("n", "<ESC>", "<cmd>nohlsearch<cr>")
+-- vim.keymap.set("n", "<ESC>", "<cmd>nohlsearch<cr>")

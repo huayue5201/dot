@@ -11,11 +11,14 @@ vim.g.loaded_netrwPlugin = 1
 vim.o.mouse = "a" -- 开启鼠标支持
 vim.o.mousemoveevent = true -- 鼠标悬停事件
 
+-- 状态列配置
+vim.o.signcolumn = "yes"
+
 -- 代码折叠
--- vim.o.foldmethod = "expr"
--- vim.o.foldexpr = "nvim_treesitter#foldexpr()" -- treesitter做为折叠引擎
--- vim.o.foldenable = false -- 禁用自动折叠
--- vim.o.foldlevel = 99 -- 最大折叠层级
+vim.o.foldmethod = "expr"
+vim.o.foldexpr = "nvim_treesitter#foldexpr()" -- treesitter做为折叠引擎
+vim.o.foldenable = false -- 禁用自动折叠
+vim.o.foldlevel = 99 -- 最大折叠层级
 
 -- 代码缩进
 vim.o.expandtab = true -- 使用空格替代tab
@@ -78,8 +81,6 @@ vim.o.smartcase = true
 -- 显示特殊字符
 -- vim.opt.list = true
 -- vim.opt.listchars = { space = "▫", tab = "--" }
--- 显示左侧图标指示列
-vim.wo.signcolumn = "yes"
 -- 分隔窗口的时候 新窗口从下面或者右边出现
 vim.o.splitbelow = true
 vim.o.splitright = true
