@@ -159,4 +159,7 @@ return {
 			}),
 		})
 	end,
+	init = function()
+		vim.opt.completeopt = { "menu", "menuone", "noselect" }
+	end,
 }

@@ -65,8 +65,6 @@ vim.o.updatetime = 300
 vim.o.cursorline = true
 -- 是否开启 xterm 兼容的终端 24 位色彩支持
 vim.o.termguicolors = true
--- 自动补全不自动选中
-vim.g.completeopt = "menu,menuone,noselect,noinsert"
 -- 补全增强
 vim.o.wildmenu = true
 -- 补全最多显示10行
