@@ -27,7 +27,6 @@ return {
 		local language_servers = require("lspconfig").util.available_servers()
 		for _, lsp in ipairs(language_servers) do
 			lspconfig[lsp].setup({
-				-- on_attach = on_attach,
 				capabilities = { cmp_capabilities, ufo_capabilities },
 			})
 		end

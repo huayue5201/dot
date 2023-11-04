@@ -77,8 +77,8 @@ vim.o.spelllang = "en_us,cjk"
 vim.o.ignorecase = true
 vim.o.smartcase = true
 -- 显示特殊字符
--- vim.opt.list = true
--- vim.opt.listchars = { space = "▫", tab = "--" }
+vim.opt.list = true
+vim.opt.listchars = { leadmultispace = "│ ", multispace = "│ ", tab = "│ " }
 -- 分隔窗口的时候 新窗口从下面或者右边出现
 vim.o.splitbelow = true
 vim.o.splitright = true
