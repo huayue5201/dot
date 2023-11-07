@@ -2,7 +2,7 @@
 
 return {
 	"RRethy/vim-illuminate",
-	event = "VeryLazy", -- keep for lazy loading
+	event = { "BufReadPost" },
 	config = function()
 		require("illuminate").configure({
 			providers = {
