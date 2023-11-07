@@ -1,6 +1,3 @@
-# joshuto
-alias jo="joshuto"
-
 # zoxide
 # alias j=__zoxide_z
 alias zf=__zoxide_zi
