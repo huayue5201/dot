@@ -32,7 +32,6 @@ return {
 			-- local alterBufnr = fn.bufname('#') -- alternative buffer is the buffer before enter qf window
 			-- local root = getRootByAlterBufnr(alterBufnr)
 			-- vim.cmd(('noa lcd %s'):format(fn.fnameescape(root)))
-			--
 			if info.quickfix == 1 then
 				items = fn.getqflist({ id = info.id, items = 0 }).items
 			else

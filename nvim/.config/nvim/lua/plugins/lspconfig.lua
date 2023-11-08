@@ -106,7 +106,7 @@ return {
 					opts
 				)
 				-- 查看workspace
-				vim.keymap.set("n", "<space>wl", function()
+				vim.keymap.set("n", "<space>wp", function()
 					print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 				end, { desc = "查看workspace" }, opts)
 				-- 格式化当前buffer
