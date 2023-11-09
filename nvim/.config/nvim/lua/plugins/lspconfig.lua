@@ -6,10 +6,6 @@
 return {
 	"neovim/nvim-lspconfig",
 	event = { "BufReadPost", "BufNewFile" },
-	dependencies = {
-		"williamboman/mason.nvim",
-	},
-
 	config = function()
 		-- nvim-cmp
 		local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -23,7 +19,6 @@ return {
 
 		local lspconfig = require("lspconfig")
 
-		-- local servers = { "rust_analyzer", "tsserver", "lua_ls", "taplo", "emmet_ls", "pyright" }
 		local language_servers = require("lspconfig").util.available_servers()
 		for _, lsp in ipairs(language_servers) do
 			lspconfig[lsp].setup({
@@ -33,12 +28,10 @@ return {
 
 		-- 加载lsp配置文件 lua/lsp/...
 		require("lsp-sever.lua_ls")
-		-- require("lsp-sever.tsserver")
-		require("lsp-sever.emmet_ls")
-		require("lsp-sever.rust_analyzer")
-		require("lsp-sever.pyright")
+		require("lspconfig").rust_analyzer.setup({})
+		require("lspconfig").pylyzer.setup({})
 		-- toml-sever
-		require("lsp-sever.taplo")
+		require("lspconfig").taplo.setup({})
 
 		-- 诊断图标
 		local signs = { Error = " ⊗", Warn = " ", Hint = " 󰌶", Info = " 󰙎" }

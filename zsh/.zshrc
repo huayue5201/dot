@@ -7,6 +7,16 @@ eval "$(zoxide init zsh)"
 alias es="exa -F" #更改别名
 alias et="exa -T" #更改别名
 
+# yazi配置
+function ya() {
+	tmp="$(mktemp -t "yazi-cwd.XXXXX")"
+	yazi --cwd-file="$tmp"
+	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
+
 # fzf配置
 # 使用 fd ( https://github.com/sharkdp/fd )代替默认的 find
 _fzf_compgen_path() {

@@ -1,0 +1,4 @@
+[opener]
+archive = [{ exec = 'unar "$1"', desc = "nvim" }]
+text = [{ exec = 'nvim "$@"', block = true }]
+# ...
