@@ -14,8 +14,5 @@ vim.keymap.set("n", "<leader>oq", "<cmd>copen<cr>", { desc = "打开quickfix" })
 -- 关闭quickfix窗口
 vim.keymap.set("n", "<leader>cq", "<cmd>cclose<cr>", { desc = "关闭quickfix" })
 
--- 一键全选
-vim.keymap.set("n", "<leader>gg", "ggVG", { desc = "全选" })
-
 -- 正常模式下按 ESC 取消高亮显示
 -- vim.keymap.set("n", "<ESC>", "<cmd>nohlsearch<cr>")

@@ -3,7 +3,7 @@
 return {
 	"NeogitOrg/neogit",
 	keys = {
-		{ "<leader>oi", "<cmd>Neogit<cr>", desc = "git管理" },
+		{ "<leader>gi", "<cmd>Neogit<cr>", desc = "git管理" },
 	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
