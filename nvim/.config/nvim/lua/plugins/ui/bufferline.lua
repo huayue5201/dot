@@ -16,7 +16,7 @@ return {
 		require("bufferline").setup({
 			options = {
 				mode = "buffers",
-				-- numbers = "ordinal",
+				numbers = "ordinal",
 				-- 鼠标悬停事件
 				hover = {
 					enabled = true,

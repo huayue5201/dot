@@ -2,13 +2,13 @@
 
 return {
 	"NeogitOrg/neogit",
+	event = "VeryLazy", -- keep for lazy loading
 	keys = {
 		{ "<leader>gi", "<cmd>Neogit<cr>", desc = "git管理" },
 	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"sindrets/diffview.nvim",
-		"ibhagwan/fzf-lua",
 	},
 	config = true,
 }

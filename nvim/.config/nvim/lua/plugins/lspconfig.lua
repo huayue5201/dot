@@ -5,24 +5,17 @@
 
 return {
 	"neovim/nvim-lspconfig",
-	event = { "BufReadPost", "BufNewFile" },
+	event = { "BufReadPre", "BufNewFile" },
 	config = function()
 		-- nvim-cmp
 		local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
-
-		-- ufo折叠插件配置
-		local ufo_capabilities = vim.lsp.protocol.make_client_capabilities()
-		ufo_capabilities.textDocument.foldingRange = {
-			dynamicRegistration = false,
-			lineFoldingOnly = true,
-		}
 
 		local lspconfig = require("lspconfig")
 
 		local language_servers = require("lspconfig").util.available_servers()
 		for _, lsp in ipairs(language_servers) do
 			lspconfig[lsp].setup({
-				capabilities = { cmp_capabilities, ufo_capabilities },
+				capabilities = { cmp_capabilities },
 			})
 		end
 
@@ -32,9 +25,12 @@ return {
 		require("lspconfig").pylyzer.setup({})
 		-- toml-sever
 		require("lspconfig").taplo.setup({})
+		require("lspconfig").tsserver.setup({})
+		-- html-sever
+		require("lspconfig").emmet_language_server.setup({})
 
 		-- 诊断图标
-		local signs = { Error = " ⊗", Warn = " ", Hint = " 󰌶", Info = " 󰙎" }
+		local signs = { Error = "⊗", Warn = "", Hint = "󰌶", Info = "󰙎" }
 		for type, icon in pairs(signs) do
 			local hl = "DiagnosticSign" .. type
 			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })

@@ -5,6 +5,7 @@ return {
 	event = "VeryLazy", -- keep for lazy loading
 	config = function()
 		require("gitsigns").setup({
+			linehl = true, -- Toggle with `:Gitsigns toggle_linehl`
 			on_attach = function(bufnr)
 				local gs = package.loaded.gitsigns
 

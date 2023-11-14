@@ -44,6 +44,10 @@ export PATH=$PATH:~/.local/bin
 # cargo PATH (rust)
 export PATH=$PATH:~/.cargo/bin
 
+# npm PATH
+PATH=$PATH:/usr/local/bin/
+export NODE_PATH="/usr/local/lib/node_modules"
+
 #历史纪录条目数量
 export HISTSIZE=10000
 #注销后保存的历史纪录条目数量

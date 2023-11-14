@@ -2,10 +2,7 @@
 
 return {
 	"hrsh7th/nvim-cmp",
-	-- load cmp on InsertEnter
 	event = { "InsertEnter" },
-	-- these dependencies will only be loaded when cmp loads
-	-- dependencies are always lazy-loaded unless specified otherwise
 	dependencies = {
 		-- https://github.com/onsails/lspkind.nvim
 		"onsails/lspkind.nvim",
@@ -119,17 +116,7 @@ return {
 				["<C-u>"] = cmp.mapping.scroll_docs(-4), -- Up
 				["<C-d>"] = cmp.mapping.scroll_docs(4), -- Down
 				-- C-b (back) C-f (forward) for snippet placeholder navigation.
-				["<CR>"] = cmp.mapping({
-					i = function(fallback)
-						if cmp.visible() and cmp.get_active_entry() then
-							cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false })
-						else
-							fallback()
-						end
-					end,
-					s = cmp.mapping.confirm({ select = true }),
-					c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
-				}),
+				["<CR>"] = cmp.mapping.confirm({ select = true }),
 
 				["<Tab>"] = cmp.mapping(function(fallback)
 					if cmp.visible() then
