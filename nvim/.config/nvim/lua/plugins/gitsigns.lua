@@ -5,7 +5,6 @@ return {
 	event = "VeryLazy", -- keep for lazy loading
 	config = function()
 		require("gitsigns").setup({
-			linehl = true, -- Toggle with `:Gitsigns toggle_linehl`
 			on_attach = function(bufnr)
 				local gs = package.loaded.gitsigns
 
@@ -52,7 +51,7 @@ return {
 				-- 浮窗查看提交信息
 				map("n", "<leader>gb", function()
 					gs.blame_line({ full = true })
-				end, { desc = "浮窗查看buffer内所有改动" })
+				end, { desc = "浮窗查看提交信息" })
 
 				-- Text object
 				map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>")

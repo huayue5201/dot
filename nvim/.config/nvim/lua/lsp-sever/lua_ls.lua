@@ -18,10 +18,10 @@ require("lspconfig").lua_ls.setup({
 				enable = false,
 			},
 			-- 格式化
-			-- format = {
-			-- 	-- 禁用
-			-- 	enable = false,
-			-- },
+			format = {
+				-- 禁用
+				enable = false,
+			},
 		},
 	},
 })

@@ -2,7 +2,7 @@
 
 return {
 	"NeogitOrg/neogit",
-	event = "VeryLazy", -- keep for lazy loading
+	event = "BufNewFile", -- keep for lazy loading
 	keys = {
 		{ "<leader>gi", "<cmd>Neogit<cr>", desc = "git管理" },
 	},
