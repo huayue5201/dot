@@ -4,8 +4,7 @@ return {
 	"akinsho/bufferline.nvim",
 	-- https://github.com/nvim-tree/nvim-web-devicons
 	dependencies = "nvim-tree/nvim-web-devicons",
-	event = "VeryLazy", -- keep for lazy loading
-	version = "*",
+	event = "VeryLazy",
 	keys = {
 		-- 切换到下一个buffer
 		{ "<TAB>", "<cmd>BufferLineCycleNext<cr>" },

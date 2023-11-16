@@ -6,6 +6,10 @@
 return {
 	"neovim/nvim-lspconfig",
 	event = { "BufReadPre", "BufNewFile" },
+	dependencies = {
+		-- https://github.com/j-hui/fidget.nvim
+		{ "j-hui/fidget.nvim", opts = {} },
+	},
 	config = function()
 		-- nvim-cmp
 		local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -22,11 +26,15 @@ return {
 		-- 加载lsp配置文件 lua/lsp/...
 		require("lsp-sever.lua_ls")
 		require("lspconfig").rust_analyzer.setup({})
+		-- https://github.com/mtshiba/pylyzer
 		require("lspconfig").pylyzer.setup({})
 		-- toml-sever
+		-- https://github.com/tamasfe/taplo
 		require("lspconfig").taplo.setup({})
+		-- https://github.com/typescript-language-server/typescript-language-server
 		require("lspconfig").tsserver.setup({})
 		-- html-sever
+		-- https://github.com/olrtg/emmet-language-server
 		require("lspconfig").emmet_language_server.setup({})
 
 		-- 诊断图标

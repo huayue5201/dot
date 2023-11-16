@@ -19,9 +19,13 @@ return {
 	opts = {
 		-- Define your formatters
 		formatters_by_ft = {
+			-- https://github.com/JohnnyMorganz/StyLua
 			lua = { "stylua" },
+			-- https://github.com/psf/black
 			python = { "black" },
+			-- https://github.com/dprint/dprint
 			json = { "dprint" },
+			-- https://github.com/Riverside-Healthcare/djLint
 			html = { "djlint" },
 		},
 		-- Set up format-on-save

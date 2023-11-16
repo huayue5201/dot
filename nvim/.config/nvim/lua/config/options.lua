@@ -69,6 +69,8 @@ vim.o.termguicolors = true
 vim.o.wildmenu = true
 -- 补全最多显示10行
 vim.o.pumheight = 15
+-- cmd模式补全
+vim.o.wildoptions = "pum" --"tagfile"
 -- 是否开启自动缩进
 vim.o.autoindent = true
 -- 设定单词拼写检查的语言
@@ -78,7 +80,22 @@ vim.o.ignorecase = true
 vim.o.smartcase = true
 -- 显示特殊字符
 vim.opt.list = true
-vim.opt.listchars = { leadmultispace = "│ ", multispace = "│ ", tab = "│ " }
+vim.opt.listchars = {
+	leadmultispace = "│ ",
+	multispace = "│ ",
+	tab = "│ ",
+}
+-- 特殊字符设置
+vim.opt.fillchars = {
+	vert = "▕", -- alternatives │
+	fold = " ",
+	eob = " ", -- suppress ~ at EndOfBuffer
+	diff = "░", -- alternatives = ⣿ ╱ ░ ─
+	msgsep = "‾",
+	foldopen = "▾",
+	foldsep = "│",
+	foldclose = "▸",
+}
 -- 分隔窗口的时候 新窗口从下面或者右边出现
 vim.o.splitbelow = true
 vim.o.splitright = true
