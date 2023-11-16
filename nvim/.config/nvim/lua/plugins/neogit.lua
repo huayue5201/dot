@@ -10,6 +10,7 @@ return {
 		"nvim-lua/plenary.nvim",
 		-- https://github.com/sindrets/diffview.nvim
 		"sindrets/diffview.nvim",
+		"nvim-telescope/telescope.nvim",
 	},
 	config = true,
 }

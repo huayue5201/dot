@@ -2,7 +2,6 @@
 
 return {
 	"akinsho/bufferline.nvim",
-	-- https://github.com/nvim-tree/nvim-web-devicons
 	dependencies = "nvim-tree/nvim-web-devicons",
 	event = "VeryLazy",
 	keys = {
