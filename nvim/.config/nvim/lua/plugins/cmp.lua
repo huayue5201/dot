@@ -12,6 +12,8 @@ return {
 		"hrsh7th/cmp-buffer",
 		-- https://github.com/hrsh7th/cmp-path
 		"hrsh7th/cmp-path",
+		-- https://github.com/hrsh7th/cmp-nvim-lsp-signature-help
+		"hrsh7th/cmp-nvim-lsp-signature-help",
 		"L3MON4D3/LuaSnip",
 	},
 	config = function()
@@ -84,6 +86,7 @@ return {
 				{ name = "luasnip" }, -- For luasnip users.
 				{ name = "path" },
 				{ name = "crates" },
+				{ name = "nvim_lsp_signature_help" },
 			}),
 
 			-- 补全弹窗格式设置

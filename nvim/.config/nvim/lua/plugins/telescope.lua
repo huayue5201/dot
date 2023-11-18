@@ -14,9 +14,17 @@ return {
 		{ "<leader>oh", "<cmd>Telescope oldfiles<cr>", desc = "历史检索" },
 	},
 	config = function()
+		-- https://github.com/folke/trouble.nvim 集成
+		local trouble = require("trouble.providers.telescope")
 		-- https://github.com/olimorris/persisted.nvim 集成
 		require("telescope").load_extension("persisted")
 		require("telescope").setup({
+			defaults = {
+				mappings = {
+					i = { ["<c-t>"] = trouble.open_with_trouble },
+					n = { ["<c-t>"] = trouble.open_with_trouble },
+				},
+			},
 			extensions = {
 				fzf = {
 					fuzzy = true, -- false will only do exact matching
