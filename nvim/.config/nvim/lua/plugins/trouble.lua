@@ -2,7 +2,7 @@
 
 return {
 	"folke/trouble.nvim",
-	event = "VeryLazy",
+	event = { "BufReadPre" },
 	dependencies = { "nvim-tree/nvim-web-devicons" },
 	opts = {
 		-- 打开列表自动折叠类容

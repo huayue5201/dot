@@ -3,11 +3,7 @@
 return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
-	event = "VeryLazy", -- keep for lazy loading
-	dependencies = {
-		-- https://github.com/JoosepAlviste/nvim-ts-context-commentstring
-		"JoosepAlviste/nvim-ts-context-commentstring",
-	},
+	event = "VeryLazy",
 	config = function()
 		require("nvim-treesitter.configs").setup({
 			ensure_installed = {
@@ -52,10 +48,6 @@ return {
 					node_decremental = "<BS>",
 					scope_incremental = "<TAB>",
 				},
-			},
-			-- JoosepAlviste/nvim-ts-context-commentstring
-			context_commentstring = {
-				enable = true,
 			},
 		})
 	end,

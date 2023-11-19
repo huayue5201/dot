@@ -2,6 +2,7 @@
 
 return {
 	"nvim-tree/nvim-web-devicons",
+	lazy = true,
 	config = function()
 		require("nvim-web-devicons").setup({
 			-- globally enable different highlight colors per icon (default to true)
