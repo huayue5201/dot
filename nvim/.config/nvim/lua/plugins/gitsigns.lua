@@ -2,7 +2,7 @@
 
 return {
 	"lewis6991/gitsigns.nvim",
-	event = "BufNewFile", -- keep for lazy loading
+	event = { "BufReadPre", "BufNewFile" },
 	config = function()
 		require("gitsigns").setup({
 			on_attach = function(bufnr)

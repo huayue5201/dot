@@ -53,10 +53,10 @@ return {
 				-- Enum: prefer_right, prefer_left, right, left, float
 				default_direction = "prefer_left",
 			},
-			-- Show box drawing characters for the tree hierarchy
+			-- Highlight the symbol in the source buffer when cursor is in the aerial win
+			highlight_on_hover = true,
 			-- 层级线条支持
 			show_guides = true,
-
 			-- Customize the characters used when show_guides = true
 			guides = {
 				-- When the child item has a sibling below it

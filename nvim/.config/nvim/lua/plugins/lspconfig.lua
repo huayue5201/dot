@@ -140,7 +140,7 @@ return {
 					print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 				end, { desc = "查看workspace" }, opts)
 				-- 格式化当前buffer
-				-- vim.keymap.set("n", "<leader>wf", function()
+				-- vim.keymap.set("n", "<leader>f", function()
 				-- 	vim.lsp.buf.format({ async = true })
 				-- end, { desc = "代码格式化" }, opts)
 			end,

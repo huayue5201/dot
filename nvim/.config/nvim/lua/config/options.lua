@@ -81,9 +81,10 @@ vim.o.smartcase = true
 -- 显示特殊字符
 vim.opt.list = true
 vim.opt.listchars = {
-	leadmultispace = "│ ",
-	multispace = "│ ",
-	tab = "│ ",
+	tab = "┊ ",
+	leadmultispace = "┊ ",
+	trail = "␣",
+	nbsp = "⍽",
 }
 -- 特殊字符设置
 vim.opt.fillchars = {
