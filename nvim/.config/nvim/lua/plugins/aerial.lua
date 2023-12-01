@@ -68,6 +68,12 @@ return {
 				-- Raw indentation
 				whitespace = "  ",
 			},
+			nav = {
+				keymaps = {
+					["q"] = "actions.close",
+					["<C-c>"] = "actions.close",
+				},
+			},
 		})
 	end,
 }

@@ -57,7 +57,7 @@ return {
 		-- 查看当前buffer内错误
 		vim.keymap.set(
 			"n",
-			"<leader>wx",
+			"<leader>wd",
 			"<cmd>lua require('telescope.builtin').diagnostics()<cr>",
 			{ desc = "查看错误" }
 		)

@@ -11,7 +11,7 @@ return {
 		{ "<leader>of", "<cmd>Telescope find_files<cr>", desc = "文件检索" },
 		{ "<leader>og", "<cmd>Telescope live_grep<cr>", desc = "字符检索" },
 		{ "<leader>ob", "<cmd>Telescope buffers<cr>", desc = "buffers检索" },
-		{ "<leader>oh", "<cmd>Telescope oldfiles<cr>", desc = "历史检索" },
+		{ "<leader>oo", "<cmd>Telescope oldfiles<cr>", desc = "历史检索" },
 	},
 	config = function()
 		-- https://github.com/folke/trouble.nvim 集成
