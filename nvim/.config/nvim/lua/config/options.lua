@@ -19,7 +19,25 @@ vim.o.foldmethod = "expr"
 vim.o.foldexpr = "nvim_treesitter#foldexpr()" -- treesitter做为折叠引擎
 vim.o.foldenable = false -- 禁用自动折叠
 vim.o.foldlevel = 99 -- 最大折叠层级
-
+-- 特殊字符设置
+vim.opt.fillchars = {
+	vert = "▕", -- alternatives │
+	-- fold = " ",
+	eob = " ", -- suppress ~ at EndOfBuffer
+	diff = "╱", -- alternatives = ⣿ ╱ ░ ─
+	msgsep = "‾",
+	foldopen = "▾",
+	foldsep = "│",
+	foldclose = "▸",
+}
+-- 显示特殊字符
+vim.opt.list = true
+vim.opt.listchars = {
+	tab = "┊ ",
+	leadmultispace = "┊ ",
+	trail = "␣",
+	nbsp = "⍽",
+}
 -- 代码缩进
 vim.o.expandtab = true -- 使用空格替代tab
 vim.o.tabstop = 3 -- 1个tab显示为3个空格
@@ -78,25 +96,6 @@ vim.o.spelllang = "en_us,cjk"
 -- 不区分大小写的搜索，除非搜索中包含大写
 vim.o.ignorecase = true
 vim.o.smartcase = true
--- 显示特殊字符
-vim.opt.list = true
-vim.opt.listchars = {
-	tab = "┊ ",
-	leadmultispace = "┊ ",
-	trail = "␣",
-	nbsp = "⍽",
-}
--- 特殊字符设置
-vim.opt.fillchars = {
-	vert = "▕", -- alternatives │
-	fold = " ",
-	eob = " ", -- suppress ~ at EndOfBuffer
-	diff = "╱", -- alternatives = ⣿ ╱ ░ ─
-	msgsep = "‾",
-	foldopen = "▾",
-	foldsep = "│",
-	foldclose = "▸",
-}
 -- 分隔窗口的时候 新窗口从下面或者右边出现
 vim.o.splitbelow = true
 vim.o.splitright = true

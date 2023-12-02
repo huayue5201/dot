@@ -3,8 +3,8 @@
 return {
 	"stevearc/aerial.nvim",
 	keys = {
-		{ "<leader>te", "<cmd>AerialToggle<CR>", desc = "大纲/侧边栏" },
-		{ "<leader>tw", "<cmd>AerialNavToggle<CR>", desc = "大纲/浮窗" },
+		{ "<leader>oa", "<cmd>AerialToggle<CR>", desc = "大纲/侧边栏" },
+		{ "<leader>ov", "<cmd>AerialNavToggle<CR>", desc = "大纲/浮窗" },
 	},
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter",
@@ -47,11 +47,11 @@ return {
 				-- aerial边栏大小
 				max_width = { 40, 0.2 },
 				width = nil,
-				min_width = 35,
+				min_width = 30,
 
 				-- 窗口位置
 				-- Enum: prefer_right, prefer_left, right, left, float
-				default_direction = "prefer_left",
+				default_direction = "prefer_right",
 			},
 			-- Highlight the symbol in the source buffer when cursor is in the aerial win
 			highlight_on_hover = true,

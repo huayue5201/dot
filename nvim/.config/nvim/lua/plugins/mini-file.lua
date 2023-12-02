@@ -7,6 +7,6 @@ return {
 		{ "<leader>oe", "<cmd>lua MiniFiles.open()<CR>", desc = "文件管理器" },
 	},
 	config = function()
-		require("mini.files").setup()
+		require("mini.files").setup({})
 	end,
 }

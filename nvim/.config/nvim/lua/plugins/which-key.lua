@@ -22,10 +22,10 @@ return {
 				name = "Open...",
 			},
 			["<leader>c"] = {
-				name = "Close...",
+				-- name = "Close...",
 			},
 			["<leader>t"] = {
-				name = "Toggle...",
+				-- name = "Toggle...",
 			},
 		})
 	end,
