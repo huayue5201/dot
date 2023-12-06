@@ -39,10 +39,14 @@ vim.opt.listchars = {
 	nbsp = "⍽",
 }
 -- 代码缩进
-vim.o.expandtab = true -- 使用空格替代tab
-vim.o.tabstop = 3 -- 1个tab显示为3个空格
-vim.o.softtabstop = 3 -- INSERT模式下1个tab代表3个空格
-vim.g.autoindent = true -- 继承前一行的缩进方式
+-- 继承前一行的缩进方式
+vim.g.autoindent = true
+-- 使用空格替代tab
+vim.o.expandtab = true
+-- 1个tab显示为3个空格
+vim.o.tabstop = 3
+-- INSERT模式下1个tab代表3个空格
+vim.o.softtabstop = 3
 -- NORMAL模式下>> <<和INSERT模式下CTRL-T CTRL-D的缩进长度
 vim.o.shiftround = true
 vim.o.shiftwidth = 3
@@ -53,8 +57,6 @@ vim.o.shiftwidth = 3
 vim.o.termguicolors = true
 -- 设定各种文本的字符编码
 vim.o.encoding = "utf-8"
--- 状态栏样式配置(1、2 、3)
-vim.o.laststatus = 3
 -- 退出vim询问是否保存
 vim.o.confirm = true
 -- 是否显示绝对行号
@@ -102,3 +104,5 @@ vim.o.splitright = true
 -- 稳定窗口
 vim.o.splitkeep = "screen"
 -- vim.o.splitkeep = "topline"
+-- 状态栏样式配置(1、2 、3)
+vim.o.laststatus = 3

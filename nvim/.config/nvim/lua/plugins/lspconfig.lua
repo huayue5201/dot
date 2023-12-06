@@ -24,6 +24,7 @@ return {
 
 		-- 加载lsp配置文件 lua/lsp/...
 		require("lsp-sever.lua_ls")
+		-- https://rust-analyzer.github.io
 		require("lspconfig").rust_analyzer.setup({})
 		-- https://github.com/mtshiba/pylyzer
 		require("lspconfig").pylyzer.setup({})
