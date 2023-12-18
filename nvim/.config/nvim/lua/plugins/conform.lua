@@ -12,7 +12,7 @@ return {
 				require("conform").format({ async = true, lsp_fallback = true })
 			end,
 			mode = "",
-			desc = "Format buffer",
+			desc = "格式化",
 		},
 	},
 	-- Everything in opts will be passed to setup()

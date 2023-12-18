@@ -16,7 +16,7 @@ return {
 			engines = {
 				google = {
 					default_source= "auto",
-					default_target = "zh",
+					default_target = "zh-CN",
 				},
 			},
 			controls = {

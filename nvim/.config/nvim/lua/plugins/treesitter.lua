@@ -6,6 +6,10 @@ return {
 	event = "VeryLazy",
 	config = function()
 		require("nvim-treesitter.configs").setup({
+			-- windwp/nvim-ts-autotag
+			autotag = {
+				enable = true,
+			},
 			ensure_installed = {
 				"lua",
 				"vim",
@@ -14,7 +18,8 @@ return {
 				"markdown_inline",
 				"regex",
 				"bash",
-				"norg",
+				"html",
+				"json5",
 			},
 			-- 同步安装解析器
 			sync_install = true,
