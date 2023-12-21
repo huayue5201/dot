@@ -24,7 +24,7 @@ return {
 			-- https://github.com/psf/black
 			python = { "black" },
 			-- https://github.com/dprint/dprint
-			json = { "dprint" },
+			-- json = { "dprint" },
 			-- https://github.com/Riverside-Healthcare/djLint
 			html = { "djlint" },
 		},

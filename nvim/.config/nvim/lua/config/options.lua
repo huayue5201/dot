@@ -15,10 +15,10 @@ vim.o.mousemoveevent = true -- 鼠标悬停事件
 vim.o.signcolumn = "yes"
 
 -- 代码折叠
-vim.o.foldmethod = "expr"
-vim.o.foldexpr = "nvim_treesitter#foldexpr()" -- treesitter做为折叠引擎
-vim.o.foldenable = false -- 禁用自动折叠
-vim.o.foldlevel = 99 -- 最大折叠层级
+-- vim.o.foldmethod = "expr"
+-- vim.o.foldexpr = "nvim_treesitter#foldexpr()" -- treesitter做为折叠引擎
+-- vim.o.foldenable = false -- 禁用自动折叠
+-- vim.o.foldlevel = 99 -- 最大折叠层级
 -- 特殊字符设置
 vim.opt.fillchars = {
 	vert = "▕", -- alternatives │

@@ -12,13 +12,19 @@ return {
 	config = function()
 		-- nvim-cmp
 		local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
+		-- ufo
+		local ufo_capabilities = vim.lsp.protocol.make_client_capabilities()
+		ufo_capabilities.textDocument.foldingRange = {
+			dynamicRegistration = false,
+			lineFoldingOnly = true,
+		}
 
 		local lspconfig = require("lspconfig")
 
 		local language_servers = require("lspconfig").util.available_servers()
 		for _, lsp in ipairs(language_servers) do
 			lspconfig[lsp].setup({
-				capabilities = { cmp_capabilities },
+				capabilities = { cmp_capabilities, ufo_capabilities },
 			})
 		end
 
@@ -32,7 +38,8 @@ return {
 		-- https://github.com/tamasfe/taplo
 		require("lspconfig").taplo.setup({})
 		-- https://github.com/typescript-language-server/typescript-language-server
-		require("lspconfig").tsserver.setup({})
+		-- require("lspconfig").tsserver.setup({})
+		require("lspconfig").biome.setup({})
 		-- html-sever
 		-- https://github.com/olrtg/emmet-language-server
 		require("lspconfig").emmet_language_server.setup({})
