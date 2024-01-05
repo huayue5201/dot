@@ -2,7 +2,6 @@
 
 return {
 	"ThePrimeagen/harpoon",
-	branch = "harpoon2",
 	dependencies = "nvim-lua/plenary.nvim",
 	keys = {
 		{ "<leader>a", desc = "标记文件" },
