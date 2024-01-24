@@ -22,7 +22,7 @@ vim.o.signcolumn = "yes"
 -- 特殊字符设置
 vim.opt.fillchars = {
 	vert = "▕", -- alternatives │
-	-- fold = " ",
+	fold = " ",
 	eob = " ", -- suppress ~ at EndOfBuffer
 	diff = "╱", -- alternatives = ⣿ ╱ ░ ─
 	msgsep = "‾",
@@ -40,7 +40,7 @@ vim.opt.listchars = {
 }
 -- 代码缩进
 -- 继承前一行的缩进方式
-vim.g.autoindent = true
+vim.o.autoindent = true
 -- 使用空格替代tab
 vim.o.expandtab = true
 -- 1个tab显示为3个空格
@@ -62,7 +62,7 @@ vim.o.confirm = true
 -- 是否显示绝对行号
 vim.o.number = true
 -- 显示相对行号
--- vim.o.relativenumber = true
+vim.o.relativenumber = true
 -- 是否启用系统剪切板
 vim.o.clipboard = "unnamedplus"
 -- 禁止折行显示文本
@@ -74,7 +74,7 @@ vim.o.sidescrolloff = 8
 vim.o.backup = false
 -- vim.o.writebackup = false
 -- 禁止产生交换文件
-vim.o.noswapfile = false
+-- vim.o.noswapfile = false
 -- 当文件被外部程序修改时，自动加载
 vim.o.autoread = true
 -- 缩短 swap file 的更新时间间隔

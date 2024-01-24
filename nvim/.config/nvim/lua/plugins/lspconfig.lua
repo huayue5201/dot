@@ -39,7 +39,7 @@ return {
 		require("lspconfig").taplo.setup({})
 		-- https://github.com/typescript-language-server/typescript-language-server
 		-- require("lspconfig").tsserver.setup({})
-      -- https://github.com/biomejs/biome/blob/main/packages/%40biomejs/biome/README.zh-CN.md
+		-- https://github.com/biomejs/biome/blob/main/packages/%40biomejs/biome/README.zh-CN.md
 		require("lspconfig").biome.setup({})
 		-- html-sever
 		-- https://github.com/olrtg/emmet-language-server
