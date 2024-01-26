@@ -17,6 +17,9 @@ require("lspconfig").lua_ls.setup({
 			telemetry = {
 				enable = false,
 			},
+			hint = {
+				enable = true,
+			},
 			-- 格式化
 			format = {
 				-- 禁用
