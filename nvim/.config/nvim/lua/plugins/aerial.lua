@@ -11,28 +11,6 @@ return {
 		"nvim-tree/nvim-web-devicons",
 	},
 	config = function()
-		-- 颜色高亮
-		vim.cmd([[
-			hi link AerialClass Type
-			hi link AerialClassIcon Special
-			hi link AerialFunction Special
-			hi AerialFunctionIcon guifg=#cb4b16 guibg=NONE guisp=NONE gui=NONE cterm=NONE
-			  
-			" There's also this group for the fallback of the text if a specific
-			" class highlight isn't defined
-			hi link AerialNormal Normal
-			" There's also this group for the cursor position
-			hi link AerialLine QuickFixLine
-			" If highlight_mode="split_width", you can set a separate color for the
-			" non-current location highlight
-			hi AerialLineNC guibg=Gray
-			  
-			" You can customize the guides (if show_guide=true)
-			hi link AerialGuide Comment
-			" You can set a different guide color for each level
-			hi AerialGuide1 guifg=Red
-			hi AerialGuide2 guifg=Blue
-         ]])
 		require("aerial").setup({
 			on_attach = function(bufnr)
 				-- Jump forwards/backwards with '{' and '}'
@@ -47,7 +25,7 @@ return {
 				-- aerial边栏大小
 				max_width = { 40, 0.2 },
 				width = nil,
-				min_width = 30,
+				min_width = 35,
 
 				-- 窗口位置
 				-- Enum: prefer_right, prefer_left, right, left, float

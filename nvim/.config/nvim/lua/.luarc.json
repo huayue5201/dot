@@ -24,7 +24,8 @@
         "duplicate-index",
         "redundant-parameter",
         "param-type-mismatch",
-        "undefined-field"
+        "undefined-field",
+        "inject-field"
     ],
     "diagnostics.globals": [
         "vim",

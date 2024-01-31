@@ -2,7 +2,7 @@
 
 return {
 	"hrsh7th/nvim-cmp",
-	event = { "InsertEnter" },
+	event = { "InsertEnter", "CmdlineEnter" },
 	dependencies = {
 		-- https://github.com/onsails/lspkind.nvim
 		"onsails/lspkind.nvim",
@@ -12,12 +12,18 @@ return {
 		"hrsh7th/cmp-buffer",
 		-- https://github.com/hrsh7th/cmp-path
 		"hrsh7th/cmp-path",
+		-- https://github.com/hrsh7th/cmp-cmdline
+		"hrsh7th/cmp-cmdline",
 		-- https://github.com/hrsh7th/cmp-nvim-lsp-signature-help
 		"hrsh7th/cmp-nvim-lsp-signature-help",
+		-- https://github.com/L3MON4D3/LuaSnip
 		"L3MON4D3/LuaSnip",
 		-- https://github.com/abecodes/tabout.nvim
 		"abecodes/tabout.nvim",
 	},
+	init = function()
+		vim.opt.completeopt = { "menu", "menuone", "noselect" }
+	end,
 	config = function()
 		local has_words_before = function()
 			unpack = unpack or table.unpack
@@ -39,30 +45,30 @@ return {
 		vim.api.nvim_set_hl(0, "CmpItemAbbrMatchFuzzy", { fg = "#82AAFF", bg = "NONE", bold = true })
 		vim.api.nvim_set_hl(0, "CmpItemMenu", { fg = "#C792EA", bg = "NONE", italic = true })
 
-		vim.api.nvim_set_hl(0, "CmpItemKindField", { fg = "#EED8DA", bg = "#B5585F" })
-		vim.api.nvim_set_hl(0, "CmpItemKindProperty", { fg = "#EED8DA", bg = "#B5585F" })
-		vim.api.nvim_set_hl(0, "CmpItemKindEvent", { fg = "#EED8DA", bg = "#B5585F" })
+		vim.api.nvim_set_hl(0, "CmpItemKindField", { fg = "#EED8DA", bg = "#FF0088" })
+		vim.api.nvim_set_hl(0, "CmpItemKindProperty", { fg = "#EED8DA", bg = "#FF0088" })
+		vim.api.nvim_set_hl(0, "CmpItemKindEvent", { fg = "#EED8DA", bg = "#FF0088" })
 
-		vim.api.nvim_set_hl(0, "CmpItemKindText", { fg = "#C3E88D", bg = "#9FBD73" })
-		vim.api.nvim_set_hl(0, "CmpItemKindEnum", { fg = "#C3E88D", bg = "#9FBD73" })
-		vim.api.nvim_set_hl(0, "CmpItemKindKeyword", { fg = "#C3E88D", bg = "#9FBD73" })
+		vim.api.nvim_set_hl(0, "CmpItemKindText", { fg = "#C3E88D", bg = "#00A400" })
+		vim.api.nvim_set_hl(0, "CmpItemKindEnum", { fg = "#C3E88D", bg = "#00A400" })
+		vim.api.nvim_set_hl(0, "CmpItemKindKeyword", { fg = "#C3E88D", bg = "#00A400" })
 
-		vim.api.nvim_set_hl(0, "CmpItemKindConstant", { fg = "#FFE082", bg = "#D4BB6C" })
-		vim.api.nvim_set_hl(0, "CmpItemKindConstructor", { fg = "#FFE082", bg = "#D4BB6C" })
-		vim.api.nvim_set_hl(0, "CmpItemKindReference", { fg = "#FFE082", bg = "#D4BB6C" })
+		vim.api.nvim_set_hl(0, "CmpItemKindConstant", { fg = "#FFE082", bg = "#009FCC" })
+		vim.api.nvim_set_hl(0, "CmpItemKindConstructor", { fg = "#FFE082", bg = "#009FCC" })
+		vim.api.nvim_set_hl(0, "CmpItemKindReference", { fg = "#FFE082", bg = "#009FCC" })
 
-		vim.api.nvim_set_hl(0, "CmpItemKindFunction", { fg = "#EADFF0", bg = "#A377BF" })
-		vim.api.nvim_set_hl(0, "CmpItemKindStruct", { fg = "#EADFF0", bg = "#A377BF" })
-		vim.api.nvim_set_hl(0, "CmpItemKindClass", { fg = "#EADFF0", bg = "#A377BF" })
-		vim.api.nvim_set_hl(0, "CmpItemKindModule", { fg = "#EADFF0", bg = "#A377BF" })
-		vim.api.nvim_set_hl(0, "CmpItemKindOperator", { fg = "#EADFF0", bg = "#A377BF" })
+		vim.api.nvim_set_hl(0, "CmpItemKindFunction", { fg = "#EADFF0", bg = "#660077" })
+		vim.api.nvim_set_hl(0, "CmpItemKindStruct", { fg = "#EADFF0", bg = "#660077" })
+		vim.api.nvim_set_hl(0, "CmpItemKindClass", { fg = "#EADFF0", bg = "#660077" })
+		vim.api.nvim_set_hl(0, "CmpItemKindModule", { fg = "#EADFF0", bg = "#660077" })
+		vim.api.nvim_set_hl(0, "CmpItemKindOperator", { fg = "#EADFF0", bg = "#660077" })
 
 		vim.api.nvim_set_hl(0, "CmpItemKindVariable", { fg = "#C5CDD9", bg = "#7E8294" })
 		vim.api.nvim_set_hl(0, "CmpItemKindFile", { fg = "#C5CDD9", bg = "#7E8294" })
 
-		vim.api.nvim_set_hl(0, "CmpItemKindUnit", { fg = "#F5EBD9", bg = "#D4A959" })
-		vim.api.nvim_set_hl(0, "CmpItemKindSnippet", { fg = "#F5EBD9", bg = "#D4A959" })
-		vim.api.nvim_set_hl(0, "CmpItemKindFolder", { fg = "#F5EBD9", bg = "#D4A959" })
+		vim.api.nvim_set_hl(0, "CmpItemKindUnit", { fg = "#F5EBD9", bg = "#EE7700" })
+		vim.api.nvim_set_hl(0, "CmpItemKindSnippet", { fg = "#F5EBD9", bg = "#EE7700" })
+		vim.api.nvim_set_hl(0, "CmpItemKindFolder", { fg = "#F5EBD9", bg = "#EE7700" })
 
 		vim.api.nvim_set_hl(0, "CmpItemKindMethod", { fg = "#DDE5F5", bg = "#6C8ED4" })
 		vim.api.nvim_set_hl(0, "CmpItemKindValue", { fg = "#DDE5F5", bg = "#6C8ED4" })
@@ -118,11 +124,11 @@ return {
 
 			-- keys
 			mapping = cmp.mapping.preset.insert({
-				["<C-u>"] = cmp.mapping.scroll_docs(-4), -- Up
-				["<C-d>"] = cmp.mapping.scroll_docs(4), -- Down
-				-- C-b (back) C-f (forward) for snippet placeholder navigation.
+				["<C-b>"] = cmp.mapping.scroll_docs(-4),
+				["<C-f>"] = cmp.mapping.scroll_docs(4),
+				["<C-Space>"] = cmp.mapping.complete(),
+				["<C-e>"] = cmp.mapping.abort(),
 				["<CR>"] = cmp.mapping.confirm({ select = true }),
-
 				["<Tab>"] = function(fallback)
 					if cmp.visible() then
 						cmp.select_next_item()
@@ -135,6 +141,7 @@ return {
 						fallback()
 					end
 				end,
+
 				["<S-Tab>"] = function(fallback)
 					if cmp.visible() then
 						cmp.select_prev_item()
@@ -144,36 +151,24 @@ return {
 						fallback()
 					end
 				end,
-
-				-- ["<Tab>"] = cmp.mapping(function(fallback)
-				-- 	if cmp.visible() then
-				-- 		cmp.select_next_item()
-				-- 	-- You could replace the expand_or_jumpable() calls with expand_or_locally_jumpable()
-				-- 	-- they way you will only jump inside the snippet region
-				-- 	elseif luasnip.expand_or_jumpable() then
-				-- 		luasnip.expand_or_jump()
-				-- 	elseif has_words_before() then
-				-- 		cmp.complete()
-				-- 	else
-				-- 		fallback()
-				-- 	end
-				-- end, { "i", "s" }),
-				--
-				-- ["<S-Tab>"] = cmp.mapping(function(fallback)
-				-- 	if cmp.visible() then
-				-- 		cmp.select_prev_item()
-				-- 	elseif luasnip.jumpable(-1) then
-				-- 		luasnip.jump(-1)
-				-- 	else
-				-- 		fallback()
-				-- 	end
-				-- end, { "i", "s" }),
-
-				-- ... Your other mappings ...
 			}),
 		})
-	end,
-	init = function()
-		vim.opt.completeopt = { "menu", "menuone", "noselect" }
+
+		cmp.setup.cmdline({ "/", "?" }, {
+			mapping = cmp.mapping.preset.cmdline(),
+			sources = {
+				{ name = "buffer" },
+			},
+		})
+
+		-- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
+		cmp.setup.cmdline(":", {
+			mapping = cmp.mapping.preset.cmdline(),
+			sources = cmp.config.sources({
+				{ name = "path" },
+			}, {
+				{ name = "cmdline" },
+			}),
+		})
 	end,
 }

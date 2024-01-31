@@ -5,7 +5,7 @@ vim.g.maplocalleader = " "
 -- 禁用自带插件
 vim.g.loaded_netrw = 1 -- 文件管理器
 vim.g.loaded_netrwPlugin = 1
--- vim.g.loaded_matchit = 1 -- 高亮括号
+vim.g.loaded_matchit = 1 -- 高亮括号
 
 -- 鼠标
 vim.o.mouse = "a" -- 开启鼠标支持
@@ -14,21 +14,36 @@ vim.o.mousemoveevent = true -- 鼠标悬停事件
 -- 状态列配置
 vim.o.signcolumn = "yes"
 
+-- 折叠配置
+function MyFoldtext()
+	local ts_foldtext = vim.treesitter.foldtext()
+
+	local n_lines = vim.v.foldend - vim.v.foldstart + 1
+	local text_lines = (n_lines == 1) and " line" or " lines"
+	local additional_info = "  " .. n_lines .. text_lines
+
+	table.insert(ts_foldtext, { additional_info, { "Folded" } })
+
+	return ts_foldtext
+end
+
+vim.opt.foldtext = "v:lua.MyFoldtext()"
 -- 代码折叠
--- vim.o.foldmethod = "expr"
--- vim.o.foldexpr = "nvim_treesitter#foldexpr()" -- treesitter做为折叠引擎
--- vim.o.foldenable = false -- 禁用自动折叠
--- vim.o.foldlevel = 99 -- 最大折叠层级
+vim.o.foldmethod = "expr"
+-- 设置 foldtext
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.o.foldenable = false -- 禁用自动折叠
+vim.o.foldlevel = 99 -- 最大折叠层级
 -- 特殊字符设置
 vim.opt.fillchars = {
-	vert = "▕", -- alternatives │
-	fold = " ",
-	eob = " ", -- suppress ~ at EndOfBuffer
-	diff = "╱", -- alternatives = ⣿ ╱ ░ ─
-	msgsep = "‾",
-	foldopen = "▾",
-	foldsep = "│",
-	foldclose = "▸",
+	diff = "╱", -- 在 diff 模式下，表示删除的字符
+	eob = " ", -- 文件末尾的字符
+	fold = " ", -- 折叠区域的字符
+	vert = "│", -- 垂直分隔符，用于表示列
+	msgsep = "‾", -- 状态栏中的消息分隔符
+	foldopen = "▾", -- 表示折叠已打开的字符
+	foldsep = "│", -- 折叠行之间的分隔符
+	foldclose = "▸", -- 表示折叠已关闭的字符
 }
 -- 显示特殊字符
 vim.opt.list = true

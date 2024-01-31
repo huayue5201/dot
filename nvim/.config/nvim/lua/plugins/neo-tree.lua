@@ -35,6 +35,12 @@ return {
 				-- statusline = true,
 			},
 			window = {
+				position = "left",
+				width = 45,
+				mapping_options = {
+					noremap = true,
+					nowait = true,
+				},
 				mappings = {
 					["<space>"] = {
 						"toggle_node",

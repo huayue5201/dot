@@ -1,5 +1,6 @@
 -- 配置模块加载目录
-
+-- 加快加载速度
+vim.loader.enable()
 -- 加载基本配置
 require("config.options")
 -- lazy加载

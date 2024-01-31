@@ -9,19 +9,13 @@ return {
 	config = function()
 		-- nvim-cmp
 		local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
-		-- ufo
-		local ufo_capabilities = vim.lsp.protocol.make_client_capabilities()
-		ufo_capabilities.textDocument.foldingRange = {
-			dynamicRegistration = false,
-			lineFoldingOnly = true,
-		}
 
 		local lspconfig = require("lspconfig")
 
 		local language_servers = require("lspconfig").util.available_servers()
 		for _, lsp in ipairs(language_servers) do
 			lspconfig[lsp].setup({
-				capabilities = { cmp_capabilities, ufo_capabilities },
+				capabilities = { cmp_capabilities },
 			})
 		end
 
@@ -61,13 +55,7 @@ return {
 		})
 
 		-- 查看当前buffer内错误
-		vim.keymap.set(
-			"n",
-			"<leader>wd",
-			"<cmd>lua require('telescope.builtin').diagnostics()<cr>",
-			{ desc = "查看错误" }
-		)
-		-- vim.keymap.set("n", "<space>q", vim.diagnostic.setloclist)
+		vim.keymap.set("n", "<space>od", vim.diagnostic.setloclist)
 		-- 跳转到下一个错误
 		vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到下一个错误" })
 		-- 跳转到上一个错误
@@ -84,43 +72,14 @@ return {
 				-- Buffer local mappings.
 				-- See `:help vim.lsp.*` for documentation on any of the below functions
 				local opts = { buffer = ev.buf }
-
 				-- 跳转到定义
-				vim.keymap.set(
-					"n",
-					"gd",
-					"<cmd>lua require('telescope.builtin').lsp_definitions()<cr>",
-					{ desc = "跳转到定义" },
-					opts
-				)
-				-- vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "跳转到定义" }, opts)
+				vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "跳转到定义" }, opts)
 				-- 跳转到类型定义
-				vim.keymap.set(
-					"n",
-					"gD",
-					"<cmd>lua require('telescope.builtin').lsp_type_definitions()<cr>",
-					{ desc = "跳转到类型定义" },
-					opts
-				)
-				-- vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opts)
+				vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opts)
 				-- 查看实现
-				vim.keymap.set(
-					"n",
-					"gi",
-					"<cmd>lua require('telescope.builtin').lsp_implementations()<cr>",
-					{ desc = "查看实现" },
-					opts
-				)
-				-- vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "查看实现" }, opts)
+				vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "查看实现" }, opts)
 				-- 查看引用
-				vim.keymap.set(
-					"n",
-					"gr",
-					"<cmd>lua require('telescope.builtin').lsp_references()<cr>",
-					{ desc = "查看引用" },
-					opts
-				)
-				-- vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "查看lsp引用" }, opts)
+				vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "查看lsp引用" }, opts)
 				-- 跳转到声明
 				vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "跳转到声明" }, opts)
 				-- 查看文档
