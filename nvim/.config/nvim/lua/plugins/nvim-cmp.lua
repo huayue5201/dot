@@ -17,7 +17,7 @@ return {
 		-- https://github.com/hrsh7th/cmp-nvim-lsp-signature-help
 		"hrsh7th/cmp-nvim-lsp-signature-help",
 		-- https://github.com/L3MON4D3/LuaSnip
-		"L3MON4D3/LuaSnip",
+		{ "L3MON4D3/LuaSnip", build = "make install_jsregexp" },
 		-- https://github.com/abecodes/tabout.nvim
 		"abecodes/tabout.nvim",
 	},
@@ -31,10 +31,9 @@ return {
 			return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
 		end
 
+		local luasnip = require("luasnip")
 		-- Set up nvim-cmp.
 		local cmp = require("cmp")
-		-- 片段引擎
-		local luasnip = require("luasnip")
 
 		-- Customization for Pmenu
 		vim.api.nvim_set_hl(0, "PmenuSel", { bg = "#282C34", fg = "NONE" })
@@ -79,11 +78,10 @@ return {
 		vim.api.nvim_set_hl(0, "CmpItemKindTypeParameter", { fg = "#D8EEEB", bg = "#58B5A8" })
 
 		cmp.setup({
-			-- 代码片段引擎L3MON4D3/LuaSnip
 			snippet = {
-				-- REQUIRED - you must specify a snippet engine
 				expand = function(args)
-					require("luasnip").lsp_expand(args.body) -- For `luasnip` users.
+					require("luasnip").lsp_expand(args.body)
+					-- vim.snippet.expand(args.body)
 				end,
 			},
 
@@ -141,7 +139,6 @@ return {
 						fallback()
 					end
 				end,
-
 				["<S-Tab>"] = function(fallback)
 					if cmp.visible() then
 						cmp.select_prev_item()

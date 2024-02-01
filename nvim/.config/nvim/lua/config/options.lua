@@ -11,9 +11,6 @@ vim.g.loaded_matchit = 1 -- 高亮括号
 vim.o.mouse = "a" -- 开启鼠标支持
 vim.o.mousemoveevent = true -- 鼠标悬停事件
 
--- 状态列配置
-vim.o.signcolumn = "yes"
-
 -- 折叠配置
 function MyFoldtext()
 	local ts_foldtext = vim.treesitter.foldtext()
@@ -26,15 +23,14 @@ function MyFoldtext()
 
 	return ts_foldtext
 end
-
-vim.opt.foldtext = "v:lua.MyFoldtext()"
--- 代码折叠
 vim.o.foldmethod = "expr"
--- 设置 foldtext
-vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 vim.o.foldenable = false -- 禁用自动折叠
 vim.o.foldlevel = 99 -- 最大折叠层级
--- 特殊字符设置
+vim.opt.foldtext = "v:lua.MyFoldtext()"
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 设置 foldtext
+
+-- 设置特殊字符
+vim.opt.list = true
 vim.opt.fillchars = {
 	diff = "╱", -- 在 diff 模式下，表示删除的字符
 	eob = " ", -- 文件末尾的字符
@@ -45,79 +41,50 @@ vim.opt.fillchars = {
 	foldsep = "│", -- 折叠行之间的分隔符
 	foldclose = "▸", -- 表示折叠已关闭的字符
 }
--- 显示特殊字符
-vim.opt.list = true
 vim.opt.listchars = {
 	tab = "┊ ",
 	leadmultispace = "┊ ",
 	trail = "␣",
 	nbsp = "⍽",
 }
+
 -- 代码缩进
--- 继承前一行的缩进方式
-vim.o.autoindent = true
--- 使用空格替代tab
-vim.o.expandtab = true
--- 1个tab显示为3个空格
-vim.o.tabstop = 3
--- INSERT模式下1个tab代表3个空格
-vim.o.softtabstop = 3
--- NORMAL模式下>> <<和INSERT模式下CTRL-T CTRL-D的缩进长度
-vim.o.shiftround = true
+vim.o.autoindent = true -- 继承前一行的缩进方式
+vim.o.expandtab = true -- 使用空格替代tab
+vim.o.tabstop = 3 -- 1个tab显示为3个空格
+vim.o.softtabstop = 3 -- INSERT模式下1个tab代表3个空格
+vim.o.shiftround = true -- NORMAL模式下>> <<和INSERT模式下CTRL-T CTRL-D的缩进长度
 vim.o.shiftwidth = 3
 
 -- 自动切换工作目录
 -- vim.opt.autochdir=true
--- set termguicolors to enable highlight groups
-vim.o.termguicolors = true
--- 设定各种文本的字符编码
-vim.o.encoding = "utf-8"
--- 退出vim询问是否保存
-vim.o.confirm = true
--- 是否显示绝对行号
-vim.o.number = true
--- 显示相对行号
-vim.o.relativenumber = true
--- 是否启用系统剪切板
-vim.o.clipboard = "unnamedplus"
--- 禁止折行显示文本
-vim.o.wrap = false
--- 光标移动的时候始终保持上下左右至少有 8 个空格的间隔
-vim.o.scrolloff = 8
+vim.o.termguicolors = true --设置 termguicolors 以启用突出显示组
+vim.o.encoding = "utf-8" -- 设定各种文本的字符编码
+vim.o.confirm = true -- 退出vim询问是否保存
+vim.o.number = true -- 是否显示绝对行号
+vim.o.relativenumber = true -- 显示相对行号
+vim.o.clipboard = "unnamedplus" -- 是否启用系统剪切板
+vim.o.wrap = false -- 禁止折行显示文本
+vim.o.scrolloff = 8 -- 光标移动的时候始终保持上下左右至少有 8 个空格的间隔
 vim.o.sidescrolloff = 8
--- 禁止创建备份文件
-vim.o.backup = false
+vim.o.backup = false -- 禁止创建备份文件
 -- vim.o.writebackup = false
--- 禁止产生交换文件
--- vim.o.noswapfile = false
--- 当文件被外部程序修改时，自动加载
-vim.o.autoread = true
--- 缩短 swap file 的更新时间间隔
-vim.o.updatetime = 300
--- 设定等待按键时长的毫秒数
--- vim.o.timeoutlen = 500
--- 是否高亮当前文本行
-vim.o.cursorline = true
--- 是否开启 xterm 兼容的终端 24 位色彩支持
-vim.o.termguicolors = true
--- 补全增强
-vim.o.wildmenu = true
--- 补全最多显示10行
-vim.o.pumheight = 15
--- cmd模式补全
-vim.o.wildoptions = "pum" --"tagfile"
--- 是否开启自动缩进
-vim.o.autoindent = true
--- 设定单词拼写检查的语言
-vim.o.spelllang = "en_us,cjk"
--- 不区分大小写的搜索，除非搜索中包含大写
-vim.o.ignorecase = true
+-- vim.o.noswapfile = false -- 禁止产生交换文件
+vim.o.autoread = true -- 当文件被外部程序修改时，自动加载
+vim.o.updatetime = 300 -- 缩短 swap file 的更新时间间隔
+-- vim.o.timeoutlen = 500 -- 设定等待按键时长的毫秒数
+vim.o.cursorline = true -- 是否高亮当前文本行
+vim.o.termguicolors = true -- 是否开启 xterm 兼容的终端 24 位色彩支持
+vim.o.wildmenu = true -- 补全增强
+vim.o.pumheight = 15 -- 补全最多显示10行
+vim.o.wildoptions = "pum" --"tagfile" cmd模式补全
+vim.o.autoindent = true -- 是否开启自动缩进
+vim.o.spelllang = "en_us,cjk" -- 设定单词拼写检查的语言
+vim.o.ignorecase = true -- 不区分大小写的搜索，除非搜索中包含大写
 vim.o.smartcase = true
--- 分隔窗口的时候 新窗口从下面或者右边出现
-vim.o.splitbelow = true
+vim.o.splitbelow = true -- 分隔窗口的时候 新窗口从下面或者右边出现
 vim.o.splitright = true
--- 稳定窗口
-vim.o.splitkeep = "screen"
+vim.o.splitkeep = "screen" -- 稳定窗口
 -- vim.o.splitkeep = "topline"
--- 状态栏样式配置(1、2 、3)
-vim.o.laststatus = 3
+vim.o.laststatus = 3 -- 状态栏样式配置(1、2 、3)
+vim.o.signcolumn = "yes" -- 状态列配置

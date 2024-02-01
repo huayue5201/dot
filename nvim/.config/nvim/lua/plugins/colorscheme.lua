@@ -15,7 +15,6 @@ return {
 				treesitter = true,
 				aerial = true,
 				fidget = true,
-				harpoon = true,
 				mason = true,
 				lsp_trouble = true,
 				which_key = true,
