@@ -31,12 +31,21 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 --================
--- 自动清除搜索高亮
-vim.on_key(function(char)
+-- Toggle hlsearch based on specific keys in Normal mode
+if vim.g.enabled_toggle_hlsearch then
+	return
+end
+vim.g.enabled_toggle_hlsearch = true
+local function toggle_hlsearch(char)
+	-- Check if in Normal mode
 	if vim.fn.mode() == "n" then
-		local new_hlsearch = vim.tbl_contains({ "<CR>", "n", "N", "*", "#", "?", "/" }, vim.fn.keytrans(char))
-		if vim.opt.hlsearch:get() ~= new_hlsearch then
-			vim.opt.hlsearch = new_hlsearch
+		local toggle_keys = { "<CR>", "n", "N", "*", "#", "?", "/" }
+		local should_toggle = vim.tbl_contains(toggle_keys, vim.fn.keytrans(char))
+		-- Toggle hlsearch if needed
+		if vim.opt.hlsearch:get() ~= should_toggle then
+			vim.opt.hlsearch = should_toggle
 		end
 	end
-end, vim.api.nvim_create_namespace("auto_hlsearch"))
+end
+-- Register the key handler for toggling hlsearch
+vim.on_key(toggle_hlsearch, vim.api.nvim_create_namespace("toggle_hlsearch"))

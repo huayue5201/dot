@@ -7,20 +7,20 @@ vim.g.loaded_netrw = 1 -- 文件管理器
 vim.g.loaded_netrwPlugin = 1
 vim.g.loaded_matchit = 1 -- 高亮括号
 
--- 鼠标
+-- 基本配置
 vim.o.mouse = "a" -- 开启鼠标支持
 vim.o.mousemoveevent = true -- 鼠标悬停事件
+vim.o.encoding = "utf-8" -- 设定各种文本的字符编码
+vim.o.confirm = true -- 退出vim询问是否保存
+vim.o.clipboard = "unnamedplus" -- 是否启用系统剪切板
 
 -- 折叠配置
 function MyFoldtext()
 	local ts_foldtext = vim.treesitter.foldtext()
-
 	local n_lines = vim.v.foldend - vim.v.foldstart + 1
 	local text_lines = (n_lines == 1) and " line" or " lines"
 	local additional_info = "  " .. n_lines .. text_lines
-
 	table.insert(ts_foldtext, { additional_info, { "Folded" } })
-
 	return ts_foldtext
 end
 vim.o.foldmethod = "expr"
@@ -59,11 +59,6 @@ vim.o.shiftwidth = 3
 -- 自动切换工作目录
 -- vim.opt.autochdir=true
 vim.o.termguicolors = true --设置 termguicolors 以启用突出显示组
-vim.o.encoding = "utf-8" -- 设定各种文本的字符编码
-vim.o.confirm = true -- 退出vim询问是否保存
-vim.o.number = true -- 是否显示绝对行号
-vim.o.relativenumber = true -- 显示相对行号
-vim.o.clipboard = "unnamedplus" -- 是否启用系统剪切板
 vim.o.wrap = false -- 禁止折行显示文本
 vim.o.scrolloff = 8 -- 光标移动的时候始终保持上下左右至少有 8 个空格的间隔
 vim.o.sidescrolloff = 8
@@ -73,8 +68,8 @@ vim.o.backup = false -- 禁止创建备份文件
 vim.o.autoread = true -- 当文件被外部程序修改时，自动加载
 vim.o.updatetime = 300 -- 缩短 swap file 的更新时间间隔
 -- vim.o.timeoutlen = 500 -- 设定等待按键时长的毫秒数
-vim.o.cursorline = true -- 是否高亮当前文本行
-vim.o.termguicolors = true -- 是否开启 xterm 兼容的终端 24 位色彩支持
+vim.o.cursorline = true -- 高亮当前文本行
+vim.o.termguicolors = true -- 开启xterm兼容的终端24位色彩支持
 vim.o.wildmenu = true -- 补全增强
 vim.o.pumheight = 15 -- 补全最多显示10行
 vim.o.wildoptions = "pum" --"tagfile" cmd模式补全
@@ -87,4 +82,10 @@ vim.o.splitright = true
 vim.o.splitkeep = "screen" -- 稳定窗口
 -- vim.o.splitkeep = "topline"
 vim.o.laststatus = 3 -- 状态栏样式配置(1、2 、3)
-vim.o.signcolumn = "yes" -- 状态列配置
+
+-- 状态列配置
+vim.o.statuscolumn = " %l%=%s"
+vim.opt.signcolumn = "yes:1"
+vim.opt.numberwidth = 4
+vim.o.number = true -- 是否显示绝对行号
+vim.o.relativenumber = true -- 显示相对行号

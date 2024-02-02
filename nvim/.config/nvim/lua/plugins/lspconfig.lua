@@ -55,7 +55,7 @@ return {
 		})
 
 		-- 查看当前buffer内错误
-		vim.keymap.set("n", "<space>od", vim.diagnostic.setloclist)
+		vim.keymap.set("n", "<space>od", vim.diagnostic.setloclist, { desc = "代码错误" })
 		-- 跳转到下一个错误
 		vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到下一个错误" })
 		-- 跳转到上一个错误

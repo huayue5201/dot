@@ -3,7 +3,7 @@
 
 return {
 	"keaising/im-select.nvim",
-	event = "VeryLazy",
+	event = "InsertEnter",
 	config = function()
 		require("im_select").setup()
 	end,
