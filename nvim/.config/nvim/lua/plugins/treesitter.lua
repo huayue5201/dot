@@ -10,7 +10,6 @@ return {
 			-- https://github.com/andymass/vim-matchup
 			matchup = {
 				enable = true,
-				include_match_words = true,
 			},
 			ensure_installed = {
 				"lua",

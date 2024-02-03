@@ -27,5 +27,3 @@ vim.keymap.set(
 	'<cmd>lua require("modules.loclist_toggle").toggleLocationList ()<cr>',
 	{ desc = "loclist窗口", noremap = true, silent = true }
 )
--- 正常模式下按 ESC 取消高亮显示
--- vim.keymap.set("n", "<ESC>", "<cmd>nohlsearch<cr>")

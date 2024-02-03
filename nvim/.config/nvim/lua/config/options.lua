@@ -23,11 +23,12 @@ function MyFoldtext()
 	table.insert(ts_foldtext, { additional_info, { "Folded" } })
 	return ts_foldtext
 end
-vim.o.foldmethod = "expr"
-vim.o.foldenable = false -- 禁用自动折叠
-vim.o.foldlevel = 99 -- 最大折叠层级
 vim.opt.foldtext = "v:lua.MyFoldtext()"
 vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 设置 foldtext
+vim.o.foldcolumn = "1" -- 折叠柱列数
+vim.o.foldmethod = "expr"
+vim.o.foldenable = true -- 自动开启折叠
+vim.o.foldlevel = 99 -- 最大折叠层级
 
 -- 设置特殊字符
 vim.opt.list = true
@@ -84,8 +85,8 @@ vim.o.splitkeep = "screen" -- 稳定窗口
 vim.o.laststatus = 3 -- 状态栏样式配置(1、2 、3)
 
 -- 状态列配置
-vim.o.statuscolumn = " %l%=%s"
+vim.o.statuscolumn = " %l%=%s%C"
 vim.opt.signcolumn = "yes:1"
-vim.opt.numberwidth = 4
+vim.opt.numberwidth = 3 -- 状态列宽度
 vim.o.number = true -- 是否显示绝对行号
 vim.o.relativenumber = true -- 显示相对行号

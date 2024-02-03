@@ -31,10 +31,12 @@ return {
 			return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
 		end
 
+		-- Set up luasnip.
 		local luasnip = require("luasnip")
 		-- Set up nvim-cmp.
 		local cmp = require("cmp")
-
+      -- Set up lspkind.
+		local lspkind = require("lspkind")
 		-- Customization for Pmenu
 		vim.api.nvim_set_hl(0, "PmenuSel", { bg = "#282C34", fg = "NONE" })
 		vim.api.nvim_set_hl(0, "Pmenu", { fg = "#C5CDD9", bg = "#22252A" })
@@ -115,7 +117,6 @@ return {
 					local strings = vim.split(kind.kind, "%s", { trimempty = true })
 					kind.kind = " " .. (strings[1] or "") .. " "
 					kind.menu = "    (" .. (strings[2] or "") .. ")"
-
 					return kind
 				end,
 			},

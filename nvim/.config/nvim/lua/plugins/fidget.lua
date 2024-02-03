@@ -2,7 +2,7 @@
 
 return {
 	"j-hui/fidget.nvim",
-	event = { "BufReadPre", "BufNewFile" },
+	lazy = true,
 	config = function()
 		require("fidget").setup({})
 	end,
