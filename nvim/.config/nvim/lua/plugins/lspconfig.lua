@@ -37,13 +37,6 @@ return {
 		-- https://github.com/olrtg/emmet-language-server
 		require("lspconfig").emmet_language_server.setup({})
 
-		-- 诊断图标
-		local signs = { Error = "⊗", Warn = "", Hint = "󰌶", Info = "󰙎" }
-		for type, icon in pairs(signs) do
-			local hl = "DiagnosticSign" .. type
-			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-		end
-
 		-- 显示诊断来源
 		vim.diagnostic.config({
 			virtual_text = {
@@ -52,6 +45,15 @@ return {
 			},
 			float = {
 				source = "if_many", -- Or "if_many"
+			},
+			signs = {
+				-- 诊断图标
+				text = {
+					[vim.diagnostic.severity.ERROR] = "", -- or other icon of your choice here, this is just what my config has:
+					[vim.diagnostic.severity.WARN] = "",
+					[vim.diagnostic.severity.INFO] = "",
+					[vim.diagnostic.severity.HINT] = "󰌵",
+				},
 			},
 		})
 

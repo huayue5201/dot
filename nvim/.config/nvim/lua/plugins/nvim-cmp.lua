@@ -2,7 +2,7 @@
 
 return {
 	"hrsh7th/nvim-cmp",
-	event = { "InsertEnter", "CmdlineEnter" },
+	event = { "InsertEnter" },
 	dependencies = {
 		-- https://github.com/onsails/lspkind.nvim
 		"onsails/lspkind.nvim",
@@ -12,8 +12,6 @@ return {
 		"hrsh7th/cmp-buffer",
 		-- https://github.com/hrsh7th/cmp-path
 		"hrsh7th/cmp-path",
-		-- https://github.com/hrsh7th/cmp-cmdline
-		"hrsh7th/cmp-cmdline",
 		-- https://github.com/hrsh7th/cmp-nvim-lsp-signature-help
 		"hrsh7th/cmp-nvim-lsp-signature-help",
 		-- https://github.com/L3MON4D3/LuaSnip
@@ -35,7 +33,7 @@ return {
 		local luasnip = require("luasnip")
 		-- Set up nvim-cmp.
 		local cmp = require("cmp")
-      -- Set up lspkind.
+		-- Set up lspkind.
 		local lspkind = require("lspkind")
 		-- Customization for Pmenu
 		vim.api.nvim_set_hl(0, "PmenuSel", { bg = "#282C34", fg = "NONE" })
@@ -83,7 +81,6 @@ return {
 			snippet = {
 				expand = function(args)
 					require("luasnip").lsp_expand(args.body)
-					-- vim.snippet.expand(args.body)
 				end,
 			},
 
@@ -149,23 +146,6 @@ return {
 						fallback()
 					end
 				end,
-			}),
-		})
-
-		cmp.setup.cmdline({ "/", "?" }, {
-			mapping = cmp.mapping.preset.cmdline(),
-			sources = {
-				{ name = "buffer" },
-			},
-		})
-
-		-- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-		cmp.setup.cmdline(":", {
-			mapping = cmp.mapping.preset.cmdline(),
-			sources = cmp.config.sources({
-				{ name = "path" },
-			}, {
-				{ name = "cmdline" },
 			}),
 		})
 	end,

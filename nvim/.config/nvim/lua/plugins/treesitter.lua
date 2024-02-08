@@ -21,7 +21,6 @@ return {
 				"bash",
 				"html",
 				"json5",
-				"norg",
 			},
 			-- 同步安装解析器
 			sync_install = true,
