@@ -36,8 +36,8 @@ foreground = "0xdcd7ba"
 background = "0x2d4f67"
 foreground = "0xc8c093"
 
-[env]
-TERM = "alacritty-direct"
+# [env]
+# TERM = "alacritty-direct"
 
 [font]
 size = 16
@@ -63,10 +63,11 @@ args = ["-l"]
 program = "/bin/zsh"
 
 [window]
-decorations = "full"
+decorations = "Transparent"
 dynamic_padding = false
 opacity = 0.8
-startup_mode = "Maximized"
+startup_mode = "Windowed"
+option_as_alt = "OnlyLeft"
 
 [window.dimensions]
 columns = 150
@@ -75,3 +76,13 @@ lines = 60
 [window.padding]
 x = 10
 y = 15
+
+[cursor]
+blink_interval = 500
+
+[cursor.style]
+shape = "Beam"
+blinking = "Always"
+
+[keyboard]
+bindings = []
