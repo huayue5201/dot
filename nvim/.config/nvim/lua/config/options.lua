@@ -88,9 +88,9 @@ vim.o.splitkeep = "screen" -- 稳定窗口
 vim.o.laststatus = 3 -- 状态栏样式配置(1、2 、3)
 
 -- 状态列配置
-vim.o.statuscolumn = " %r%=%s%C"
+vim.o.statuscolumn = " %l%=%s%C"
 vim.opt.signcolumn = "yes:1"
 vim.opt.colorcolumn = "80" -- 代码长度警示条
 vim.opt.numberwidth = 3 -- 状态列宽度
--- vim.o.number = true -- 是否显示绝对行号
-vim.o.relativenumber = true -- 显示相对行号
+vim.o.number = true -- 是否显示绝对行号
+-- vim.o.relativenumber = true -- 显示相对行号
