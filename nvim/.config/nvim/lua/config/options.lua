@@ -15,14 +15,11 @@ vim.o.confirm = true -- 退出vim询问是否保存
 vim.o.clipboard = "unnamedplus" -- 是否启用系统剪切板
 
 -- 折叠配置
-local fold_icon = ""
-local fold_text_singular = "line"
-local fold_text_plural = "lines"
 function MyFoldtext()
 	local ts_foldtext = vim.treesitter.foldtext()
 	local n_lines = vim.v.foldend - vim.v.foldstart + 1
-	local text_lines = (n_lines == 1) and fold_text_singular or fold_text_plural
-	local additional_info = string.format(" %s %d %s", fold_icon, n_lines, text_lines)
+	local text_lines = (n_lines == 1) and "line" or "行"
+	local additional_info = string.format(" %s %d%s", "", n_lines, text_lines)
 	table.insert(ts_foldtext, { additional_info, { "Folded" } })
 	return ts_foldtext
 end
@@ -88,9 +85,9 @@ vim.o.splitkeep = "screen" -- 稳定窗口
 vim.o.laststatus = 3 -- 状态栏样式配置(1、2 、3)
 
 -- 状态列配置
-vim.o.statuscolumn = " %l%=%s%C"
+vim.opt.statuscolumn = " %=%{v:relnum?v:relnum:v:lnum}%=%s%C"
 vim.opt.signcolumn = "yes:1"
 vim.opt.colorcolumn = "80" -- 代码长度警示条
-vim.opt.numberwidth = 3 -- 状态列宽度
+vim.opt.numberwidth = 4 -- 状态列宽度
 vim.o.number = true -- 是否显示绝对行号
--- vim.o.relativenumber = true -- 显示相对行号
+vim.o.relativenumber = true -- 显示相对行号

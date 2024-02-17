@@ -16,8 +16,6 @@ return {
 		"hrsh7th/cmp-nvim-lsp-signature-help",
 		-- https://github.com/L3MON4D3/LuaSnip
 		{ "L3MON4D3/LuaSnip", build = "make install_jsregexp" },
-		-- https://github.com/abecodes/tabout.nvim
-		"abecodes/tabout.nvim",
 	},
 	init = function()
 		vim.opt.completeopt = { "menu", "menuone", "noselect" }
@@ -96,6 +94,11 @@ return {
 
 			-- 补全弹窗格式设置
 			window = {
+				-- nvim_lsp_signature_help弹窗大小
+				documentation = {
+					maxheight = 15,
+					maxwidth = 50, -- change this value as you want
+				},
 				-- 	-- 边框线
 				-- 	completion = cmp.config.window.bordered(),
 				-- 	documentation = cmp.config.window.bordered(),
@@ -125,27 +128,29 @@ return {
 				["<C-Space>"] = cmp.mapping.complete(),
 				["<C-e>"] = cmp.mapping.abort(),
 				["<CR>"] = cmp.mapping.confirm({ select = true }),
-				["<Tab>"] = function(fallback)
+				["<C-n>"] = cmp.mapping(function(fallback)
 					if cmp.visible() then
 						cmp.select_next_item()
+					-- You could replace the expand_or_jumpable() calls with expand_or_locally_jumpable()
+					-- that way you will only jump inside the snippet region
 					elseif luasnip.expand_or_jumpable() then
-						vim.fn.feedkeys(
-							vim.api.nvim_replace_termcodes("<Plug>luasnip-expand-or-jump", true, true, true),
-							""
-						)
+						luasnip.expand_or_jump()
+					elseif has_words_before() then
+						cmp.complete()
 					else
 						fallback()
 					end
-				end,
-				["<S-Tab>"] = function(fallback)
+				end, { "i", "s" }),
+
+				["<C-p>"] = cmp.mapping(function(fallback)
 					if cmp.visible() then
 						cmp.select_prev_item()
 					elseif luasnip.jumpable(-1) then
-						vim.fn.feedkeys(vim.api.nvim_replace_termcodes("<Plug>luasnip-jump-prev", true, true, true), "")
+						luasnip.jump(-1)
 					else
 						fallback()
 					end
-				end,
+				end, { "i", "s" }),
 			}),
 		})
 	end,
