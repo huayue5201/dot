@@ -15,7 +15,7 @@ vim.keymap.set("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
 -- 切换quickfix窗口
 vim.keymap.set(
 	"n",
-	"<leader>q",
+	"<leader>oq",
 	'<cmd>lua require("utils.quickfix_toggle").toggleQuickfix()<cr>',
 	{ desc = "quickfix窗口", noremap = true, silent = true }
 )
@@ -23,7 +23,7 @@ vim.keymap.set(
 -- 切换loclist窗口
 vim.keymap.set(
 	"n",
-	"<leader>l",
+	"<leader>ol",
 	'<cmd>lua require("utils.loclist_toggle").toggleLocationList ()<cr>',
 	{ desc = "loclist窗口", noremap = true, silent = true }
 )

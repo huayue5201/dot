@@ -3,9 +3,8 @@
 return {
 	"potamides/pantran.nvim",
 	keys = {
-		{ "<leader>tr", desc = "文本翻译" },
 		{ "<leader>trr", desc = "文本翻译" },
-		{ "<leader>tr", mode = "x", desc = "文本翻译" },
+		{ "<leader>tr", mode = { "x", "n" }, desc = "文本翻译" },
 	},
 	config = function()
 		require("pantran").setup({
@@ -15,7 +14,7 @@ return {
 			-- Configuration for individual engines goes here.
 			engines = {
 				google = {
-					default_source= "auto",
+					default_source = "auto",
 					default_target = "zh",
 				},
 			},

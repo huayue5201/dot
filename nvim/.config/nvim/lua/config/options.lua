@@ -3,9 +3,26 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 -- 禁用自带插件
-vim.g.loaded_netrw = 1 -- 文件管理器
-vim.g.loaded_netrwPlugin = 1
 vim.g.loaded_matchit = 1 -- 高亮括号
+vim.g.loaded_gzip = 1
+vim.g.loaded_tar = 1
+vim.g.loaded_tarPlugin = 1
+vim.g.loaded_zip = 1
+vim.g.loaded_zipPlugin = 1
+
+vim.g.loaded_getscript = 1
+vim.g.loaded_getscriptPlugin = 1
+vim.g.loaded_vimball = 1
+vim.g.loaded_vimballPlugin = 1
+
+vim.g.loaded_2html_plugin = 1
+vim.g.loaded_logiPat = 1
+vim.g.loaded_rrhelper = 1
+
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+vim.g.loaded_netrwSettings = 1
+vim.g.iloaded_netrwFileHandlers = 1
 
 -- 基本配置
 vim.o.mouse = "a" -- 开启鼠标支持
