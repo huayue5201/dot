@@ -50,7 +50,7 @@ return {
 		})
 
 		-- 查看当前buffer内错误
-		vim.keymap.set("n", "<space>od", vim.diagnostic.setloclist, { desc = "代码错误" })
+		vim.keymap.set("n", "<space>ld", vim.diagnostic.setloclist, { desc = "查看代码错误" })
 		-- 跳转到下一个错误
 		vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到下一个错误" })
 		-- 跳转到上一个错误
@@ -86,17 +86,17 @@ return {
 				-- 重命名
 				vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename, { desc = "重命名" }, opts)
 				-- 添加workspace
-				vim.keymap.set("n", "<space>wa", vim.lsp.buf.add_workspace_folder, { desc = "添加workspace" }, opts)
+				vim.keymap.set("n", "<space>aw", vim.lsp.buf.add_workspace_folder, { desc = "添加workspace" }, opts)
 				-- 重命名workspace
 				vim.keymap.set(
 					"n",
-					"<space>wn",
+					"<space>rw",
 					vim.lsp.buf.remove_workspace_folder,
 					{ desc = "重命名workspace" },
 					opts
 				)
 				-- 查看workspace
-				vim.keymap.set("n", "<space>wl", function()
+				vim.keymap.set("n", "<space>lw", function()
 					print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 				end, { desc = "查看workspace" }, opts)
 				-- 格式化当前buffer

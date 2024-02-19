@@ -11,7 +11,7 @@ return {
 	},
 	keys = {
 		{ "<leader>oe", "<cmd>Neotree toggle<CR>", desc = "文件树" },
-		{ "<leader>os", "<cmd>Neotree document_symbols<CR>", desc = "符号树" },
+		{ "<leader>ls", "<cmd>Neotree document_symbols<CR>", desc = "查看符号树" },
 	},
 	config = function()
 		vim.fn.sign_define("DiagnosticSignError", { text = " ", texthl = "DiagnosticSignError" })

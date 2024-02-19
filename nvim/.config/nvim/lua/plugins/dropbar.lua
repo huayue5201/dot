@@ -2,8 +2,8 @@
 
 return {
 	"Bekaboo/dropbar.nvim",
-	event = { "BufReadPre" },
+	event = "BufReadPre",
 	keys = {
-		{ "<leader>or", "<cmd>lua require('dropbar.api').pick()<cr>", desc = "选择bar" },
+		{ "<leader>b", "<cmd>lua require('dropbar.api').pick()<cr>", desc = "Winbar" },
 	},
 }
