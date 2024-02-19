@@ -6,7 +6,7 @@ return {
 	config = function()
 		require("lint").linters_by_ft = {
 			-- https://github.com/Riverside-Healthcare/djLint
-			html = { "djlint" },
+			-- html = { "djlint" },
 			-- https://github.com/zaach/jsonlint
 			-- json = { "jsonlint" },
 		}

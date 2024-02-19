@@ -22,20 +22,12 @@ return {
 
 		-- 加载lsp配置文件 lua/lsp/...
 		require("lsp-sever.lua_ls")
-		-- https://rust-analyzer.github.io
+		-- https://rust-analyzer.github.io                                  │
 		require("lspconfig").rust_analyzer.setup({})
-		-- https://github.com/mtshiba/pylyzer
-		require("lspconfig").pylyzer.setup({})
 		-- toml-sever
-		-- https://github.com/tamasfe/taplo
 		require("lspconfig").taplo.setup({})
-		-- https://github.com/typescript-language-server/typescript-language-server
-		-- require("lspconfig").tsserver.setup({})
-		-- https://github.com/biomejs/biome/blob/main/packages/%40biomejs/biome/README.zh-CN.md
-		require("lspconfig").biome.setup({})
-		-- html-sever
-		-- https://github.com/olrtg/emmet-language-server
-		require("lspconfig").emmet_language_server.setup({})
+		-- https://github.com/bergercookie/asm-lsp
+		require("lspconfig").asm_lsp.setup({})
 
 		-- 显示诊断来源
 		vim.diagnostic.config({

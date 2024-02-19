@@ -22,11 +22,11 @@ return {
 			-- https://github.com/JohnnyMorganz/StyLua
 			lua = { "stylua" },
 			-- https://github.com/psf/black
-			python = { "black" },
+			-- python = { "black" },
 			-- https://github.com/dprint/dprint
 			-- json = { "dprint" },
 			-- https://github.com/Riverside-Healthcare/djLint
-			html = { "djlint" },
+			-- html = { "djlint" },
 		},
 		-- Set up format-on-save
 		-- format_on_save = { timeout_ms = 500, lsp_fallback = true },

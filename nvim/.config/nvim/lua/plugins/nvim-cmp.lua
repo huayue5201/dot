@@ -88,7 +88,6 @@ return {
 				{ name = "buffer" },
 				{ name = "luasnip" }, -- For luasnip users.
 				{ name = "path" },
-				{ name = "crates" },
 				{ name = "nvim_lsp_signature_help" },
 			}),
 

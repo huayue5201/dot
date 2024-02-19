@@ -19,8 +19,6 @@ return {
 				"markdown_inline",
 				"regex",
 				"bash",
-				"html",
-				"json5",
 			},
 			-- 同步安装解析器
 			sync_install = true,
