@@ -3,8 +3,8 @@
 return {
 	"mfussenegger/nvim-dap",
 	requires = {
-		{ "rcarriga/nvim-dap-ui" },
-		{ "theHamsta/nvim-dap-virtual-text" },
+		"rcarriga/nvim-dap-ui",
+		"theHamsta/nvim-dap-virtual-text",
 	},
 	keys = {
 		{ "<leader>d", desc = "设置断点" },
