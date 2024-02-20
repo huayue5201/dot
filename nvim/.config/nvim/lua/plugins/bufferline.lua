@@ -26,15 +26,15 @@ return {
 				offsets = {
 					{
 						filetype = "NvimTree",
-						text = "            File Explorer",
+						text = " File Explorer",
 						highlight = "Directory",
-						text_align = "left",
+						separator = true, -- use a "true" to enable the default, or set your own character
 					},
 					{
 						filetype = "aerial",
-						text = "󰡱 Symbols Outline     ",
+						text = "󰡱 Symbols Outline",
 						highlight = "Directory",
-						text_align = "right",
+						separator = true, -- use a "true" to enable the default, or set your own character
 					},
 				},
 				-- lsp支持
