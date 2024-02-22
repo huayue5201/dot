@@ -70,7 +70,7 @@ return {
 				-- 跳转到定义
 				vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "跳转到定义" }, opts)
 				-- 跳转到类型定义
-				vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opts)
+				vim.keymap.set("n", "ge", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opts)
 				-- 查看实现
 				vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "查看实现" }, opts)
 				-- 查看引用

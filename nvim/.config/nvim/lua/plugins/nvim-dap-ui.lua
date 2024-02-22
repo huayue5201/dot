@@ -4,7 +4,7 @@ return {
 	"rcarriga/nvim-dap-ui",
 	requires = { "mfussenegger/nvim-dap" },
 	keys = {
-		{ "<leader>od", desc = "调试模式" },
+		{ "<leader>du", desc = "调试模式" },
 	},
 	config = function()
 		require("dapui").setup()
@@ -21,6 +21,6 @@ return {
 		dap.listeners.before.event_exited.dapui_config = function()
 			dapui.close()
 		end
-		vim.keymap.set("n", "<leader>od", "<cmd>lua require'dapui'.toggle()<cr>")
+		vim.keymap.set("n", "<leader>du", "<cmd>lua require'dapui'.toggle()<cr>")
 	end,
 }

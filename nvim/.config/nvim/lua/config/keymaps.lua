@@ -1,3 +1,7 @@
+-- 把空格键设置为前置按键
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+
 -- 保存
 vim.keymap.set("n", "<leader>s", "<cmd>w<cr>", { desc = "保存" })
 
@@ -8,6 +12,10 @@ vim.keymap.set("v", "<", "<gv")
 -- 删除buffer
 vim.keymap.set("n", "<c-q>", "<cmd>bdelete<cr>", { desc = "删除buffer" })
 vim.keymap.set("t", "<c-q>", "<cmd>bdelete<cr>", { desc = "删除buffer" })
+
+-- 切换buffer
+vim.keymap.set("n", "<TAB>", "<cmd>bnext<cr>", { desc = "下一个缓冲区" })
+vim.keymap.set("n", "<S-TAB>", "<cmd>bnext<cr>", { desc = "上一个缓冲区" })
 
 -- 删除标记
 vim.keymap.set("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
