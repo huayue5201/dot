@@ -1,6 +1,7 @@
--- 把空格键设置为前置按键
+-- 按键设置
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
+vim.o.updatetime = 300 -- 前置按键等待时间为300
 
 -- 禁止加载自带插件
 vim.g.loaded_matchit = 1 -- matchit插件
@@ -22,109 +23,108 @@ vim.g.loaded_netrwSettings = 1 -- netrwSettings插件
 vim.g.iloaded_netrwFileHandlers = 1 -- netrwFileHandlers插件
 
 -- 鼠标设置
-vim.o.mouse = "a" -- 设置鼠标为可用状态
-vim.o.mousemoveevent = true -- 设置鼠标移动事件为true
+vim.o.mouse = "a" -- 开启鼠标支持
+vim.o.mousemoveevent = true -- 响应鼠标移动事件
 
 -- 编码设置
-vim.o.encoding = "utf-8" -- 设置编码为utf-8
+vim.o.encoding = "utf-8" -- 编码为utf-8
 
 -- 确认设置
-vim.o.confirm = true -- 设置确认为true
+vim.o.confirm = true -- 退出时确认提示
 
 -- 剪贴板设置
-vim.o.clipboard = "unnamedplus" -- 设置剪贴板为"unnamedplus"
+vim.o.clipboard = "unnamedplus" -- 启用系统剪贴板
 
 -- 颜色设置
-vim.o.termguicolors = true -- 设置termguicolors为true
+vim.o.termguicolors = true -- 开启真彩色
 
 -- 折叠设置
+vim.o.foldenable = true -- 启用折叠功能
 function MyFoldtext()
-    local ts_foldtext = vim.treesitter.foldtext()
-    local n_lines = vim.v.foldend - vim.v.foldstart + 1
-    local text_lines = (n_lines == 1) and "line" or "行"
-    local additional_info = string.format(" %s %d%s", "", n_lines, text_lines)
-    table.insert(ts_foldtext, { additional_info, { "Folded" } })
-    return ts_foldtext
+	local ts_foldtext = vim.treesitter.foldtext()
+	local n_lines = vim.v.foldend - vim.v.foldstart + 1
+	local text_lines = (n_lines == 1) and "line" or "行"
+	local additional_info = string.format(" %s %d%s", "", n_lines, text_lines)
+	table.insert(ts_foldtext, { additional_info, { "Folded" } })
+	return ts_foldtext
 end
 vim.opt.foldtext = "v:lua.MyFoldtext()" -- 设置折叠文本为v:lua.MyFoldtext()
 vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 设置折叠表达式为v:lua.vim.treesitter.foldexpr()
-vim.o.foldcolumn = "1" -- 设置折叠列为"1"
-vim.o.foldmethod = "expr" -- 设置折叠方法为"expr"
-vim.o.foldenable = true -- 设置折叠为true
-vim.o.foldlevel = 99 -- 设置折叠级别为99
+vim.o.foldcolumn = "1" -- 折叠列为1
+vim.o.foldmethod = "expr" -- 折叠方法"expr"
+vim.o.foldlevel = 99 -- 折叠级别为99
 
 -- 特殊字符设置
-vim.opt.list = true -- 设置显示特殊字符为true
+vim.opt.list = true -- 显示特殊字符
 vim.opt.fillchars = {
-    diff = "╱",
-    eob = " ",
-    fold = " ",
-    vert = "│",
-    msgsep = "‾",
-    foldopen = "▾",
-    foldsep = "│",
-    foldclose = "▸",
+	diff = "╱",
+	eob = " ",
+	fold = " ",
+	vert = "│",
+	msgsep = "‾",
+	foldopen = "▾",
+	foldsep = "│",
+	foldclose = "▸",
 }
 vim.opt.listchars = {
-    tab = "┊ ",
-    leadmultispace = "┊ ",
-    trail = "␣",
-    nbsp = "⍽",
+	tab = "┊ ",
+	leadmultispace = "┊ ",
+	trail = "␣",
+	nbsp = "⍽",
 }
 
 -- 缩进设置
-vim.o.autoindent = true -- 设置自动缩进为true
-vim.o.expandtab = true -- 设置扩展标签为true
-vim.o.tabstop = 3 -- 设置制表符为3
-vim.o.softtabstop = 3 -- 设置软制表符为3
-vim.o.shiftwidth = 3 -- 设置换行缩进为3
+vim.o.autoindent = true -- 开启自动缩进
+vim.o.expandtab = true -- tab转换为空格
+vim.o.tabstop = 4 -- tab 4个空格
+vim.o.shiftwidth = 3 -- 换行缩进3个空格
 
 -- 换行设置
-vim.o.wrap = false -- 设置换行为false
+vim.o.wrap = false -- 禁止折叠文本
 
 -- 滚动设置
-vim.o.scrolloff = 8 -- 设置滚动偏移为8
-vim.o.sidescrolloff = 8 -- 设置侧边滚动偏移为8
+vim.o.scrolloff = 8 -- 滚动偏移为8
+vim.o.sidescrolloff = 8 -- 侧边滚动偏移为8
 
 -- 备份设置
-vim.o.backup = false -- 设置备份为false
+vim.o.backup = false -- 禁止文件备份
 
 -- 会话设置
-vim.opt.sessionoptions = "curdir,folds,globals,help,tabpages,terminal,winsize" -- 设置会话选项
+vim.opt.sessionoptions = "curdir,folds,globals,help,tabpages,terminal,winsize" -- 会话包含选项
 
 -- 自动读取设置
-vim.o.autoread = true -- 设置自动读取为true
-
--- 更新时间设置
-vim.o.updatetime = 300 -- 设置更新时间为300
+vim.o.autoread = true -- 自动读取配置
 
 -- 光标设置
-vim.o.cursorline = true -- 设置光标行为true
+vim.o.cursorline = true -- 高亮当前行
 
 -- 菜单设置
-vim.o.wildmenu = true -- 设置菜单为true
-vim.o.pumheight = 15 -- 设置弹出菜单高度为15
-vim.o.wildoptions = "pum" -- 设置命令行菜选项为"pum"
+vim.o.wildmenu = true -- 启用补全菜单样式设置
+vim.o.pumheight = 15 -- 补全菜单高度为15
+vim.o.wildoptions = "pum" -- 命令行补全菜样式为"pum"
 
 -- 拼写设置
-vim.o.spelllang = "en_us,cjk" -- 设置拼写语言为"en_us,cjk"
+vim.o.spelllang = "en_us,cjk" -- 拼写语言为"en_us,cjk"
 
--- 大小写设置
-vim.o.ignorecase = true -- 设置忽略大小写为true
-vim.o.smartcase = true -- 设置智能大小写为true
+-- /?字符检索设置
+vim.o.ignorecase = true -- 忽略大小写
+vim.o.smartcase = true -- 智能大小写
 
 -- 窗口分割设置
-vim.o.splitbelow = true -- 设置分割下方为true
-vim.o.splitright = true -- 设置分割右侧为true
-vim.o.splitkeep = "screen" -- 设置分割保持为"screen"
-vim.o.splitkeep = "topline" -- 设置分割保持为"topline"
+vim.o.splitbelow = true -- 下方显示
+vim.o.splitright = true -- 右侧显示
+vim.o.splitkeep = "screen" -- 窗口保持为"screen"
+vim.o.splitkeep = "topline" -- 窗口保持为"topline"
 
--- 状态设置
-vim.o.laststatus = 2 -- 设置状态栏行为2
-vim.o.showtabline = 2 -- 设置显示标签行为2
-vim.opt.statuscolumn = " %=%{v:relnum?v:relnum:v:lnum}%=%s%C" -- 设置状态列
-vim.opt.signcolumn = "yes:1" -- 设置标志列
-vim.opt.colorcolumn = "80" -- 设置颜色列为80
-vim.opt.numberwidth = 4 -- 设置数字宽度为4
-vim.o.number = true -- 设置数字为 true
-vim.o.relativenumber = true -- 设置相对数字为true
+-- 状态栏设置
+vim.o.laststatus = 3 -- 全局状态栏
+vim.o.showtabline = 2 -- 始终显示状态栏
+vim.o.cmdheight = 0 -- 命令行高度0
+
+-- 状态列设置
+vim.opt.statuscolumn = "%s%{v:relnum?v:relnum:v:lnum}%=%C" -- 状态列样式
+vim.opt.signcolumn = "yes:1" -- ionc占用1格
+vim.opt.colorcolumn = "80" -- 代码警示宽度80
+vim.opt.numberwidth = 4 -- 行号数字宽度为4
+vim.o.number = true -- 显示行号
+vim.o.relativenumber = true -- 显示相对行号

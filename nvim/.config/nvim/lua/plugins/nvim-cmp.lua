@@ -126,7 +126,7 @@ return {
 				["<C-f>"] = cmp.mapping.scroll_docs(4),
 				["<C-Space>"] = cmp.mapping.complete(),
 				["<CR>"] = cmp.mapping.confirm({ select = true }),
-				["<C-n>"] = cmp.mapping(function(fallback)
+				["<TAB>"] = cmp.mapping(function(fallback)
 					if cmp.visible() then
 						cmp.select_next_item()
 					-- You could replace the expand_or_jumpable() calls with expand_or_locally_jumpable()
@@ -140,7 +140,7 @@ return {
 					end
 				end, { "i", "s" }),
 
-				["<C-p>"] = cmp.mapping(function(fallback)
+				["<S-TAB>"] = cmp.mapping(function(fallback)
 					if cmp.visible() then
 						cmp.select_prev_item()
 					elseif luasnip.jumpable(-1) then
