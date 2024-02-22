@@ -4,7 +4,8 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
 	event = { "BufReadPre", "BufNewFile" },
-	dependencies = { "nvim-treesitter/nvim-treesitter-textobjects" },
+	-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+	dependencies = "nvim-treesitter/nvim-treesitter-textobjects",
 	config = function()
 		require("nvim-treesitter.configs").setup({
 			-- https://github.com/andymass/vim-matchup
