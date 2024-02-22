@@ -21,6 +21,8 @@ return {
 		formatters_by_ft = {
 			-- https://github.com/JohnnyMorganz/StyLua
 			lua = { "stylua" },
+			-- https://github.com/klauspost/asmfmt
+			asm = { "asmfmt" },
 			-- https://github.com/psf/black
 			-- python = { "black" },
 			-- https://github.com/dprint/dprint
