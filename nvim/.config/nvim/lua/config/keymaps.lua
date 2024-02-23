@@ -13,6 +13,17 @@ vim.keymap.set("v", "<", "<gv")
 vim.keymap.set("n", "<c-q>", "<cmd>bdelete<cr>", { desc = "删除buffer" })
 vim.keymap.set("t", "<c-q>", "<cmd>bdelete<cr>", { desc = "删除buffer" })
 
+-- tab操作
+vim.keymap.set("n", "<leader>ta", "<cmd>$tabnew<CR>", { noremap = true })
+vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<CR>", { noremap = true })
+vim.keymap.set("n", "<leader>to", "<cmd>tabonly<CR>", { noremap = true })
+vim.keymap.set("n", "<leader>tn", "<cmd>tabn<CR>", { noremap = true })
+vim.keymap.set("n", "<leader>tp", "<cmd>tabp<CR>", { noremap = true })
+-- move current tab to previous position
+vim.keymap.set("n", "<leader>tmp", "<cmd>-tabmove<CR>", { noremap = true })
+-- move current tab to next position
+vim.keymap.set("n", "<leader>tmn", "<cmd>+tabmove<CR>", { noremap = true })
+
 -- 切换buffer
 vim.keymap.set("n", "<TAB>", "<cmd>bnext<cr>", { desc = "下一个缓冲区" })
 vim.keymap.set("n", "<S-TAB>", "<cmd>bnext<cr>", { desc = "上一个缓冲区" })

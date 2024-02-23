@@ -119,7 +119,7 @@ vim.o.splitkeep = "topline" -- 窗口保持为"topline"
 -- 状态栏设置
 vim.o.laststatus = 3 -- 全局状态栏
 vim.o.showtabline = 2 -- 始终显示状态栏
-vim.o.cmdheight = 0 -- 命令行高度0
+vim.o.cmdheight = 1 -- 命令行高度
 
 -- 状态列设置
 vim.opt.statuscolumn = "%s%{v:relnum?v:relnum:v:lnum}%=%C" -- 状态列样式
