@@ -14,8 +14,6 @@ return {
 		"hrsh7th/cmp-path",
 		-- https://github.com/hrsh7th/cmp-nvim-lsp-signature-help
 		"hrsh7th/cmp-nvim-lsp-signature-help",
-		-- https://github.com/L3MON4D3/LuaSnip
-		{ "L3MON4D3/LuaSnip", build = "make install_jsregexp" },
 	},
 	init = function()
 		vim.opt.completeopt = { "menu", "menuone", "noselect" }
@@ -27,8 +25,6 @@ return {
 			return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
 		end
 
-		-- Set up luasnip.
-		local luasnip = require("luasnip")
 		-- Set up nvim-cmp.
 		local cmp = require("cmp")
 		-- Set up lspkind.
@@ -78,15 +74,13 @@ return {
 		cmp.setup({
 			snippet = {
 				expand = function(args)
-					require("luasnip").lsp_expand(args.body)
+					vim.snippet.expand(args.body)
 				end,
 			},
-
 			-- sources列表
 			sources = cmp.config.sources({
 				{ name = "nvim_lsp" },
 				{ name = "buffer" },
-				{ name = "luasnip" }, -- For luasnip users.
 				{ name = "path" },
 				{ name = "nvim_lsp_signature_help" },
 			}),
@@ -126,25 +120,21 @@ return {
 				["<C-f>"] = cmp.mapping.scroll_docs(4),
 				["<C-Space>"] = cmp.mapping.complete(),
 				["<CR>"] = cmp.mapping.confirm({ select = true }),
-				["<TAB>"] = cmp.mapping(function(fallback)
+				["<Tab>"] = cmp.mapping(function(fallback)
 					if cmp.visible() then
 						cmp.select_next_item()
-					-- You could replace the expand_or_jumpable() calls with expand_or_locally_jumpable()
-					-- that way you will only jump inside the snippet region
-					elseif luasnip.expand_or_jumpable() then
-						luasnip.expand_or_jump()
-					elseif has_words_before() then
-						cmp.complete()
+					elseif vim.snippet.jumpable(1) then
+						vim.snippet.jump(1)
 					else
 						fallback()
 					end
 				end, { "i", "s" }),
-
-				["<S-TAB>"] = cmp.mapping(function(fallback)
+				-- And something similar for vim.snippet.jump(-1)
+				["<S-Tab>"] = cmp.mapping(function(fallback)
 					if cmp.visible() then
 						cmp.select_prev_item()
-					elseif luasnip.jumpable(-1) then
-						luasnip.jump(-1)
+					elseif vim.snippet.jumpable(-1) then
+						vim.snippet.jump(-1)
 					else
 						fallback()
 					end

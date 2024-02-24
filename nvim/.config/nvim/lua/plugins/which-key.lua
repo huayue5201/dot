@@ -27,6 +27,9 @@ return {
 			["<leader>t"] = {
 				-- name = "Toggle...",
 			},
+			["<leader>f"] = {
+				name = "Fuzzy Finder...",
+			},
 		})
 	end,
 }
