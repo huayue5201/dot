@@ -30,7 +30,7 @@ vim.o.mousemoveevent = true -- 响应鼠标移动事件
 vim.o.encoding = "utf-8" -- 编码为utf-8
 
 -- 确认设置
-vim.o.confirm = true -- 退出时确认提示
+vim.o.confirm = true -- 退出nvim时提示
 
 -- 剪贴板设置
 vim.o.clipboard = "unnamedplus" -- 启用系统剪贴板
@@ -48,8 +48,8 @@ function MyFoldtext()
 	table.insert(ts_foldtext, { additional_info, { "Folded" } })
 	return ts_foldtext
 end
-vim.opt.foldtext = "v:lua.MyFoldtext()" -- 设置折叠文本为v:lua.MyFoldtext()
-vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 设置折叠表达式为v:lua.vim.treesitter.foldexpr()
+vim.opt.foldtext = "v:lua.MyFoldtext()" -- 设置折叠符号
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 开启treesitter折叠支持
 vim.o.foldcolumn = "1" -- 折叠列为1
 vim.o.foldmethod = "expr" -- 折叠方法"expr"
 vim.o.foldlevel = 99 -- 折叠级别为99
@@ -80,7 +80,7 @@ vim.o.tabstop = 4 -- tab 4个空格
 vim.o.shiftwidth = 3 -- 换行缩进3个空格
 
 -- 换行设置
-vim.o.wrap = false -- 禁止折叠文本
+vim.o.wrap = false -- 长行禁止折叠
 
 -- 滚动设置
 vim.o.scrolloff = 8 -- 滚动偏移为8
