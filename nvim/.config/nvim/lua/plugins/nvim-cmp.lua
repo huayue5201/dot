@@ -4,8 +4,6 @@ return {
 	"hrsh7th/nvim-cmp",
 	event = { "InsertEnter" },
 	dependencies = {
-		-- https://github.com/onsails/lspkind.nvim
-		"onsails/lspkind.nvim",
 		-- https://github.com/hrsh7th/cmp-nvim-lsp
 		"hrsh7th/cmp-nvim-lsp",
 		-- https://github.com/hrsh7th/cmp-buffer
@@ -27,8 +25,6 @@ return {
 
 		-- Set up nvim-cmp.
 		local cmp = require("cmp")
-		-- Set up lspkind.
-		local lspkind = require("lspkind")
 		-- Customization for Pmenu
 		vim.api.nvim_set_hl(0, "PmenuSel", { bg = "#282C34", fg = "NONE" })
 		vim.api.nvim_set_hl(0, "Pmenu", { fg = "#C5CDD9", bg = "#22252A" })
@@ -71,6 +67,34 @@ return {
 		vim.api.nvim_set_hl(0, "CmpItemKindColor", { fg = "#D8EEEB", bg = "#58B5A8" })
 		vim.api.nvim_set_hl(0, "CmpItemKindTypeParameter", { fg = "#D8EEEB", bg = "#58B5A8" })
 
+		local cmp_kinds = {
+			Text = "  ",
+			Method = "  ",
+			Function = "  ",
+			Constructor = "  ",
+			Field = "  ",
+			Variable = "  ",
+			Class = "  ",
+			Interface = "  ",
+			Module = "  ",
+			Property = "  ",
+			Unit = "  ",
+			Value = "  ",
+			Enum = "  ",
+			Keyword = "  ",
+			Snippet = "  ",
+			Color = "  ",
+			File = "  ",
+			Reference = "  ",
+			Folder = "  ",
+			EnumMember = "  ",
+			Constant = "  ",
+			Struct = "  ",
+			Event = " ",
+			Operator = "  ",
+			TypeParameter = "  ",
+		}
+
 		cmp.setup({
 			snippet = {
 				expand = function(args)
@@ -104,16 +128,12 @@ return {
 
 			-- 补全文本格式设置
 			formatting = {
-				fields = { "kind", "abbr", "menu" },
-				format = function(entry, vim_item)
-					local kind = require("lspkind").cmp_format({ mode = "symbol_text", maxwidth = 50 })(entry, vim_item)
-					local strings = vim.split(kind.kind, "%s", { trimempty = true })
-					kind.kind = " " .. (strings[1] or "") .. " "
-					kind.menu = "    (" .. (strings[2] or "") .. ")"
-					return kind
+				fields = { "kind", "abbr" },
+				format = function(_, vim_item)
+					vim_item.kind = cmp_kinds[vim_item.kind] or ""
+					return vim_item
 				end,
 			},
-
 			-- keys
 			mapping = cmp.mapping.preset.insert({
 				["<C-d>"] = cmp.mapping.scroll_docs(-4),
