@@ -79,6 +79,8 @@ return {
 				},
 			},
 			window = {
+				position = "left",
+				width = 45,
 				mappings = {
 					["P"] = { "toggle_preview", config = { use_float = false, use_image_nvim = true } },
 					["<space>"] = {

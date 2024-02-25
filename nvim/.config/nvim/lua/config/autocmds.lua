@@ -19,16 +19,16 @@ if vim.api.nvim_get_mode().mode == "n" then
 end
 
 --================
--- -- 创建高亮组并添加 TextYankPost 自动命令
--- local highlight_group = vim.api.nvim_create_augroup("YankHighlight", { clear = true })
--- -- 添加 TextYankPost 自动命令
--- vim.api.nvim_create_autocmd("TextYankPost", {
--- 	callback = function()
--- 		vim.highlight.on_yank()
--- 	end,
--- 	group = highlight_group,
--- 	pattern = "*",
--- })
+-- 创建高亮组并添加 TextYankPost 自动命令
+local highlight_group = vim.api.nvim_create_augroup("YankHighlight", { clear = true })
+-- 添加 TextYankPost 自动命令
+vim.api.nvim_create_autocmd("TextYankPost", {
+	callback = function()
+		vim.highlight.on_yank()
+	end,
+	group = highlight_group,
+	pattern = "*",
+})
 
 --================
 -- Toggle hlsearch based on specific keys in Normal mode
