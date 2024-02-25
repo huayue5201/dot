@@ -40,18 +40,18 @@ foreground = "0xc8c093"
 # TERM = "alacritty-direct"
 
 [font]
-size = 18
+size = 17
 
 [font.bold]
-family = "CaskaydiaCove Nerd Font"
+family = "Hack Nerd Font"
 style = "Bold"
 
 [font.italic]
-family = "CaskaydiaCove Nerd Font"
+family = "Hack Nerd Font"
 style = "Italic"
 
 [font.normal]
-family = "CaskaydiaCove Nerd Font"
+family = "Hack Nerd Font"
 style = "Regular"
 
 [scrolling]
