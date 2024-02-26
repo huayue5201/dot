@@ -28,6 +28,8 @@ return {
 		require("lspconfig").taplo.setup({})
 		-- https://github.com/bergercookie/asm-lsp
 		require("lspconfig").asm_lsp.setup({})
+		-- https://clangd.llvm.org/installation.html
+		require("lspconfig").clangd.setup({})
 
 		-- 显示诊断来源
 		vim.diagnostic.config({

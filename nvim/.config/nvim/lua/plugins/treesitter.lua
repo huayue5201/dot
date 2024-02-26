@@ -20,6 +20,7 @@ return {
 				"markdown_inline",
 				"regex",
 				"bash",
+				"c",
 			},
 			-- 同步安装解析器
 			sync_install = true,
