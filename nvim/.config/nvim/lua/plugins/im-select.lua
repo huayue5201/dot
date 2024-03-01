@@ -2,9 +2,9 @@
 -- 需要外部工具支持https://github.com/daipeihust/im-select/blob/master/README_CN.md
 
 return {
-	"keaising/im-select.nvim",
-	event = "InsertEnter",
-	config = function()
-		require("im_select").setup()
-	end,
+   "keaising/im-select.nvim",
+   event = "InsertEnter",
+   config = function()
+      require("im_select").setup()
+   end,
 }

@@ -23,9 +23,9 @@ return {
 				"c",
 			},
 			-- 同步安装解析器
-			sync_install = true,
+			sync_install = false,
 			-- 自动安装解析器
-			auto_install = true,
+			auto_install = false,
 			-- 缩进模块
 			indent = {
 				enable = true,

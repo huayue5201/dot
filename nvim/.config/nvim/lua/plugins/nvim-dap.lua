@@ -20,29 +20,52 @@ return {
 	config = function()
 		-- 断点标志
 		vim.fn.sign_define("DapBreakpoint", { text = "🔴", texthl = "", linehl = "", numhl = "" })
+
 		-- 使用Alacritty作为外部终端
 		local dap = require("dap")
 		dap.defaults.fallback.external_terminal = {
 			command = "/usr/bin/alacritty",
 			args = { "-e" },
 		}
+
+		dap.adapters.lldb = {
+			type = "executable",
+			command = "/usr/bin/lldb", -- adjust as needed, must be absolute path
+			name = "lldb",
+		}
+		dap.configurations.cpp = {
+			{
+				name = "Launch",
+				type = "lldb",
+				request = "launch",
+				program = function()
+					return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+				end,
+				cwd = "${workspaceFolder}",
+				stopOnEntry = true,
+			},
+		}
+
+		dap.configurations.c = dap.configurations.cpp
+		dap.configurations.rust = dap.configurations.cpp
+
 		-- 继续执行程序
 		vim.keymap.set("n", "<F5>", function()
 			require("dap").continue()
 		end)
 
-		-- 单步跳过
-		vim.keymap.set("n", "<F10>", function()
-			require("dap").step_over()
-		end)
-
 		-- 单步进入
-		vim.keymap.set("n", "<F11>", function()
+		vim.keymap.set("n", "<F6>", function()
 			require("dap").step_into()
 		end)
 
+		-- 单步跳过
+		vim.keymap.set("n", "<F7>", function()
+			require("dap").step_over()
+		end)
+
 		-- 单步退出
-		vim.keymap.set("n", "<F12>", function()
+		vim.keymap.set("n", "<F8>", function()
 			require("dap").step_out()
 		end)
 

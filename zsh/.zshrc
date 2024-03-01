@@ -3,9 +3,9 @@
 alias zf=__zoxide_zi
 eval "$(zoxide init zsh)"
 
-# exa配置
-alias es="exa -F" #更改别名
-alias et="exa -T" #更改别名
+#lsd设置
+alias ls='lsd'
+alias lt='ls --tree'
 
 # yazi配置
 function ya() {
@@ -37,6 +37,9 @@ export https_proxy=$http_proxy
 
 export DELTA_FEATURES=+side-by-side # activate
 export DELTA_FEATURES=+             # deactivate
+
+# python3可执行文件目录
+export PATH="/Users/lijia/Library/Python/3.9/bin:$PATH"
 
 # python
 export PATH=$PATH:~/.local/bin

@@ -1,7 +1,7 @@
 " https://github.com/kevinhwang91/nvim-bqf
 
 if exists('b:current_syntax')
-    finish
+   finish
 endif
 
 syn match qfFileName /^[^│]*/ nextgroup=qfSeparatorLeft

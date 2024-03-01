@@ -5,9 +5,9 @@ require("config.options")
 require("config.lazy")
 -- 自定义函数和自定义按键映射
 vim.api.nvim_create_autocmd("User", {
-	pattern = "VeryLazy",
-	callback = function()
-		require("config.autocmds")
-		require("config.keymaps")
-	end,
+   pattern = "VeryLazy",
+   callback = function()
+      require("config.autocmds")
+      require("config.keymaps")
+   end,
 })
