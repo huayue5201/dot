@@ -44,15 +44,15 @@ opt.termguicolors = true -- 开启真彩色
 -- 折叠设置
 opt.foldenable = true -- 启用折叠功能
 function MyFoldtext()
-   local ts_foldtext = vim.treesitter.foldtext()
-   local n_lines = vim.v.foldend - vim.v.foldstart + 1
-   local text_lines = (n_lines == 1) and "line" or "行"
-   local additional_info = string.format(" %s %d%s", "", n_lines, text_lines)
-   table.insert(ts_foldtext, { additional_info, { "Folded" } })
-   return ts_foldtext
+	local ts_foldtext = vim.treesitter.foldtext()
+	local n_lines = vim.v.foldend - vim.v.foldstart + 1
+	local text_lines = (n_lines == 1) and "line" or "行"
+	local additional_info = string.format(" %s %d%s", "", n_lines, text_lines)
+	table.insert(ts_foldtext, { additional_info, { "Folded" } })
+	return ts_foldtext
 end
-opt.foldtext = "v:lua.MyFoldtext()" -- 设置折叠符号
-opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 开启treesitter折叠支持
+opt.foldtext:append("v:lua.MyFoldtext()") -- 设置折叠符号
+opt.foldexpr:append("v:lua.vim.treesitter.foldexpr()") -- 开启treesitter折叠支持
 opt.foldcolumn = "1" -- 折叠列为1
 opt.foldmethod = "expr" -- 折叠方法"expr"
 opt.foldlevel = 99 -- 折叠级别为99
@@ -60,20 +60,20 @@ opt.foldlevel = 99 -- 折叠级别为99
 -- 特殊字符设置
 opt.list = true -- 显示特殊字符
 opt.fillchars = {
-   diff = "╱",
-   eob = " ",
-   fold = " ",
-   vert = "│",
-   msgsep = "‾",
-   foldopen = "▾",
-   foldsep = "│",
-   foldclose = "▸",
+	diff = "╱",
+	eob = " ",
+	fold = " ",
+	vert = "│",
+	msgsep = "‾",
+	foldopen = "▾",
+	foldsep = "│",
+	foldclose = "▸",
 }
 opt.listchars = {
-   tab = "┊ ",
-   leadmultispace = "┊ ",
-   trail = "␣",
-   nbsp = "⍽",
+	tab = "┊ ",
+	leadmultispace = "┊ ",
+	trail = "␣",
+	nbsp = "⍽",
 }
 
 -- 缩进设置
@@ -93,7 +93,7 @@ opt.sidescrolloff = 8 -- 侧边滚动偏移为8
 opt.backup = false -- 禁止文件备份
 
 -- 会话设置
-opt.sessionoptions = "curdir,folds,globals,help,tabpages,terminal,winsize" -- 会话包含选项
+opt.sessionoptions:append("curdir,folds,globals,help,tabpages,terminal,winsize") -- 会话包含选项
 
 -- 自动读取设置
 opt.autoread = true -- 自动读取配置
@@ -104,10 +104,10 @@ opt.cursorline = true -- 高亮当前行
 -- 菜单设置
 opt.wildmenu = true -- 启用补全菜单样式设置
 opt.pumheight = 15 -- 补全菜单高度为15
-opt.wildoptions = "pum" -- 命令行补全菜样式为"pum"
+opt.wildoptions:append("pum") -- 命令行补全菜样式为"pum"
 
 -- 拼写设置
-opt.spelllang = "en_us,cjk" -- 拼写语言为"en_us,cjk"
+opt.spelllang:append("en_us,cjk") -- 拼写语言为"en_us,cjk"
 
 -- /?字符检索设置
 opt.ignorecase = true -- 忽略大小写
@@ -120,14 +120,15 @@ opt.splitkeep = "screen" -- 窗口保持为"screen"
 opt.splitkeep = "topline" -- 窗口保持为"topline"
 
 -- 状态栏设置
+vim.opt.showmode = false -- 禁止显示当前mode状态,由line插件代替
 opt.laststatus = 3 -- 全局状态栏
 opt.showtabline = 2 -- 始终显示状态栏
 opt.cmdheight = 1 -- 命令行高度
 
 -- 状态列设置
-opt.statuscolumn = "%s%{v:relnum?v:relnum:v:lnum}%=%C" -- 状态列样式
+opt.statuscolumn:append("%s%{v:relnum?v:relnum:v:lnum}%=%C") -- 状态列样式
 opt.signcolumn = "yes:1" -- ionc占用1格
-opt.colorcolumn = "80" -- 代码警示宽度80
+opt.colorcolumn:append("80") -- 代码警示宽度80
 opt.numberwidth = 4 -- 行号数字宽度为4
 opt.number = true -- 显示行号
 opt.relativenumber = true -- 显示相对行号

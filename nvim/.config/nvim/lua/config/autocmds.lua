@@ -1,22 +1,38 @@
 -- 光标自动定位到最后编辑的位置
 vim.api.nvim_create_autocmd("BufReadPost", {
-   pattern = "*",
-   callback = function()
-      local last_cursor_line = vim.fn.line("'\"")
-      local last_buffer_line = vim.fn.line("$")
-      -- 检查光标位置是否保存并在文件内
-      if last_cursor_line > 0 and last_cursor_line <= last_buffer_line then
-         -- 恢复光标位置
-         vim.fn.setpos(".", vim.fn.getpos("'\""))
-         -- 静默打开折叠
-         vim.cmd("silent! foldopen")
-      end
-   end,
+   command = [[if line("'\"") > 1 && line("'\"") <= line("$") | execute "normal! g`\"" | endif]],
 })
--- 可选：添加错误处理
-if vim.api.nvim_get_mode().mode == "n" then
-   assert(vim.fn.exists("#BufReadPost"), "自动命令创建失败！")
-end
+
+vim.api.nvim_create_autocmd("BufEnter", { command = [[set formatoptions-=cro]] })
+
+-- 用q关闭窗口
+vim.api.nvim_create_autocmd("FileType", {
+   pattern = { "help", "startuptime", "qf", "lspinfo" },
+   command = [[nnoremap <buffer><silent> q :close<CR>]],
+})
+vim.api.nvim_create_autocmd("FileType", {
+   pattern = "man",
+   command = [[nnoremap <buffer><silent> q :quit<CR>]],
+})
+
+-- 仅在活动窗口显示光标线
+local cursorGrp = vim.api.nvim_create_augroup("CursorLine", { clear = true })
+vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
+   pattern = "*",
+   command = "set cursorline",
+   group = cursorGrp,
+})
+vim.api.nvim_create_autocmd(
+   { "InsertEnter", "WinLeave" },
+   { pattern = "*", command = "set nocursorline", group = cursorGrp }
+)
+
+--- 保存时删除所有尾随空格
+local TrimWhiteSpaceGrp = vim.api.nvim_create_augroup("TrimWhiteSpaceGrp", { clear = true })
+vim.api.nvim_create_autocmd("BufWritePre", {
+   command = [[:%s/\s\+$//e]],
+   group = TrimWhiteSpaceGrp,
+})
 
 --================
 -- 创建高亮组并添加 TextYankPost 自动命令

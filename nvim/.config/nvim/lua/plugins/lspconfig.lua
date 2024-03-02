@@ -86,7 +86,7 @@ return {
 				-- 代码操作
 				vim.keymap.set({ "n", "x" }, "<space>ca", vim.lsp.buf.code_action, { desc = "代码操作" }, opts)
 				-- 重命名
-				vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename, { desc = "重命名" }, opts)
+				vim.keymap.set({ "n", "v" }, "<space>rn", vim.lsp.buf.rename, { desc = "重命名" }, opts)
 				-- 添加workspace
 				vim.keymap.set("n", "<space>aw", vim.lsp.buf.add_workspace_folder, { desc = "添加workspace" }, opts)
 				-- 重命名workspace
@@ -102,7 +102,7 @@ return {
 					print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 				end, { desc = "查看workspace" }, opts)
 				-- 格式化当前buffer
-				-- vim.keymap.set("n", "<leader>f", function()
+				-- vim.keymap.set("n", "<leader>of", function()
 				-- 	vim.lsp.buf.format({ async = true })
 				-- end, { desc = "代码格式化" }, opts)
 			end,
