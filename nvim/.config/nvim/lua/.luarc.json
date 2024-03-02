@@ -25,7 +25,8 @@
         "redundant-parameter",
         "param-type-mismatch",
         "undefined-field",
-        "inject-field"
+        "inject-field",
+        "need-check-nil"
     ],
     "diagnostics.globals": [
         "vim",

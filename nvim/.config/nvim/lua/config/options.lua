@@ -41,22 +41,6 @@ opt.confirm = true -- 退出nvim时提示
 -- 颜色设置
 opt.termguicolors = true -- 开启真彩色
 
--- 折叠设置
-opt.foldenable = true -- 启用折叠功能
-function MyFoldtext()
-	local ts_foldtext = vim.treesitter.foldtext()
-	local n_lines = vim.v.foldend - vim.v.foldstart + 1
-	local text_lines = (n_lines == 1) and "line" or "行"
-	local additional_info = string.format(" %s %d%s", "", n_lines, text_lines)
-	table.insert(ts_foldtext, { additional_info, { "Folded" } })
-	return ts_foldtext
-end
-opt.foldtext:append("v:lua.MyFoldtext()") -- 设置折叠符号
-opt.foldexpr:append("v:lua.vim.treesitter.foldexpr()") -- 开启treesitter折叠支持
-opt.foldcolumn = "1" -- 折叠列为1
-opt.foldmethod = "expr" -- 折叠方法"expr"
-opt.foldlevel = 99 -- 折叠级别为99
-
 -- 特殊字符设置
 opt.list = true -- 显示特殊字符
 opt.fillchars = {
@@ -75,6 +59,13 @@ opt.listchars = {
 	trail = "␣",
 	nbsp = "⍽",
 }
+
+-- 折叠设置
+opt.foldenable = true -- 启用折叠功能
+opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 开启treesitter折叠支持
+opt.foldcolumn = "1" -- 折叠列为1
+opt.foldmethod = "expr" -- 折叠方法"expr"
+opt.foldlevel = 99 -- 折叠级别为99
 
 -- 缩进设置
 opt.autoindent = true -- 开启自动缩进

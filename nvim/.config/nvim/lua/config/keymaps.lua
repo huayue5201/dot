@@ -1,7 +1,3 @@
--- 把空格键设置为前置按键
-vim.g.mapleader = " "
-vim.g.maplocalleader = " "
-
 -- 保存
 vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { desc = "保存" })
 
