@@ -4,7 +4,8 @@ local opt = vim.opt
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 -- 禁止加载自带插件
-vim.g.loaded_matchit = 1 -- matchit插件
+-- vim.g.loaded_matchit = 1 -- matchit插件
+-- vim.g.loaded_matchparen = 1
 vim.g.loaded_gzip = 1 -- gzip插件
 vim.g.loaded_tar = 1 -- tar插件
 vim.g.loaded_tarPlugin = 1 -- tarPlugin插件
@@ -108,10 +109,10 @@ opt.smartcase = true -- 智能大小写
 opt.splitbelow = true -- 下方显示
 opt.splitright = true -- 右侧显示
 opt.splitkeep = "screen" -- 窗口保持为"screen"
-opt.splitkeep = "topline" -- 窗口保持为"topline"
+-- opt.splitkeep = "topline" -- 窗口保持为"topline"
 
 -- 状态栏设置
-vim.opt.showmode = false -- 禁止显示当前mode状态,由line插件代替
+opt.showmode = false -- 禁止显示当前mode状态,由line插件代替
 opt.laststatus = 3 -- 全局状态栏
 opt.showtabline = 2 -- 始终显示状态栏
 opt.cmdheight = 1 -- 命令行高度
