@@ -80,7 +80,7 @@ return {
 			},
 			window = {
 				position = "left",
-				width = 45,
+				width = 35,
 				mappings = {
 					["P"] = { "toggle_preview", config = { use_float = false, use_image_nvim = true } },
 					["<space>"] = {
@@ -103,8 +103,8 @@ return {
 			},
 		})
 		vim.keymap.set("n", "<space>oe", "<cmd>Neotree toggle<cr>", { silent = true, noremap = true })
-		vim.keymap.set("n", "<space>ob", "<cmd>Neotree buffers<cr>", { silent = true, noremap = true })
-		vim.keymap.set("n", "<space>og", "<cmd>Neotree git_status<cr>", { silent = true, noremap = true })
-		vim.keymap.set("n", "<space>os", "<cmd>Neotree document_symbols<cr>", { silent = true, noremap = true })
+		vim.keymap.set("n", "<space>ob", "<cmd>Neotree buffers toggle<cr>", { silent = true, noremap = true })
+		vim.keymap.set("n", "<space>og", "<cmd>Neotree git_status toggle<cr>", { silent = true, noremap = true })
+		vim.keymap.set("n", "<space>os", "<cmd>Neotree document_symbols toggle<cr>", { silent = true, noremap = true })
 	end,
 }

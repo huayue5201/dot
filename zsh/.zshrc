@@ -38,9 +38,6 @@ export https_proxy=$http_proxy
 export DELTA_FEATURES=+side-by-side # activate
 export DELTA_FEATURES=+             # deactivate
 
-# python3可执行文件目录
-export PATH="/Users/lijia/Library/Python/3.9/bin:$PATH"
-
 # python
 export PATH=$PATH:~/.local/bin
 
@@ -62,7 +59,7 @@ setopt INC_APPEND_HISTORY
 #如果连续输入的命令相同，历史纪录中只保留一个
 setopt HIST_IGNORE_DUPS
 #为历史纪录中的命令添加时间戳
-setopt EXTENDED_HISTORY      
+setopt EXTENDED_HISTORY
 #启用 cd 命令的历史纪录，cd -[TAB]进入历史路径
 setopt AUTO_PUSHD
 #相同的历史路径只保留一个
@@ -105,11 +102,12 @@ zinit ice wait lucid
 zinit light zsh-users/zsh-autosuggestions
 
 # 文本高亮
+# https://github.com/zdharma-continuum/fast-syntax-highlighting
 zinit ice wait lucid
 zinit light zdharma-continuum/fast-syntax-highlighting
 
 # 命令补全
-zi for \
+zinit for \
     atload"zicompinit; zicdreplay" \
     blockf \
     lucid \
