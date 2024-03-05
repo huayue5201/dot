@@ -121,6 +121,6 @@ opt.cmdheight = 1 -- 命令行高度
 opt.statuscolumn:append("%s%{v:relnum?v:relnum:v:lnum}%=%C") -- 状态列样式
 opt.signcolumn = "yes:1" -- ionc占用1格
 opt.colorcolumn:append("80") -- 代码警示宽度80
-opt.numberwidth = 4 -- 行号数字宽度为4
+opt.numberwidth = 3 -- 行号数字宽度为4
 opt.number = true -- 显示行号
 opt.relativenumber = true -- 显示相对行号

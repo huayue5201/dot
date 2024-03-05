@@ -87,6 +87,8 @@ return {
 						"toggle_node",
 						nowait = true, -- disable `nowait` if you have existing combos starting with this char that you want to use
 					},
+					["H"] = "set_root",
+					["."] = "toggle_hidden",
 					["e"] = function()
 						vim.api.nvim_exec("Neotree focus filesystem left", true)
 					end,
