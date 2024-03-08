@@ -18,18 +18,18 @@ return {
 		{ "<leader>ds", desc = "展示调试作用域" },
 	},
 	config = function()
-		-- 引入codelldb模块
+		-- 断点标志
+		vim.fn.sign_define("DapBreakpoint", { text = "🔴", texthl = "", linehl = "", numhl = "" })
+
+		local dap, dapui = require("dap"), require("dapui")
+
+		-- 引入dap_config.lua模块
 		local codelldb = require("dap-server.codelldb")
 
 		-- 调用模块中的函数进行配置
 		codelldb.setup_codelldb_adapter()
 		codelldb.setup_cpp_configuration()
 
-
-		-- 断点标志
-		vim.fn.sign_define("DapBreakpoint", { text = "🔴", texthl = "", linehl = "", numhl = "" })
-
-		local dap, dapui = require("dap"), require("dapui")
 		dap.listeners.before.attach.dapui_config = function()
 			dapui.open()
 		end

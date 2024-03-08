@@ -1,4 +1,3 @@
--- codelldb.lua
 local M = {}
 
 local vim = vim -- 将vim库引入局部变量
