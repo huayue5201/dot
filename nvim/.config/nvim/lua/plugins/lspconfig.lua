@@ -6,7 +6,10 @@
 return {
 	"neovim/nvim-lspconfig",
 	event = { "BufReadPre", "BufNewFile" },
-	dependencies = "j-hui/fidget.nvim",
+	dependencies = {
+		"williamboman/mason.nvim",
+		"j-hui/fidget.nvim",
+	},
 	config = function()
 		-- nvim-cmp
 		local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -21,7 +24,7 @@ return {
 		end
 
 		-- 加载lsp配置文件 lua/lsp/...
-		require("lsp-sever.lua_ls")
+		require("lsp-server.lua_ls")
 		-- https://rust-analyzer.github.io
 		-- require("lspconfig").rust_analyzer.setup({})
 		-- toml-sever
@@ -29,7 +32,7 @@ return {
 		-- https://github.com/bergercookie/asm-lsp
 		require("lspconfig").asm_lsp.setup({})
 		-- https://clangd.llvm.org/installation.html
-		require("lspconfig").clangd.setup({})
+		require("lsp-server.clangd")
 
 		-- 显示诊断来源
 		vim.diagnostic.config({

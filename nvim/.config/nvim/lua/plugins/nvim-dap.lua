@@ -2,7 +2,7 @@
 
 return {
 	"mfussenegger/nvim-dap",
-	requires = {
+	dependencies = {
 		"rcarriga/nvim-dap-ui",
 		"theHamsta/nvim-dap-virtual-text",
 	},
@@ -18,36 +18,30 @@ return {
 		{ "<leader>ds", desc = "展示调试作用域" },
 	},
 	config = function()
+		-- 引入codelldb模块
+		local codelldb = require("dap-server.codelldb")
+
+		-- 调用模块中的函数进行配置
+		codelldb.setup_codelldb_adapter()
+		codelldb.setup_cpp_configuration()
+
+
 		-- 断点标志
 		vim.fn.sign_define("DapBreakpoint", { text = "🔴", texthl = "", linehl = "", numhl = "" })
 
-		-- 使用Alacritty作为外部终端
-		local dap = require("dap")
-		dap.defaults.fallback.external_terminal = {
-			command = "/usr/bin/alacritty",
-			args = { "-e" },
-		}
-
-		dap.adapters.lldb = {
-			type = "executable",
-			command = "/usr/bin/lldb", -- adjust as needed, must be absolute path
-			name = "lldb",
-		}
-		dap.configurations.cpp = {
-			{
-				name = "Launch",
-				type = "lldb",
-				request = "launch",
-				program = function()
-					return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
-				end,
-				cwd = "${workspaceFolder}",
-				stopOnEntry = true,
-			},
-		}
-
-		dap.configurations.c = dap.configurations.cpp
-		dap.configurations.rust = dap.configurations.cpp
+		local dap, dapui = require("dap"), require("dapui")
+		dap.listeners.before.attach.dapui_config = function()
+			dapui.open()
+		end
+		dap.listeners.before.launch.dapui_config = function()
+			dapui.open()
+		end
+		-- dap.listeners.before.event_terminated.dapui_config = function()
+		-- 	dapui.close()
+		-- end
+		-- dap.listeners.before.event_exited.dapui_config = function()
+		-- 	dapui.close()
+		-- end
 
 		-- 继续执行程序
 		vim.keymap.set("n", "<F5>", function()

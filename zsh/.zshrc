@@ -22,7 +22,7 @@ zinit ice as"command" from"gh-r" \
 
 # fzf
 zinit ice from"gh-r" as"program"
-zinit light junegunn/fzf-bin
+zinit light junegunn/fzf
 
 # BurntSushi/ripgrep
 zinit ice as"command" from"gh-r" mv"ripgrep* -> rg" pick"rg/rg"
@@ -31,18 +31,6 @@ zinit light BurntSushi/ripgrep
 # sharkdp/fd
 zinit ice as"command" from"gh-r" mv"fd* -> fd" pick"fd/fd"
 zinit light sharkdp/fd
-
-# https://github.com/zdharma/fast-syntax-highlighting
-# Autosuggestions & fast-syntax-highlighting
-zinit ice wait"1" lucid atinit"zpcompinit; zpcdreplay" atload"FAST_HIGHLIGHT[chroma-git]=\"chroma/-ogit.ch\""
-zinit light zdharma/fast-syntax-highlighting
-# https://github.com/zsh-users/zsh-autosuggestions
-zinit ice wait"1" lucid atload"!_zsh_autosuggest_start"
-zinit load zsh-users/zsh-autosuggestions
-
-# https://github.com/zsh-users/zsh-completions
-zinit ice wait lucid
-zinit light zsh-users/zsh-completions
 
 # https://github.com/jeffreytse/zsh-vi-mode
 zinit ice depth=1
@@ -67,6 +55,26 @@ zinit light ajeetdsouza/zoxide
 # sharkdp/bat
 zinit ice as"command" from"gh-r" mv"bat* -> bat" pick"bat/bat"
 zinit light sharkdp/bat
+
+# https://github.com/zdharma/fast-syntax-highlighting
+# Autosuggestions & fast-syntax-highlighting
+zinit ice wait"1" lucid atinit"zpcompinit; zpcdreplay" atload"FAST_HIGHLIGHT[chroma-git]=\"chroma/-ogit.ch\""
+zinit light zdharma/fast-syntax-highlighting
+# https://github.com/zsh-users/zsh-autosuggestions
+zinit ice wait"1" lucid atload"!_zsh_autosuggest_start"
+zinit load zsh-users/zsh-autosuggestions
+
+# https://github.com/zsh-users/zsh-completions
+# 加载 zsh-completions 使用 Turbo 模式
+zinit lucid wait for \
+   "zsh-users/zsh-completions"
+   zi for \
+      lucid wait \
+      atload"zicompinit; zicdreplay" \
+      blockf \
+      lucid \
+      wait \
+      zsh-users/zsh-completions
 
 # mcfly
 # 使用vim按键模式
@@ -105,8 +113,10 @@ function ya() {
 }
 
 # PATH配置
-export DELTA_FEATURES=+side-by-side # activate
-export DELTA_FEATURES=+             # deactivate
+# 使用brew安装的llvm
+export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 # python
 export PATH=$PATH:~/.local/bin
 # cargo PATH (rust)

@@ -24,6 +24,8 @@ return {
 				"regex",
 				"bash",
 				"c",
+				"cmake",
+				"json",
 			},
 			-- 同步安装解析器
 			sync_install = false,
