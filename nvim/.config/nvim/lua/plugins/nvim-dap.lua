@@ -5,6 +5,7 @@ return {
 	dependencies = {
 		"rcarriga/nvim-dap-ui",
 		"theHamsta/nvim-dap-virtual-text",
+		"nvim-telescope/telescope.nvim",
 	},
 	keys = {
 		{ "<leader>B", desc = "设置断点" },
@@ -16,6 +17,7 @@ return {
 		{ "<leader>dp", desc = "预览" },
 		{ "<leader>df", desc = "展示调试框架" },
 		{ "<leader>ds", desc = "展示调试作用域" },
+		{ "<leader>dc", desc = "选择调试器" },
 	},
 	config = function()
 		-- 断点标志
@@ -43,6 +45,7 @@ return {
 		-- 	dapui.close()
 		-- end
 
+		vim.keymap.set("n", "<leader>dc", "<cmd>Telescope dap configurations<cr>", { desc = "选择调试器" })
 		-- 继续执行程序
 		vim.keymap.set("n", "<F5>", function()
 			require("dap").continue()

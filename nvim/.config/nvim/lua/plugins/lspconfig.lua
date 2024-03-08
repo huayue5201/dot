@@ -24,15 +24,15 @@ return {
 		end
 
 		-- 加载lsp配置文件 lua/lsp/...
-		require("lsp-server.lua_ls")
+		require("lsp-server.lua_ls").setupLuaLs()
+		-- https://clangd.llvm.org/installation.html
+		require("lsp-server.clangd").setupClangd()
 		-- https://rust-analyzer.github.io
 		-- require("lspconfig").rust_analyzer.setup({})
 		-- toml-sever
 		require("lspconfig").taplo.setup({})
 		-- https://github.com/bergercookie/asm-lsp
 		require("lspconfig").asm_lsp.setup({})
-		-- https://clangd.llvm.org/installation.html
-		require("lsp-server.clangd")
 
 		-- 显示诊断来源
 		vim.diagnostic.config({

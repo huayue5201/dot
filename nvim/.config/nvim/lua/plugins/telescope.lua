@@ -7,6 +7,8 @@ return {
 		{ "nvim-lua/plenary.nvim" },
 		-- https://github.com/nvim-telescope/telescope-fzf-native.nvim
 		{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
+		-- https://github.com/nvim-telescope/telescope-dap.nvim
+		{ "nvim-telescope/telescope-dap.nvim" },
 	},
 	keys = {
 		{ "<leader>ff", desc = "文件检索" },
@@ -104,6 +106,7 @@ return {
 				},
 			},
 		})
+		require("telescope").load_extension("dap")
 		require("telescope").load_extension("fzf")
 		-- 按键映射
 		vim.keymap.set(
