@@ -22,14 +22,12 @@ require("lazy").setup({
    },
    ui = { border = "double" },
    defaults = { lazy = true, version = false }, -- always use the latest git commit
-   -- install = { colorscheme = { "kanagawa" } },
-   -- checker = { enabled = true },-- 自动更新
    performance = {
       rtp = {
          -- disable some rtp plugins
          disabled_plugins = {
             "gzip",
-            "matchit",
+            -- "matchit",
             "netrw",
             "netrwPlugin",
             "tarPlugin",

@@ -4,17 +4,17 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
 	event = { "BufReadPre", "BufNewFile" },
-	-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 	dependencies = {
+		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 		"nvim-treesitter/nvim-treesitter-textobjects",
 		"nvim-treesitter/nvim-treesitter-context",
 	},
 	config = function()
-		require("nvim-treesitter.configs").setup({
-			-- https://github.com/andymass/vim-matchup
-			matchup = {
-				enable = true,
-			},
+		-- 导入 Treesitter 插件的配置模块
+		local configs = require("nvim-treesitter.configs")
+		-- 设置 Treesitter 插件的配置
+		configs.setup({
+			-- 确保所需的语言解析器被安装
 			ensure_installed = {
 				"lua",
 				"vim",
@@ -27,18 +27,18 @@ return {
 				"cmake",
 				"json",
 			},
-			-- 同步安装解析器
+			-- 是否同步安装解析器
 			sync_install = false,
-			-- 自动安装解析器
+			-- 是否自动安装解析器
 			auto_install = false,
-			-- 缩进模块
+			-- 启用缩进模块
 			indent = {
 				enable = true,
 			},
 			-- 高亮模块配置
 			highlight = {
 				enable = true,
-				-- Or use a function for more flexibility, e.g. to disable slow treesitter highlight for large files
+				-- 或者使用一个函数来灵活配置，例如，对于大文件禁用 Treesitter 高亮以提高性能
 				disable = function(lang, buf)
 					local max_filesize = 100 * 1024 -- 100 KB
 					local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
@@ -46,11 +46,10 @@ return {
 						return true
 					end
 				end,
-				-- 关闭vim自带语法高亮引擎，只使用treesitter.
-				-- 设置为true，可能会降低neovim速度。
+				-- 关闭 vim 自带语法高亮引擎，只使用 Treesitter
 				additional_vim_regex_highlighting = false,
 			},
-			-- 增量选择模块
+			-- 启用增量选择模块
 			incremental_selection = {
 				enable = true,
 				keymaps = {
@@ -60,45 +59,44 @@ return {
 					scope_incremental = "<TAB>",
 				},
 			},
+			-- 设置文本对象选择操作
 			textobjects = {
+				-- 启用与LSP交互的文本对象
+				lsp_interop = {
+					enable = true,
+					border = "none", -- 边框样式设置为无边框
+					floating_preview_opts = {}, -- 悬浮预览选项，用于配置悬浮窗口的外观和行为
+					-- 使用快捷键来预览函数和类的定义
+					peek_definition_code = {
+						["<leader>tf"] = { query = "@function.outer", desc = "预览函数的外部区域定义" }, -- 查看函数的外部区域定义
+						["<leader>tF"] = { query = "@class.outer", desc = "预览类的外部区域定义" }, -- 查看类的外部区域定义
+					},
+				},
 				select = {
 					enable = true,
-
-					-- Automatically jump forward to textobj, similar to targets.vim
+					-- 自动跳转到文本对象，类似于 targets.vim 插件
 					lookahead = true,
-
 					keymaps = {
-						-- You can use the capture groups defined in textobjects.scm
-						["af"] = "@function.outer",
-						["if"] = "@function.inner",
-						["ac"] = "@class.outer",
-						-- You can optionally set descriptions to the mappings (used in the desc parameter of
-						-- nvim_buf_set_keymap) which plugins like which-key display
-						["ic"] = { query = "@class.inner", desc = "Select inner part of a class region" },
-						-- You can also use captures from other query groups like `locals.scm`
-						["as"] = { query = "@scope", query_group = "locals", desc = "Select language scope" },
+						-- 使用 textobjects.scm 中定义的捕获组进行选择
+						["af"] = {
+							query = "@function.outer",
+							desc = "选择函数的外部区域",
+						},
+						["if"] = {
+							query = "@function.inner",
+							desc = "选择函数的内部区域",
+						},
+						["ac"] = { query = "@class.outer", desc = "选择类的外部区域" }, -- 选择类的外部区域
+						["ic"] = { query = "@class.inner", desc = "选择类的内部区域" }, -- 选择类的内部区域
+						["as"] = { query = "@scope", desc = "选择语言范围", query_group = "locals" }, -- 选择语言范围
 					},
-					-- You can choose the select mode (default is charwise 'v')
-					--
-					-- Can also be a function which gets passed a table with the keys
-					-- * query_string: eg '@function.inner'
-					-- * method: eg 'v' or 'o'
-					-- and should return the mode ('v', 'V', or '<c-v>') or a table
-					-- mapping query_strings to modes.
+					-- 选择模式设置
 					selection_modes = {
-						["@parameter.outer"] = "v", -- charwise
-						["@function.outer"] = "V", -- linewise
-						["@class.outer"] = "<c-v>", -- blockwise
+						["@parameter.outer"] = "v", -- 字符模式
+						["@function.outer"] = "V", -- 行模式
+						["@class.outer"] = "<c-v>", -- 块模式
 					},
-					-- If you set this to `true` (default is `false`) then any textobject is
-					-- extended to include preceding or succeeding whitespace. Succeeding
-					-- whitespace has priority in order to act similarly to eg the built-in
-					-- `ap`.
-					--
-					-- Can also be a function which gets passed a table with the keys
-					-- * query_string: eg '@function.inner'
-					-- * selection_mode: eg 'v'
-					-- and should return true of false
+					-- 控制是否包含周围的空白字符
 					include_surrounding_whitespace = true,
 				},
 			},

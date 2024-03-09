@@ -3,10 +3,10 @@
 return {
 	"nvim-neo-tree/neo-tree.nvim",
 	keys = {
-		{ "<leader>oe", desc = "文件树" },
-		{ "<leader>ob", desc = "buffers" },
-		{ "<leader>og", desc = "git diff" },
-		{ "<leader>os", desc = "符号树" },
+		{ "<leader>ee", desc = "文件树" },
+		{ "<leader>eb", desc = "buffers" },
+		{ "<leader>eg", desc = "git diff" },
+		{ "<leader>es", desc = "符号树" },
 	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
@@ -98,9 +98,9 @@ return {
 				},
 			},
 		})
-		vim.keymap.set("n", "<space>oe", "<cmd>Neotree toggle<cr>", { silent = true, noremap = true })
-		vim.keymap.set("n", "<space>ob", "<cmd>Neotree buffers toggle<cr>", { silent = true, noremap = true })
-		vim.keymap.set("n", "<space>og", "<cmd>Neotree git_status toggle<cr>", { silent = true, noremap = true })
-		vim.keymap.set("n", "<space>os", "<cmd>Neotree document_symbols toggle<cr>", { silent = true, noremap = true })
+		vim.keymap.set("n", "<space>ee", "<cmd>Neotree toggle<cr>", { silent = true, noremap = true })
+		vim.keymap.set("n", "<space>eb", "<cmd>Neotree buffers toggle<cr>", { silent = true, noremap = true })
+		vim.keymap.set("n", "<space>eg", "<cmd>Neotree git_status toggle<cr>", { silent = true, noremap = true })
+		vim.keymap.set("n", "<space>es", "<cmd>Neotree document_symbols toggle<cr>", { silent = true, noremap = true })
 	end,
 }

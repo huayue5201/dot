@@ -3,6 +3,7 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	command = [[if line("'\"") > 1 && line("'\"") <= line("$") | execute "normal! g`\"" | endif]],
 })
 
+-- 换行不要延续注释符号
 vim.api.nvim_create_autocmd("BufEnter", { command = [[set formatoptions-=cro]] })
 
 -- 用q关闭窗口

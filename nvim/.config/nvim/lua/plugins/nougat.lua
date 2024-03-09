@@ -9,7 +9,6 @@ return {
 		local Bar = require("nougat.bar")
 		local Item = require("nougat.item")
 		local sep = require("nougat.separator")
-
 		local nut = {
 			buf = {
 				diagnostic_count = require("nougat.nut.buf.diagnostic_count").create,

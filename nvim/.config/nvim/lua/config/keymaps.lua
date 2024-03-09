@@ -9,7 +9,7 @@ vim.keymap.set("v", "<", "<gv")
 vim.keymap.set({ "n", "v" }, "d", '"_d', { desc = "删除" })
 
 -- 修改选中文本
-vim.keymap.set({ "n" }, "<leader>ri", "*``cgn", { desc = "修改文本" })
+vim.keymap .set({ "n" }, "<leader>re", "*``cgn", { desc = "修改文本" })
 
 -- 删除buffer
 vim.keymap.set({ "n", "t" }, "<c-q>", "<cmd>bdelete<cr>", { desc = "删除buffer" })
@@ -29,7 +29,7 @@ vim.keymap.set("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
 -- 切换quickfix窗口
 vim.keymap.set(
 	"n",
-	"<leader>oq",
+	"<leader>qq",
 	'<cmd>lua require("utils.Quickfix_Toggle").toggleQuickfix()<cr>',
 	{ desc = "quickfix窗口", noremap = true, silent = true }
 )
@@ -37,7 +37,7 @@ vim.keymap.set(
 -- 切换loclist窗口
 vim.keymap.set(
 	"n",
-	"<leader>ol",
+	"<leader>ll",
 	'<cmd>lua require("utils.Loclist_Toggle").toggleLocationList ()<cr>',
 	{ desc = "loclist窗口", noremap = true, silent = true }
 )

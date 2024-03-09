@@ -2,15 +2,15 @@
 
 return {
 	"stevearc/conform.nvim",
-	event = { "BufWritePre" },
-	cmd = { "ConformInfo" },
+	event = "BufReadPre",
+	cmd = "ConformInfo",
 	dependencies = {
 		"williamboman/mason.nvim",
 	},
 	keys = {
 		{
 			-- Customize or remove this keymap to your liking
-			"<leader>of",
+			"<S-A-f>",
 			function()
 				require("conform").format({ async = true, lsp_fallback = true })
 			end,
@@ -26,8 +26,8 @@ return {
 			lua = { "stylua" },
 			-- https://github.com/klauspost/asmfmt
 			asm = { "asmfmt" },
-			-- https://astyle.sourceforge.net/astyle.html#_Quick_Start
-			-- c = { "astyle" },
+			-- https://github.com/mvdan/sh
+			bash = { "shfmt" },
 			-- https://github.com/psf/black
 			-- python = { "black" },
 			-- https://github.com/dprint/dprint

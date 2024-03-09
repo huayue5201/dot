@@ -113,6 +113,8 @@ function ya() {
 }
 
 # PATH配置
+# 系统使用brew安装的软件
+export PATH="/opt/homebrew/bin:$PATH"
 # 使用brew安装的llvm
 export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
 export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
