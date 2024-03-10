@@ -68,8 +68,8 @@ return {
 					floating_preview_opts = {}, -- 悬浮预览选项，用于配置悬浮窗口的外观和行为
 					-- 使用快捷键来预览函数和类的定义
 					peek_definition_code = {
-						["<leader>tf"] = { query = "@function.outer", desc = "预览函数的外部区域定义" }, -- 查看函数的外部区域定义
-						["<leader>tF"] = { query = "@class.outer", desc = "预览类的外部区域定义" }, -- 查看类的外部区域定义
+						["<leader>k"] = { query = "@function.outer", desc = "预览函数的外部区域定义" }, -- 查看函数的外部区域定义
+						["<leader>K"] = { query = "@class.outer", desc = "预览类的外部区域定义" }, -- 查看类的外部区域定义
 					},
 				},
 				select = {

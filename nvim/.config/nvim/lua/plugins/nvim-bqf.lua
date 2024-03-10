@@ -12,17 +12,10 @@ return {
 	config = function()
 		local fn = vim.fn
 
+		-- 定义函数 qftf，用于生成快速fix列表项的文本
 		function _G.qftf(info)
 			local items
 			local ret = {}
-			-- The name of item in list is based on the directory of quickfix window.
-			-- Change the directory for quickfix window make the name of item shorter.
-			-- It's a good opportunity to change current directory in quickfixtextfunc :)
-			--
-			-- local alterBufnr = fn.bufname('#') -- alternative buffer is the buffer before enter qf window
-			-- local root = getRootByAlterBufnr(alterBufnr)
-			-- vim.cmd(('noa lcd %s'):format(fn.fnameescape(root)))
-			--
 			if info.quickfix == 1 then
 				items = fn.getqflist({ id = info.id, items = 0 }).items
 			else
@@ -43,7 +36,6 @@ return {
 						else
 							fname = fname:gsub("^" .. vim.env.HOME, "~")
 						end
-						-- char in fname may occur more than 1 width, ignore this issue in order to keep performance
 						if #fname <= limit then
 							fname = fnameFmt1:format(fname)
 						else
@@ -62,45 +54,43 @@ return {
 			return ret
 		end
 
+		-- 将 qftf 函数赋值给 vim.o.qftf，以便在 quickfix 窗口中使用
 		vim.o.qftf = "{info -> v:lua._G.qftf(info)}"
 
+		-- 设置预览窗口的外观
 		vim.cmd([[
-          hi BqfPreviewBorder guifg=#3e8e2d ctermfg=71
-          hi BqfPreviewTitle guifg=#3e8e2d ctermfg=71
-          hi BqfPreviewThumb guibg=#3e8e2d ctermbg=71
-          hi link BqfPreviewRange Search
-          ]])
+hi BqfPreviewBorder guifg=#3e8e2d ctermfg=71
+hi BqfPreviewTitle guifg=#3e8e2d ctermfg=71
+hi BqfPreviewThumb guibg=#3e8e2d ctermbg=71
+hi link BqfPreviewRange Search
+]])
 
+		-- 配置 bqf 插件
 		require("bqf").setup({
-			auto_enable = true,
-			auto_resize_height = true, -- highly recommended enable
+			auto_enable = true, -- 自动启用插件
+			auto_resize_height = true, -- 自动调整窗口高度
 			preview = {
-				win_height = 12,
+				win_height = 12, -- 预览窗口高度
 				win_vheight = 12,
-				delay_syntax = 80,
-				border = { "┏", "━", "┓", "┃", "┛", "━", "┗", "┃" },
-				show_title = false,
+				delay_syntax = 80, -- 延迟语法高亮时间
+				border = { "┏", "━", "┓", "┃", "┛", "━", "┗", "┃" }, -- 预览窗口边框
+				show_title = false, -- 是否显示标题
 				should_preview_cb = function(bufnr, qwinid)
 					local ret = true
 					local bufname = vim.api.nvim_buf_get_name(bufnr)
 					local fsize = vim.fn.getfsize(bufname)
-					if fsize > 100 * 1024 then
-						-- skip file size greater than 100k
-						ret = false
-					elseif bufname:match("^fugitive://") then
-						-- skip fugitive buffer
+					if fsize > 100 * 1024 or bufname:match("^fugitive://") then
 						ret = false
 					end
 					return ret
 				end,
 			},
-			-- make `drop` and `tab drop` to become preferred
+			-- 设置快速修复列表操作键映射
 			func_map = {
 				drop = "o",
 				openc = "O",
 				split = "<C-s>",
 				tabdrop = "<C-t>",
-				-- set to empty string to disable
 				tabc = "",
 				ptogglemode = "z,",
 			},

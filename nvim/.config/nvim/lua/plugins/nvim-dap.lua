@@ -20,32 +20,34 @@ return {
 		{ "<leader>dc", desc = "选择调试器" },
 	},
 	config = function()
-		-- 断点标志
+		-- 定义调试器断点标志
 		vim.fn.sign_define("DapBreakpoint", { text = "🔴", texthl = "", linehl = "", numhl = "" })
 
+		-- 导入 dap 和 dapui 模块
 		local dap, dapui = require("dap"), require("dapui")
 
-		-- 引入dap_config.lua模块
+		-- 导入 dap_config.lua 模块
 		local codelldb = require("dap-server.codelldb")
 
 		-- 调用模块中的函数进行配置
 		codelldb.setup_codelldb_adapter()
 		codelldb.setup_cpp_configuration()
 
+		-- 在调试器附加前打开 dapui
 		dap.listeners.before.attach.dapui_config = function()
 			dapui.open()
 		end
+
+		-- 在调试器启动前打开 dapui
 		dap.listeners.before.launch.dapui_config = function()
 			dapui.open()
 		end
-		-- dap.listeners.before.event_terminated.dapui_config = function()
-		-- 	dapui.close()
-		-- end
-		-- dap.listeners.before.event_exited.dapui_config = function()
-		-- 	dapui.close()
-		-- end
 
+		-- 设置键盘映射
+
+		-- 选择调试器
 		vim.keymap.set("n", "<leader>dc", "<cmd>Telescope dap configurations<cr>", { desc = "选择调试器" })
+
 		-- 继续执行程序
 		vim.keymap.set("n", "<F5>", function()
 			require("dap").continue()

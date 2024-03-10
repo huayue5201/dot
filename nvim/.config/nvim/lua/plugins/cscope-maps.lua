@@ -2,21 +2,7 @@
 
 return {
 	"dhananjaylatkar/cscope_maps.nvim",
-	-- https://bolt80.com/gutentags/
-	dependencies = "ludovicchabant/vim-gutentags",
 	ft = { "c", "asm" },
-	init = function()
-		-- 设置 Gutentags 模块，这是必需的，其他配置是可选的
-		vim.g.gutentags_modules = { "cscope_maps" }
-		-- 启用 Gutentags 构建倒排索引映射
-		vim.g.gutentags_cscope_build_inverted_index_maps = 1
-		-- 指定 Gutentags 缓存目录
-		vim.g.gutentags_cache_dir = vim.fn.expand("~/.cache/.gutentags")
-		-- 设置 Gutentags 生成文件列表的命令，这里使用 fd 工具过滤出 C 和 H 文件
-		vim.g.gutentags_file_list_command = "fd -e c -e h"
-		-- 启用 Gutentags 跟踪模式（可选）
-		-- vim.g.gutentags_trace = 1
-	end,
 	config = function()
 		require("cscope_maps").setup({
 			-- maps related defaults
@@ -49,6 +35,15 @@ return {
 					change_cwd = false, -- "true" or "false"
 				},
 			},
+		})
+		-- 保存时自动生成gtags文件
+		local group = vim.api.nvim_create_augroup("CscopeBuild", { clear = true })
+		vim.api.nvim_create_autocmd("BufWritePost", {
+			pattern = { "*.c", "*.h", "*.asm" },
+			callback = function()
+				vim.cmd("Cscope build")
+			end,
+			group = group,
 		})
 	end,
 }

@@ -1,64 +1,53 @@
 -- https://github.com/RRethy/vim-illuminate
 
 return {
-	"RRethy/vim-illuminate",
-	event = { "BufReadPre", "BufNewFile" },
+	"RRethy/vim-illuminate", -- 插件 GitHub 仓库地址
+	event = { "BufReadPre", "BufNewFile" }, -- 触发插件配置的事件
 	config = function()
-		-- default configuration
+		-- 默认配置
 		require("illuminate").configure({
-			-- providers: provider used to get references in the buffer, ordered by priority
+			-- 提供者：用于在缓冲区中获取引用的提供者，按优先级排序
 			providers = {
 				"lsp",
 				"treesitter",
 				"regex",
 			},
-			-- delay: delay in milliseconds
+			-- 延迟时间（毫秒）
 			delay = 300,
-			-- filetype_overrides: filetype specific overrides.
-			-- The keys are strings to represent the filetype while the values are tables that
-			-- supports the same keys passed to .configure except for filetypes_denylist and filetypes_allowlist
+			-- 文件类型的特定配置
 			filetype_overrides = {},
-			-- filetypes_denylist: filetypes to not illuminate, this overrides filetypes_allowlist
+			-- 不要高亮的文件类型列表，会覆盖 filetypes_allowlist
 			filetypes_denylist = {
 				"dirbuf",
 				"dirvish",
 				"fugitive",
 			},
-			-- filetypes_allowlist: filetypes to illuminate, this is overridden by filetypes_denylist
-			-- You must set filetypes_denylist = {} to override the defaults to allow filetypes_allowlist to take effect
+			-- 要高亮的文件类型列表，会被 filetypes_denylist 覆盖
 			filetypes_allowlist = {},
-			-- modes_denylist: modes to not illuminate, this overrides modes_allowlist
-			-- See `:help mode()` for possible values
+			-- 不要高亮的模式列表，会覆盖 modes_allowlist
 			modes_denylist = {},
-			-- modes_allowlist: modes to illuminate, this is overridden by modes_denylist
-			-- See `:help mode()` for possible values
+			-- 要高亮的模式列表，会被 modes_denylist 覆盖
 			modes_allowlist = {},
-			-- providers_regex_syntax_denylist: syntax to not illuminate, this overrides providers_regex_syntax_allowlist
-			-- Only applies to the 'regex' provider
-			-- Use :echom synIDattr(synIDtrans(synID(line('.'), col('.'), 1)), 'name')
+			-- 不要高亮的正则表达式语法列表，只适用于 'regex' 提供者
 			providers_regex_syntax_denylist = {},
-			-- providers_regex_syntax_allowlist: syntax to illuminate, this is overridden by providers_regex_syntax_denylist
-			-- Only applies to the 'regex' provider
-			-- Use :echom synIDattr(synIDtrans(synID(line('.'), col('.'), 1)), 'name')
+			-- 要高亮的正则表达式语法列表，会被 providers_regex_syntax_denylist 覆盖，只适用于 'regex' 提供者
 			providers_regex_syntax_allowlist = {},
-			-- under_cursor: whether or not to illuminate under the cursor
+			-- 是否在光标下方高亮
 			under_cursor = true,
-			-- large_file_cutoff: number of lines at which to use large_file_config
-			-- The `under_cursor` option is disabled when this cutoff is hit
+			-- 大文件截断值：达到此行数将使用大文件配置
+			-- 当达到此截断值时，under_cursor 选项将被禁用
 			large_file_cutoff = nil,
-			-- large_file_config: config to use for large files (based on large_file_cutoff).
-			-- Supports the same keys passed to .configure
-			-- If nil, vim-illuminate will be disabled for large files.
+			-- 大文件配置：用于大文件的配置（基于 large_file_cutoff）
+			-- 支持与 .configure 中传递的相同键
+			-- 如果为 nil，则大文件将禁用 vim-illuminate。
 			large_file_overrides = nil,
-			-- min_count_to_highlight: minimum number of matches required to perform highlighting
+			-- 执行高亮所需的最小匹配数量
 			min_count_to_highlight = 1,
-			-- should_enable: a callback that overrides all other settings to
-			-- enable/disable illumination. This will be called a lot so don't do
-			-- anything expensive in it.
+			-- 一个回调函数，用于启用/禁用光照的决定。这将经常调用，请不要在其中执行昂贵的操作。
 			should_enable = function(bufnr)
 				return true
 			end,
-			-- case_insensitive_regex: sets regex case sensitivity
+			-- 设置正则表达式的大小写敏感性
 			case_insensitive_regex = false,
 		})
 	end,

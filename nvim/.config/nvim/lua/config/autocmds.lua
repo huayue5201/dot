@@ -1,12 +1,15 @@
 -- 光标自动定位到最后编辑的位置
+-- 在 BufReadPost 事件后执行命令，将光标定位到上次编辑的位置
 vim.api.nvim_create_autocmd("BufReadPost", {
 	command = [[if line("'\"") > 1 && line("'\"") <= line("$") | execute "normal! g`\"" | endif]],
 })
 
 -- 换行不要延续注释符号
+-- 在 BufEnter 事件后执行命令，设置不延续注释符号的格式选项
 vim.api.nvim_create_autocmd("BufEnter", { command = [[set formatoptions-=cro]] })
 
 -- 用q关闭窗口
+-- 根据 FileType 设置不同的文件类型的快捷键，以关闭窗口
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = { "help", "startuptime", "qf", "lspinfo" },
 	command = [[nnoremap <buffer><silent> q :close<CR>]],
@@ -17,6 +20,7 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- 仅在活动窗口显示光标线
+-- 创建光标线高亮组，根据 InsertLeave 和 WinEnter 事件设置是否显示光标线
 local cursorGrp = vim.api.nvim_create_augroup("CursorLine", { clear = true })
 vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
 	pattern = "*",
@@ -29,16 +33,16 @@ vim.api.nvim_create_autocmd(
 )
 
 --- 保存时删除所有尾随空格
+-- 在 BufWritePre 事件前执行命令，删除尾随空格
 local TrimWhiteSpaceGrp = vim.api.nvim_create_augroup("TrimWhiteSpaceGrp", { clear = true })
 vim.api.nvim_create_autocmd("BufWritePre", {
 	command = [[:%s/\s\+$//e]],
 	group = TrimWhiteSpaceGrp,
 })
 
---================
 -- 创建高亮组并添加 TextYankPost 自动命令
+-- 在 TextYankPost 事件后执行回调函数，高亮复制的文本
 local highlight_group = vim.api.nvim_create_augroup("YankHighlight", { clear = true })
--- 添加 TextYankPost 自动命令
 vim.api.nvim_create_autocmd("TextYankPost", {
 	callback = function()
 		vim.highlight.on_yank()
@@ -47,22 +51,23 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	pattern = "*",
 })
 
---================
--- Toggle hlsearch based on specific keys in Normal mode
-if vim.g.enabled_toggle_hlsearch then
-	return
+-- 根据特定的按键在 Normal 模式下切换 hlsearch
+local function in_normal_mode()
+	return vim.fn.mode() == "n"
 end
-vim.g.enabled_toggle_hlsearch = true
 local function toggle_hlsearch(char)
-	-- Check if in Normal mode
-	if vim.fn.mode() == "n" then
-		local toggle_keys = { "<CR>", "n", "N", "*", "#", "?", "/" }
-		local should_toggle = vim.tbl_contains(toggle_keys, vim.fn.keytrans(char))
-		-- Toggle hlsearch if needed
-		if vim.opt.hlsearch:get() ~= should_toggle then
-			vim.opt.hlsearch = should_toggle
-		end
+	-- 只在 Normal 模式下执行
+	if not in_normal_mode() then
+		return
+	end
+	local toggle_keys = { "<CR>", "n", "N", "*", "#", "?", "/" }
+	local should_toggle = vim.tbl_contains(toggle_keys, vim.fn.keytrans(char))
+	-- 获取当前 hlsearch 的状态
+	local hlsearch_enabled = vim.opt.hlsearch:get()
+	-- 如果需要切换 hlsearch，则设置
+	if hlsearch_enabled ~= should_toggle then
+		vim.opt.hlsearch = should_toggle
 	end
 end
--- Register the key handler for toggling hlsearch
+-- 注册切换 hlsearch 的按键处理函数
 vim.on_key(toggle_hlsearch, vim.api.nvim_create_namespace("toggle_hlsearch"))

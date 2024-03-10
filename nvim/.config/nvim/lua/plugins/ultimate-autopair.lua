@@ -1,95 +1,62 @@
 -- https://github.com/altermo/ultimate-autopair.nvim
 
 return {
-   "altermo/ultimate-autopair.nvim",
-   event = { "InsertEnter", "CmdlineEnter" },
-   config = function()
-      require("ultimate-autopair").setup({
-         bs = { -- *ultimate-autopair-map-backspace-config*
-            enable = true,
-            map = "<bs>", --string or table
-            cmap = "<bs>", --string or table
-            overjumps = true,
-            --(|foo) > bs > |foo
-            space = true, --false, true or 'balance'
-            --( |foo ) > bs > (|foo)
-            --balance:
-            --  Will prioritize balanced spaces
-            --  ( |foo  ) > bs > ( |foo )
-            indent_ignore = true,
-            --(\n\t|\n) > bs > (|)
-            single_delete = true,
-            -- <!--|--> > bs > <!-|
-            conf = {},
-            --contains extension config
-            multi = false,
-            --use multiple configs (|ultimate-autopair-map-multi-config|)
-         },
-         fastwarp = { -- *ultimate-autopair-map-fastwarp-config*
-            enable = true,
-            enable_normal = true,
-            enable_reverse = true,
-            hopout = false,
-            --{(|)} > fastwarp > {(}|)
-            map = "<A-e>", --string or table
-            rmap = "<A-E>", --string or table
-            cmap = "<A-e>", --string or table
-            rcmap = "<A-E>", --string or table
-            multiline = true,
-            --(|) > fastwarp > (\n|)
-            nocursormove = true,
-            --makes the cursor not move (|)foo > fastwarp > (|foo)
-            --disables multiline feature
-            --only activates if prev char is start pair, otherwise fallback to normal
-            do_nothing_if_fail = true,
-            --add a module so that if fastwarp fails
-            --then an `e` will not be inserted
-            no_filter_nodes = { "string", "raw_string", "string_literals", "character_literal" },
-            --which nodes to skip for tsnode filtering
-            faster = false,
-            --only enables jump over pair, goto end/next line
-            --useful for the situation of:
-            --{|}M.foo('bar') > {M.foo('bar')|}
-            conf = {},
-            --contains extension config
-            multi = false,
-            --use multiple configs (|ultimate-autopair-map-multi-config|)
-         },
-         close = { -- *ultimate-autopair-map-close-config*
-            enable = true,
-            map = "<A-)>", --string or table
-            cmap = "<A-)>", --string or table
-            conf = {},
-            --contains extension config
-            multi = false,
-            --use multiple configs (|ultimate-autopair-map-multi-config|)
-            do_nothing_if_fail = true,
-            --add a module so that if close fails
-            --then a `)` will not be inserted
-         },
-         space2 = { -- *ultimate-autopair-map-space2-config*
-            enable = true,
-            match = [[\k]],
-            --what character activate
-            conf = {},
-            --contains extension config
-            multi = false,
-            --use multiple configs (|ultimate-autopair-map-multi-config|)
-         },
-         tabout = { -- 插入模式光标跳出符号
-            enable = true,
-            map = "<A-tab>", --string or table
-            cmap = "<A-tab>", --string or table
-            conf = {},
-            --contains extension config
-            multi = false,
-            --use multiple configs (|ultimate-autopair-map-multi-config|)
-            hopout = true,
-            -- (|) > tabout > ()|
-            do_nothing_if_fail = true,
-            --add a module so that if close fails
-            --then a `\t` will not be inserted
-         },
-      })
-   end,
+	"altermo/ultimate-autopair.nvim",
+	event = { "InsertEnter", "CmdlineEnter" },
+	config = function()
+		-- 设置 ultimate-autopair 插件
+		require("ultimate-autopair").setup({
+			bs = { -- 删除光标前的字符
+				enable = true, -- 启用删除光标前字符功能
+				map = "<bs>", -- 设置删除键的映射
+				cmap = "<bs>", -- 设置命令行模式下删除键的映射
+				overjumps = true, -- 光标跳过配对字符
+				space = true, -- 在配对字符之间留出空格
+				indent_ignore = true, -- 忽略缩进
+				single_delete = true, -- 单个字符删除
+				conf = {}, -- 包含扩展配置
+				multi = false, -- 使用多个配置
+			},
+			fastwarp = { -- 快速跳转
+				enable = true, -- 启用快速跳转功能
+				enable_normal = true, -- 启用正常模式下的快速跳转
+				enable_reverse = true, -- 启用反向模式下的快速跳转
+				hopout = false, -- 跳出配对字符
+				map = "<A-e>", -- 设置快速跳转键的映射
+				rmap = "<A-E>", -- 设置反向快速跳转键的映射
+				cmap = "<A-e>", -- 设置命令行模式下快速跳转键的映射
+				rcmap = "<A-E>", -- 设置命令行模式下反向快速跳转键的映射
+				multiline = true, -- 多行跳转
+				nocursormove = true, -- 光标不移动
+				do_nothing_if_fail = true, -- 快速跳转失败不插入字符
+				no_filter_nodes = { "string", "raw_string", "string_literals", "character_literal" }, -- 跳过过滤节点
+				faster = false, -- 只启用跳过配对字符和转到末尾/下一行
+				conf = {}, -- 包含扩展配置
+				multi = false, -- 使用多个配置
+			},
+			close = { -- 插入配对字符
+				enable = true, -- 启用插入配对字符功能
+				map = "<A-)>", -- 设置插入配对字符键的映射
+				cmap = "<A-)>", -- 设置命令行模式下插入配对字符键的映射
+				conf = {}, -- 包含扩展配置
+				multi = false, -- 使用多个配置
+				do_nothing_if_fail = true, -- 插入失败不插入字符
+			},
+			space2 = { -- 插入匹配字符后的空格
+				enable = true, -- 启用插入匹配字符后的空格功能
+				match = [[\k]], -- 触发匹配字符的字符集
+				conf = {}, -- 包含扩展配置
+				multi = false, -- 使用多个配置
+			},
+			tabout = { -- 插入模式光标跳出符号
+				enable = true, -- 启用插入模式光标跳出符号功能
+				map = "<A-tab>", -- 设置插入模式光标跳出符号键的映射
+				cmap = "<A-tab>", -- 设置命令行模式下插入模式光标跳出符号键的映射
+				conf = {}, -- 包含扩展配置
+				multi = false, -- 使用多个配置
+				hopout = true, -- 跳出配对字符
+				do_nothing_if_fail = true, -- 插入失败不插入字符
+			},
+		})
+	end,
 }

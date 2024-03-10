@@ -1,51 +1,40 @@
 -- https://github.com/stevearc/conform.nvim
 
 return {
-	"stevearc/conform.nvim",
-	event = "BufReadPre",
-	cmd = "ConformInfo",
+	"stevearc/conform.nvim", -- 使用 conform.nvim 插件
+	event = "BufReadPre", -- 在 BufReadPre 事件触发时执行
+	cmd = "ConformInfo", -- 定义命令 ConformInfo
 	dependencies = {
-		"williamboman/mason.nvim",
+		"williamboman/mason.nvim", -- 依赖于 mason.nvim 插件
 	},
 	keys = {
 		{
-			-- Customize or remove this keymap to your liking
-			"<S-A-f>",
+			"<S-A-f>", -- 自定义快捷键 "<Shift>-<Alt>-f"
 			function()
-				require("conform").format({ async = true, lsp_fallback = true })
+				require("conform").format({ async = true, lsp_fallback = true }) -- 格式化操作
 			end,
-			mode = "",
-			desc = "格式化",
+			mode = "", -- 模式为空字符串，表示适用于所有模式
+			desc = "格式化", -- 快捷键描述
 		},
 	},
-	-- Everything in opts will be passed to setup()
+	-- 所有 opts 中的内容都将传递给 setup() 函数
 	opts = {
-		-- Define your formatters
 		formatters_by_ft = {
-			-- https://github.com/JohnnyMorganz/StyLua
-			lua = { "stylua" },
-			-- https://github.com/klauspost/asmfmt
-			asm = { "asmfmt" },
-			-- https://github.com/mvdan/sh
-			bash = { "shfmt" },
-			-- https://github.com/psf/black
-			-- python = { "black" },
-			-- https://github.com/dprint/dprint
-			-- json = { "dprint" },
-			-- https://github.com/Riverside-Healthcare/djLint
-			-- html = { "djlint" },
+			-- 配置不同文件类型的格式化器
+			lua = { "stylua" }, -- Lua 文件使用 stylua 格式化器
+			asm = { "asmfmt" }, -- asm 文件使用 asmfmt 格式化器
+			-- 可以继续添加其他文件类型和对应的格式化器
 		},
-		-- Set up format-on-save
-		-- format_on_save = { timeout_ms = 500, lsp_fallback = true },
-		-- Customize formatters
 		formatters = {
+			-- 自定义格式化器参数
 			shfmt = {
-				prepend_args = { "-i", "2" },
+				prepend_args = { "-i", "2" }, -- shfmt 格式化器参数
 			},
+			-- 可以继续添加其他自定义格式化器和参数
 		},
 	},
 	init = function()
-		-- If you want the formatexpr, here is the place to set it
+		-- 设置 formatexpr，如果需要的话
 		vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
 	end,
 }

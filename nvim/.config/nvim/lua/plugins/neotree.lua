@@ -1,86 +1,69 @@
 -- https://github.com/nvim-neo-tree/neo-tree.nvim
 
 return {
-	"nvim-neo-tree/neo-tree.nvim",
+	"nvim-neo-tree/neo-tree.nvim", -- 插件 GitHub 仓库地址
 	keys = {
-		{ "<leader>ee", desc = "文件树" },
+		{ "<leader>ef", desc = "文件树" },
 		{ "<leader>eb", desc = "buffers" },
 		{ "<leader>eg", desc = "git diff" },
 		{ "<leader>es", desc = "符号树" },
 	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
-		"nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+		"nvim-tree/nvim-web-devicons", -- 不是必须的，但推荐安装
 		"MunifTanjim/nui.nvim",
-		-- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
+		-- "3rd/image.nvim", -- 可选的图片支持预览窗口：有关更多信息，请参见“# 预览模式”
 	},
 	config = function()
+		-- 设置 Neo-tree 插件
 		require("neo-tree").setup({
-			close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
-			sources = {
+			close_if_last_window = true, -- 如果是标签页中的最后一个窗口，则关闭 Neo-tree
+			sources = { -- Neo-tree 支持的源列表
 				"filesystem",
 				"buffers",
 				"git_status",
 				"document_symbols",
 			},
-			source_selector = {
-				winbar = true, -- toggle to show selector on winbar
-				statusline = false, -- toggle to show selector on statusline
-				show_scrolled_off_parent_node = false, -- boolean
-				sources = { -- table
-					{
-						source = "filesystem", -- string
-						display_name = " 󰉓 Files ", -- string | nil
-					},
-					{
-						source = "buffers", -- string
-						display_name = " 󰈚 Buffers ", -- string | nil
-					},
-					{
-						source = "git_status", -- string
-						display_name = " 󰊢 Git ", -- string | nil
-					},
-					{
-						source = "document_symbols", -- string
-						display_name = " 󰆧 Symbols ", -- string | nil
-					},
+			source_selector = { -- 源选择器的配置
+				winbar = true, -- 在窗口工具栏上显示选择器
+				statusline = false, -- 在状态栏上显示选择器
+				show_scrolled_off_parent_node = false, -- 显示已滚动到父节点之外的节点
+				sources = { -- 源列表
+					{ source = "filesystem", display_name = " 󰉓 Files " },
+					{ source = "buffers", display_name = " 󰈚 Buffers " },
+					{ source = "git_status", display_name = " 󰊢 Git " },
+					{ source = "document_symbols", display_name = " 󰆧 Symbols " },
 				},
-				content_layout = "start", -- string
-				tabs_layout = "equal", -- string
-				truncation_character = "…", -- string
-				tabs_min_width = nil, -- int | nil
-				tabs_max_width = nil, -- int | nil
-				padding = 0, -- int | { left: int, right: int }
-				separator = { left = "▏", right = "▕" }, -- string | { left: string, right: string, override: string | nil }
-				separator_active = nil, -- string | { left: string, right: string, override: string | nil } | nil
-				show_separator_on_edge = false, -- boolean
-				highlight_tab = "NeoTreeTabInactive", -- string
-				highlight_tab_active = "NeoTreeTabActive", -- string
-				highlight_background = "NeoTreeTabInactive", -- string
-				highlight_separator = "NeoTreeTabSeparatorInactive", -- string
-				highlight_separator_active = "NeoTreeTabSeparatorActive", -- string
+				content_layout = "start", -- 内容布局
+				tabs_layout = "equal", -- 标签布局
+				truncation_character = "…", -- 截断字符
+				tabs_min_width = nil, -- 标签最小宽度
+				tabs_max_width = nil, -- 标签最大宽度
+				padding = 0, -- 边距
+				separator = { left = "▏", right = "▕" }, -- 分隔符
+				separator_active = nil, -- 活动分隔符
+				show_separator_on_edge = false, -- 在边缘显示分隔符
+				highlight_tab = "NeoTreeTabInactive", -- 高亮标签
+				highlight_tab_active = "NeoTreeTabActive", -- 活动标签高亮
+				highlight_background = "NeoTreeTabInactive", -- 背景高亮
+				highlight_separator = "NeoTreeTabSeparatorInactive", -- 分隔符高亮
+				highlight_separator_active = "NeoTreeTabSeparatorActive", -- 活动分隔符高亮
 			},
-			event_handlers = {
-				-- 打开文件时自动关闭neotree
+			event_handlers = { -- 事件处理程序
 				{
-					event = "file_opened",
-					handler = function(file_path)
-						-- auto close
-						-- vimc.cmd("Neotree close")
-						-- OR
+					event = "file_opened", -- 文件打开事件
+					handler = function(file_path) -- 处理函数
+						-- 自动关闭 Neo-tree
 						require("neo-tree.command").execute({ action = "close" })
 					end,
 				},
 			},
-			window = {
-				position = "left",
-				width = 35,
-				mappings = {
+			window = { -- 窗口设置
+				position = "left", -- 窗口位置
+				width = 35, -- 窗口宽度
+				mappings = { -- 键盘映射
 					["P"] = { "toggle_preview", config = { use_float = false, use_image_nvim = true } },
-					["<space>"] = {
-						"toggle_node",
-						nowait = true, -- disable `nowait` if you have existing combos starting with this char that you want to use
-					},
+					["<space>"] = { "toggle_node", nowait = true },
 					["H"] = "set_root",
 					["."] = "toggle_hidden",
 					["e"] = function()
@@ -98,7 +81,8 @@ return {
 				},
 			},
 		})
-		vim.keymap.set("n", "<space>ee", "<cmd>Neotree toggle<cr>", { silent = true, noremap = true })
+		-- 设置快捷键
+		vim.keymap.set("n", "<space>ef", "<cmd>Neotree toggle<cr>", { silent = true, noremap = true })
 		vim.keymap.set("n", "<space>eb", "<cmd>Neotree buffers toggle<cr>", { silent = true, noremap = true })
 		vim.keymap.set("n", "<space>eg", "<cmd>Neotree git_status toggle<cr>", { silent = true, noremap = true })
 		vim.keymap.set("n", "<space>es", "<cmd>Neotree document_symbols toggle<cr>", { silent = true, noremap = true })
