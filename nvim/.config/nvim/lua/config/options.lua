@@ -1,32 +1,33 @@
 local opt = vim.opt
+local g = vim.g
 
 -- 空格按键
-vim.g.mapleader = " "
-vim.g.maplocalleader = " "
+g.mapleader = " "
+g.maplocalleader = " "
 
 -- 禁止加载自带插件设置
--- vim.g.loaded_matchit = 1 -- matchit插件
--- vim.g.loaded_matchparen = 1
-vim.g.loaded_gzip = 1 -- gzip插件
-vim.g.loaded_tar = 1 -- tar插件
-vim.g.loaded_tarPlugin = 1 -- tarPlugin插件
-vim.g.loaded_zip = 1 -- zip插件
-vim.g.loaded_zipPlugin = 1 -- zipPlugin插件
-vim.g.loaded_getscript = 1 -- getscript插件
-vim.g.loaded_getscriptPlugin = 1 --getscriptPlugin插件
-vim.g.loaded_vimball = 1 -- vimball插件
-vim.g.loaded_vimballPlugin = 1 -- vimballPlugin插件
-vim.g.loaded_2html_plugin = 1 -- 2html_plugin插件
-vim.g.loaded_logiPat = 1 -- logiPat插件
-vim.g.loaded_rrhelper = 1 -- rrhelper插件
-vim.g.loaded_netrw = 1 -- netrw插件
-vim.g.loaded_netrwPlugin = 1 -- netrwPlugin插件
-vim.g.loaded_netrwSettings = 1 -- netrwSettings插件
-vim.g.iloaded_netrwFileHandlers = 1 -- netrwFileHandlers插件
+-- g.loaded_matchit = 1 -- matchit插件
+-- g.loaded_matchparen = 1
+g.loaded_gzip = 1 -- gzip插件
+g.loaded_tar = 1 -- tar插件
+g.loaded_tarPlugin = 1 -- tarPlugin插件
+g.loaded_zip = 1 -- zip插件
+g.loaded_zipPlugin = 1 -- zipPlugin插件
+g.loaded_getscript = 1 -- getscript插件
+g.loaded_getscriptPlugin = 1 --getscriptPlugin插件
+g.loaded_vimball = 1 -- vimball插件
+g.loaded_vimballPlugin = 1 -- vimballPlugin插件
+g.loaded_2html_plugin = 1 -- 2html_plugin插件
+g.loaded_logiPat = 1 -- logiPat插件
+g.loaded_rrhelper = 1 -- rrhelper插件
+g.loaded_netrw = 1 -- netrw插件
+g.loaded_netrwPlugin = 1 -- netrwPlugin插件
+g.loaded_netrwSettings = 1 -- netrwSettings插件
+g.iloaded_netrwFileHandlers = 1 -- netrwFileHandlers插件
 
 -- 禁止语言链接检测设置
-vim.g.loaded_perl_provider = 0 -- perl
-vim.g.loaded_ruby_provider = 0 -- ruby
+g.loaded_perl_provider = 0 -- perl
+g.loaded_ruby_provider = 0 -- ruby
 
 -- 鼠标设置
 opt.mouse:append("a") -- 开启鼠标支持

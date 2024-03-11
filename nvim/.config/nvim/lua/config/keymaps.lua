@@ -8,8 +8,8 @@ vim.keymap.set("v", "<", "<gv")
 -- d 指向黑洞寄存器
 vim.keymap.set({ "n", "v" }, "d", '"_d', { desc = "删除" })
 
--- 修改选中文本
-vim.keymap .set({ "n" }, "<leader>re", "*``cgn", { desc = "修改文本" })
+-- 修改光标下的word
+vim.keymap.set({ "n" }, "<leader>rc", "*``cgn", { desc = "修改文本" })
 
 -- 删除buffer
 vim.keymap.set({ "n", "t" }, "<c-q>", "<cmd>bdelete<cr>", { desc = "删除buffer" })
