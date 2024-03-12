@@ -2,10 +2,10 @@
 
 return {
 	"Bekaboo/dropbar.nvim",
-	lazy = false,
+	event = "VeryLazy",
 	dependencies = "nvim-telescope/telescope-fzf-native.nvim",
 	keys = {
-		{ "<leader>wb", "<cmd>lua require('dropbar.api').pick()<cr>", desc = "Winbar" },
+		{ "<leader>wb", desc = "Winbar" },
 	},
 	config = function()
 		require("dropbar").setup({

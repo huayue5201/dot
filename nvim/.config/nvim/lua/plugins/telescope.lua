@@ -2,7 +2,7 @@
 
 return {
 	"nvim-telescope/telescope.nvim",
-	event = "VeryLazy",
+	-- event = "VeryLazy",
 	dependencies = {
 		{ "nvim-lua/plenary.nvim" },
 		-- https://github.com/nvim-telescope/telescope-fzf-native.nvim

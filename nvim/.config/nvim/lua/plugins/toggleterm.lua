@@ -38,7 +38,7 @@ return {
 		vim.keymap.set(
 			{ "n", "t", "i" },
 			"<C-w>\\",
-			'<cmd>lua  require("utils.Term_All").init_or_toggle() <cr>',
+			'<cmd>lua  require("modules.Term_All").init_or_toggle() <cr>',
 			{ desc = "全部终端", noremap = true, silent = true }
 		)
 

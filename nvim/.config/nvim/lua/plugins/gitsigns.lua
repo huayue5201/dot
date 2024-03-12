@@ -2,7 +2,7 @@
 
 return {
 	"lewis6991/gitsigns.nvim",
-	event = { "BufReadPre", "BufNewFile" },
+	event = "BufReadPre",
 	config = function()
 		-- 配置 gitsigns 插件
 		require("gitsigns").setup({

@@ -30,7 +30,7 @@ vim.keymap.set("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
 vim.keymap.set(
 	"n",
 	"<leader>qq",
-	'<cmd>lua require("utils.Quickfix_Toggle").toggleQuickfix()<cr>',
+	'<cmd>lua require("modules.Quickfix_Toggle").toggleQuickfix()<cr>',
 	{ desc = "quickfix窗口", noremap = true, silent = true }
 )
 
@@ -38,6 +38,6 @@ vim.keymap.set(
 vim.keymap.set(
 	"n",
 	"<leader>ll",
-	'<cmd>lua require("utils.Loclist_Toggle").toggleLocationList ()<cr>',
+	'<cmd>lua require("modules.Loclist_Toggle").toggleLocationList ()<cr>',
 	{ desc = "loclist窗口", noremap = true, silent = true }
 )

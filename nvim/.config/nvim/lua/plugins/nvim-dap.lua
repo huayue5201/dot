@@ -5,7 +5,6 @@ return {
 	dependencies = {
 		"rcarriga/nvim-dap-ui",
 		"theHamsta/nvim-dap-virtual-text",
-		"nvim-telescope/telescope.nvim",
 	},
 	keys = {
 		{ "<leader>B", desc = "设置断点" },
