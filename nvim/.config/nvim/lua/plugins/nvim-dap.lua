@@ -16,7 +16,6 @@ return {
 		{ "<leader>dp", desc = "预览" },
 		{ "<leader>df", desc = "展示调试框架" },
 		{ "<leader>ds", desc = "展示调试作用域" },
-		{ "<leader>dc", desc = "选择调试器" },
 	},
 	config = function()
 		-- 定义调试器断点标志
@@ -43,9 +42,6 @@ return {
 		end
 
 		-- 设置键盘映射
-
-		-- 选择调试器
-		vim.keymap.set("n", "<leader>dc", "<cmd>Telescope dap configurations<cr>", { desc = "选择调试器" })
 
 		-- 继续执行程序
 		vim.keymap.set("n", "<F5>", function()

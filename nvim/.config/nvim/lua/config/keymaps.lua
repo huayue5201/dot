@@ -37,7 +37,7 @@ vim.keymap.set(
 -- 切换loclist窗口
 vim.keymap.set(
 	"n",
-	"<leader>ll",
+	"<leader>ql",
 	'<cmd>lua require("modules.Loclist_Toggle").toggleLocationList ()<cr>',
 	{ desc = "loclist窗口", noremap = true, silent = true }
 )

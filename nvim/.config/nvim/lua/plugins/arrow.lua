@@ -2,15 +2,13 @@
 
 return {
 	"otavioschwanck/arrow.nvim",
-	keys = { ";", "H", "L", { "<leader>aa", desc = "添加标记" } },
+	keys = { ";", { "<leader>aa", desc = "添加标记" } },
 	config = function()
 		require("arrow").setup({
 			show_icons = true,
 			leader_key = ";", -- Recommended to be a single key
 			separate_by_branch = true,
 		})
-		vim.keymap.set("n", "H", require("arrow.persist").previous)
-		vim.keymap.set("n", "L", require("arrow.persist").next)
 		vim.keymap.set("n", "<leader>aa", require("arrow.persist").toggle)
 	end,
 }

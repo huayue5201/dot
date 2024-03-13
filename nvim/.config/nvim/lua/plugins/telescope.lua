@@ -7,8 +7,6 @@ return {
 		{ "nvim-lua/plenary.nvim" },
 		-- https://github.com/nvim-telescope/telescope-fzf-native.nvim
 		{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
-		-- https://github.com/nvim-telescope/telescope-dap.nvim
-		{ "nvim-telescope/telescope-dap.nvim" },
 	},
 	keys = {
 		{ "<leader>ff", desc = "文件检索" },
@@ -111,7 +109,6 @@ return {
 		})
 
 		-- 加载 Telescope 插件的扩展
-		require("telescope").load_extension("dap")
 		require("telescope").load_extension("fzf")
 
 		-- 设置键盘映射

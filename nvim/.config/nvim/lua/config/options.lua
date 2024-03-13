@@ -40,6 +40,7 @@ opt.encoding = "utf-8" -- 编码为utf-8
 
 -- 按键设置
 opt.updatetime = 500 -- 前置按键等待时间为300
+opt.jumpoptions:append("stack")
 
 -- 确认设置
 opt.confirm = true -- 代码未保存时退出,nvim提示是否保存

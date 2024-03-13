@@ -1,4 +1,4 @@
 [opener]
-archive = [{ exec = 'unar "$1"', desc = "Extract here" }]
-text = [{ exec = 'nvim "$@"', block = true }]
+archive = [{ run = 'unar "$1"', desc = "Extract here" }]
+text = [{ run = 'nvim "$@"', block = true }]
 # ...

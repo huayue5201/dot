@@ -21,18 +21,6 @@ zinit ice as"command" from"gh-r" \
    atpull"%atclone" src"init.zsh"
    zinit light starship/starship
 
-# Fzf
-zinit ice from"gh-r" as"program"
-zinit light junegunn/fzf
-
-# Ripgrep
-zinit ice as"command" from"gh-r" mv"ripgrep* -> rg" pick"rg/rg"
-zinit light BurntSushi/ripgrep
-
-# fd
-zinit ice as"command" from"gh-r" mv"fd* -> fd" pick"fd/fd"
-zinit light sharkdp/fd
-
 # Zsh-vi-mode
 zinit ice depth=1
 zinit light jeffreytse/zsh-vi-mode
@@ -52,10 +40,6 @@ zinit light lsd-rs/lsd
 # Zoxide
 zinit ice as"command" from"gh-r" mv"zoxide* -> zoxide" pick"zoxide/zoxide"
 zinit light ajeetdsouza/zoxide
-
-# Bat
-zinit ice as"command" from"gh-r" mv"bat* -> bat" pick"bat/bat"
-zinit light sharkdp/bat
 
 # Fast-syntax-highlighting
 zinit ice wait"1" lucid atinit"zpcompinit; zpcdreplay" atload"FAST_HIGHLIGHT[chroma-git]=\"chroma/-ogit.ch\""
@@ -113,15 +97,19 @@ function ya() {
    rm -f -- "$tmp"
 }
 
+# neovim启动路径
+export PATH="$HOME/neovim/nvim-macos/bin:$PATH"
+
+# 默认编辑器
+export EDITOR=nvim
+export VISUAL=nvim
+
 # 路径配置
-# 系统使用 brew 安装的软件
-export PATH="/opt/homebrew/bin:$PATH"
-# 使用 brew 安装的 llvm
-export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
-export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
-export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 # Cargo PATH (Rust)
 export PATH=$PATH:~/.cargo/bin
+
+# stcgal
+export PATH="$PATH:/Users/lijia/Library/Application Support/pipx/venvs/stcgal/bin"
 
 # VPS 代理
 export http_proxy=http://127.0.0.1:8889
@@ -161,3 +149,6 @@ setopt hist_fcntl_lock 2>/dev/null
 setopt hist_reduce_blanks
 # 共享历史记录
 setopt SHARE_HISTORY
+
+# Created by `pipx` on 2024-03-13 09:10:48
+export PATH="$PATH:/Users/lijia/.local/bin"

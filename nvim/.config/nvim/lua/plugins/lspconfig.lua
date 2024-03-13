@@ -60,10 +60,10 @@ return {
 		})
 
 		-- 设置键映射
-		vim.keymap.set("n", "<space>qd", vim.diagnostic.setloclist, { desc = "代码错误列表" })
+		vim.keymap.set("n", "<leader>ld", vim.diagnostic.setloclist, { desc = "代码错误列表" })
 		vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到前一个错误" })
 		vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "跳转到下一个错误" })
-		vim.keymap.set("n", "<space>ld", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })
+		vim.keymap.set("n", "<leader>fd", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })
 
 		-- 创建 LspAttach 事件的自动命令
 		vim.api.nvim_create_autocmd("LspAttach", {
@@ -81,34 +81,34 @@ return {
 				vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "显示悬停信息" }, opts)
 				vim.keymap.set(
 					{ "n", "i" },
-					"<c-k>",
+					"<a-k>",
 					vim.lsp.buf.signature_help,
 					{ desc = "显示函数签名帮助" },
 					opts
 				)
 				vim.keymap.set(
 					{ "n", "x" },
-					"<space>ca",
+					"<leader>ca",
 					vim.lsp.buf.code_action,
 					{ desc = "执行代码操作" },
 					opts
 				)
-				vim.keymap.set({ "n", "v" }, "<space>rn", vim.lsp.buf.rename, { desc = "重命名符号" }, opts)
+				vim.keymap.set({ "n", "v" }, "<leader>rn", vim.lsp.buf.rename, { desc = "重命名符号" }, opts)
 				vim.keymap.set(
 					"n",
-					"<space>aw",
+					"<leader>aw",
 					vim.lsp.buf.add_workspace_folder,
 					{ desc = "添加工作区目录" },
 					opts
 				)
 				vim.keymap.set(
 					"n",
-					"<space>rw",
+					"<leader>rw",
 					vim.lsp.buf.remove_workspace_folder,
 					{ desc = "移除工作区目录" },
 					opts
 				)
-				vim.keymap.set("n", "<space>lw", function()
+				vim.keymap.set("n", "<leader>lw", function()
 					print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 				end, { desc = "列出工作区目录" }, opts)
 				-- vim.keymap.set("n", "<S-A-f>", function()
