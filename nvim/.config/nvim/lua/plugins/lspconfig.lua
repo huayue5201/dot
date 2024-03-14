@@ -48,15 +48,16 @@ return {
 			float = {
 				source = "if_many", -- 显示浮动窗口
 			},
-			signs = {
-				-- 设置诊断图标
-				text = {
-					[vim.diagnostic.severity.ERROR] = "", -- 错误
-					[vim.diagnostic.severity.WARN] = "", -- 警告
-					[vim.diagnostic.severity.INFO] = "", -- 信息
-					[vim.diagnostic.severity.HINT] = "󰌵", -- 提示
-				},
-			},
+			signs = false,
+			-- signs = {
+			-- 	-- 设置诊断图标
+			-- 	text = {
+			-- 		[vim.diagnostic.severity.ERROR] = "", -- 错误
+			-- 		[vim.diagnostic.severity.WARN] = "", -- 警告
+			-- 		[vim.diagnostic.severity.INFO] = "", -- 信息
+			-- 		[vim.diagnostic.severity.HINT] = "󰌵", -- 提示
+			-- 	},
+			-- },
 		})
 
 		-- 设置键映射

@@ -1,5 +1,5 @@
 -- 保存
-vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { desc = "保存" })
+vim.keymap.set({ "n", "i" }, "<C-s>", "<cmd>w<cr>", { desc = "保存" })
 
 -- 代码块缩进
 vim.keymap.set("v", ">", ">gv")

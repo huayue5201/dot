@@ -1,3 +1,20 @@
+-- 保存时自动格式话
+-- 1
+-- vim.api.nvim_create_autocmd("LspAttach", {
+-- 	group = vim.api.nvim_create_augroup("lsp", { clear = true }),
+-- 	callback = function(args)
+-- 		-- 2
+-- 		vim.api.nvim_create_autocmd("BufWritePre", {
+-- 			-- 3
+-- 			buffer = args.buf,
+-- 			callback = function()
+-- 				-- 4 + 5
+-- 				vim.lsp.buf.format({ async = false, id = args.data.client_id })
+-- 			end,
+-- 		})
+-- 	end,
+-- })
+
 -- 光标自动定位到最后编辑的位置
 -- 在 BufReadPost 事件后执行命令，将光标定位到上次编辑的位置
 vim.api.nvim_create_autocmd("BufReadPost", {

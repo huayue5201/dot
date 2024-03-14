@@ -5,8 +5,8 @@ local gvim = vim.g
 gvim.mapleader = " "
 gvim.maplocalleader = " "
 -- 禁止加载自带插件设置
--- gvim.loaded_matchit = 1 -- matchit插件
--- gvim.loaded_matchparen = 1
+gvim.loaded_matchit = 1 -- matchit插件
+gvim.loaded_matchparen = 1
 gvim.loaded_gzip = 1 -- gzip插件
 gvim.loaded_tar = 1 -- tar插件
 gvim.loaded_tarPlugin = 1 -- tarPlugin插件

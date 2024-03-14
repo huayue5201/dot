@@ -19,6 +19,12 @@ return {
 	},
 	-- 所有 opts 中的内容都将传递给 setup() 函数
 	opts = {
+		-- 保存时自动格式化
+		format_on_save = {
+			-- These options will be passed to conform.format()
+			timeout_ms = 500,
+			lsp_fallback = true,
+		},
 		formatters_by_ft = {
 			-- 配置不同文件类型的格式化器
 			lua = { "stylua" }, -- Lua 文件使用 stylua 格式化器

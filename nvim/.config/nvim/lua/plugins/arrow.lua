@@ -2,7 +2,10 @@
 
 return {
 	"otavioschwanck/arrow.nvim",
-	keys = { ";", { "<leader>aa", desc = "添加标记" } },
+	keys = {
+		{ ";" },
+		{ "<leader>aa", desc = "添加标记" },
+	},
 	config = function()
 		require("arrow").setup({
 			show_icons = true,
