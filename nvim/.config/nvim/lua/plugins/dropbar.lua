@@ -5,7 +5,7 @@ return {
 	event = "VeryLazy",
 	dependencies = "nvim-telescope/telescope-fzf-native.nvim",
 	keys = {
-		{ "<leader>wb", desc = "Winbar" },
+		{ "<leader>ew", desc = "Winbar" },
 	},
 	config = function()
 		require("dropbar").setup({
@@ -23,6 +23,6 @@ return {
 				},
 			},
 		})
-		vim.keymap.set("n", "<leader>wb", "<cmd>lua require('dropbar.api').pick()<cr>", { desc = "Winbar" })
+		vim.keymap.set("n", "<leader>w", "<cmd>lua require('dropbar.api').pick()<cr>", { desc = "Winbar" })
 	end,
 }

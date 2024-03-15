@@ -10,6 +10,8 @@ return {
 		"hrsh7th/cmp-buffer",
 		-- https://github.com/hrsh7th/cmp-path
 		"hrsh7th/cmp-path",
+		-- https://github.com/lukas-reineke/cmp-rg
+		"lukas-reineke/cmp-rg",
 		-- https://github.com/hrsh7th/cmp-nvim-lsp-signature-help
 		"hrsh7th/cmp-nvim-lsp-signature-help",
 	},
@@ -115,6 +117,11 @@ return {
 				{ name = "nvim_lsp" },
 				{ name = "buffer" },
 				{ name = "path" },
+				{
+					name = "rg",
+					-- Try it when you feel cmp performance is poor
+					keyword_length = 3,
+				},
 				{ name = "nvim_lsp_signature_help" },
 			},
 
@@ -141,6 +148,7 @@ return {
 						buffer = "[Buffer]",
 						nvim_lsp = "[LSP]",
 						path = "[PATH]",
+						rg = "[RG]",
 					})[entry.source.name]
 					return vim_item
 				end,

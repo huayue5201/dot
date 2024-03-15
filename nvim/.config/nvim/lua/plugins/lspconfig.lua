@@ -64,7 +64,7 @@ return {
 		vim.keymap.set("n", "<leader>ld", vim.diagnostic.setloclist, { desc = "代码错误列表" })
 		vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到前一个错误" })
 		vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "跳转到下一个错误" })
-		vim.keymap.set("n", "<leader>fd", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })
+		vim.keymap.set("n", "<leader>le", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })
 
 		-- 创建 LspAttach 事件的自动命令
 		vim.api.nvim_create_autocmd("LspAttach", {
@@ -82,7 +82,7 @@ return {
 				vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "显示悬停信息" }, opts)
 				vim.keymap.set(
 					{ "n", "i" },
-					"<a-k>",
+					"<c-k>",
 					vim.lsp.buf.signature_help,
 					{ desc = "显示函数签名帮助" },
 					opts
