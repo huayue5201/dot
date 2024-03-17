@@ -70,12 +70,17 @@ return {
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("UserLspConfig", {}), -- 创建自动命令组
 			callback = function(ev)
+				-- 原生内嵌提示
+				-- local client = vim.lsp.get_client_by_id(ev.data.client_id)
+				-- if client.server_capabilities.inlayHintProvider then
+				-- 	vim.lsp.inlay_hint.enable(ev.buf, true)
+				-- end
 				-- 启用 <C-x><C-o> 触发的补全
 				vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
 				-- 设置缓冲区本地键映射
 				local opts = { buffer = ev.buf }
 				vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "跳转到变量或函数定义" }, opts)
-				vim.keymap.set("n", "ge", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opts)
+				vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opts)
 				vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "跳转到接口实现" }, opts)
 				vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "查找所有引用" }, opts)
 				vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "跳转到声明" }, opts)

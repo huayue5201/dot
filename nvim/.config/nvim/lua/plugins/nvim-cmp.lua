@@ -14,6 +14,8 @@ return {
 		"lukas-reineke/cmp-rg",
 		-- https://github.com/hrsh7th/cmp-nvim-lsp-signature-help
 		"hrsh7th/cmp-nvim-lsp-signature-help",
+		-- https://github.com/onsails/lspkind.nvim
+		"onsails/lspkind.nvim",
 	},
 	init = function()
 		vim.opt.completeopt = { "menu", "menuone", "noselect" }
@@ -26,6 +28,8 @@ return {
 			return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
 		end
 
+		-- 菜单图标
+		local lspkind = require("lspkind")
 		-- 设置 nvim-cmp
 		local cmp = require("cmp")
 
@@ -68,35 +72,6 @@ return {
 		for group, attrs in pairs(highlight_groups) do
 			vim.api.nvim_set_hl(0, group, attrs)
 		end
-
-		-- 定义补全项类型的图标
-		local kind_icons = {
-			Text = "  ",
-			Method = " 󰆧 ",
-			Function = " 󰊕 ",
-			Constructor = "  ",
-			Field = " 󰇽 ",
-			Variable = " 󰂡 ",
-			Class = " 󰠱 ",
-			Interface = "  ",
-			Module = "  ",
-			Property = " 󰜢 ",
-			Unit = "  ",
-			Value = " 󰎠 ",
-			Enum = "  ",
-			Keyword = " 󰌋 ",
-			Snippet = "  ",
-			Color = " 󰏘 ",
-			File = " 󰈙 ",
-			Reference = "  ",
-			Folder = " 󰉋 ",
-			EnumMember = "  ",
-			Constant = " 󰏿 ",
-			Struct = "   ",
-			Event = "  ",
-			Operator = " 󰆕 ",
-			TypeParameter = " 󰅲 ",
-		}
 
 		-- 设置补全框架
 		cmp.setup({
@@ -143,14 +118,12 @@ return {
 			formatting = {
 				fields = { "kind", "abbr", "menu" },
 				format = function(entry, vim_item)
-					vim_item.kind = kind_icons[vim_item.kind] or ""
-					vim_item.menu = ({
-						buffer = "[Buffer]",
-						nvim_lsp = "[LSP]",
-						path = "[PATH]",
-						rg = "[RG]",
-					})[entry.source.name]
-					return vim_item
+					local kind = require("lspkind").cmp_format({ mode = "symbol_text", maxwidth = 50 })(entry, vim_item)
+					local strings = vim.split(kind.kind, "%s", { trimempty = true })
+					kind.kind = " " .. (strings[1] or "") .. " "
+					kind.menu = "    (" .. (strings[2] or "") .. ")"
+
+					return kind
 				end,
 			},
 

@@ -13,8 +13,8 @@ return {
 		local configs = require("nvim-treesitter.configs")
 		-- 设置 Treesitter 插件的配置
 		configs.setup({
-         -- https://github.com/andymass/vim-matchup
-         -- matchup插件集成
+			-- https://github.com/andymass/vim-matchup
+			-- matchup插件集成
 			matchup = {
 				enable = true, -- mandatory, false will disable the whole extension
 				disable = { "c", "ruby" }, -- optional, list of language that will be disabled
@@ -34,9 +34,11 @@ return {
 				"json",
 			},
 			-- 是否同步安装解析器
-			sync_install = false,
+			sync_install = true,
 			-- 是否自动安装解析器
-			auto_install = false,
+			auto_install = true,
+			-- 忽略安装的解析器模块
+			-- ignore_install = { "text" },
 			-- 启用缩进模块
 			indent = {
 				enable = true,
@@ -44,6 +46,8 @@ return {
 			-- 高亮模块配置
 			highlight = {
 				enable = true,
+				-- 指定需要禁用的语言列表
+				-- disable = { "text" },
 				-- 或者使用一个函数来灵活配置，例如，对于大文件禁用 Treesitter 高亮以提高性能
 				disable = function(lang, buf)
 					local max_filesize = 100 * 1024 -- 100 KB

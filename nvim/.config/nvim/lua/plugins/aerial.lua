@@ -25,7 +25,7 @@ return {
 				max_width = { 40, 0.2 },
 				width = nil,
 				min_width = 30,
-				default_direction = "prefer_left",
+				default_direction = "prefer_right",
 				placement = "window",
 			},
 			highlight_on_hover = true,

@@ -23,6 +23,6 @@ return {
 				},
 			},
 		})
-		vim.keymap.set("n", "<leader>w", "<cmd>lua require('dropbar.api').pick()<cr>", { desc = "Winbar" })
+		vim.keymap.set("n", "<leader>ew", "<cmd>lua require('dropbar.api').pick()<cr>", { desc = "Winbar" })
 	end,
 }

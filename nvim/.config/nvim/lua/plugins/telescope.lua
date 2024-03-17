@@ -66,6 +66,8 @@ return {
 			return string.format("%s\t\t%s", tail, parent)
 		end
 
+		-- tiagovla/scope.nvim提供支持,管理所有buffers
+		require("telescope").load_extension("scope")
 		-- 导入 Telescope 插件中的动作模块
 		local actions = require("telescope.actions")
 
@@ -127,7 +129,7 @@ return {
 		vim.keymap.set(
 			"n",
 			"<space>fb",
-			"<cmd>Telescope buffers<cr>",
+			"<cmd>Telescope scope buffers<cr>",
 			{ desc = "buffer检索", silent = true, noremap = true }
 		)
 		vim.keymap.set(
