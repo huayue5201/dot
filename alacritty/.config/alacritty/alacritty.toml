@@ -43,15 +43,15 @@ foreground = "0xc8c093"
 size = 17
 
 [font.bold]
-family = "Hack Nerd Font"
+family = "FiraCode Nerd Font"
 style = "Bold"
 
 [font.italic]
-family = "Hack Nerd Font"
+family = "FiraCode Nerd Font"
 style = "Italic"
 
 [font.normal]
-family = "Hack Nerd Font"
+family = "FiraCode Nerd Font"
 style = "Regular"
 
 [scrolling]
