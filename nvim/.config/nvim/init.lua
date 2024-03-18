@@ -9,5 +9,7 @@ vim.api.nvim_create_autocmd("User", {
 	callback = function()
 		require("config.autocmds")
 		require("config.keymaps")
+		-- 引入状态栏模块
+		require("modules.statusline")
 	end,
 })
