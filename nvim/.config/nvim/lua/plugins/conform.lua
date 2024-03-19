@@ -28,7 +28,6 @@ return {
 		formatters_by_ft = {
 			-- 配置不同文件类型的格式化器
 			lua = { "stylua" }, -- Lua 文件使用 stylua 格式化器
-			asm = { "asmfmt" }, -- asm 文件使用 asmfmt 格式化器
 			-- 可以继续添加其他文件类型和对应的格式化器
 		},
 		formatters = {

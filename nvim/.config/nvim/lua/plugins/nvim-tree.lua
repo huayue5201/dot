@@ -9,10 +9,13 @@ return {
 	keys = { "<leader>ef", desc = "文件树" },
 	config = function()
 		require("nvim-tree").setup({
+			hijack_cursor = true, -- 是否劫持光标
+			select_prompts = true, -- 选择提示
 			sort = {
 				sorter = "case_sensitive",
 			},
 			view = {
+				preserve_window_proportions = true, -- 保留窗口比例，
 				width = 35,
 			},
 			renderer = {
@@ -20,6 +23,22 @@ return {
 			},
 			filters = {
 				dotfiles = true,
+			},
+			diagnostics = { -- 诊断选项
+				enable = true, -- 启用
+				show_on_dirs = true, -- 在目录上显示
+				show_on_open_dirs = true, -- 在打开的目录上显示
+				debounce_delay = 50, -- 防抖延迟
+				severity = { -- 严重程度
+					min = vim.diagnostic.severity.HINT, -- 最小
+					max = vim.diagnostic.severity.ERROR, -- 最大
+				},
+				icons = { -- 图标
+					hint = "", -- 提示
+					info = "", -- 信息
+					warning = "", -- 警告
+					error = "", -- 错误
+				},
 			},
 		})
 		vim.keymap.set("n", "<leader>ef", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })

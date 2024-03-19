@@ -9,12 +9,6 @@ return {
 		"nvim-treesitter/nvim-treesitter-textobjects",
 	},
 	config = function()
-		-- 语法解析器的配置
-		local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
-		parser_config.txt = {
-			install_info = {}, -- txt 文件不需要解析器，因此安装信息为空
-			filetype = "txt", -- 将文件类型设置为 txt
-		}
 		-- 导入 Treesitter 插件的配置模块(语法分析器)
 		local configs = require("nvim-treesitter.configs")
 		-- 设置 Treesitter 插件的配置

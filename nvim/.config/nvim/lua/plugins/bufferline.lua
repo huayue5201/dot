@@ -7,6 +7,7 @@ return {
 	config = function()
 		require("bufferline").setup({
 			options = {
+				themable = true,
 				hover = {
 					enabled = true,
 					delay = 50,

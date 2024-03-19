@@ -7,7 +7,6 @@ return {
 		"theHamsta/nvim-dap-virtual-text",
 	},
 	keys = {
-		{ "<leader>B", desc = "设置断点" },
 		{ "<leader>b", desc = "切换断点" },
 		{ "<leader>lp", desc = "设置日志断点" },
 		{ "<leader>dl", desc = "运行上次的调试会话" },
@@ -66,11 +65,6 @@ return {
 		-- 切换断点
 		vim.keymap.set("n", "<Leader>b", function()
 			require("dap").toggle_breakpoint()
-		end)
-
-		-- 设置断点
-		vim.keymap.set("n", "<Leader>B", function()
-			require("dap").set_breakpoint()
 		end)
 
 		-- 设置日志断点
