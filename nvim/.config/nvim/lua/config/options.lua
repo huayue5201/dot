@@ -37,7 +37,7 @@ vim.opt.encoding = "utf-8" -- 编码为utf-8
 
 -- 按键设置
 vim.opt.updatetime = 500 -- 前置按键等待时间为300
-vim.opt.jumpoptions:append("stack")
+vim.opt.jumpoptions:append("stack") -- "stack" 修改光标跳转的行为
 
 -- 确认设置
 vim.opt.confirm = true -- 代码未保存时退出,nvim提示是否保存

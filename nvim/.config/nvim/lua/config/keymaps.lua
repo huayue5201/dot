@@ -1,3 +1,14 @@
+-- 自动检查映射是否重复
+local function uniqueKeymap(modes, lhs, rhs, opts)
+	if not opts then
+		opts = {}
+	end
+	if opts.unique == nil then
+		opts.unique = true
+	end
+	vim.keymap.set(modes, lhs, rhs, opts)
+end
+
 -- 保存
 vim.keymap.set({ "n", "i" }, "<C-s>", "<cmd>w<cr>", { desc = "保存", noremap = true, silent = true })
 

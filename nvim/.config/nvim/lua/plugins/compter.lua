@@ -7,19 +7,6 @@ return {
 		require("compter").setup({
 			-- Provide and customize templates
 			templates = {
-				-- 数字
-				{
-					pattern = [[-\?\d\+]],
-					priority = 0,
-					increase = function(content)
-						content = tonumber(content)
-						return content + 1, true
-					end,
-					decrease = function(content)
-						content = tonumber(content)
-						return content - 1, true
-					end,
-				},
 				-- 字母
 				{
 					pattern = [[\l]],
@@ -93,7 +80,7 @@ return {
 				},
 			},
 			-- Whether fallback to nvim-built-in increase and decrease operation, default to false
-			fallback = false,
+			fallback = true,
 		})
 	end,
 }

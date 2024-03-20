@@ -15,30 +15,52 @@ return {
 		end)
 
 		-- gx命令增强
+		-- 打开 URL 的函数
+		local function openURL(url)
+			-- 根据系统类型选择合适的命令
+			local opener
+			if vim.fn.has("macunix") == 1 then
+				opener = "open"
+			elseif vim.fn.has("linux") == 1 then
+				opener = "xdg-open"
+			elseif vim.fn.has("win64") == 1 or vim.fn.has("win32") == 1 then
+				opener = "start"
+			end
+			-- 使用系统命令打开 URL
+			local openCommand = string.format("%s '%s' >/dev/null 2>&1", opener, url)
+			vim.fn.system(openCommand)
+		end
+		-- 设置按键映射，当用户按下 gx 键时触发操作
 		vim.keymap.set("n", "gx", function()
+			-- 调用 various-textobjs 插件的 url 函数，以便在选择 URL 时能够正确地获取到它
 			require("various-textobjs").url()
+			-- 检查当前模式是否为可视模式
 			local foundURL = vim.fn.mode():find("v")
+			local url
 			if foundURL then
-				u.normal('"zy')
-				local url = vim.fn.getreg("z")
+				-- 如果在可视模式下，将选择的文本复制到寄存器 z
+				vim.cmd([[ normal! "zy ]])
+				-- 从寄存器 z 中获取 URL
+				url = vim.fn.getreg("z")
+				-- 打开 URL
 				openURL(url)
 			else
-				-- find all URLs in buffer
+				-- 如果不在可视模式下，则从缓冲区中查找所有的 URL
 				local urlPattern = require("various-textobjs.charwise-textobjs").urlPattern
 				local bufText = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
 				local urls = {}
+				-- 使用正则表达式匹配 URL，并将匹配到的 URL 存入 urls 表中
 				for url in bufText:gmatch(urlPattern) do
 					table.insert(urls, url)
 				end
+				-- 如果没有找到 URL，则直接返回
 				if #urls == 0 then
 					return
 				end
-
-				-- select one, use a plugin like dressing.nvim for nicer UI for
-				-- `vim.ui.select`
+				-- 选择一个 URL，并使用 openURL 函数打开它
 				vim.ui.select(urls, { prompt = "Select URL:" }, function(choice)
 					if choice then
-						openURL(url)
+						openURL(choice)
 					end
 				end)
 			end
@@ -46,54 +68,56 @@ return {
 
 		-- 删除缩进周围的行
 		vim.keymap.set("n", "dsi", function()
-			-- select outer indentation
+			-- 选择缩进的外层文本对象
 			require("various-textobjs").indentation("outer", "outer")
-
-			-- plugin only switches to visual mode when a textobj has been found
+			-- 插件仅在找到文本对象时切换到可视模式
 			local indentationFound = vim.fn.mode():find("V")
 			if not indentationFound then
 				return
 			end
-
-			-- dedent indentation
+			-- 减少缩进
 			vim.cmd.normal({ "<", bang = true })
-
-			-- delete surrounding lines
+			-- 删除周围的行
 			local endBorderLn = vim.api.nvim_buf_get_mark(0, ">")[1]
 			local startBorderLn = vim.api.nvim_buf_get_mark(0, "<")[1]
-			vim.cmd(tostring(endBorderLn) .. " delete") -- delete end first so line index is not shifted
+			vim.cmd(tostring(endBorderLn) .. " delete") -- 先删除结尾，以免行索引被移位
 			vim.cmd(tostring(startBorderLn) .. " delete")
-		end, { desc = "Delete Surrounding Indentation" })
+		end, { desc = "删除周围的缩进" })
 
 		-- 复制缩进周围的行
 		vim.keymap.set("n", "ysii", function()
 			local startPos = vim.api.nvim_win_get_cursor(0)
-
-			-- identify start- and end-border
+			-- 确定开始和结束边界
 			require("various-textobjs").indentation("outer", "outer")
 			local indentationFound = vim.fn.mode():find("V")
 			if not indentationFound then
 				return
 			end
-			vim.cmd.normal({ "V", bang = true }) -- leave visual mode so the `'<` `'>` marks are set
-
-			-- copy them into the + register
+			vim.cmd.normal({ "V", bang = true }) -- 离开可视模式以设置 `'<` `'>` 标记
+			-- 将它们复制到 + 寄存器中
 			local startLn = vim.api.nvim_buf_get_mark(0, "<")[1] - 1
 			local endLn = vim.api.nvim_buf_get_mark(0, ">")[1] - 1
 			local startLine = vim.api.nvim_buf_get_lines(0, startLn, startLn + 1, false)[1]
 			local endLine = vim.api.nvim_buf_get_lines(0, endLn, endLn + 1, false)[1]
 			vim.fn.setreg("+", startLine .. "\n" .. endLine .. "\n")
-
-			-- highlight yanked text
+			-- 高亮复制的文本
 			local ns = vim.api.nvim_create_namespace("ysi")
 			vim.highlight.range(0, ns, "IncSearch", { startLn, 0 }, { startLn, -1 })
 			vim.highlight.range(0, ns, "IncSearch", { endLn, 0 }, { endLn, -1 })
 			vim.defer_fn(function()
 				vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
 			end, 1000)
-
-			-- restore cursor position
+			-- 恢复光标位置
 			vim.api.nvim_win_set_cursor(0, startPos)
-		end, { desc = "Yank surrounding indentation" })
+		end, { desc = "复制周围的缩进" })
+
+		-- 自动缩进粘贴的文本
+		vim.keymap.set("n", "P", function()
+			require("various-textobjs").lastChange()
+			local changeFound = vim.fn.mode():find("v")
+			if changeFound then
+				vim.cmd.normal({ ">", bang = true })
+			end
+		end, { desc = "Indent Last Paste" })
 	end,
 }
