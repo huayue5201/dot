@@ -122,8 +122,7 @@ vim.opt.cmdheight = 1 -- 命令行高度
 
 -- 状态列设置
 vim.opt.statuscolumn:append("%s%{v:relnum?v:relnum:v:lnum}%=%C") -- 状态列样式
-vim.opt.signcolumn = "yes:1" -- ionc占用1格
+vim.opt.signcolumn = "yes:2" -- ionc占用几格
 vim.opt.colorcolumn:append("80") -- 代码警示宽度80
-vim.opt.numberwidth = 3 -- 行号数字宽度为4
 vim.opt.number = true -- 显示绝对行号
 vim.opt.relativenumber = true -- 显示相对行号

@@ -77,7 +77,7 @@ return {
 		cmp.setup({
 			completion = {
 				-- 触发补全的字符数
-				keyword_length = 2,
+				-- keyword_length = 2,
 			},
 
 			-- 片段支持(neovim核心支持lsp片段功能)
@@ -89,14 +89,10 @@ return {
 
 			-- 补全来源列表
 			sources = {
-				{ name = "nvim_lsp" },
+				{ name = "nvim_lsp", keyword_length = 2 },
 				{ name = "buffer" },
 				{ name = "path" },
-				{
-					name = "rg",
-					-- Try it when you feel cmp performance is poor
-					keyword_length = 3,
-				},
+				{ name = "rg", keyword_length = 3 },
 				{ name = "nvim_lsp_signature_help" },
 			},
 

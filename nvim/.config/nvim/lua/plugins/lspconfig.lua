@@ -36,6 +36,8 @@ return {
 		require("lsp-server.clangd").setupClangd()
 		-- 加载 Taplo LSP 配置
 		require("lspconfig").taplo.setup({})
+		-- 加载 ASM LSP 配置
+		-- require("lspconfig").asm_lsp.setup({})
 
 		-- 配置诊断显示方式
 		vim.diagnostic.config({
