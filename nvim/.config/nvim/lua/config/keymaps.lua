@@ -16,8 +16,16 @@ vim.keymap.set({ "n", "i" }, "<C-s>", "<cmd>w<cr>", { desc = "保存", noremap =
 vim.keymap.set("v", ">", ">gv")
 vim.keymap.set("v", "<", "<gv")
 
--- d 指向黑洞寄存器
-vim.keymap.set({ "n", "v" }, "d", '"_d', { desc = "删除" })
+--  指向黑洞寄存器
+vim.keymap.set("n", "x", '"_x')
+vim.keymap.set("n", "c", '"_c')
+-- 更智能的dd删除
+vim.keymap.set("n", "dd", function()
+	if vim.fn.getline(".") == "" then
+		return '"_dd'
+	end
+	return "dd"
+end, { expr = true })
 
 -- 修改光标下的word
 vim.keymap.set({ "n" }, "<leader>rc", "*``cgn", { desc = "修改文本" })
