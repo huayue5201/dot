@@ -9,9 +9,6 @@ local function uniqueKeymap(modes, lhs, rhs, opts)
 	vim.keymap.set(modes, lhs, rhs, opts)
 end
 
--- 保存
-vim.keymap.set({ "n", "i" }, "<C-s>", "<cmd>w<cr>", { desc = "保存", noremap = true, silent = true })
-
 -- 代码块缩进
 vim.keymap.set("v", ">", ">gv")
 vim.keymap.set("v", "<", "<gv")
@@ -30,8 +27,11 @@ end, { expr = true })
 -- 修改光标下的word
 vim.keymap.set({ "n" }, "<leader>rc", "*``cgn", { desc = "修改文本" })
 
+-- 保存
+vim.keymap.set({ "n" }, "<C-s>", "<cmd>w<cr>", { desc = "保存", noremap = true, silent = true })
+
 -- 删除buffer
-vim.keymap.set({ "n", "t" }, "<A-q>", "<cmd>bdelete<cr>", { desc = "删除buffer", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<leader>tq", "<cmd>bdelete<cr>", { desc = "删除buffer", noremap = true, silent = true })
 
 -- 切换buffer
 vim.keymap.set("n", "<TAB>", "<cmd>bnext<cr>", { desc = "下一个缓冲区", noremap = true, silent = true })

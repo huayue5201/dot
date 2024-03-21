@@ -2,7 +2,7 @@
 
 return {
 	"hrsh7th/nvim-cmp",
-	event = { "InsertEnter" },
+	event = "InsertEnter",
 	dependencies = {
 		-- https://github.com/hrsh7th/cmp-nvim-lsp
 		"hrsh7th/cmp-nvim-lsp",

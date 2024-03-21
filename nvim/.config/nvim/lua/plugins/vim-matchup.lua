@@ -2,7 +2,7 @@
 
 return {
 	"andymass/vim-matchup",
-	event = "BufReadPre",
+	event = "BufReadPost",
 	config = function()
 		-- 启用预览功能
 		vim.g.matchup_matchparen_offscreen = { method = "popup" }

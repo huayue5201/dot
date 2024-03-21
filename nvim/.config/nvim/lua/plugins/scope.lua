@@ -2,8 +2,11 @@
 
 return {
 	"tiagovla/scope.nvim",
-	event = "VeryLazy",
-	keys = { "<leader>tt", desc = "移动buferr到别的tabs" },
+	keys = {
+		"<leader>ta",
+		"<leader>tt",
+		desc = "移动buferr到别的tabs",
+	},
 	config = function()
 		require("scope").setup({})
 		vim.keymap.set(

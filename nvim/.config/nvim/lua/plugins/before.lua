@@ -2,7 +2,7 @@
 
 return {
 	"bloznelis/before.nvim",
-	event = "BufReadPre",
+	event = "BufReadPost",
 	keys = {
 		{ "<leader>o", desc = "历史编辑位置跳转(上)" },
 		{ "<leader>i", desc = "历史编辑位置跳转(下)" },

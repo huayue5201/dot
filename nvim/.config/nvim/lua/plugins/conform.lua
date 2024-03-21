@@ -2,7 +2,7 @@
 
 return {
 	"stevearc/conform.nvim", -- 使用 conform.nvim 插件
-	event = "BufReadPre", -- 在 BufReadPre 事件触发时执行
+	event = "BufReadPost",
 	cmd = "ConformInfo", -- 定义命令 ConformInfo
 	dependencies = {
 		"williamboman/mason.nvim", -- 依赖于 mason.nvim 插件

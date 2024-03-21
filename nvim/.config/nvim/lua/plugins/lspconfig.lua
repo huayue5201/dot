@@ -5,10 +5,10 @@
 
 return {
 	"neovim/nvim-lspconfig",
-	event = { "BufReadPre", "BufNewFile" },
+	event = { "BufReadPost", "BufNewFile" },
 	dependencies = {
 		"williamboman/mason.nvim",
-		"j-hui/fidget.nvim",
+		"j-hui/fidget.nvim", -- lsp缓冲指示器
 	},
 	config = function()
 		-- 获取 nvim-cmp 插件提供的 LSP 客户端能力
@@ -64,7 +64,7 @@ return {
 		vim.keymap.set("n", "<leader>qd", vim.diagnostic.setloclist, { desc = "代码错误列表" })
 		vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到前一个错误" })
 		vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "跳转到下一个错误" })
-		vim.keymap.set("n", "<leader>pe", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })
+		vim.keymap.set("n", "<leader>fd", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })
 
 		-- 创建 LspAttach 事件的自动命令
 		vim.api.nvim_create_autocmd("LspAttach", {

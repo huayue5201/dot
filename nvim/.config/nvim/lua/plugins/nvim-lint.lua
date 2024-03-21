@@ -2,7 +2,7 @@
 
 return {
 	"mfussenegger/nvim-lint", -- 使用 nvim-lint 插件
-	event = { "BufReadPre", "BufNewFile" }, -- 在 BufReadPre 和 BufNewFile 事件触发时执行
+	event = { "BufReadPost", "BufNewFile" },
 	dependencies = {
 		"williamboman/mason.nvim", -- 依赖于 mason.nvim 插件
 	},

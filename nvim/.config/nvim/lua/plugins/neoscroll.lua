@@ -2,7 +2,7 @@
 
 return {
 	"karb94/neoscroll.nvim",
-	event = "BufReadPre",
+	event = "BufReadPost",
 	config = function()
 		require("neoscroll").setup({})
 	end,
