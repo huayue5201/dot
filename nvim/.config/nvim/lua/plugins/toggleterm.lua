@@ -34,6 +34,12 @@ return {
 			},
 		})
 
+		-- 按两次esc直接退出toggleterm
+		local exitTerm = function()
+			vim.cmd(":ToggleTerm")
+		end
+		vim.keymap.set("t", "<esc><esc>", exitTerm)
+
 		-- 设置快捷键以打开全部终端
 		vim.keymap.set(
 			{ "n", "t", "i" },

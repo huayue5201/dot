@@ -80,10 +80,10 @@ return {
 				-- 设置缓冲区本地键映射
 				local opts = { buffer = ev.buf }
 				vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "跳转到变量或函数定义" }, opts)
-				vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opts)
-				vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "跳转到接口实现" }, opts)
-				vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "查找所有引用" }, opts)
 				vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "跳转到声明" }, opts)
+				vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opts)
+				vim.keymap.set("n", "gl", vim.lsp.buf.implementation, { desc = "跳转到接口实现" }, opts)
+				vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "查找所有引用" }, opts)
 				vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "显示悬停信息" }, opts)
 				vim.keymap.set(
 					{ "n", "i" },

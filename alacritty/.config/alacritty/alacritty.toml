@@ -1,88 +1,61 @@
-live_config_reload = true
+# https://alacritty.org/config-alacritty.html
 
-[[colors.indexed_colors]]
-color = "0xffa066"
-index = 16
+live_config_reload = true # 实时重新加载配置
 
-[[colors.indexed_colors]]
-color = "0xff5d62"
-index = 17
-
-[colors.bright]
-black = "0x727169"
-blue = "0x7fb4ca"
-cyan = "0x7aa89f"
-green = "0x98bb6c"
-magenta = "0x938aa9"
-red = "0xe82424"
-white = "0xdcd7ba"
-yellow = "0xe6c384"
-
-[colors.normal]
-black = "0x090618"
-blue = "0x7e9cd8"
-cyan = "0x6a9589"
-green = "0x76946a"
-magenta = "0x957fb8"
-red = "0xc34043"
-white = "0xc8c093"
-yellow = "0xc0a36e"
-
-[colors.primary]
-background = "0x1f1f28"
-foreground = "0xdcd7ba"
-
-[colors.selection]
-background = "0x2d4f67"
-foreground = "0xc8c093"
-
-# [env]
-# TERM = "alacritty-direct"
-
+# 字体设置
 [font]
-size = 17
+size = 17 # 字体大小
 
 [font.bold]
-family = "FiraCode Nerd Font"
+family = "FiraCode Nerd Font" # 粗体字体
 style = "Bold"
 
 [font.italic]
-family = "FiraCode Nerd Font"
+family = "FiraCode Nerd Font" # 斜体字体
 style = "Italic"
 
 [font.normal]
-family = "FiraCode Nerd Font"
+family = "FiraCode Nerd Font" # 正常字体
 style = "Regular"
 
+# 滚动设置
 [scrolling]
-history = 10000
-multiplier = 20
+history = 10000 # 滚动历史行数
+multiplier = 20 # 滚动速度倍数
 
+# Shell 设置
 [shell]
-args = ["-l"]
-program = "/bin/zsh"
+args = ["-l"]        # Shell 参数
+program = "/bin/zsh" # 使用的Shell程序
 
+# 窗口设置
 [window]
-decorations = "Transparent"
-dynamic_padding = false
-opacity = 0.8
-startup_mode = "Windowed"
-option_as_alt = "OnlyLeft"
+decorations = "Transparent"       # 窗口装饰样式
+dynamic_padding = true            # 动态填充设置
+opacity = 0.8                     # 窗口不透明度
+startup_mode = "SimpleFullscreen" # 启动窗口模式
+option_as_alt = "OnlyLeft"        # 选项键行为
+blur = true                       # 模糊窗口
+dynamic_title = true              # 动态标题
 
+# 窗口尺寸
 [window.dimensions]
-columns = 150
-lines = 60
+columns = 150 # 窗口列数
+lines = 60    # 窗口行数
 
+# 窗口填充
 [window.padding]
-x = 10
-y = 15
+x = 10 # 水平填充
+y = 15 # 垂直填充
 
+# 光标设置
 [cursor]
-blink_interval = 500
+blink_interval = 500 # 光标闪烁间隔
 
 [cursor.style]
-shape = "Beam"
-blinking = "Always"
+shape = "Beam"      # 光标形状
+blinking = "Always" # 光标闪烁模式
 
+# 键盘设置
 [keyboard]
-bindings = []
+bindings = [] # 键盘绑定（当前为空）
