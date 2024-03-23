@@ -33,6 +33,20 @@ return {
 			-- 折叠
 			manage_folds = true,
 			show_guides = true,
+			nav = {
+				-- 导航窗口中的键盘映射
+				keymaps = {
+					["<CR>"] = "actions.jump", -- 跳转到选中的符号
+					["<2-LeftMouse>"] = "actions.jump", -- 同样跳转到选中的符号
+					["<C-v>"] = "actions.jump_vsplit", -- 垂直分割窗口并跳转
+					["<C-s>"] = "actions.jump_split", -- 水平分割窗口并跳转
+					["h"] = "actions.left", -- 向左移动焦点
+					["l"] = "actions.right", -- 向右移动焦点
+					["<C-c>"] = "actions.close", -- 关闭导航窗口
+					["<esc>"] = "actions.close", -- 关闭导航窗口
+					["q"] = "actions.close", -- 关闭导航窗口
+				},
+			},
 		})
 		-- You probably also want to set a keymap to toggle aerial
 		vim.keymap.set("n", "<leader>ea", "<cmd>AerialToggle!<CR>")

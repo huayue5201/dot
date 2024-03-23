@@ -42,22 +42,20 @@ return {
 		-- 配置诊断显示方式
 		vim.diagnostic.config({
 			virtual_text = {
-				source = "if_many", -- 显示虚拟文本
-				prefix = "▪", -- 虚拟文本前缀
+				source = "always", -- 总是显示虚拟文本
+				prefix = "■", -- 虚拟文本前缀为方块
+				severity = {
+					min = vim.diagnostic.severity.ERROR, -- 只显示错误级别的虚拟文本
+				},
 			},
 			float = {
-				source = "if_many", -- 显示浮动窗口
+				source = "always", -- 总是显示浮动窗口
+				border = "rounded", -- 浮动窗口边框为圆角
 			},
-			signs = false,
-			-- signs = {
-			-- 	-- 设置诊断图标
-			-- 	text = {
-			-- 		[vim.diagnostic.severity.ERROR] = "", -- 错误
-			-- 		[vim.diagnostic.severity.WARN] = "", -- 警告
-			-- 		[vim.diagnostic.severity.INFO] = "", -- 信息
-			-- 		[vim.diagnostic.severity.HINT] = "󰌵", -- 提示
-			-- 	},
-			-- },
+			signs = false, -- 显示诊断标记
+			underline = true, -- 对诊断信息使用下划线
+			update_in_insert = false, -- 插入模式下不更新诊断信息
+			severity_sort = true, -- 按严重性对诊断进行排序
 		})
 
 		-- 设置键映射
@@ -79,10 +77,10 @@ return {
 				vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
 				-- 设置缓冲区本地键映射
 				local opts = { buffer = ev.buf }
-				vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "跳转到变量或函数定义" }, opts)
+				vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "跳转到定义" }, opts)
 				vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "跳转到声明" }, opts)
-				vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opts)
-				vim.keymap.set("n", "gl", vim.lsp.buf.implementation, { desc = "跳转到接口实现" }, opts)
+				vim.keymap.set("n", "<leader>gt", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opts)
+				vim.keymap.set("n", "<leader>gi", vim.lsp.buf.implementation, { desc = "跳转到接口实现" }, opts)
 				vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "查找所有引用" }, opts)
 				vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "显示悬停信息" }, opts)
 				vim.keymap.set(

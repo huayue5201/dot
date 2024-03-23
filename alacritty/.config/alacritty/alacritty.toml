@@ -30,23 +30,26 @@ program = "/bin/zsh" # 使用的Shell程序
 
 # 窗口设置
 [window]
-decorations = "Transparent"       # 窗口装饰样式
-dynamic_padding = true            # 动态填充设置
-opacity = 0.8                     # 窗口不透明度
-startup_mode = "SimpleFullscreen" # 启动窗口模式
-option_as_alt = "OnlyLeft"        # 选项键行为
-blur = true                       # 模糊窗口
-dynamic_title = true              # 动态标题
+decorations = "Transparent" # 窗口装饰样式
+dynamic_padding = true      # 动态填充设置
+opacity = 0.8               # 窗口不透明度
+# startup_mode = "SimpleFullscreen" # 启动窗口模式
+option_as_alt = "OnlyLeft" # 选项键行为
+blur = true                # 模糊窗口
+dynamic_title = true       # 动态标题
 
 # 窗口尺寸
 [window.dimensions]
-columns = 150 # 窗口列数
+columns = 100 # 窗口列数
 lines = 60    # 窗口行数
 
 # 窗口填充
 [window.padding]
-x = 10 # 水平填充
-y = 15 # 垂直填充
+x = 8  # 水平填充
+y = 10 # 垂直填充
+
+[selection]
+save_to_clipboard = true # 自动复制文本
 
 # 光标设置
 [cursor]

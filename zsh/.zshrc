@@ -15,6 +15,28 @@ autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
 ### Zinit 安装结束
 
+# 在 zinit update 前自动清理已注释或删除的插件
+zinit_update() {
+   # 获取所有已加载的插件列表
+   loaded_plugins=("${(@f)$(zinit list | grep 'loading')}")
+
+    # 获取所有未加载的插件列表
+    # 这里假设已加载的插件都带有 'ice' 标签
+    zinit_clean_list=("${(@f)$(zinit list -q | grep 'ice' | awk '{print $2}' | grep -v -f <(echo $loaded_plugins | tr ' ' '\n'))}")
+
+    # 卸载并删除那些未加载的插件
+    for plugin in $zinit_clean_list; do
+       zinit unload "$plugin" && zinit delete "$plugin"
+    done
+
+    # 执行 zinit 原生的更新逻辑
+    zinit "$@"
+ }
+
+# 使用 zinit_update 作为 zinit update 的别名
+alias zinit_update=zinit_update
+
+
 # Starship 主题
 zinit ice as"command" from"gh-r" \
    atclone"./starship init zsh > init.zsh; ./starship completions zsh > _starship" \
@@ -66,10 +88,14 @@ zinit lucid wait for \
 export MCFLY_KEY_SCHEME=vim
 # 启用模糊搜索
 export MCFLY_FUZZY=2
+# 最大搜索数,防止延迟
+export MCFLY_HISTORY_LIMIT=10000
 # 主题设置 TOP 和 BOTTOM
 export MCFLY_INTERFACE_VIEW=BOTTOM
+# 禁用菜单栏
+export MCFLY_DISABLE_MENU=TRUE
 # 提示符
-export MCFLY_PROMPT="❯"
+export MCFLY_PROMPT="🔍"
 # Mcfly 配色，macOS 根据系统更改配色
 if [[ "$(defaults read -g AppleInterfaceStyle 2&>/dev/null)" != "Dark" ]]; then
    export MCFLY_LIGHT=TRUE
@@ -85,7 +111,7 @@ _fzf_compgen_dir() {
    fd --type d --hidden --follow --exclude ".git" . "$1"
 }
 # 设置参数
-export FZF_DEFAULT_OPTS='--height 40% --layout reverse --info inline --border --preview "bat --style=numbers --color=always --line-range :500 {}" --color=bg+:#293739,bg:#1B1D1E,border:#808080,spinner:#E6DB74,hl:#7E8E91,fg:#F8F8F2,header:#7E8E91,info:#A6E22E,pointer:#A6E22E,marker:#F92672,fg+:#F8F8F2,prompt:#F92672,hl+:#F92672'
+export FZF_DEFAULT_OPTS='--height 40% --layout reverse --info inline --border --preview "bat --color=always --style=numbers --line-range=:500 {}" --color=bg+:#293739,bg:#1B1D1E,border:#808080,spinner:#E6DB74,hl:#7E8E91,fg:#F8F8F2,header:#7E8E91,info:#A6E22E,pointer:#A6E22E,marker:#F92672,fg+:#F8F8F2,prompt:#F92672,hl+:#F92672'
 
 # yazi
 function ya() {
@@ -96,6 +122,9 @@ function ya() {
    fi
    rm -f -- "$tmp"
 }
+
+# bat 配置
+alias cat="bat --theme=\$(defaults read -globalDomain AppleInterfaceStyle &> /dev/null && echo default || echo GitHub)"
 
 # neovim启动路径
 export PATH="$HOME/neovim/nvim-macos/bin:$PATH"
@@ -122,6 +151,8 @@ eval "$(zoxide init zsh)"
 alias ls='lsd'
 alias lt='ls --tree'
 
+# 函数嵌套数
+export FUNCNEST=100
 # 历史记录条目数量
 export HISTSIZE=10000
 # 注销后保存的历史记录条目数量
@@ -150,5 +181,9 @@ setopt hist_reduce_blanks
 # 共享历史记录
 setopt SHARE_HISTORY
 
+# brew
+export PATH="/opt/homebrew/bin:$PATH"
 # Created by `pipx` on 2024-03-13 09:10:48
 export PATH="$PATH:/Users/lijia/.local/bin"
+
+export STM32CubeMX_PATH=/Applications/STMicroelectronics/STM32CubeMX.app/Contents/Resources
