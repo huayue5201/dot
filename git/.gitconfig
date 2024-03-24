@@ -1,0 +1,31 @@
+[safe]
+   directory = /opt/homebrew
+   directory = /opt/homebrew/Library/Taps/homebrew/homebrew-core/
+   directory = /opt/homebrew/Library/Taps/homebrew/homebrew-cask/
+   directory = /opt/homebrew/Library/Taps/homebrew/homebrew-services/
+   directory = /opt/homebrew/Library/Taps/homebrew/homebrew-services
+   directory = /opt/homebrew/Library/Taps/homebrew/homebrew-cask
+   directory = /opt/homebrew/Library/Taps/homebrew/homebrew-core
+[init]
+   defaultBranch = main
+[user]
+   name = huayue
+   email = 369230782@qq.com
+
+[diff]
+   tool = difftastic
+   external = difft
+
+[difftool]
+   prompt = false
+
+[difftool "difftastic"]
+   cmd = difft "$LOCAL" "$REMOTE"
+
+[pager]
+   difftool = true
+
+# `git dft` is less to type than `git difftool`.
+[alias]
+   dft = difftool
+   dlog = "!f() { : git log ; GIT_EXTERNAL_DIFF=difft git log -p --ext-diff $@; }; f"

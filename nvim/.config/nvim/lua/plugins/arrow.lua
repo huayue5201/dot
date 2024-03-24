@@ -12,6 +12,6 @@ return {
 			leader_key = ";", -- Recommended to be a single key
 			separate_by_branch = true,
 		})
-		vim.keymap.set("n", "<leader>aa", require("arrow.persist").toggle)
+		keymap("n", "<leader>aa", require("arrow.persist").toggle)
 	end,
 }

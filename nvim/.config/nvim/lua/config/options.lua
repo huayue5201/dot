@@ -1,3 +1,5 @@
+-- 按键映射简化及设置模块
+_G.keymap = require("modules.keyMap").setKeymap
 -- 空格按键
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -34,7 +36,7 @@ vim.opt.clipboard:append("unnamedplus") -- 启用系统剪贴板
 
 -- 编码设置
 vim.opt.encoding = "utf-8" -- 编码为utf-8
-vim.bo.commentstring = "//%s" -- 注释格式
+-- vim.bo.commentstring = "//%s" -- 注释格式
 
 -- 按键设置
 vim.opt.updatetime = 500 -- 前置按键等待时间为300

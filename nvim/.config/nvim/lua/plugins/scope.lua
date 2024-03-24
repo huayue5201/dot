@@ -9,11 +9,6 @@ return {
 	},
 	config = function()
 		require("scope").setup({})
-		vim.keymap.set(
-			{ "n" },
-			"<leader>tt",
-			"<cmd>ScopeMoveBuf<cr>",
-			{ desc = "移动buferr到别的tabs", noremap = true, silent = true }
-		)
+		keymap({ "n" }, "<leader>tt", "<cmd>ScopeMoveBuf<cr>", { desc = "移动buferr到别的tabs" })
 	end,
 }

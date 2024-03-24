@@ -95,11 +95,11 @@ export MCFLY_INTERFACE_VIEW=BOTTOM
 # 禁用菜单栏
 export MCFLY_DISABLE_MENU=TRUE
 # 提示符
-export MCFLY_PROMPT="🔍"
+export MCFLY_PROMPT=">"
 # Mcfly 配色，macOS 根据系统更改配色
-if [[ "$(defaults read -g AppleInterfaceStyle 2&>/dev/null)" != "Dark" ]]; then
-   export MCFLY_LIGHT=TRUE
-fi
+# if [[ "$(defaults read -g AppleInterfaceStyle 2&>/dev/null)" != "Dark" ]]; then
+#    export MCFLY_LIGHT=TRUE
+# fi
 
 # Fzf
 # 使用 fd 代替默认的 find
@@ -125,9 +125,6 @@ function ya() {
 
 # bat 配置
 alias cat="bat --theme=\$(defaults read -globalDomain AppleInterfaceStyle &> /dev/null && echo default || echo GitHub)"
-
-# neovim启动路径
-export PATH="$HOME/neovim/nvim-macos/bin:$PATH"
 
 # 默认编辑器
 export EDITOR=nvim

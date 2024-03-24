@@ -11,6 +11,6 @@ return {
 	},
 	config = function()
 		require("dapui").setup()
-		vim.keymap.set("n", "<leader>du", "<cmd>lua require'dapui'.toggle()<cr>")
+		keymap("n", "<leader>du", "<cmd>lua require'dapui'.toggle()<cr>")
 	end,
 }

@@ -6,7 +6,7 @@ return {
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
 	},
-	keys = { "<leader>ef", desc = "文件树" },
+	keys = { "<leader>fe", desc = "文件树" },
 	config = function()
 		require("nvim-tree").setup({
 			hijack_cursor = true, -- 是否劫持光标
@@ -44,7 +44,7 @@ return {
 			},
 		})
 
-		vim.keymap.set("n", "<leader>ef", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })
+		keymap("n", "<leader>fe", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })
 
 		-- 当 nvim-tree 是最后一个窗口时自动关闭
 		local function tab_win_closed(winnr)

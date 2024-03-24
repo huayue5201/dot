@@ -22,8 +22,8 @@ return {
 				diagnostics_update_in_insert = false, -- 插入模式下开启诊断提示
 				-- 诊断提示方式
 				diagnostics_indicator = function(count, level)
-					local icon = level:match("error") and " " or ""
-					return " " .. icon .. count
+					local icon = level:match("error") and " " or " "
+					return "" .. icon .. count
 				end,
 				-- 侧边栏偏移设置
 				offsets = {

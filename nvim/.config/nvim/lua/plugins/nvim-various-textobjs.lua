@@ -14,7 +14,7 @@ return {
 			end
 		end)
 
-		-- gx命令增强
+		-- 强化gx功能
 		-- 打开 URL 的函数
 		local function openURL(url)
 			-- 根据系统类型选择合适的命令
@@ -30,33 +30,49 @@ return {
 			local openCommand = string.format("%s '%s' >/dev/null 2>&1", opener, url)
 			vim.fn.system(openCommand)
 		end
+
+		-- 从当前行获取 URL
+		local function getURLFromLine(line, pattern)
+			local url = line:match(pattern)
+			return url
+		end
+
+		-- 获取缓冲区中的所有 URL
+		local function getAllURLs(pattern)
+			local bufText = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+			local urls = {}
+			for line in bufText:gmatch("[^\n]+") do
+				local url = getURLFromLine(line, pattern)
+				if url then
+					table.insert(urls, url)
+				end
+			end
+			return urls
+		end
+
 		-- 设置按键映射，当用户按下 gx 键时触发操作
 		vim.keymap.set("n", "gx", function()
 			-- 调用 various-textobjs 插件的 url 函数，以便在选择 URL 时能够正确地获取到它
 			require("various-textobjs").url()
 			-- 检查当前模式是否为可视模式
-			local foundURL = vim.fn.mode():find("v")
-			local url
-			if foundURL then
-				-- 如果在可视模式下，将选择的文本复制到寄存器 z
+			local isVisualMode = vim.fn.mode():find("v") ~= nil
+
+			if isVisualMode then
+				-- 在可视模式下，将选中的文本复制到寄存器 "z"
 				vim.cmd([[ normal! "zy ]])
-				-- 从寄存器 z 中获取 URL
-				url = vim.fn.getreg("z")
+				-- 从寄存器 "z" 中获取 URL
+				local url = vim.fn.getreg("z")
 				-- 打开 URL
 				openURL(url)
 			else
 				-- 如果不在可视模式下，则从缓冲区中查找所有的 URL
 				local urlPattern = require("various-textobjs.charwise-textobjs").urlPattern
-				local bufText = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
-				local urls = {}
-				-- 使用正则表达式匹配 URL，并将匹配到的 URL 存入 urls 表中
-				for url in bufText:gmatch(urlPattern) do
-					table.insert(urls, url)
-				end
-				-- 如果没有找到 URL，则直接返回
+				local urls = getAllURLs(urlPattern)
+
 				if #urls == 0 then
 					return
 				end
+
 				-- 选择一个 URL，并使用 openURL 函数打开它
 				vim.ui.select(urls, { prompt = "Select URL:" }, function(choice)
 					if choice then
