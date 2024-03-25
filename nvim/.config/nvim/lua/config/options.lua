@@ -1,5 +1,5 @@
 -- 按键映射简化及设置模块
-_G.keymap = require("modules.keyMap").setKeymap
+_G.keymap = require("modules.key_map").setKeymap
 -- 空格按键
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "

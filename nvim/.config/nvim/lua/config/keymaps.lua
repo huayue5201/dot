@@ -1,3 +1,6 @@
+--buffer跳转列表事例,可用于各种列表
+-- keymap ("n","<leader>b" ":ls<CR>:b")
+
 -- 代码块缩进
 keymap("v", ">", ">gv")
 keymap("v", "<", "<gv")
@@ -37,15 +40,31 @@ keymap("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
 -- 切换quickfix窗口
 keymap(
 	"n",
-	"<leader>qt",
-	'<cmd>lua require("modules.quickfixToggle").toggleQuickfix()<cr>',
+	"<leader>q",
+	'<cmd>lua require("modules.quickfix_toggle").toggleQuickfix()<cr>',
 	{ desc = "quickfix窗口" }
 )
 
 -- 切换loclist窗口
 keymap(
 	"n",
-	"<leader>lt",
-	'<cmd>lua require("modules.loclistToggle").toggleLocationList ()<cr>',
+	"<leader>l",
+	'<cmd>lua require("modules.loclist_toggle").toggleLocationList ()<cr>',
 	{ desc = "loclist窗口" }
 )
+
+-- 插入模式下TAB可以跳出()[]....
+keymap("i", "<Tab>", function()
+	local cursor = vim.api.nvim_win_get_cursor(0)
+	local line = vim.api.nvim_get_current_line()
+	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
+	if next_char == nil then
+		return "<Tab>"
+	end
+
+	if not vim.tbl_contains({ '"', "'", ")", "]", "}" }, next_char) then
+		return "<Tab>"
+	end
+
+	return "<Right>"
+end, { expr = true })

@@ -6,10 +6,6 @@
 return {
 	"neovim/nvim-lspconfig",
 	event = { "BufReadPost", "BufNewFile" },
-	dependencies = {
-		"williamboman/mason.nvim",
-		"j-hui/fidget.nvim", -- lsp缓冲指示器
-	},
 	config = function()
 		-- 获取 nvim-cmp 插件提供的 LSP 客户端能力
 		local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -59,10 +55,10 @@ return {
 		})
 
 		-- 设置键映射
-		keymap("n", "<leader>qd", vim.diagnostic.setloclist, { desc = "代码错误列表" })
+		keymap("n", "<leader>de", vim.diagnostic.setloclist, { desc = "代码错误列表" })
 		keymap("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到前一个错误" })
 		keymap("n", "]d", vim.diagnostic.goto_next, { desc = "跳转到下一个错误" })
-		keymap("n", "<leader>fd", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })
+		keymap("n", "<leader>p", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })
 
 		-- 创建 LspAttach 事件的自动命令
 		vim.api.nvim_create_autocmd("LspAttach", {
@@ -77,23 +73,47 @@ return {
 				vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
 				-- 设置缓冲区本地键映射
 				local opt = { buffer = ev.buf }
-				keymap("n", "gd", vim.lsp.buf.definition, { desc = "跳转到定义" }, opt)
-				keymap("n", "gD", vim.lsp.buf.declaration, { desc = "跳转到声明" }, opt)
-				keymap("n", "<leader>gt", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opt)
-				keymap("n", "<leader>gi", vim.lsp.buf.implementation, { desc = "跳转到接口实现" }, opt)
-				keymap("n", "gr", vim.lsp.buf.references, { desc = "查找所有引用" }, opt)
-				keymap("n", "K", vim.lsp.buf.hover, { desc = "显示悬停信息" }, opt)
-				keymap({ "n", "i" }, "<c-k>", vim.lsp.buf.signature_help, { desc = "显示函数签名帮助" }, opt)
-				keymap({ "n", "x" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "执行代码操作" }, opt)
-				keymap({ "n", "v" }, "<leader>rn", vim.lsp.buf.rename, { desc = "重命名符号" }, opt)
-				keymap("n", "<leader>aw", vim.lsp.buf.add_workspace_folder, { desc = "添加工作区目录" }, opt)
-				keymap("n", "<leader>rw", vim.lsp.buf.remove_workspace_folder, { desc = "移除工作区目录" }, opt)
-				keymap("n", "<leader>lw", function()
+				vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "跳转到定义", unique = false }, opt)
+				vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "跳转到声明", unique = false }, opt)
+				vim.keymap.set("n", "<leader>gt", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opt)
+				vim.keymap.set("n", "<leader>gi", vim.lsp.buf.implementation, { desc = "跳转到接口实现" }, opt)
+				vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "查找所有引用" }, opt)
+				vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "显示悬停信息" }, opt)
+				vim.keymap.set(
+					{ "n", "i" },
+					"<c-k>",
+					vim.lsp.buf.signature_help,
+					{ desc = "显示函数签名帮助" },
+					opt
+				)
+				vim.keymap.set(
+					{ "n", "x" },
+					"<leader>ca",
+					vim.lsp.buf.code_action,
+					{ desc = "执行代码操作" },
+					opt
+				)
+				vim.keymap.set({ "n", "v" }, "<leader>rn", vim.lsp.buf.rename, { desc = "重命名符号" }, opt)
+				vim.keymap.set(
+					"n",
+					"<leader>aw",
+					vim.lsp.buf.add_workspace_folder,
+					{ desc = "添加工作区目录" },
+					opt
+				)
+				vim.keymap.set(
+					"n",
+					"<leader>rw",
+					vim.lsp.buf.remove_workspace_folder,
+					{ desc = "移除工作区目录" },
+					opt
+				)
+				vim.keymap.set("n", "<leader>wl", function()
 					print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 				end, { desc = "列出工作区目录" }, opt)
-				-- keymap("n", "<S-A-f>", function()
+				-- vim.keymap.set("n", "<S-A-f>", function()
 				--     vim.lsp.buf.format({ async = true })
-				-- end, { desc = "代码格式化" }, opts)
+				-- end, { desc = "代码格式化" }, opt)
 			end,
 		})
 	end,

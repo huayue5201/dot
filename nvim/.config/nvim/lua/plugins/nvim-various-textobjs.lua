@@ -126,14 +126,5 @@ return {
 			-- 恢复光标位置
 			vim.api.nvim_win_set_cursor(0, startPos)
 		end, { desc = "复制周围的缩进" })
-
-		-- 自动缩进粘贴的文本
-		vim.keymap.set("n", "P", function()
-			require("various-textobjs").lastChange()
-			local changeFound = vim.fn.mode():find("v")
-			if changeFound then
-				vim.cmd.normal({ ">", bang = true })
-			end
-		end, { desc = "Indent Last Paste" })
 	end,
 }

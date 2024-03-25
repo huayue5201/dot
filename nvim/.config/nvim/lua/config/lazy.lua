@@ -1,6 +1,5 @@
 -- https://github.com/folke/lazy.nvim
 -- 安装lazy
-
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
 	vim.fn.system({
@@ -15,10 +14,12 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- lazy配置
-
 require("lazy").setup({
 	spec = {
-		{ import = "plugins" },
+		import = "plugins",
 	},
-	defaults = { lazy = true, version = false }, -- always use the latest git commit
+	defaults = {
+		lazy = true,
+		version = false,
+	},
 })

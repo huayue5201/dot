@@ -8,7 +8,7 @@ return {
 	},
 	keys = {
 		{ "<leader>b", desc = "切换断点" },
-		{ "<leader>lp", desc = "设置日志断点" },
+		-- { "<leader>lp", desc = "设置日志断点" },
 		{ "<leader>dl", desc = "运行上次的调试会话" },
 		{ "<leader>dr", desc = "REPL" },
 		{ "<leader>dh", desc = "鼠标悬停" },
@@ -68,9 +68,9 @@ return {
 		end)
 
 		-- 设置日志断点
-		keymap("n", "<Leader>lp", function()
-			require("dap").set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
-		end)
+		-- keymap("n", "<Leader>lp", function()
+		-- 	require("dap").set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
+		-- end)
 
 		-- 打开REPL
 		keymap("n", "<Leader>dr", function()

@@ -44,7 +44,7 @@ return {
 		keymap(
 			{ "n", "t", "i" },
 			"<C-w>\\",
-			'<cmd>lua  require("modules.termAll").init_or_toggle() <cr>',
+			'<cmd>lua  require("modules.term_all").init_or_toggle() <cr>',
 			{ desc = "全部终端" }
 		)
 
