@@ -9,17 +9,6 @@ return {
 		local Rule = require("nvim-autopairs.rule")
 		local ts_conds = require("nvim-autopairs.ts-conds")
 
-		npairs.setup({
-			fast_wrap = {},
-			-- treesitter支持
-			check_ts = true,
-			ts_config = {
-				lua = { "string" }, -- it will not add a pair on that treesitter node
-				javascript = { "template_string" },
-				java = false, -- don't check treesitter on java
-			},
-		})
-
 		-- change default fast_wrap
 		npairs.setup({
 			fast_wrap = {
@@ -34,6 +23,13 @@ return {
 				manual_position = true,
 				highlight = "Search",
 				highlight_grey = "Comment",
+			},
+			-- treesitter支持
+			check_ts = true,
+			ts_config = {
+				lua = { "string" }, -- it will not add a pair on that treesitter node
+				javascript = { "template_string" },
+				java = false, -- don't check treesitter on java
 			},
 		})
 

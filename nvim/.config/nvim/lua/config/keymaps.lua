@@ -1,6 +1,3 @@
---buffer跳转列表事例,可用于各种列表
--- keymap ("n","<leader>b" ":ls<CR>:b")
-
 -- 代码块缩进
 keymap("v", ">", ">gv")
 keymap("v", "<", "<gv")
@@ -62,7 +59,7 @@ keymap("i", "<Tab>", function()
 		return "<Tab>"
 	end
 
-	if not vim.tbl_contains({ '"', "'", ")", "]", "}" }, next_char) then
+	if not vim.tbl_contains({ '"', "'", ")", "]", "}", ">" }, next_char) then
 		return "<Tab>"
 	end
 
