@@ -53,6 +53,7 @@ function Statusline.vcs()
 end
 
 -- 创建状态栏内容
+-- 创建状态栏内容
 function Statusline.active()
 	local mode_str = Statusline.mode()
 	local git_str = Statusline.vcs() -- 添加 Git 仓库状态
@@ -61,14 +62,13 @@ function Statusline.active()
 	local file_percent = " %p%%"
 
 	return table.concat({
-		"%#Statusline#", -- 设置状态栏颜色
+		"%#Normal#", -- 设置为默认文本颜色
 		mode_str, -- 显示模式
 		git_str, -- 显示 Git 仓库状态
 		file_name, -- 显示文件名
 		"%=", -- 使用最大宽度
 		line_col, -- 当前行号和列号
 		file_percent, -- 文件百分比
-		"%#Normal#", -- 恢复正常文本颜色
 	})
 end
 
