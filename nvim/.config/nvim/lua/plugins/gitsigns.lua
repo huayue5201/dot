@@ -16,9 +16,9 @@ return {
 				end
 
 				-- 导航
-				map("n", "]g", function()
+				map("n", "]h", function()
 					if vim.wo.diff then -- 如果当前窗口是 diff 窗口
-						return "]g"
+						return "]h"
 					end
 					vim.schedule(function()
 						gs.next_hunk() -- 跳转到下一个 hunk
@@ -26,9 +26,9 @@ return {
 					return "<Ignore>"
 				end, { desc = "跳转到下一处改动" }, { expr = true })
 
-				map("n", "[g", function()
+				map("n", "[h", function()
 					if vim.wo.diff then -- 如果当前窗口是 diff 窗口
-						return "[g"
+						return "[h"
 					end
 					vim.schedule(function()
 						gs.prev_hunk() -- 跳转到上一个 hunk

@@ -23,8 +23,8 @@ keymap({ "n" }, "<C-s>", "<cmd>w<cr>", { desc = "保存" })
 keymap({ "n" }, "<leader>tq", "<cmd>bdelete<cr>", { desc = "删除buffer" })
 
 -- 切换buffer
-keymap("n", "<TAB>", "<cmd>bnext<cr>", { desc = "下一个缓冲区" })
-keymap("n", "<S-TAB>", "<cmd>bprev<cr>", { desc = "上一个缓冲区" })
+-- keymap("n", "<TAB>", "<cmd>bnext<cr>", { desc = "下一个缓冲区" })
+-- keymap("n", "<S-TAB>", "<cmd>bprev<cr>", { desc = "上一个缓冲区" })
 
 -- tab操作
 keymap("n", "<leader>tn", "<cmd>$tabnew<CR>", { desc = "创建选项卡" })

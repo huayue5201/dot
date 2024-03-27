@@ -52,12 +52,39 @@ function Statusline.vcs()
 	return " " .. table.concat(parts, " ") .. " "
 end
 
--- 创建状态栏内容
+-- LSP状态
+function Statusline.lsp()
+	local count = {
+		errors = vim.tbl_count(vim.diagnostic.get(0, { severity = "Error" })),
+		warnings = vim.tbl_count(vim.diagnostic.get(0, { severity = "Warn" })),
+		hints = vim.tbl_count(vim.diagnostic.get(0, { severity = "Hint" })),
+		info = vim.tbl_count(vim.diagnostic.get(0, { severity = "Info" })),
+	}
+
+	local parts = {}
+
+	if count["errors"] > 0 then
+		table.insert(parts, " 󰅚  " .. count["errors"])
+	end
+	if count["warnings"] > 0 then
+		table.insert(parts, " 󰀪 " .. count["warnings"])
+	end
+	if count["hints"] > 0 then
+		table.insert(parts, " 󰌶 " .. count["hints"])
+	end
+	if count["info"] > 0 then
+		table.insert(parts, "   " .. count["info"])
+	end
+
+	return table.concat(parts, "")
+end
+
 -- 创建状态栏内容
 function Statusline.active()
 	local mode_str = Statusline.mode()
 	local git_str = Statusline.vcs() -- 添加 Git 仓库状态
 	local file_name = " %f"
+	local lsp_str = Statusline.lsp() -- 添加 LSP 状态
 	local line_col = " %l:%c"
 	local file_percent = " %p%%"
 
@@ -66,6 +93,8 @@ function Statusline.active()
 		mode_str, -- 显示模式
 		git_str, -- 显示 Git 仓库状态
 		file_name, -- 显示文件名
+		"%=", -- 使用最大宽度
+		lsp_str,
 		"%=", -- 使用最大宽度
 		line_col, -- 当前行号和列号
 		file_percent, -- 文件百分比

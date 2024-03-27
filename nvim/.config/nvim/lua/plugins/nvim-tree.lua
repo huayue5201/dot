@@ -36,10 +36,10 @@ return {
 					max = vim.diagnostic.severity.ERROR, -- 最大
 				},
 				icons = { -- 图标
-					hint = "", -- 提示
-					info = "", -- 信息
-					warning = "", -- 警告
-					error = "", -- 错误
+					hint = " ", -- 提示
+					info = " 󰌶", -- 信息
+					warning = " 󰀪", -- 警告
+					error = " 󰅚", -- 错误
 				},
 			},
 		})
