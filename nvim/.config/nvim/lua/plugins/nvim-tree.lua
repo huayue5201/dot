@@ -17,8 +17,8 @@ return {
 			view = {
 				preserve_window_proportions = true, -- 保留窗口比例
 				width = 35, -- 宽度
-				number = true, -- 显示行号
-				relativenumber = true, -- 显示相对行号
+				-- number = true, -- 显示行号
+				-- relativenumber = true, -- 显示相对行号
 			},
 			renderer = {
 				group_empty = true, -- 空分组

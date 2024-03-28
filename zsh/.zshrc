@@ -15,24 +15,6 @@ autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
 ### Zinit 安装结束
 
-# 在 zinit update 前自动清理已注释或删除的插件
-zinit_update() {
-   # 获取所有已加载的插件列表
-   loaded_plugins=("${(@f)$(zinit list | grep 'loading')}")
-
-    # 获取所有未加载的插件列表
-    # 这里假设已加载的插件都带有 'ice' 标签
-    zinit_clean_list=("${(@f)$(zinit list -q | grep 'ice' | awk '{print $2}' | grep -v -f <(echo $loaded_plugins | tr ' ' '\n'))}")
-
-    # 卸载并删除那些未加载的插件
-    for plugin in $zinit_clean_list; do
-       zinit unload "$plugin" && zinit delete "$plugin"
-    done
-
-    # 执行 zinit 原生的更新逻辑
-    zinit "$@"
- }
-
 # 使用 zinit_update 作为 zinit update 的别名
 alias zinit_update=zinit_update
 
@@ -96,10 +78,6 @@ export MCFLY_INTERFACE_VIEW=BOTTOM
 export MCFLY_DISABLE_MENU=TRUE
 # 提示符
 export MCFLY_PROMPT=">"
-# Mcfly 配色，macOS 根据系统更改配色
-# if [[ "$(defaults read -g AppleInterfaceStyle 2&>/dev/null)" != "Dark" ]]; then
-#    export MCFLY_LIGHT=TRUE
-# fi
 
 # Fzf
 # 使用 fd 代替默认的 find
@@ -125,6 +103,9 @@ function ya() {
 
 # bat 配置
 alias cat="bat --theme=\$(defaults read -globalDomain AppleInterfaceStyle &> /dev/null && echo default || echo GitHub)"
+
+# nnn配置
+export PATH=$PATH:$HOME/nnn
 
 # 默认编辑器
 export EDITOR=nvim

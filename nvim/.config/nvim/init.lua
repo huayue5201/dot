@@ -5,12 +5,12 @@ require("config.options")
 require("config.lazy")
 -- 加载状态栏模块
 require("modules.statusline")
--- 加载自动命令
-require("config.autocmds")
 -- 自定义函数和自定义按键映射
 vim.api.nvim_create_autocmd("User", {
 	pattern = "VeryLazy",
 	callback = function()
+		-- 加载自动命令
+		require("config.autocmds")
 		-- 加载按键
 		require("config.keymaps")
 	end,

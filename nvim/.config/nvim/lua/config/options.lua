@@ -103,8 +103,8 @@ vim.opt.laststatus = 3 -- 全局状态栏
 vim.opt.showtabline = 2 -- 始终显示状态栏
 vim.opt.cmdheight = 1 -- 命令行高度
 
-vim.opt.statuscolumn:append("%s%{v:relnum?v:relnum:v:lnum}%=%C") -- 状态列样式
-vim.opt.signcolumn = "yes:2" -- ionc占用几格
+vim.opt.statuscolumn:append("%=%l%s%C") -- 状态列样式
+vim.opt.signcolumn = "yes:1" -- ionc占用几格
 vim.opt.colorcolumn:append("80") -- 代码警示宽度80
-vim.opt.number = true -- 显示绝对行号
+vim.opt.number = true -- 显示行号
 vim.opt.relativenumber = true -- 显示相对行号

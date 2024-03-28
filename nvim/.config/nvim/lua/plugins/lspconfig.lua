@@ -54,6 +54,33 @@ return {
 			severity_sort = true, -- 按严重性对诊断进行排序
 		})
 
+		-- 文档弹窗大小控制
+		-- vim.lsp.handlers[vim.lsp.protocol.Methods.textDocument_hover] = function(...)
+		-- 	return vim.lsp.with(vim.lsp.handlers.hover, {
+		-- 		max_width = 120,
+		-- 		max_height = 30,
+		-- 		width = 120,
+		-- 		height = 30,
+		-- 	})(...)
+		-- end
+
+		-- local signs = { Error = "󰅚 ", Warn = "󰀪 ", Hint = "󰌶 ", Info = " " }
+		-- for type, icon in pairs(signs) do
+		-- 	local hl = "DiagnosticSign" .. type
+		-- 	vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
+		-- end
+
+		-- 光标选中时自动显示错误弹窗
+		-- vim.api.nvim_create_autocmd({ "CursorHold" }, {
+		-- 	group = vim.api.nvim_create_augroup("float_diagnostic_cursor", { clear = true }),
+		-- 	callback = function()
+		-- 		-- 添加一个时间延迟，例如延迟500毫秒
+		-- 		vim.defer_fn(function()
+		-- 			vim.diagnostic.open_float(nil, { focus = false, scope = "cursor" })
+		-- 		end, 100)
+		-- 	end,
+		-- })
+
 		-- 设置键映射
 		keymap("n", "<leader>de", vim.diagnostic.setloclist, { desc = "代码错误列表" })
 		keymap("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到前一个错误" })
@@ -65,10 +92,10 @@ return {
 			group = vim.api.nvim_create_augroup("UserLspConfig", {}), -- 创建自动命令组
 			callback = function(ev)
 				-- 原生内嵌提示
-				-- local client = vim.lsp.get_client_by_id(ev.data.client_id)
-				-- if client.server_capabilities.inlayHintProvider then
-				-- 	vim.lsp.inlay_hint.enable(ev.buf, true)
-				-- end
+				local client = vim.lsp.get_client_by_id(ev.data.client_id)
+				if client.server_capabilities.inlayHintProvider then
+					vim.lsp.inlay_hint.enable(ev.buf, true)
+				end
 				-- 启用 <C-x><C-o> 触发的补全
 				vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
 				-- 设置缓冲区本地键映射
