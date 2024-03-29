@@ -1,4 +1,4 @@
--- lua/modules/statusline.lua
+-- lua/util/statusline.lua
 
 Statusline = {}
 

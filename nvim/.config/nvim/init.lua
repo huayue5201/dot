@@ -4,7 +4,7 @@ require("config.options")
 -- lazy加载
 require("config.lazy")
 -- 加载状态栏模块
-require("modules.statusline")
+require("util.statusline")
 -- 自定义函数和自定义按键映射
 vim.api.nvim_create_autocmd("User", {
 	pattern = "VeryLazy",

@@ -1,5 +1,5 @@
 -- 按键映射简化及设置模块
-_G.keymap = require("modules.key_map").setKeymap
+_G.keymap = require("util.key_map").setKeymap
 -- 空格按键
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -36,7 +36,7 @@ vim.opt.encoding = "utf-8" -- 编码为utf-8
 -- vim.bo.commentstring = "//%s" -- 注释格式
 
 vim.opt.updatetime = 500 -- 前置按键等待时间为300
-vim.opt.jumpoptions:append("stack") -- "stack" 修改光标跳转的行为
+vim.opt.jumpoptions:append("stack") -- "stack" 修改C-o/C-i的跳转行为
 
 vim.opt.confirm = true -- 代码未保存时退出,nvim提示是否保存
 
@@ -103,7 +103,8 @@ vim.opt.laststatus = 3 -- 全局状态栏
 vim.opt.showtabline = 2 -- 始终显示状态栏
 vim.opt.cmdheight = 1 -- 命令行高度
 
-vim.opt.statuscolumn:append("%=%l%s%C") -- 状态列样式
+-- vim.opt.statuscolumn = [[%!v:lua.require('util.status').Status.statuscolumn()]]
+vim.opt.statuscolumn:append("%=%{v:relnum?v:relnum:v:lnum}%s%C") -- 状态列样式
 vim.opt.signcolumn = "yes:1" -- ionc占用几格
 vim.opt.colorcolumn:append("80") -- 代码警示宽度80
 vim.opt.number = true -- 显示行号

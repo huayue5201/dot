@@ -54,7 +54,7 @@ return {
 			severity_sort = true, -- 按严重性对诊断进行排序
 		})
 
-		-- 文档弹窗大小控制
+		-- 文档弹窗大小设置
 		-- vim.lsp.handlers[vim.lsp.protocol.Methods.textDocument_hover] = function(...)
 		-- 	return vim.lsp.with(vim.lsp.handlers.hover, {
 		-- 		max_width = 120,
@@ -64,6 +64,7 @@ return {
 		-- 	})(...)
 		-- end
 
+		-- 诊断图标设置
 		-- local signs = { Error = "󰅚 ", Warn = "󰀪 ", Hint = "󰌶 ", Info = " " }
 		-- for type, icon in pairs(signs) do
 		-- 	local hl = "DiagnosticSign" .. type
@@ -82,7 +83,7 @@ return {
 		-- })
 
 		-- 设置键映射
-		keymap("n", "<leader>de", vim.diagnostic.setloclist, { desc = "代码错误列表" })
+		keymap("n", "<leader>dq", vim.diagnostic.setloclist, { desc = "代码错误列表" })
 		keymap("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到前一个错误" })
 		keymap("n", "]d", vim.diagnostic.goto_next, { desc = "跳转到下一个错误" })
 		keymap("n", "<leader>p", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })

@@ -1,4 +1,4 @@
--- modules.keyMap.lua
+-- util.keyMap.lua
 
 local M = {}
 

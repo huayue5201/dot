@@ -35,18 +35,13 @@ keymap("n", "<leader>to", "<cmd>tabonly<CR>", { desc = "仅保留当前标签页
 keymap("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
 
 -- 切换quickfix窗口
-keymap(
-	"n",
-	"<leader>q",
-	'<cmd>lua require("modules.quickfix_toggle").toggleQuickfix()<cr>',
-	{ desc = "quickfix窗口" }
-)
+keymap("n", "<leader>q", '<cmd>lua require("util.quickfix_toggle").toggleQuickfix()<cr>', { desc = "quickfix窗口" })
 
 -- 切换loclist窗口
 keymap(
 	"n",
 	"<leader>l",
-	'<cmd>lua require("modules.loclist_toggle").toggleLocationList ()<cr>',
+	'<cmd>lua require("util.loclist_toggle").toggleLocationList ()<cr>',
 	{ desc = "loclist窗口" }
 )
 

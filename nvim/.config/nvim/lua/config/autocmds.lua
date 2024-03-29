@@ -15,6 +15,15 @@
 -- 	end,
 -- })
 
+-- 特定buffer内禁用状态列
+vim.api.nvim_create_autocmd("BufEnter", {
+	callback = function()
+		if vim.bo.filetype == "NvimTree" then
+			vim.wo.statuscolumn = ""
+		end
+	end,
+})
+
 -- 光标自动定位到最后编辑的位置
 -- 在 BufReadPost 事件后执行命令，将光标定位到上次编辑的位置
 vim.api.nvim_create_autocmd("BufReadPost", {

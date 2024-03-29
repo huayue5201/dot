@@ -91,16 +91,6 @@ _fzf_compgen_dir() {
 # 设置参数
 export FZF_DEFAULT_OPTS='--height 40% --layout reverse --info inline --border --preview "bat --color=always --style=numbers --line-range=:500 {}" --color=bg+:#293739,bg:#1B1D1E,border:#808080,spinner:#E6DB74,hl:#7E8E91,fg:#F8F8F2,header:#7E8E91,info:#A6E22E,pointer:#A6E22E,marker:#F92672,fg+:#F8F8F2,prompt:#F92672,hl+:#F92672'
 
-# yazi
-function ya() {
-   tmp="$(mktemp -t "yazi-cwd.XXXXX")"
-   yazi --cwd-file="$tmp"
-   if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-      cd -- "$cwd"
-   fi
-   rm -f -- "$tmp"
-}
-
 # bat 配置
 alias cat="bat --theme=\$(defaults read -globalDomain AppleInterfaceStyle &> /dev/null && echo default || echo GitHub)"
 
