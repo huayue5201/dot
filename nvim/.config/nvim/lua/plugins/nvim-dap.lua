@@ -43,27 +43,27 @@ return {
 		-- 设置键盘映射
 
 		-- 继续执行程序
-		keymap("n", "<F5>", function()
+		map("n", "<F5>", function()
 			require("dap").continue()
 		end)
 
 		-- 单步进入
-		keymap("n", "<F6>", function()
+		map("n", "<F6>", function()
 			require("dap").step_into()
 		end)
 
 		-- 单步跳过
-		keymap("n", "<F7>", function()
+		map("n", "<F7>", function()
 			require("dap").step_over()
 		end)
 
 		-- 单步退出
-		keymap("n", "<F8>", function()
+		map("n", "<F8>", function()
 			require("dap").step_out()
 		end)
 
 		-- 切换断点
-		keymap("n", "<Leader>b", function()
+		map("n", "<Leader>b", function()
 			require("dap").toggle_breakpoint()
 		end)
 
@@ -73,33 +73,33 @@ return {
 		-- end)
 
 		-- 打开REPL
-		keymap("n", "<Leader>dr", function()
+		map("n", "<Leader>dr", function()
 			require("dap").repl.open()
 		end)
 
 		-- 运行上次的调试会话
-		keymap("n", "<Leader>dl", function()
+		map("n", "<Leader>dl", function()
 			require("dap").run_last()
 		end)
 
 		-- 鼠标悬停
-		keymap({ "n", "v" }, "<Leader>dh", function()
+		map({ "n", "v" }, "<Leader>dh", function()
 			require("dap.ui.widgets").hover()
 		end)
 
 		-- 预览
-		keymap({ "n", "v" }, "<Leader>dp", function()
+		map({ "n", "v" }, "<Leader>dp", function()
 			require("dap.ui.widgets").preview()
 		end)
 
 		-- 展示调试框架
-		keymap("n", "<Leader>df", function()
+		map("n", "<Leader>df", function()
 			local widgets = require("dap.ui.widgets")
 			widgets.centered_float(widgets.frames)
 		end)
 
 		-- 展示调试作用域
-		keymap("n", "<Leader>ds", function()
+		map("n", "<Leader>ds", function()
 			local widgets = require("dap.ui.widgets")
 			widgets.centered_float(widgets.scopes)
 		end)

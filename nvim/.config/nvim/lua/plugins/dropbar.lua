@@ -23,6 +23,6 @@ return {
 				},
 			},
 		})
-		keymap("n", "<leader>wb", "<cmd>lua require('dropbar.api').pick()<cr>", { desc = "Winbar" })
+		map("n", "<leader>wb", "<cmd>lua require('dropbar.api').pick()<cr>", { desc = "Winbar" })
 	end,
 }

@@ -11,6 +11,6 @@ return {
 	},
 	config = function()
 		require("dapui").setup()
-		keymap("n", "<leader>du", "<cmd>lua require'dapui'.toggle()<cr>")
+		map("n", "<leader>du", "<cmd>lua require'dapui'.toggle()<cr>")
 	end,
 }

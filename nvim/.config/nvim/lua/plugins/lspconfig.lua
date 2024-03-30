@@ -83,10 +83,10 @@ return {
 		-- })
 
 		-- 设置键映射
-		keymap("n", "<leader>dq", vim.diagnostic.setloclist, { desc = "代码错误列表" })
-		keymap("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到前一个错误" })
-		keymap("n", "]d", vim.diagnostic.goto_next, { desc = "跳转到下一个错误" })
-		keymap("n", "<leader>p", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })
+		map("n", "<leader>dq", vim.diagnostic.setloclist, { desc = "代码错误列表" })
+		map("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到前一个错误" })
+		map("n", "]d", vim.diagnostic.goto_next, { desc = "跳转到下一个错误" })
+		map("n", "<leader>p", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })
 
 		-- 创建 LspAttach 事件的自动命令
 		vim.api.nvim_create_autocmd("LspAttach", {

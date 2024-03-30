@@ -4,22 +4,26 @@ live_config_reload = true # 实时重新加载配置
 
 # 字体设置
 [font]
-size = 19 # 字体大小
+size = 17 # 字体大小
 
 [font.bold]
-family = "VictorMono Nerd Font" # 粗体字体
-# family = "FiraCode Nerd Font" # 粗体字体
+# family = "VictorMono Nerd Font" # 粗体字体
+family = "FiraCode Nerd Font" # 粗体字体
 style = "Bold"
 
 [font.italic]
-family = "VictorMono Nerd Font" # 正常字体
-# family = "FiraCode Nerd Font" # 正常字体
+# family = "VictorMono Nerd Font" # 正常字体
+family = "FiraCode Nerd Font" # 正常字体
 style = "Italic"
 
 [font.normal]
-family = "VictorMono Nerd Font" # 斜体字体
-# family = "FiraCode Nerd Font" # 斜体字体
+# family = "VictorMono Nerd Font" # 斜体字体
+family = "FiraCode Nerd Font" # 斜体字体
 style = "Regular"
+
+[font.offset]
+x = 1 # 字间距
+y = 0 # 行间距
 
 # 滚动设置
 [scrolling]
