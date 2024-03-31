@@ -68,8 +68,8 @@ vim.opt.foldlevel = 99 -- 折叠级别为99
 
 vim.opt.autoindent = true -- 开启自动缩进
 vim.opt.expandtab = true -- tab转换为空格
-vim.opt.tabstop = 3 -- tab 4个空格
-vim.opt.shiftwidth = 3 -- 换行缩进3个空格
+vim.opt.tabstop = 2 -- tab 4个空格
+vim.opt.shiftwidth = 2 -- 换行缩进3个空格
 
 vim.opt.wrap = false -- 长行禁止自动换行显示
 
@@ -105,7 +105,7 @@ vim.opt.cmdheight = 1 -- 命令行高度
 
 -- vim.opt.statuscolumn = [[%!v:lua.require('util.status').Status.statuscolumn()]]
 vim.opt.statuscolumn:append("%=%{v:relnum?v:relnum:v:lnum}%s%C") -- 状态列样式
-vim.opt.signcolumn = "yes:1" -- ionc占用几格
+vim.opt.signcolumn = "yes" -- ionc占用几格
 vim.opt.colorcolumn:append("80") -- 代码警示宽度80
 vim.opt.number = true -- 显示行号
 vim.opt.relativenumber = true -- 显示相对行号

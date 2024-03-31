@@ -1,9 +1,11 @@
+-- lua/util/lsp_config.lua
+
 local M = {}
 
 M.lspSetup = function()
 	-- 配置诊断显示方式
 	vim.diagnostic.config({
-		virtual_text = false,
+		-- virtual_text = false,
 		virtual_text = {
 			source = "always", -- 总是显示虚拟文本
 			prefix = "■", -- 虚拟文本前缀为方块
@@ -90,10 +92,13 @@ M.lspSetup = function()
 			if client.server_capabilities.inlayHintProvider then
 				vim.lsp.inlay_hint.enable(event.buf, true)
 			end
+
 			-- 调用highlight_symbol函数
 			highlight_symbol(event)
+
 			-- 启用 <C-x><C-o> 触发的补全
 			vim.bo[event.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
+
 			-- 设置缓冲区本地键映射
 			local opt = { buffer = event.buf }
 			vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "跳转到定义", unique = false }, opt)
@@ -101,7 +106,7 @@ M.lspSetup = function()
 			vim.keymap.set("n", "<leader>gt", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" }, opt)
 			vim.keymap.set("n", "<leader>gi", vim.lsp.buf.implementation, { desc = "跳转到接口实现" }, opt)
 			vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "查找所有引用" }, opt)
-			vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "显示悬停信息" }, opt)
+			-- vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "显示悬停信息" }, opt)
 			vim.keymap.set(
 				{ "n", "i" },
 				"<c-k>",
