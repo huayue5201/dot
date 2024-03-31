@@ -90,6 +90,7 @@ function Statusline.active()
 
 	return table.concat({
 		"%#Normal#", -- 设置为默认文本颜色
+		-- "%#Statusline#",
 		mode_str, -- 显示模式
 		git_str, -- 显示 Git 仓库状态
 		file_name, -- 显示文件名

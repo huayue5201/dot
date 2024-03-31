@@ -4,8 +4,8 @@ _G.map = require("util.key_map").setKeymap
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 -- 禁止加载自带插件设置
-vim.g.loaded_matchit = 1 -- matchit插件
-vim.g.loaded_matchparen = 1
+-- vim.g.loaded_matchit = 1 -- matchit插件
+-- vim.g.loaded_matchparen = 1
 vim.g.loaded_gzip = 1 -- gzip插件
 vim.g.loaded_tar = 1 -- tar插件
 vim.g.loaded_tarPlugin = 1 -- tarPlugin插件
@@ -35,7 +35,7 @@ vim.opt.clipboard:append("unnamedplus") -- 启用系统剪贴板
 vim.opt.encoding = "utf-8" -- 编码为utf-8
 -- vim.bo.commentstring = "//%s" -- 注释格式
 
-vim.opt.updatetime = 500 -- 前置按键等待时间为300
+vim.opt.updatetime = 400 -- 前置按键等待时间为300
 vim.opt.jumpoptions:append("stack") -- "stack" 修改C-o/C-i的跳转行为
 
 vim.opt.confirm = true -- 代码未保存时退出,nvim提示是否保存

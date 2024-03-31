@@ -16,9 +16,9 @@
 -- })
 
 -- 特定buffer内禁用状态列
-vim.api.nvim_create_autocmd("BufEnter", {
+vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	callback = function()
-		local special_filetypes = { "NvimTree", "terminal", "qf", "help", "man", "startuptime", "lspinfo" }
+		local special_filetypes = { "NvimTree", "toggleterm", "aerial", "qf", "help", "man", "startuptime", "lspinfo" }
 		if vim.tbl_contains(special_filetypes, vim.bo.filetype) then
 			vim.wo.statuscolumn = ""
 		end
@@ -26,9 +26,19 @@ vim.api.nvim_create_autocmd("BufEnter", {
 })
 
 -- 光标自动定位到最后编辑的位置
--- 在 BufReadPost 事件后执行命令，将光标定位到上次编辑的位置
+local lastplace = vim.api.nvim_create_augroup("LastPlace", {})
+vim.api.nvim_clear_autocmds({ group = lastplace })
 vim.api.nvim_create_autocmd("BufReadPost", {
-	command = [[if line("'\"") > 1 && line("'\"") <= line("$") | execute "normal! g`\"" | endif]],
+	group = lastplace,
+	pattern = { "*" },
+	desc = "remember last cursor place",
+	callback = function()
+		local mark = vim.api.nvim_buf_get_mark(0, '"')
+		local lcount = vim.api.nvim_buf_line_count(0)
+		if mark[1] > 0 and mark[1] <= lcount then
+			pcall(vim.api.nvim_win_set_cursor, 0, mark)
+		end
+	end,
 })
 
 -- 换行不要延续注释符号
