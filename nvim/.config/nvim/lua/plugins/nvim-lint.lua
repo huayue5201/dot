@@ -4,7 +4,8 @@ return {
 	"mfussenegger/nvim-lint",
 	ft = "makefile",
 	config = function()
-		require("lint").linters_by_ft = {
+		local lint = require("lint")
+		lint.linters_by_ft = {
 			makefile = { -- 根据文件类型设置linter
 				cmd = "checkmake", -- 使用checkmake命令进行检查
 				stdin = false, -- 不从stdin提供内容

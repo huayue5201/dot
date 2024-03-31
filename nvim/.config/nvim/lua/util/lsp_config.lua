@@ -87,12 +87,6 @@ M.lspSetup = function()
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspConfig", {}), -- 创建自动命令组
 		callback = function(event)
-			-- 启用原生内嵌提示
-			local client = vim.lsp.get_client_by_id(event.data.client_id)
-			if client.server_capabilities.inlayHintProvider then
-				vim.lsp.inlay_hint.enable(event.buf, true)
-			end
-
 			-- 调用highlight_symbol函数
 			highlight_symbol(event)
 
@@ -107,6 +101,9 @@ M.lspSetup = function()
 			vim.keymap.set("n", "<leader>gi", vim.lsp.buf.implementation, { desc = "跳转到接口实现" }, opt)
 			vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "查找所有引用" }, opt)
 			-- vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "显示悬停信息" }, opt)
+			vim.keymap.set("n", "<leader>ti", function()
+				vim.lsp.inlay_hint.enable(event.buf, not vim.lsp.inlay_hint.is_enabled())
+			end, { desc = "内嵌提示" })
 			vim.keymap.set(
 				{ "n", "i" },
 				"<c-k>",

@@ -1,8 +1,3 @@
--- 按键映射简化及设置模块
-_G.map = require("util.key_map").setKeymap
--- 空格按键
-vim.g.mapleader = " "
-vim.g.maplocalleader = " "
 -- 禁止加载自带插件设置
 -- vim.g.loaded_matchit = 1 -- matchit插件
 -- vim.g.loaded_matchparen = 1

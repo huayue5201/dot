@@ -1,3 +1,8 @@
+-- 按键映射简化及设置模块
+_G.map = require("util.key_map").setKeymap
+-- 设置前置按键
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
 -- 代码块缩进
 map("v", ">", ">gv")
 map("v", "<", "<gv")
@@ -5,6 +10,7 @@ map("v", "<", "<gv")
 --  指向黑洞寄存器
 map("n", "x", '"_x')
 map("n", "c", '"_c')
+
 -- 更智能的dd删除
 map("n", "dd", function()
 	if vim.fn.getline(".") == "" then
