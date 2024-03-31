@@ -13,13 +13,6 @@ return {
 		local configs = require("nvim-treesitter.configs")
 		-- 设置 Treesitter 插件的配置
 		configs.setup({
-			-- https://github.com/andymass/vim-matchup
-			-- matchup插件集成
-			matchup = {
-				enable = true, -- mandatory, false will disable the whole extension
-				disable = { "c", "ruby" }, -- optional, list of language that will be disabled
-				-- [options]
-			},
 			-- 确保所需的语言解析器被安装
 			ensure_installed = {
 				"lua",
