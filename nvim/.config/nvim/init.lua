@@ -1,3 +1,4 @@
+-- Lua加载器功能,提高启动速度
 vim.loader.enable()
 -- 加载基本配置
 require("config.options")

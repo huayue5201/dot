@@ -1,4 +1,6 @@
 -- https://github.com/mfussenegger/nvim-dap
+-- https://github.com/rcarriga/nvim-dap-ui
+-- https://github.com/theHamsta/nvim-dap-virtual-text
 
 return {
 	"mfussenegger/nvim-dap",
@@ -65,40 +67,40 @@ return {
 		codelldb.setup_cpp_configuration()
 
 		-- 继续执行程序
-		map("n", "<F5>", function()
+		keymap("n", "<F5>", function()
 			dap.continue()
 		end)
 
 		-- 单步进入
-		map("n", "<F1>", function()
+		keymap("n", "<F1>", function()
 			dap.step_into()
 		end)
 
 		-- 单步跳过
-		map("n", "<F2>", function()
+		keymap("n", "<F2>", function()
 			dap.step_over()
 		end)
 
 		-- 单步退出
-		map("n", "<F3>", function()
+		keymap("n", "<F3>", function()
 			dap.step_out()
 		end)
 
 		-- 切换断点
-		map("n", "<Leader>b", function()
+		keymap("n", "<Leader>b", function()
 			dap.toggle_breakpoint()
 		end)
 
 		-- 设置日志断点
-		map("n", "<Leader>B", function()
+		keymap("n", "<Leader>B", function()
 			dap.set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
 		end)
 
 		-- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
-		map("n", "<F7>", dapui.toggle, { desc = "Debug: See last session result." })
+		keymap("n", "<F7>", dapui.toggle, { desc = "Debug: See last session result." })
 
 		-- debug ui
-		map("n", "<leader>du", "<cmd>lua require'dapui'.toggle()<cr>")
+		keymap("n", "<leader>du", "<cmd>lua require'dapui'.toggle()<cr>")
 
 		-- -- 打开REPL
 		-- map("n", "<Leader>dr", function()

@@ -9,6 +9,6 @@ return {
 	},
 	config = function()
 		require("scope").setup({})
-		map({ "n" }, "<leader>tt", "<cmd>ScopeMoveBuf<cr>", { desc = "移动buferr到别的tabs" })
+		keymap({ "n" }, "<leader>tt", "<cmd>ScopeMoveBuf<cr>", { desc = "移动buferr到别的tabs" })
 	end,
 }

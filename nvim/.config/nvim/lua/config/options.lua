@@ -29,8 +29,10 @@ vim.opt.clipboard:append("unnamedplus") -- 启用系统剪贴板
 
 vim.opt.encoding = "utf-8" -- 编码为utf-8
 -- vim.bo.commentstring = "//%s" -- 注释格式
+vim.opt.inccommand = "split" -- 键入时实时预览
+vim.opt.modeline = false -- 开启此选项会导致报错
 
-vim.opt.updatetime = 400 -- 前置按键等待时间为300
+vim.opt.updatetime = 300 -- 前置按键等待时间为300
 vim.opt.jumpoptions:append("stack") -- "stack" 修改C-o/C-i的跳转行为
 
 vim.opt.confirm = true -- 代码未保存时退出,nvim提示是否保存

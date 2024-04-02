@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # https://github.com/zdharma-continuum/zinit
 # Zinit 插件管理器安装
 ### Added by Zinit's installer
@@ -18,12 +25,10 @@ autoload -Uz _zinit
 # 使用 zinit_update 作为 zinit update 的别名
 alias zinit_update=zinit_update
 
-
-# Starship 主题
-zinit ice as"command" from"gh-r" \
-   atclone"./starship init zsh > init.zsh; ./starship completions zsh > _starship" \
-   atpull"%atclone" src"init.zsh"
-   zinit light starship/starship
+# https://github.com/romkatv/powerlevel10k
+# powerlevel10k
+zinit ice depth"1" # git clone depth
+zinit light romkatv/powerlevel10k
 
 # Zsh-vi-mode
 zinit ice depth=1
@@ -151,9 +156,16 @@ setopt SHARE_HISTORY
 
 # brew
 export PATH="/opt/homebrew/bin:$PATH"
+# llvm
+export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+# gcc
+export PATH="/opt/homebrew/Cellar/gcc/13.2.0/bin:$PATH"
 # Created by `pipx` on 2024-03-13 09:10:48
 export PATH="$PATH:/Users/lijia/.local/bin"
 
 export STM32CubeMX_PATH=/Applications/STMicroelectronics/STM32CubeMX.app/Contents/Resources
 
 export STM32_PRG_PATH=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

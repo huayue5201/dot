@@ -38,10 +38,10 @@ return {
 		local exitTerm = function()
 			vim.cmd(":ToggleTerm")
 		end
-		map("t", "<esc><esc>", exitTerm)
+		keymap("t", "<esc><esc>", exitTerm)
 
 		-- 设置快捷键以打开全部终端
-		map(
+		keymap(
 			{ "n", "t", "i" },
 			"<C-w>\\",
 			'<cmd>lua  require("util.term_all").init_or_toggle() <cr>',
@@ -52,14 +52,13 @@ return {
 		function _G.set_terminal_keymaps()
 			local opts = { buffer = 0 }
 			-- 设置终端内部按下 <esc> 键的行为
-			map("t", "<esc>", [[<C-\><C-n>]], opts)
-			map("t", "jk", [[<C-\><C-n>]], opts)
+			vim.keymap.set("t", "<esc>", [[<C-\><C-n>]], opts)
 			-- 设置终端内部按下 <C-h> 键的行为
-			map("t", "<C-h>", [[<Cmd>wincmd h<CR>]], opts)
-			map("t", "<C-j>", [[<Cmd>wincmd j<CR>]], opts)
-			map("t", "<C-k>", [[<Cmd>wincmd k<CR>]], opts)
-			map("t", "<C-l>", [[<Cmd>wincmd l<CR>]], opts)
-			map("t", "<C-w>", [[<C-\><C-n><C-w>]], opts)
+			vim.keymap.set("t", "<C-h>", [[<Cmd>wincmd h<CR>]], opts)
+			vim.keymap.set("t", "<C-j>", [[<Cmd>wincmd j<CR>]], opts)
+			vim.keymap.set("t", "<C-k>", [[<Cmd>wincmd k<CR>]], opts)
+			vim.keymap.set("t", "<C-l>", [[<Cmd>wincmd l<CR>]], opts)
+			vim.keymap.set("t", "<C-w>", [[<C-\><C-n><C-w>]], opts)
 		end
 
 		-- 如果您只希望这些映射适用于 ToggleTerm，请使用 term://*toggleterm#* 代替

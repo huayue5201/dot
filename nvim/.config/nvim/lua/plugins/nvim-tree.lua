@@ -44,7 +44,7 @@ return {
 			},
 		})
 
-		map("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })
+		keymap("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })
 
 		-- 当 nvim-tree 是最后一个窗口时自动关闭
 		local function tab_win_closed(winnr)
@@ -80,12 +80,20 @@ return {
 
 		vim.api.nvim_create_autocmd("WinClosed", {
 			callback = function()
-				local winnr = tonumber(vim.fn.expand("<amatch>"))
-				vim.schedule_wrap(tab_win_closed(winnr))
+				local amatch_value = vim.fn.expand("<amatch>")
+				if amatch_value and amatch_value ~= "" then
+					local winnr = tonumber(amatch_value)
+					if winnr then
+						vim.schedule_wrap(function()
+							tab_win_closed(winnr)
+						end)
+					end
+				end
 			end,
 			nested = true,
 		})
 
+		-- 打开文件自动关闭nvim-tree窗口
 		vim.api.nvim_create_autocmd("BufLeave", {
 			callback = function()
 				if vim.bo.filetype == "NvimTree" then
