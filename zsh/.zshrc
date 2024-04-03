@@ -9,12 +9,12 @@ fi
 # Zinit 插件管理器安装
 ### Added by Zinit's installer
 if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
-   # 如果未安装 Zinit，则执行以下安装步骤
-   print -P "%F{33} %F{220}正在安装 %F{33}Zinit%F{220} 插件管理器 (%F{33}zdharma-continuum/zinit%F{220})…%f"
-   command mkdir -p "$HOME/.local/share/zinit" && command chmod g-rwX "$HOME/.local/share/zinit"
-   command git clone https://github.com/zdharma-continuum/zinit "$HOME/.local/share/zinit/zinit.git" && \
-      print -P "%F{33} %F{34}安装成功.%f%b" || \
-      print -P "%F{160} 克隆失败.%f%b"
+  # 如果未安装 Zinit，则执行以下安装步骤
+  print -P "%F{33} %F{220}正在安装 %F{33}Zinit%F{220} 插件管理器 (%F{33}zdharma-continuum/zinit%F{220})…%f"
+  command mkdir -p "$HOME/.local/share/zinit" && command chmod g-rwX "$HOME/.local/share/zinit"
+  command git clone https://github.com/zdharma-continuum/zinit "$HOME/.local/share/zinit/zinit.git" && \
+    print -P "%F{33} %F{34}安装成功.%f%b" || \
+    print -P "%F{160} 克隆失败.%f%b"
 fi
 
 source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
@@ -51,24 +51,15 @@ zinit ice as"command" from"gh-r" mv"zoxide* -> zoxide" pick"zoxide/zoxide"
 zinit light ajeetdsouza/zoxide
 
 # Fast-syntax-highlighting
-zinit ice wait"1" lucid atinit"zpcompinit; zpcdreplay" atload"FAST_HIGHLIGHT[chroma-git]=\"chroma/-ogit.ch\""
-zinit light zdharma/fast-syntax-highlighting
-
-# Zsh-autosuggestions
-zinit ice wait"1" lucid atload"!_zsh_autosuggest_start"
-zinit load zsh-users/zsh-autosuggestions
-
 # Zsh-completions
-# 加载 zsh-completions 使用 Turbo 模式
-zinit lucid wait for \
-   "zsh-users/zsh-completions"
-   zi for \
-      lucid wait \
-      atload"zicompinit; zicdreplay" \
-      blockf \
-      lucid \
-      wait \
-      zsh-users/zsh-completions
+# Zsh-autosuggestions
+zinit wait lucid for \
+ atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+    zdharma-continuum/fast-syntax-highlighting \
+ blockf \
+    zsh-users/zsh-completions \
+ atload"!_zsh_autosuggest_start" \
+    zsh-users/zsh-autosuggestions
 
 # Mcfly
 # 使用 vim 按键模式
@@ -87,11 +78,11 @@ export MCFLY_PROMPT=">"
 # Fzf
 # 使用 fd 代替默认的 find
 _fzf_compgen_path() {
-   fd --hidden --follow --exclude ".git" . "$1"
+  fd --hidden --follow --exclude ".git" . "$1"
 }
 # 使用 fd 生成目录完成的列表
 _fzf_compgen_dir() {
-   fd --type d --hidden --follow --exclude ".git" . "$1"
+  fd --type d --hidden --follow --exclude ".git" . "$1"
 }
 # 设置参数
 export FZF_DEFAULT_OPTS='--height 40% --layout reverse --info inline --border --preview "bat --color=always --style=numbers --line-range=:500 {}" --color=bg+:#293739,bg:#1B1D1E,border:#808080,spinner:#E6DB74,hl:#7E8E91,fg:#F8F8F2,header:#7E8E91,info:#A6E22E,pointer:#A6E22E,marker:#F92672,fg+:#F8F8F2,prompt:#F92672,hl+:#F92672'

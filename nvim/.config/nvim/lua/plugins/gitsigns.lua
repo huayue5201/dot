@@ -48,6 +48,8 @@ return {
 					gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
 				end, { desc = "重置改动" })
 
+				map("n", "<leader>hb", gs.toggle_current_line_blame, { desc = "提交记录" })
+
 				map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", { desc = "选中hunk" })
 			end,
 		})

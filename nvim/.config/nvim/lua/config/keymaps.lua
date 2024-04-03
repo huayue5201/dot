@@ -53,29 +53,3 @@ keymap(
 	'<cmd>lua require("util.loclist_toggle").toggleLocationList ()<cr>',
 	{ desc = "loclist窗口" }
 )
-
--- 插入模式下TAB可以跳出()[]....
-keymap("i", "<Tab>", function()
-	local cursor = vim.api.nvim_win_get_cursor(0)
-	local line = vim.api.nvim_get_current_line()
-	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
-	if next_char == nil then
-		return "<Tab>"
-	end
-
-	if not vim.tbl_contains({ '"', "'", ")", "]", "}", ">" }, next_char) then
-		return "<Tab>"
-	end
-
-	return "<Right>"
-end, { expr = true })
-
--- 自动关闭？/搜索匹配高亮
-vim.on_key(function(char)
-	if vim.fn.mode() == "n" then
-		local new_hlsearch = vim.tbl_contains({ "<CR>", "n", "N", "*", "#", "?", "/" }, vim.fn.keytrans(char))
-		if vim.opt.hlsearch:get() ~= new_hlsearch then
-			vim.opt.hlsearch = new_hlsearch
-		end
-	end
-end, vim.api.nvim_create_namespace("auto_hlsearch"))
