@@ -36,7 +36,7 @@ end
 function Statusline.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or git_info.head == "" then
-		return " Git: N/A "
+		return "  : N/A "
 	end
 	local parts = {}
 	if git_info.added and git_info.added > 0 then
@@ -100,16 +100,6 @@ function Statusline.active()
 		line_col, -- 当前行号和列号
 		file_percent, -- 文件百分比
 	})
-end
-
--- 非活动状态的状态栏内容
-function Statusline.inactive()
-	return "%F"
-end
-
--- 短状态栏内容
-function Statusline.short()
-	return "%#StatusLineNC#   NvimTree"
 end
 
 -- 显示状态栏
