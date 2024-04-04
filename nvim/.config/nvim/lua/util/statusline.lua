@@ -36,7 +36,7 @@ end
 function Statusline.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or git_info.head == "" then
-		return "  : N/A "
+		return "  N/A "
 	end
 	local parts = {}
 	if git_info.added and git_info.added > 0 then
