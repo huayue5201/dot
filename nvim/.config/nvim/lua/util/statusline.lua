@@ -33,6 +33,7 @@ function Statusline.mode()
 end
 
 -- Git 仓库状态
+-- 依赖lewis6991/gitsigns.nvim插件
 function Statusline.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or git_info.head == "" then
