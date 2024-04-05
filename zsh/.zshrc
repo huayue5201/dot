@@ -76,7 +76,6 @@ export MCFLY_DISABLE_MENU=TRUE
 export MCFLY_PROMPT=">"
 
 # fzf
-eval "$(fzf --zsh)"
 # 使用 fd 代替默认的 find
 _fzf_compgen_path() {
   fd --hidden --follow --exclude ".git" . "$1"
@@ -93,6 +92,7 @@ alias cat="bat --theme=\$(defaults read -globalDomain AppleInterfaceStyle &> /de
 
 # nnn配置
 export PATH=$PATH:$HOME/nnn
+export NNN_TMPFILE="$HOME/.lastd"
 
 # 默认编辑器
 export EDITOR=nvim
