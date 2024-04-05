@@ -54,12 +54,12 @@ zinit light ajeetdsouza/zoxide
 # Zsh-completions
 # Zsh-autosuggestions
 zinit wait lucid for \
- atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
-    zdharma-continuum/fast-syntax-highlighting \
- blockf \
-    zsh-users/zsh-completions \
- atload"!_zsh_autosuggest_start" \
-    zsh-users/zsh-autosuggestions
+  atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+  zdharma-continuum/fast-syntax-highlighting \
+  blockf \
+  zsh-users/zsh-completions \
+  atload"!_zsh_autosuggest_start" \
+  zsh-users/zsh-autosuggestions
 
 # Mcfly
 # 使用 vim 按键模式
@@ -75,7 +75,8 @@ export MCFLY_DISABLE_MENU=TRUE
 # 提示符
 export MCFLY_PROMPT=">"
 
-# Fzf
+# fzf
+eval "$(fzf --zsh)"
 # 使用 fd 代替默认的 find
 _fzf_compgen_path() {
   fd --hidden --follow --exclude ".git" . "$1"
