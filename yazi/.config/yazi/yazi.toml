@@ -1,4 +1,0 @@
-[opener]
-archive = [{ run = 'unar "$1"', desc = "Extract here" }]
-text = [{ run = 'nvim "$@"', block = true }]
-# ...
