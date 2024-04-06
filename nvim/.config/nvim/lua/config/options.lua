@@ -50,12 +50,12 @@ vim.opt.fillchars = {
 	foldsep = "│",
 	foldclose = "▸",
 }
-vim.opt.listchars = {
-	tab = "┊ ",
-	leadmultispace = "┊ ",
-	trail = "␣",
-	nbsp = "⍽",
-}
+-- vim.opt.listchars = {
+-- 	tab = "┊ ",
+-- 	leadmultispace = "┊ ",
+-- 	trail = "␣",
+-- 	nbsp = "⍽",
+-- }
 
 vim.opt.foldenable = true -- 启用折叠功能
 vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 开启treesitter折叠支持
