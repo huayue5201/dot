@@ -36,19 +36,17 @@ return {
 					return "<Ignore>"
 				end, { desc = "跳转到上一处改动" }, { expr = true })
 
-				map("n", "<leader>hs", gs.stage_buffer, { desc = "提交改动" })
+				map("n", "<leader>hs", gs.stage_buffer, { desc = "暂存更改" })
 
 				map("v", "<leader>hs", function()
 					gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
-				end, { desc = "提交改动" })
+				end, { desc = "暂存更改" })
 
-				map("n", "<leader>hr", gs.reset_hunk, { desc = "重置改动" })
+				map("n", "<leader>hr", gs.reset_hunk, { desc = "取消更改" })
 
 				map("v", "<leader>hr", function()
 					gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
-				end, { desc = "重置改动" })
-
-				map("n", "<leader>hb", gs.toggle_current_line_blame, { desc = "提交记录" })
+				end, { desc = "取消更改" })
 
 				map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", { desc = "选中hunk" })
 			end,
