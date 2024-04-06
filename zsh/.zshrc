@@ -145,6 +145,9 @@ setopt hist_fcntl_lock 2>/dev/null
 setopt hist_reduce_blanks
 # 共享历史记录
 setopt SHARE_HISTORY
+# UTF-8本地化环境
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
 
 # brew
 export PATH="/opt/homebrew/bin:$PATH"
@@ -155,9 +158,11 @@ export PATH="/opt/homebrew/Cellar/gcc/13.2.0/bin:$PATH"
 # Created by `pipx` on 2024-03-13 09:10:48
 export PATH="$PATH:/Users/lijia/.local/bin"
 
-export STM32CubeMX_PATH=/Applications/STMicroelectronics/STM32CubeMX.app/Contents/Resources
 
-export STM32_PRG_PATH=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+export STM32_PRG_PATH=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
+
+export STM32CubeMX_PATH=/Applications/STMicroelectronics/STM32CubeMX.app/Contents/Resources
