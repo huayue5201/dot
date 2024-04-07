@@ -1,7 +1,5 @@
--- 创建一个名为 M 的模块
 local M = {}
 
--- 设置 Clangd 的配置
 M.setupClangd = function()
 	require("lspconfig").clangd.setup({
 		cmd = { "clangd", "--background-index" }, -- 使用 clangd 命令，并启用后台索引
@@ -24,4 +22,4 @@ M.setupClangd = function()
 	})
 end
 
-return M -- 返回模块 M
+return M
