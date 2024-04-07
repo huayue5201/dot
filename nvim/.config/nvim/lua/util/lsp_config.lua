@@ -91,10 +91,8 @@ M.lspSetup = function()
 		callback = function(event)
 			-- 调用highlight_symbol函数
 			highlight_symbol(event)
-
 			-- 启用 <C-x><C-o> 触发的补全
 			vim.bo[event.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
-
 			-- 按键键映射
 			local bufmap = function(mode, lhs, rhs)
 				local opt = { buffer = event.buf }
