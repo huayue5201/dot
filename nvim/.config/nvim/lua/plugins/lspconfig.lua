@@ -5,7 +5,7 @@
 
 return {
 	"neovim/nvim-lspconfig",
-	event = { "BufReadPost", "BufNewFile" },
+	ft = { "lua", "c", "toml" },
 	config = function()
 		-- 获取 nvim-cmp 插件提供的 LSP 客户端能力
 		local cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
