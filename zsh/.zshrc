@@ -156,9 +156,7 @@ export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
 # gcc
 export PATH="/opt/homebrew/Cellar/gcc/13.2.0/bin:$PATH"
 # Created by `pipx` on 2024-03-13 09:10:48
-export PATH="$PATH:/Users/lijia/.local/bin"
-
-
+export PATH="$PATH:/Users/huayue/.local/bin"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
