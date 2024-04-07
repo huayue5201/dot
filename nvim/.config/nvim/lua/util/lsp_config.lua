@@ -1,5 +1,7 @@
 -- lua/util/lsp_config.lua
 
+-- 参考资料:https://vonheikemen.github.io/devlog/tools/neovim-lsp-client-guide/
+
 local M = {}
 
 M.lspSetup = function()
