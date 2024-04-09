@@ -1,7 +1,7 @@
 -- 保存时自动格式化
 -- vim.api.nvim_create_autocmd("LspAttach", {
--- 	group = vim.api.nvim_create_augroup("lsp", { clear = true }),
 -- 	desc = "保存时自动格式化",
+-- 	group = vim.api.nvim_create_augroup("lsp", { clear = true }),
 -- 	callback = function(args)
 -- 		vim.api.nvim_create_autocmd("BufWritePre", {
 -- 			buffer = args.buf,
@@ -13,14 +13,13 @@
 -- })
 
 -- 自动保存
-local autoSave_group = vim.api.nvim_create_augroup("auto_save", { clear = true })
 vim.api.nvim_create_autocmd("FocusLost", {
 	desc = "窗口切换时自动保存文件",
+	group = vim.api.nvim_create_augroup("auto_save", { clear = true }),
 	pattern = "*",
 	callback = function()
 		vim.cmd("silent! wa")
 	end,
-	group = autoSave_group,
 })
 
 -- 特定buffer内禁用状态列
@@ -35,11 +34,10 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 })
 
 -- 光标自动定位到最后编辑的位置
-local lastplace = vim.api.nvim_create_augroup("LastPlace", { clear = true })
-vim.api.nvim_clear_autocmds({ group = lastplace })
 vim.api.nvim_create_autocmd("BufReadPost", {
-	pattern = { "*" },
 	desc = "记住最后的光标位置",
+	group = vim.api.nvim_create_augroup("LastPlace", { clear = true }),
+	pattern = { "*" },
 	callback = function()
 		local mark = vim.api.nvim_buf_get_mark(0, '"')
 		local lcount = vim.api.nvim_buf_line_count(0)
@@ -47,7 +45,6 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 			pcall(vim.api.nvim_win_set_cursor, 0, mark)
 		end
 	end,
-	group = lastplace,
 })
 
 -- 换行不要延续注释符号
@@ -75,34 +72,32 @@ vim.api.nvim_create_autocmd("FileType", {
 local cursorLineGroup = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true })
 vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
 	desc = "仅在活动窗口显示光标线",
+	group = cursorLineGroup,
 	pattern = "*",
 	command = "set cursorline",
-	group = cursorLineGroup,
 })
 vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
 	desc = "仅在活动窗口显示光标线",
+	group = cursorLineGroup,
 	pattern = "*",
 	command = "set nocursorline",
-	group = cursorLineGroup,
 })
 
 --- 保存时删除所有尾随空格
-local TrimWhiteSpaceGrp = vim.api.nvim_create_augroup("TrimWhiteSpaceGrp", { clear = true })
 vim.api.nvim_create_autocmd("BufWritePre", {
 	desc = "保存时删除所有尾随空格",
 	command = [[:%s/\s\+$//e]],
-	group = TrimWhiteSpaceGrp,
+	group = vim.api.nvim_create_augroup("TrimWhiteSpaceGrp", { clear = true }),
 })
 
 -- 创建高亮组并添加 TextYankPost 自动命令
-local highlight_group = vim.api.nvim_create_augroup("YankHighlight", { clear = true })
 vim.api.nvim_create_autocmd("TextYankPost", {
-	pattern = "*",
 	desc = "复制文本同时高亮该文本",
+	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
+	pattern = "*",
 	callback = function()
 		vim.highlight.on_yank()
 	end,
-	group = highlight_group,
 })
 
 -- 自动关闭？/搜索匹配高亮
@@ -116,8 +111,8 @@ vim.on_key(function(char)
 end, vim.api.nvim_create_namespace("auto_hlsearch"))
 
 -- 优化打开大文件性能
-local bigfile_group = vim.api.nvim_create_augroup("IndentBlanklineBigFile", { clear = true })
 vim.api.nvim_create_autocmd("BufEnter", {
+	group = vim.api.nvim_create_augroup("IndentBlanklineBigFile", { clear = true }),
 	pattern = "*",
 	callback = function()
 		-- 检查行数和文件大小
@@ -133,5 +128,4 @@ vim.api.nvim_create_autocmd("BufEnter", {
 			vim.api.nvim_buf_set_option(bufnr, "loadplugins", false)
 		end
 	end,
-	group = bigfile_group,
 })
