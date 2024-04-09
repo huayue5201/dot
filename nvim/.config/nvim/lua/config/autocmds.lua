@@ -1,16 +1,16 @@
 -- 保存时自动格式化
-vim.api.nvim_create_autocmd("LspAttach", {
-	group = vim.api.nvim_create_augroup("lsp", { clear = true }),
-	desc = "保存时自动格式化",
-	callback = function(args)
-		vim.api.nvim_create_autocmd("BufWritePre", {
-			buffer = args.buf,
-			callback = function()
-				vim.lsp.buf.format({ async = false, id = args.data.client_id })
-			end,
-		})
-	end,
-})
+-- vim.api.nvim_create_autocmd("LspAttach", {
+-- 	group = vim.api.nvim_create_augroup("lsp", { clear = true }),
+-- 	desc = "保存时自动格式化",
+-- 	callback = function(args)
+-- 		vim.api.nvim_create_autocmd("BufWritePre", {
+-- 			buffer = args.buf,
+-- 			callback = function()
+-- 				vim.lsp.buf.format({ async = false, id = args.data.client_id })
+-- 			end,
+-- 		})
+-- 	end,
+-- })
 
 -- 自动保存
 vim.api.nvim_create_autocmd("FocusLost", {
@@ -71,18 +71,18 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- 仅在活动窗口显示光标线
-local cursorGrp = vim.api.nvim_create_augroup("CursorLine", { clear = true })
+local cursorLineGroup = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true })
 vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
 	desc = "仅在活动窗口显示光标线",
 	pattern = "*",
 	command = "set cursorline",
-	group = cursorGrp,
+	group = cursorLineGroup,
 })
 vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
 	desc = "仅在活动窗口显示光标线",
 	pattern = "*",
 	command = "set nocursorline",
-	group = cursorGrp,
+	group = cursorLineGroup,
 })
 
 --- 保存时删除所有尾随空格
@@ -104,22 +104,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	pattern = "*",
 })
 
--- 插入模式下TAB可以跳出()[]....
-keymap("i", "<Tab>", function()
-	local cursor = vim.api.nvim_win_get_cursor(0)
-	local line = vim.api.nvim_get_current_line()
-	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
-	if next_char == nil then
-		return "<Tab>"
-	end
-
-	if not vim.tbl_contains({ '"', "'", ")", "]", "}", ">" }, next_char) then
-		return "<Tab>"
-	end
-
-	return "<Right>"
-end, { expr = true })
-
 -- 自动关闭？/搜索匹配高亮
 vim.on_key(function(char)
 	if vim.fn.mode() == "n" then
@@ -136,8 +120,10 @@ vim.api.nvim_create_autocmd("BufEnter", {
 	pattern = "*",
 	callback = function()
 		-- 检查行数和文件大小
-		if vim.api.nvim_buf_line_count(0) > 20000 and vim.loop.fs_stat(api.nvim_buf_get_name(0)).size > 100 * 1024 then
-			local bufnr = 0 -- 当前缓冲区的编号
+		local bufnr = vim.api.nvim_get_current_buf() -- 获取当前缓冲区编号
+		local bufname = vim.api.nvim_buf_get_name(bufnr) -- 获取当前缓冲区的名称或路径
+		local stat = vim.loop.fs_stat(bufname)
+		if vim.api.nvim_buf_line_count(bufnr) > 20000 and (stat and stat.size or 0) > 100 * 1024 then
 			vim.api.nvim_buf_set_option(bufnr, "foldmethod", "manual")
 			vim.api.nvim_buf_set_option(bufnr, "syntax", "off")
 			vim.api.nvim_buf_set_option(bufnr, "filetype", "off")
