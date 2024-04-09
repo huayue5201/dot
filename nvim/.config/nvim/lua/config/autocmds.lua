@@ -129,3 +129,20 @@ vim.on_key(function(char)
 		end
 	end
 end, vim.api.nvim_create_namespace("auto_hlsearch"))
+
+-- 优化打开大文件性能
+vim.api.nvim_create_autocmd("BufEnter", {
+	group = vim.api.nvim_create_augroup("IndentBlanklineBigFile", {}),
+	pattern = "*",
+	callback = function()
+		if vim.api.nvim_buf_line_count(0) > 20000 then
+			local bufnr = 0 -- 当前缓冲区的编号
+			vim.api.nvim_buf_set_option(bufnr, "foldmethod", "manual")
+			vim.api.nvim_buf_set_option(bufnr, "syntax", "off")
+			vim.api.nvim_buf_set_option(bufnr, "filetype", "off")
+			vim.api.nvim_buf_set_option(bufnr, "undofile", false)
+			vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
+			vim.api.nvim_buf_set_option(bufnr, "loadplugins", false)
+		end
+	end,
+})
