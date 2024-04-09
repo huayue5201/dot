@@ -13,13 +13,14 @@
 -- })
 
 -- 自动保存
+local autoSave_group = vim.api.nvim_create_augroup("auto_save", { clear = true })
 vim.api.nvim_create_autocmd("FocusLost", {
-	group = vim.api.nvim_create_augroup("auto_save", { clear = true }),
 	desc = "窗口切换时自动保存文件",
 	pattern = "*",
 	callback = function()
 		vim.cmd("silent! wa")
 	end,
+	group = autoSave_group,
 })
 
 -- 特定buffer内禁用状态列
@@ -34,10 +35,9 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 })
 
 -- 光标自动定位到最后编辑的位置
-local lastplace = vim.api.nvim_create_augroup("LastPlace", {})
+local lastplace = vim.api.nvim_create_augroup("LastPlace", { clear = true })
 vim.api.nvim_clear_autocmds({ group = lastplace })
 vim.api.nvim_create_autocmd("BufReadPost", {
-	group = lastplace,
 	pattern = { "*" },
 	desc = "记住最后的光标位置",
 	callback = function()
@@ -47,6 +47,7 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 			pcall(vim.api.nvim_win_set_cursor, 0, mark)
 		end
 	end,
+	group = lastplace,
 })
 
 -- 换行不要延续注释符号
@@ -96,12 +97,12 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 -- 创建高亮组并添加 TextYankPost 自动命令
 local highlight_group = vim.api.nvim_create_augroup("YankHighlight", { clear = true })
 vim.api.nvim_create_autocmd("TextYankPost", {
+	pattern = "*",
 	desc = "复制文本同时高亮该文本",
 	callback = function()
 		vim.highlight.on_yank()
 	end,
 	group = highlight_group,
-	pattern = "*",
 })
 
 -- 自动关闭？/搜索匹配高亮
@@ -115,8 +116,8 @@ vim.on_key(function(char)
 end, vim.api.nvim_create_namespace("auto_hlsearch"))
 
 -- 优化打开大文件性能
+local bigfile_group = vim.api.nvim_create_augroup("IndentBlanklineBigFile", { clear = true })
 vim.api.nvim_create_autocmd("BufEnter", {
-	group = vim.api.nvim_create_augroup("IndentBlanklineBigFile", {}),
 	pattern = "*",
 	callback = function()
 		-- 检查行数和文件大小
@@ -132,4 +133,5 @@ vim.api.nvim_create_autocmd("BufEnter", {
 			vim.api.nvim_buf_set_option(bufnr, "loadplugins", false)
 		end
 	end,
+	group = bigfile_group,
 })
