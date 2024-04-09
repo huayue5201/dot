@@ -135,7 +135,8 @@ vim.api.nvim_create_autocmd("BufEnter", {
 	group = vim.api.nvim_create_augroup("IndentBlanklineBigFile", {}),
 	pattern = "*",
 	callback = function()
-		if vim.api.nvim_buf_line_count(0) > 20000 then
+		-- 检查行数和文件大小
+		if vim.api.nvim_buf_line_count(0) > 20000 and vim.loop.fs_stat(api.nvim_buf_get_name(0)).size > 100 * 1024 then
 			local bufnr = 0 -- 当前缓冲区的编号
 			vim.api.nvim_buf_set_option(bufnr, "foldmethod", "manual")
 			vim.api.nvim_buf_set_option(bufnr, "syntax", "off")
