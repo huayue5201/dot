@@ -70,7 +70,7 @@ vim.opt.shiftwidth = 2 -- 换行缩进3个空格
 
 vim.opt.wrap = false -- 长行禁止自动换行显示
 
-vim.opt.scrolloff = 5 -- 上下滚动始终保持5行距离
+vim.opt.scrolloff = 8 -- 上下滚动始终保持5行距离
 vim.opt.sidescrolloff = 5 -- 侧边滚动始终保持5列距离
 
 vim.opt.backup = false -- 禁止文件自动备份
