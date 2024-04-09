@@ -104,9 +104,12 @@ function Statusline.active()
 end
 
 -- 显示状态栏
-vim.cmd([[
-    augroup Statusline
-    au!
-    au WinEnter,BufEnter * setlocal statusline=%!v:lua.Statusline.active()
-    augroup END
-]])
+local statusline_group = vim.api.nvim_create_augroup("Statusline", { clear = true })
+vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
+	callback = function()
+		local bufnr = vim.fn.bufnr("%")
+		-- 设置缓冲区的 statusline 选项
+		vim.api.nvim_buf_set_option(bufnr, "statusline", "%!v:lua.Statusline.active()")
+	end,
+	group = statusline_group,
+})
