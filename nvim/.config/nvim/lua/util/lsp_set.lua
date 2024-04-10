@@ -5,6 +5,52 @@
 local M = {}
 
 M.lspSetup = function()
+	vim.api.nvim_create_autocmd("LspAttach", {
+		desc = "LSP 操作",
+		callback = function(event)
+			local bufmap = function(mode, lhs, rhs)
+				local opts = { buffer = event.buf }
+				vim.keymap.set(mode, lhs, rhs, opts)
+			end
+
+			-- 在浮动窗口中显示诊断
+			bufmap("n", "<leader>p", "<cmd>lua vim.diagnostic.open_float()<cr>")
+			-- 跳转到上一个诊断
+			bufmap("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<cr>")
+			-- 跳转到下一个诊断
+			bufmap("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<cr>")
+			-- 查看所有诊断
+			bufmap("n", "<space>dq", vim.diagnostic.setloclist)
+
+			-- 显示文档信息
+			bufmap("n", "K", "<cmd>lua vim.lsp.buf.hover()<cr>")
+			-- 跳转到定义
+			bufmap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>")
+			-- 跳转到声明
+			bufmap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>")
+			-- 列出所有实现
+			bufmap("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<cr>")
+			-- 跳转到类型定义
+			bufmap("n", "go", "<cmd>lua vim.lsp.buf.type_definition()<cr>")
+			-- 列出所有引用
+			bufmap("n", "gr", "<cmd>lua vim.lsp.buf.references()<cr>")
+			-- 显示函数签名帮助
+			bufmap("n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<cr>")
+			-- 重命名
+			bufmap("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<cr>")
+			-- 选择可用的代码操作
+			bufmap("n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<cr>")
+			-- 添加工作区目录
+			bufmap("n", "<space>wa", vim.lsp.buf.add_workspace_folder)
+			-- 移除工作区目录
+			bufmap("n", "<space>wr", vim.lsp.buf.remove_workspace_folder)
+			-- 列出工作区目录
+			bufmap("n", "<space>wl", function()
+				print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+			end)
+		end,
+	})
+
 	-- 配置诊断显示方式
 	vim.diagnostic.config({
 		-- virtual_text = false,
@@ -32,6 +78,11 @@ M.lspSetup = function()
 		update_in_insert = false, -- 插入模式下不更新诊断信息
 		severity_sort = true, -- 按严重性对诊断进行排序
 	})
+
+	-- 文档窗口和签名帮助添加边框
+	vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" })
+	vim.lsp.handlers["textDocument/signatureHelp"] =
+		vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" })
 
 	-- 插入后立刻禁用诊断,正常是插入键入文本后才会禁用诊断
 	vim.api.nvim_create_autocmd("ModeChanged", {
@@ -79,47 +130,9 @@ M.lspSetup = function()
 		})
 	end
 
-	-- 设置键映射
-	keymap("n", "<leader>dq", vim.diagnostic.setloclist, { desc = "代码错误列表" })
-	keymap("n", "[d", vim.diagnostic.goto_prev, { desc = "跳转到前一个错误" })
-	keymap("n", "]d", vim.diagnostic.goto_next, { desc = "跳转到下一个错误" })
-	keymap("n", "<leader>p", vim.diagnostic.open_float, { desc = "打开浮动窗口查看错误信息" })
-
-	-- 创建 LspAttach 事件的自动命令
 	vim.api.nvim_create_autocmd("LspAttach", {
-		group = vim.api.nvim_create_augroup("UserLspConfig", {}), -- 创建自动命令组
-		callback = function(event)
-			-- 调用highlight_symbol函数
-			highlight_symbol(event)
-			-- 启用 <C-x><C-o> 触发的补全
-			vim.bo[event.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
-			-- 按键键映射
-			local bufmap = function(mode, lhs, rhs)
-				local opt = { buffer = event.buf }
-				vim.keymap.set(mode, lhs, rhs, opts)
-			end
-			-- 设置缓冲区本地键映射
-			bufmap("n", "gd", vim.lsp.buf.definition, { desc = "跳转到定义", unique = false })
-			bufmap("n", "gD", vim.lsp.buf.declaration, { desc = "跳转到声明", unique = false })
-			bufmap("n", "gy", vim.lsp.buf.type_definition, { desc = "跳转到类型定义" })
-			bufmap("n", "gl", vim.lsp.buf.implementation, { desc = "跳转到接口实现" })
-			bufmap("n", "gr", vim.lsp.buf.references, { desc = "查找所有引用" })
-			bufmap("n", "K", vim.lsp.buf.hover, { desc = "显示悬停信息" })
-			bufmap("n", "<leader>ih", function()
-				vim.lsp.inlay_hint.enable(event.buf, not vim.lsp.inlay_hint.is_enabled())
-			end, { desc = "内嵌提示" })
-			bufmap({ "n", "i" }, "<c-k>", vim.lsp.buf.signature_help, { desc = "显示函数签名帮助" })
-			bufmap({ "n", "x" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "执行代码操作" })
-			bufmap({ "n", "v" }, "<leader>rn", vim.lsp.buf.rename, { desc = "重命名符号" })
-			bufmap("n", "<leader>aw", vim.lsp.buf.add_workspace_folder, { desc = "添加工作区目录" })
-			bufmap("n", "<leader>rw", vim.lsp.buf.remove_workspace_folder, { desc = "移除工作区目录" })
-			bufmap("n", "<leader>wl", function()
-				print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-			end, { desc = "列出工作区目录" })
-			-- bufmap("n", "<S-A-f>", function()
-			--     vim.lsp.buf.format({ async = true })
-			-- end, { desc = "代码格式化" }, )
-		end,
+		desc = "Setup highlight symbol",
+		callback = highlight_symbol,
 	})
 end
 
