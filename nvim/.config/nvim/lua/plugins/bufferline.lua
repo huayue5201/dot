@@ -21,7 +21,7 @@ return {
 				diagnostics = "nvim_lsp", -- 开启诊断提示，来源为nvim_lsp
 				diagnostics_update_in_insert = true, -- 插入模式下不更新诊断提示
 				diagnostics_indicator = function(count, level) -- 诊断提示的图标和数量显示
-					local icon = level:match("error") and " " or " "
+					local icon = level:match("error") and "✘" or ""
 					return "" .. icon .. count
 				end,
 				toggle_hidden_on_enter = true, -- 重新进入隐藏的组时，自动展开
