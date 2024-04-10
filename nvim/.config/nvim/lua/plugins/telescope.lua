@@ -11,7 +11,6 @@ return {
 	keys = {
 		{ "<leader>ff", desc = "文件检索" },
 		{ "<leader>fg", desc = "字符检索" },
-		{ "<leader>fb", desc = "buffer检索" },
 		{ "<leader>fo", desc = "历史检索" },
 		{ "<leader>fw", desc = "检索光标下的字符" },
 	},
@@ -66,8 +65,6 @@ return {
 			return string.format("%s\t\t%s", tail, parent)
 		end
 
-		-- tiagovla/scope.nvim提供支持,管理所有buffers
-		require("telescope").load_extension("scope")
 		-- 导入 Telescope 插件中的动作模块
 		local actions = require("telescope.actions")
 
@@ -116,7 +113,6 @@ return {
 		-- 设置键盘映射
 		keymap("n", "<space>ff", "<cmd>Telescope find_files<cr>", { desc = "文件检索" })
 		keymap("n", "<space>fg", "<cmd>Telescope live_grep<cr>", { desc = "字符检索" })
-		keymap("n", "<space>fb", "<cmd>Telescope scope buffers<cr>", { desc = "buffer检索" })
 		keymap("n", "<space>fo", "<cmd>Telescope oldfiles<cr>", { desc = "历史检索" })
 		keymap("n", "<space>fw", "<cmd>Telescope grep_string<cr>", { desc = "检索光标下的字符" })
 	end,

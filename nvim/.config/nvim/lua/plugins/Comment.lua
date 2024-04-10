@@ -2,7 +2,6 @@
 
 return {
 	"numToStr/Comment.nvim",
-	event = "BufReadPost",
 	keys = {
 		{ "gcc", desc = "行注释" },
 		{ "gbc", desc = "块注释" },
