@@ -90,7 +90,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 	group = vim.api.nvim_create_augroup("TrimWhiteSpaceGrp", { clear = true }),
 })
 
--- 创建高亮组并添加 TextYankPost 自动命令
+-- 高亮复制文本
 vim.api.nvim_create_autocmd("TextYankPost", {
 	desc = "复制文本同时高亮该文本",
 	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
