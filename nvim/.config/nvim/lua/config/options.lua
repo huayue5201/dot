@@ -89,6 +89,8 @@ vim.opt.spelllang:append("en_us,cjk") -- 拼写语言为"en_us,cjk"
 
 vim.opt.ignorecase = true -- 忽略大小写
 vim.opt.smartcase = true -- 智能大小写
+-- vim.opt.grepprg:append("rg --vimgrep") -- 用rg代替grep
+-- vim.opt.grepformat:append("%f:%l:%c:%m") -- grep格式设置
 
 vim.opt.splitbelow = true -- 下方显示
 vim.opt.splitright = true -- 右侧显示
