@@ -20,13 +20,15 @@ keymap("n", "dd", function()
 end, { expr = true })
 
 -- 修改光标下的word
-keymap({ "n" }, "<leader>rc", "*``cgn", { desc = "修改文本" })
+keymap("n", "<leader>rc", "*``cgn", { desc = "修改文本" })
+-- 修改选中文本
+keymap("x", "<leader>rc", [[y:let @/ = escape(@", '/')<CR>"_cgn]])
 
 -- 保存
-keymap({ "n" }, "<C-s>", "<cmd>w<cr>", { desc = "保存" })
+keymap("n", "<C-s>", "<cmd>w<cr>", { desc = "保存" })
 
 -- 删除buffer
-keymap({ "n" }, "<leader>tq", "<cmd>bdelete<cr>", { desc = "删除buffer" })
+keymap("n", "<leader>tq", "<cmd>bdelete<cr>", { desc = "删除buffer" })
 
 -- 切换buffer
 -- keymap("n", "<TAB>", "<cmd>bnext<cr>", { desc = "下一个缓冲区" })

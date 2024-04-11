@@ -1,5 +1,4 @@
 -- lua/util/lsp_config.lua
-
 -- 参考资料:https://vonheikemen.github.io/devlog/tools/neovim-lsp-client-guide/
 
 local M = {}
@@ -21,7 +20,6 @@ M.lspSetup = function()
 			bufmap("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<cr>")
 			-- 查看所有诊断
 			bufmap("n", "<space>dq", vim.diagnostic.setloclist)
-
 			-- 显示文档信息
 			bufmap("n", "K", "<cmd>lua vim.lsp.buf.hover()<cr>")
 			-- 跳转到定义
@@ -138,6 +136,42 @@ M.lspSetup = function()
 		desc = "Setup highlight symbol",
 		callback = highlight_symbol,
 	})
+
+	-- 打印LSP进度信息
+	local function log(msg)
+		local client = msg.client or "" -- 获取客户端名称或默认为空字符串
+		local title = msg.title or "" -- 获取标题或默认为空字符串
+		local message = msg.message or "" -- 获取消息或默认为空字符串
+		local percentage = msg.percentage or 0 -- 获取进度百分比或默认为0
+		-- 拼接输出字符串
+		local out = (client ~= "" and "[" .. client .. "]") or ""
+		out = out .. ((percentage > 0) and (" [" .. percentage .. "%]") or "")
+		out = out .. ((title ~= "") and (" " .. title) or "")
+		out = out .. ((message ~= "") and (" - " .. message) or "")
+		vim.api.nvim_command([[echo "]] .. out .. [["]]) -- 在neovim中输出信息
+	end
+	local series = {} -- 存储进度信息的字典
+	vim.lsp.handlers["$/progress"] = function(err, progress, ctx)
+		local client = vim.lsp.get_client_by_id(ctx.client_id) -- 获取LSP客户端对象
+		local client_name = client.name or "" -- 获取客户端名称或默认为空字符串
+		local token = progress.token -- 获取进度令牌
+		local value = progress.value -- 获取进度值
+		local cur = series[token] or {} -- 获取当前令牌对应的进度信息，如果不存在则创建一个新的表
+		cur.client = client_name or cur.client -- 更新客户端名称
+		cur.title = value.title or cur.title or "" -- 更新标题
+		cur.message = value.message or cur.message or "" -- 更新消息
+		cur.percentage = value.percentage or cur.percentage or 0 -- 更新进度百分比
+		-- 如果是进度开始
+		if value.kind == "begin" then
+			cur.message = cur.message .. " - Starting" -- 添加“开始”信息
+		end
+		-- 如果是进度结束
+		if value.kind == "end" then
+			cur.message = "Done" -- 添加“完成”信息
+			series[token] = nil -- 清除已完成的进度信息
+		end
+		log(cur) -- 打印当前进度信息
+	end
 end
 
 return M
