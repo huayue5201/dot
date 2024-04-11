@@ -61,9 +61,7 @@ function Statusline.lsp()
 		hints = vim.tbl_count(vim.diagnostic.get(0, { severity = "Hint" })),
 		info = vim.tbl_count(vim.diagnostic.get(0, { severity = "Info" })),
 	}
-
 	local parts = {}
-
 	if count["errors"] > 0 then
 		table.insert(parts, " 󰅚  " .. count["errors"])
 	end
