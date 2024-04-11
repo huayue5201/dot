@@ -21,13 +21,6 @@ return {
 		vim.opt.completeopt = { "menu", "menuone", "noselect" }
 	end,
 	config = function()
-		-- 检查光标前是否有单词
-		local has_words_before = function()
-			local unpack = unpack or table.unpack -- 避免使用全局变量
-			local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-			return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
-		end
-
 		-- 菜单图标
 		local lspkind = require("lspkind")
 		-- 设置 nvim-cmp

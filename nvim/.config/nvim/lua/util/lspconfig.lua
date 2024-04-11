@@ -29,9 +29,9 @@ M.lspSetup = function()
 			-- 跳转到声明
 			bufmap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>")
 			-- 列出所有实现
-			bufmap("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<cr>")
+			bufmap("n", "gl", "<cmd>lua vim.lsp.buf.implementation()<cr>")
 			-- 跳转到类型定义
-			bufmap("n", "go", "<cmd>lua vim.lsp.buf.type_definition()<cr>")
+			bufmap("n", "gy", "<cmd>lua vim.lsp.buf.type_definition()<cr>")
 			-- 列出所有引用
 			bufmap("n", "gr", "<cmd>lua vim.lsp.buf.references()<cr>")
 			-- 显示函数签名帮助
