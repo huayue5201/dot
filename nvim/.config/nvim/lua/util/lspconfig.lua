@@ -36,6 +36,10 @@ M.lspSetup = function()
 			bufmap("n", "gr", "<cmd>lua vim.lsp.buf.references()<cr>")
 			-- 显示函数签名帮助
 			bufmap("n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<cr>")
+			-- 内嵌提示
+			bufmap("n", "<leader>i", function()
+				vim.lsp.inlay_hint.enable(0, not vim.lsp.inlay_hint.is_enabled(0))
+			end)
 			-- 重命名
 			bufmap("n", "<leader>rn", "<cmd>lua vim.lsp.buf.rename()<cr>")
 			-- 选择可用的代码操作

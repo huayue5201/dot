@@ -2,10 +2,11 @@
 
 return {
 	"mfussenegger/nvim-lint",
-	ft = { "make" },
+	ft = { "make", "json" },
 	config = function()
 		require("lint").linters_by_ft = {
-			make = { "checkmake" },
+			make = "checkmake",
+			json = "jsonlint",
 		}
 
 		vim.api.nvim_create_autocmd({ "BufWritePost", "InsertLeave" }, {

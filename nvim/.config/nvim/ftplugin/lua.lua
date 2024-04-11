@@ -34,7 +34,11 @@ local config = {
 		})
 	end,
 	settings = {
-		Lua = {}, -- Lua 语言服务器的其他设置
+		Lua = {
+			hint = {
+				enable = true,
+			},
+		}, -- Lua 语言服务器的其他设置
 	},
 }
 

@@ -76,10 +76,10 @@ function Statusline.lsp()
 	if count["info"] > 0 then
 		table.insert(parts, "   " .. count["info"])
 	end
-
 	return table.concat(parts, "")
 end
 
+-- mfussenegger/nvim-lint
 local lint_progress = function()
 	local linters = require("lint").get_running()
 	if #linters == 0 then
