@@ -23,7 +23,6 @@ vim.g.loaded_perl_provider = 0 -- perl
 vim.g.loaded_ruby_provider = 0 -- ruby
 
 vim.opt.mouse:append("a") -- 开启鼠标支持
-vim.opt.mousemoveevent = true -- 响应鼠标移动事件
 
 vim.opt.clipboard:append("unnamedplus") -- 启用系统剪贴板
 
@@ -86,6 +85,7 @@ vim.opt.pumheight = 15 -- 补全菜单高度为15
 vim.opt.wildoptions:append("pum") -- 命令行补全菜样式为"pum"
 
 vim.opt.spelllang:append("en_us,cjk") -- 拼写语言为"en_us,cjk"
+-- vim.opt.autochdir = true -- 自动cd到当前buffer所属目录
 
 vim.opt.ignorecase = true -- 忽略大小写
 vim.opt.smartcase = true -- 智能大小写
