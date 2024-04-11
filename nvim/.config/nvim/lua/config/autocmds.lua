@@ -56,12 +56,21 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
--- 自动打开快速修复窗口。
--- 使用 cWindows，只有当有条目时才会打开它。
-vim.api.nvim_create_autocmd("QuickFixCmdPost", {
-	group = vim.api.nvim_create_augroup("AutoOpenQuickfix", { clear = true }),
-	pattern = { "[^l]*" },
-	command = "cwindow",
+-- grep功能优化
+vim.cmd([[command! -nargs=+ Grep execute 'silent grep! <args>' | copen]])
+-- 定义快速修复映射函数
+local function QuickfixMapping()
+	-- 使快速修复列表可修改
+	vim.keymap.set("n", "<leader>u", ":set modifiable<CR>", { buffer = true })
+	-- 在快速修复窗口保存更改
+	vim.keymap.set("n", "<leader>o", ":cgetbuffer<CR>:cclose<CR>:copen<CR>", { buffer = true })
+end
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("quickfix_group", { clear = true }),
+	pattern = "qf",
+	callback = function()
+		QuickfixMapping()
+	end,
 })
 
 -- 用q关闭窗口

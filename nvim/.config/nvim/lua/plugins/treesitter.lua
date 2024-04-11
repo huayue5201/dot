@@ -39,8 +39,6 @@ return {
 			-- 高亮模块配置
 			highlight = {
 				enable = true,
-				-- 指定需要禁用的语言列表
-				-- disable = { "text" },
 				-- 或者使用一个函数来灵活配置，例如，对于大文件禁用 Treesitter 高亮以提高性能
 				disable = function(lang, buf)
 					local max_filesize = 100 * 1024 -- 100 KB

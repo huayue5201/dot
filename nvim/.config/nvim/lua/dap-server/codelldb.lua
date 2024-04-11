@@ -1,7 +1,5 @@
 local M = {}
 
-local vim = vim -- 将vim库引入局部变量
-
 -- 定义codelldb调试适配器
 M.setup_codelldb_adapter = function()
 	local cmd = os.getenv("HOME") .. "/.local/share/nvim/mason/bin/codelldb"
