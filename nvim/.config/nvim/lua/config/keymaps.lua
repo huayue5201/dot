@@ -46,15 +46,18 @@ keymap("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
 -- map('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 -- 切换quickfix窗口
-keymap("n", "<leader>q", '<cmd>lua require("util.quickfix_toggle").toggleQuickfix()<cr>', { desc = "quickfix窗口" })
+keymap("n", "<leader>q", '<cmd>lua require("util.quickfix_toggle").toggleQuickfix()<cr>')
+-- 上一条匹配结果
+keymap("n", "]q", "<cmd>cprev<cr>")
+-- 下一条匹配结果
+keymap("n", "[q", "<cmd>cnext<cr>")
 
 -- 切换loclist窗口
-keymap(
-	"n",
-	"<leader>l",
-	'<cmd>lua require("util.loclist_toggle").toggleLocationList ()<cr>',
-	{ desc = "loclist窗口" }
-)
+keymap("n", "<leader>l", '<cmd>lua require("util.loclist_toggle").toggleLocationList ()<cr>')
+-- 上一条匹配结果
+keymap("n", "]l", "<cmd>lnext<cr>")
+-- 下一条匹配结果
+keymap("n", "[l", "<cmd>lprev<cr>")
 
 -- 插入模式下TAB可以跳出()[]....
 keymap("i", "<Tab>", function()

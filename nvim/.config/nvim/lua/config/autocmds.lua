@@ -56,6 +56,14 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
+-- 自动打开快速修复窗口。
+-- 使用 cWindows，只有当有条目时才会打开它。
+vim.api.nvim_create_autocmd("QuickFixCmdPost", {
+	group = vim.api.nvim_create_augroup("AutoOpenQuickfix", { clear = true }),
+	pattern = { "[^l]*" },
+	command = "cwindow",
+})
+
 -- 用q关闭窗口
 vim.api.nvim_create_autocmd("FileType", {
 	desc = "用q关闭窗口",
