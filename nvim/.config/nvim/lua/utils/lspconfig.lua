@@ -14,7 +14,6 @@ local function log(msg)
 	out = out .. ((message ~= "") and (" - " .. message) or "")
 	vim.api.nvim_command([[echo "]] .. out .. [["]])
 end
-
 local series = {} -- 全局变量用于存储进度信息
 
 -- LSP加载进度提示
@@ -158,7 +157,10 @@ end
 -- LSP主设置函数
 M.lspSetup = function()
 	vim.api.nvim_create_autocmd("LspAttach", {
+		group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 		callback = function(event)
+			-- Enable completion triggered by <c-x><c-o>
+			vim.bo[event.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
 			setup_keymaps(event.buf) -- 按键映射
 			setup_diagnostics() -- 诊断配置
 			setup_diagnostics_mode_change() -- 进入插入模式立即更新诊断信息

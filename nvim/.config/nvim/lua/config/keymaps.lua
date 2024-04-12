@@ -1,5 +1,5 @@
 -- 按键映射简化及设置模块
-_G.keymap = require("util.key_map").setKeymap
+_G.keymap = require("utils.keybindings").setKeymap
 -- 设置前置按键
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -22,7 +22,7 @@ end, { expr = true })
 -- 修改光标下的word
 keymap("n", "<leader>rc", "*``cgn", { desc = "修改文本" })
 -- 修改选中文本
-keymap("x", "<leader>rc", [[y:let @/ = escape(@", '/')<CR>"_cgn]])
+keymap("x", "<leader>rc", [[y<cmd>let @/ = escape(@", '/')<cr>"_cgn]])
 
 -- 保存
 keymap("n", "<C-s>", "<cmd>w<cr>", { desc = "保存" })
@@ -46,14 +46,13 @@ keymap("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
 -- map('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 -- 切换quickfix窗口
-keymap("n", "<leader>q", '<cmd>lua require("util.quickfix_toggle").toggleQuickfix()<cr>')
+keymap("n", "<leader>q", '<cmd>lua require("utils.keybindings").toggleQuickfix()<cr>')
 -- 上一条匹配结果
 keymap("n", "]q", "<cmd>cprev<cr>")
 -- 下一条匹配结果
 keymap("n", "[q", "<cmd>cnext<cr>")
-
 -- 切换loclist窗口
-keymap("n", "<leader>l", '<cmd>lua require("util.loclist_toggle").toggleLocationList ()<cr>')
+keymap("n", "<leader>l", '<cmd>lua require("utils.keybindings").toggleLocationList ()<cr>')
 -- 上一条匹配结果
 keymap("n", "]l", "<cmd>lnext<cr>")
 -- 下一条匹配结果

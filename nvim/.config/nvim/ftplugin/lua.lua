@@ -50,4 +50,4 @@ vim.lsp.start(config, {
 })
 
 -- 调用自定义的 LSP 配置模块
-require("util.lspconfig").lspSetup()
+require("utils.lspconfig").lspSetup()

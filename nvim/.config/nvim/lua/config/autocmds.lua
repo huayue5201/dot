@@ -13,14 +13,14 @@
 -- })
 
 -- 自动保存
--- vim.api.nvim_create_autocmd("FocusLost", {
--- 	desc = "窗口切换时自动保存文件",
--- 	group = vim.api.nvim_create_augroup("auto_save", { clear = true }),
--- 	pattern = "*",
--- 	callback = function()
--- 		vim.cmd("silent! wa")
--- 	end,
--- })
+vim.api.nvim_create_autocmd("FocusLost", {
+	desc = "窗口切换时自动保存文件",
+	group = vim.api.nvim_create_augroup("auto_save", { clear = true }),
+	pattern = "*",
+	callback = function()
+		vim.cmd("silent! wa")
+	end,
+})
 
 -- 特定buffer内禁用状态列
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
@@ -58,6 +58,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- grep功能优化
 vim.cmd([[command! -nargs=+ Grep execute 'silent grep! <args>' | copen]])
+
 -- 定义快速修复映射函数
 local function QuickfixMapping()
 	-- 使快速修复列表可修改
@@ -65,12 +66,11 @@ local function QuickfixMapping()
 	-- 在快速修复窗口保存更改
 	vim.keymap.set("n", "<leader>o", ":cgetbuffer<CR>:cclose<CR>:copen<CR>", { buffer = true })
 end
+
 vim.api.nvim_create_autocmd("FileType", {
 	group = vim.api.nvim_create_augroup("quickfix_group", { clear = true }),
 	pattern = "qf",
-	callback = function()
-		QuickfixMapping()
-	end,
+	callback = QuickfixMapping,
 })
 
 -- 用q关闭窗口
@@ -98,13 +98,6 @@ vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
 	group = cursorLineGroup,
 	pattern = "*",
 	command = "set nocursorline",
-})
-
---- 保存时删除所有尾随空格
-vim.api.nvim_create_autocmd("BufWritePre", {
-	desc = "保存时删除所有尾随空格",
-	command = [[:%s/\s\+$//e]],
-	group = vim.api.nvim_create_augroup("TrimWhiteSpaceGrp", { clear = true }),
 })
 
 -- 高亮复制文本

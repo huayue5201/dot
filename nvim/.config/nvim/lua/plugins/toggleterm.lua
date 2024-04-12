@@ -2,8 +2,8 @@
 
 return {
 	"akinsho/toggleterm.nvim",
-	keys = { "<C-\\>", "<C-w>\\" },
-	cmd = { "ToggleTerm", "ToggleTermToggleAll" },
+	keys = { "<C-\\>", "<leader>\\" },
+	cmd = { "ToggleTerm", "ToggleTermSetName work" },
 	version = "*",
 	config = function()
 		-- 设置 ToggleTerm 插件
@@ -39,14 +39,14 @@ return {
 			vim.cmd(":ToggleTerm")
 		end
 		keymap("t", "<esc><esc>", exitTerm)
-
-		-- 设置快捷键以打开全部终端
-		keymap(
-			{ "n", "t", "i" },
-			"<C-w>\\",
-			'<cmd>lua  require("util.term_all").init_or_toggle() <cr>',
-			{ desc = "全部终端" }
-		)
+		-- 打开终端列表
+		keymap("n", "<leader>\\", function()
+			if #vim.fn.getloclist(0) == 0 then
+				vim.api.nvim_out_write("当前没有打开的终端\n")
+			else
+				vim.cmd("ToggleTermSetName work")
+			end
+		end)
 
 		-- 设置终端内部的按键映射
 		function _G.set_terminal_keymaps()
@@ -60,7 +60,6 @@ return {
 			vim.keymap.set("t", "<C-l>", [[<Cmd>wincmd l<CR>]], opts)
 			vim.keymap.set("t", "<C-w>", [[<C-\><C-n><C-w>]], opts)
 		end
-
 		-- 如果您只希望这些映射适用于 ToggleTerm，请使用 term://*toggleterm#* 代替
 		vim.cmd("autocmd! TermOpen term://* lua set_terminal_keymaps()")
 	end,

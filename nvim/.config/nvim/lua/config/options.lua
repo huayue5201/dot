@@ -77,8 +77,8 @@ vim.opt.wildoptions:append("pum") -- 命令行补全菜样式为"pum"
 
 vim.opt.spelllang:append("en_us,cjk") -- 拼写语言为"en_us,cjk"
 -- vim.opt.autochdir = true -- 自动cd到当前buffer所属目录
-vim.opt.autoread = true -- 更改配置后自动读取
-vim.opt.autowrite = true -- 自动写入
+vim.opt.autoread = true -- 更改后自动读取
+-- vim.opt.autowrite = true -- 自动写入
 vim.opt.backup = false -- 禁止文件自动备份
 vim.opt.wrap = false -- 长行禁止自动换行显示
 vim.opt.confirm = true -- 代码未保存时退出,nvim提示是否保存
