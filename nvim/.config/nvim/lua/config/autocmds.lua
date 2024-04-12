@@ -13,14 +13,14 @@
 -- })
 
 -- 自动保存
-vim.api.nvim_create_autocmd("FocusLost", {
-	desc = "窗口切换时自动保存文件",
-	group = vim.api.nvim_create_augroup("auto_save", { clear = true }),
-	pattern = "*",
-	callback = function()
-		vim.cmd("silent! wa")
-	end,
-})
+-- vim.api.nvim_create_autocmd("FocusLost", {
+-- 	desc = "窗口切换时自动保存文件",
+-- 	group = vim.api.nvim_create_augroup("auto_save", { clear = true }),
+-- 	pattern = "*",
+-- 	callback = function()
+-- 		vim.cmd("silent! wa")
+-- 	end,
+-- })
 
 -- 特定buffer内禁用状态列
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {

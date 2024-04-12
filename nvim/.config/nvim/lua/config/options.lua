@@ -34,9 +34,8 @@ vim.opt.modeline = false -- 开启此选项会导致报错
 vim.opt.updatetime = 300 -- 前置按键等待时间为300
 vim.opt.jumpoptions:append("stack") -- "stack" 修改C-o/C-i的跳转行为
 
-vim.opt.confirm = true -- 代码未保存时退出,nvim提示是否保存
-
 vim.opt.termguicolors = true -- 开启真彩色
+vim.opt.cursorline = true -- 高亮当前行
 
 vim.opt.list = true -- 显示特殊字符
 vim.opt.fillchars = {
@@ -67,18 +66,10 @@ vim.opt.expandtab = true -- tab转换为空格
 vim.opt.tabstop = 2 -- tab 4个空格
 vim.opt.shiftwidth = 2 -- 换行缩进3个空格
 
-vim.opt.wrap = false -- 长行禁止自动换行显示
-
 vim.opt.scrolloff = 8 -- 上下滚动始终保持5行距离
 vim.opt.sidescrolloff = 5 -- 侧边滚动始终保持5列距离
 
-vim.opt.backup = false -- 禁止文件自动备份
-
 vim.opt.sessionoptions:append("curdir,folds,globals,help,tabpages,terminal,winsize") -- 持久保存session需要包含的内容
-
-vim.opt.autoread = true -- 更改配置后自动读取
-
-vim.opt.cursorline = true -- 高亮当前行
 
 vim.opt.wildmenu = true -- 允许补全菜单样式配置
 vim.opt.pumheight = 15 -- 补全菜单高度为15
@@ -86,6 +77,11 @@ vim.opt.wildoptions:append("pum") -- 命令行补全菜样式为"pum"
 
 vim.opt.spelllang:append("en_us,cjk") -- 拼写语言为"en_us,cjk"
 -- vim.opt.autochdir = true -- 自动cd到当前buffer所属目录
+vim.opt.autoread = true -- 更改配置后自动读取
+vim.opt.autowrite = true -- 自动写入
+vim.opt.backup = false -- 禁止文件自动备份
+vim.opt.wrap = false -- 长行禁止自动换行显示
+vim.opt.confirm = true -- 代码未保存时退出,nvim提示是否保存
 
 vim.opt.ignorecase = true -- 忽略大小写
 vim.opt.smartcase = true -- 智能大小写
