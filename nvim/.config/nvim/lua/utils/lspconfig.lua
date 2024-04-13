@@ -2,46 +2,6 @@
 -- 参考资料: https://vonheikemen.github.io/devlog/tools/neovim-lsp-client-guide/
 local M = {}
 
--- 打印LSP进度信息
-local function log(msg)
-	local client = msg.client or ""
-	local title = msg.title or ""
-	local message = msg.message or ""
-	local percentage = msg.percentage or 0
-	local out = (client ~= "" and "[" .. client .. "]") or ""
-	out = out .. ((percentage > 0) and (" [" .. percentage .. "%]") or "")
-	out = out .. ((title ~= "") and (" " .. title) or "")
-	out = out .. ((message ~= "") and (" - " .. message) or "")
-	vim.api.nvim_command([[echo "]] .. out .. [["]])
-end
-local series = {} -- 全局变量用于存储进度信息
-
--- LSP加载进度提示
-local function setup_progress_handler()
-	vim.lsp.handlers["$/progress"] = function(err, progress, ctx)
-		local client = vim.lsp.get_client_by_id(ctx.client_id)
-		local client_name = client.name or ""
-		local token = progress.token
-		local value = progress.value
-		local cur = series[token] or {}
-		cur.client = client_name or cur.client
-		cur.title = value.title or cur.title or ""
-		cur.message = value.message or cur.message or ""
-		cur.percentage = value.percentage or cur.percentage or 0
-
-		if value.kind == "begin" then
-			cur.message = cur.message .. " - Starting"
-		end
-
-		if value.kind == "end" then
-			cur.message = "Done"
-			series[token] = nil
-		end
-
-		log(cur)
-	end
-end
-
 -- 设置按键映射
 local function setup_keymaps(buf)
 	local mappings = {
@@ -166,8 +126,8 @@ M.lspSetup = function()
 			setup_diagnostics_mode_change() -- 进入插入模式立即更新诊断信息
 			setup_highlight_symbol(event) -- 关键字高亮
 		end,
+		require("utils.lsp_progreess").setup_lsp_progress(), -- lsp加载进度通知
 	})
-	setup_progress_handler() -- LSP加载进度提示
 end
 
 return M

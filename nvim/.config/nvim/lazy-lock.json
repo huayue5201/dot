@@ -12,7 +12,7 @@
   "dressing.nvim": { "branch": "master", "commit": "18e5beb3845f085b6a33c24112b37988f3f93c06" },
   "dropbar.nvim": { "branch": "master", "commit": "26173fd5347bddc28fdc645d7020abd860754a73" },
   "eyeliner.nvim": { "branch": "main", "commit": "c540d58bf52aa979d4cca639c60387ae0c0ccf88" },
-  "fzf": { "branch": "master", "commit": "a4745626dd5c5f697dbbc5e3aa1796d5016c1faf" },
+  "fzf": { "branch": "master", "commit": "fd1ba46f77532b4bc9b6af00db9dc8ecdf6e2b3f" },
   "gitsigns.nvim": { "branch": "main", "commit": "d96ef3bbff0bdbc3916a220f5c74a04c4db033f2" },
   "lazy.nvim": { "branch": "main", "commit": "31ddbea7c10b6920c9077b66c97951ca8682d5c8" },
   "lspkind.nvim": { "branch": "master", "commit": "1735dd5a5054c1fb7feaf8e8658dbab925f4f0cf" },
