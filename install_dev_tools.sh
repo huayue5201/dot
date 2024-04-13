@@ -22,6 +22,7 @@ brew install --HEAD neovim
 brew install pipx # python虚拟环境管理工具
 brew tap homebrew/cask-fonts # fonts字体安装
 brew install --cask font-fira-code-nerd-font
+brew install --cask font-victor-mono-nerd-font
 
 # mcu 开发环境
 
