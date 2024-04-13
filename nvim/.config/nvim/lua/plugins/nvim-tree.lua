@@ -67,17 +67,16 @@ return {
 					local last_buf_info = vim.fn.getbufinfo(tab_bufs[1])[1]
 					if last_buf_info.name:match(".*NvimTree_%d*$") then -- 并且那个 buffer 是 nvim tree
 						vim.schedule(function()
-							if #vim.api.nvim_list_wins() == 1 then -- 如果是 vim 中最后一个 buffer
-								vim.cmd("quit") -- 那就关闭整个 vim
-							else -- 否则还有其他标签页
-								vim.api.nvim_win_close(tab_wins[1], true) -- 那就只关闭标签页
+							if #vim.api.nvim_list_wins() > 1 then -- 如果还有其他窗口
+								vim.api.nvim_win_close(tab_wins[1], true) -- 只关闭nvim-tree窗口
+							else
+								api.tree.close() -- 如果是最后一个窗口，则关闭整个 nvim tree
 							end
 						end)
 					end
 				end
 			end
 		end
-
 		vim.api.nvim_create_autocmd("WinClosed", {
 			callback = function()
 				local amatch_value = vim.fn.expand("<amatch>")
