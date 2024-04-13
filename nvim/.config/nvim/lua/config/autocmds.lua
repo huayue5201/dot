@@ -12,16 +12,6 @@
 -- 	end,
 -- })
 
--- 延迟加载的配置模块
-vim.api.nvim_create_autocmd("BufReadPost", {
-	desc = "延迟加载配置模块",
-	group = vim.api.nvim_create_augroup("urlOpener", { clear = true }),
-	pattern = "*",
-	callback = function()
-		require("utils.url_opener") -- gx命令增强
-	end,
-})
-
 -- 自动保存
 vim.api.nvim_create_autocmd("FocusLost", {
 	desc = "窗口切换时自动保存文件",
