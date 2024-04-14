@@ -38,6 +38,9 @@ local config = {
 			hint = {
 				enable = true,
 			},
+			globals = {
+				"vim",
+			},
 		}, -- Lua 语言服务器的其他设置
 	},
 }
