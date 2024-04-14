@@ -123,10 +123,10 @@ autocmd("BufEnter", {
 	pattern = "*",
 	callback = function()
 		-- 获取当前缓冲区信息
+		local disable_highlight_files = { "log" } -- 需要禁用的文件类型列表
 		local bufnr = vim.api.nvim_get_current_buf() -- 获取当前缓冲区编号
 		local bufname = vim.api.nvim_buf_get_name(bufnr) -- 获取当前缓冲区的名称或路径
 		local stat = vim.loop.fs_stat(bufname) -- 获取文件的状态信息
-
 		local line_count = vim.api.nvim_buf_line_count(bufnr)
 		local file_type = vim.api.nvim_buf_get_option(bufnr, "filetype")
 
@@ -140,7 +140,6 @@ autocmd("BufEnter", {
 			vim.api.nvim_buf_set_option(bufnr, "loadplugins", false)
 		end
 		-- 匹配文件类型并执行相应的操作
-		local disable_highlight_files = { "log", "txt", "md" } -- 需要禁用的文件类型列表
 		if vim.tbl_contains(disable_highlight_files, file_type) or line_count > 5000 then
 			vim.cmd("DisableHL")
 		end
