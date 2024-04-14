@@ -2,12 +2,13 @@ local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
 
 -- 延迟加载模块
--- autocmd("VimEnter", {
--- 	desc = "延迟加载模块",
--- 	group = augroup("lazyConfig", { clear = true }),
--- 	callback = function()
--- 	end,
--- })
+autocmd("VimEnter", {
+	desc = "延迟加载模块",
+	group = augroup("lazyConfig", { clear = true }),
+	callback = function()
+		require("utils.bigfile").setup()
+	end,
+})
 
 -- 自动保存
 autocmd("FocusLost", {
@@ -116,32 +117,3 @@ vim.on_key(function(char)
 		end
 	end
 end, vim.api.nvim_create_namespace("auto_hlsearch"))
-
--- 优化打开大文件性能
-autocmd("BufEnter", {
-	group = augroup("IndentBlanklineBigFile", { clear = true }),
-	pattern = "*",
-	callback = function()
-		-- 获取当前缓冲区信息
-		local disable_highlight_files = { "log" } -- 需要禁用的文件类型列表
-		local bufnr = vim.api.nvim_get_current_buf() -- 获取当前缓冲区编号
-		local bufname = vim.api.nvim_buf_get_name(bufnr) -- 获取当前缓冲区的名称或路径
-		local stat = vim.loop.fs_stat(bufname) -- 获取文件的状态信息
-		local line_count = vim.api.nvim_buf_line_count(bufnr)
-		local file_type = vim.api.nvim_buf_get_option(bufnr, "filetype")
-
-		if line_count > 10000 or (stat and stat.size or 0) > 100 * 1024 then
-			-- 大文件设置
-			vim.api.nvim_buf_set_option(bufnr, "syntax", "off")
-			vim.api.nvim_buf_set_option(bufnr, "foldmethod", "manual")
-			vim.api.nvim_buf_set_option(bufnr, "filetype", "off")
-			vim.api.nvim_buf_set_option(bufnr, "undofile", false)
-			vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
-			vim.api.nvim_buf_set_option(bufnr, "loadplugins", false)
-		end
-		-- 匹配文件类型并执行相应的操作
-		if vim.tbl_contains(disable_highlight_files, file_type) or line_count > 5000 then
-			vim.cmd("DisableHL")
-		end
-	end,
-})
