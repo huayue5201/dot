@@ -65,6 +65,12 @@ keymap("n", "]l", "<cmd>lnext<cr>")
 -- 下一条匹配结果
 keymap("n", "[l", "<cmd>lprev<cr>")
 
+-- 强化gx功能
+vim.keymap.set("n", "gx", "<cmd>lua require('user.url_opener').open_url()<CR>", {
+	noremap = true,
+	silent = true,
+})
+
 -- 插入模式下TAB可以跳出()[]....
 keymap("i", "<Tab>", function()
 	local cursor = vim.api.nvim_win_get_cursor(0)

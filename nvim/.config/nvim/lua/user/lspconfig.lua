@@ -126,7 +126,7 @@ M.lspSetup = function()
 			setup_diagnostics_mode_change() -- 进入插入模式立即更新诊断信息
 			setup_highlight_symbol(event) -- 关键字高亮
 		end,
-		require("utils.lsp_progreess").setup_lsp_progress(), -- lsp加载进度通知
+		require("user.lsp_progreess").setup_lsp_progress(), -- lsp加载进度通知
 	})
 end
 

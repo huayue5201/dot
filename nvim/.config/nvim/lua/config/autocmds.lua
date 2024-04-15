@@ -6,7 +6,10 @@ autocmd("VimEnter", {
 	desc = "延迟加载模块",
 	group = augroup("lazyConfig", { clear = true }),
 	callback = function()
-		require("utils.largefile").setup()
+		-- 优化大文件打开性能
+		require("user.largefile").setup()
+		-- 加载状态栏模块
+		require("user.statusline")
 	end,
 })
 

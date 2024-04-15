@@ -37,10 +37,8 @@ local function close_plugin()
 end
 
 function M.setup()
-	local autocmd = vim.api.nvim_create_autocmd
-	local augroup = vim.api.nvim_create_augroup
-	autocmd("BufEnter", {
-		group = augroup("IndentBlanklineBigFile", { clear = true }),
+	vim.api.nvim_create_autocmd("BufEnter", {
+		group = vim.api.nvim_create_augroup("IndentBlanklineBigFile", { clear = true }),
 		pattern = "*",
 		callback = function()
 			big_file_settings()

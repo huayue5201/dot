@@ -8,5 +8,3 @@ require("config.keymaps")
 require("config.autocmds")
 -- lazy加载
 require("config.lazy")
--- 加载状态栏模块
-require("config.statusline")
