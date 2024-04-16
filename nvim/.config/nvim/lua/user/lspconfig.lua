@@ -2,7 +2,7 @@
 -- 参考资料: https://vonheikemen.github.io/devlog/tools/neovim-lsp-client-guide/
 local M = {}
 
--- 设置按键映射
+-- snippet片段支持按键映射
 local function setup_keymaps(buf)
 	-- 跳转到下一个占位符
 	local function jump_next()
@@ -10,7 +10,7 @@ local function setup_keymaps(buf)
 		if vim.snippet.jumpable(1) then
 			return "<cmd>lua vim.snippet.jump(1)<cr>"
 		else
-			return "<C-j>"
+			return "<C-f>"
 		end
 	end
 
@@ -20,7 +20,7 @@ local function setup_keymaps(buf)
 		if vim.snippet.jumpable(-1) then
 			return "<cmd>lua vim.snippet.jump(-1)<cr>"
 		else
-			return "<C-k>"
+			return "<C-b>"
 		end
 	end
 
@@ -30,7 +30,7 @@ local function setup_keymaps(buf)
 		if vim.snippet.active() then
 			return "<cmd>lua vim.snippet.exit()<cr>"
 		else
-			return "<C-q>"
+			return "<C-l>"
 		end
 	end
 
@@ -71,9 +71,9 @@ local function setup_keymaps(buf)
 	end
 
 	-- 单独设置占位符跳转的映射
-	vim.keymap.set({ "i", "s" }, "<C-j>", jump_next, { expr = true })
-	vim.keymap.set({ "i", "s" }, "<C-k>", jump_prev, { expr = true })
-	vim.keymap.set({ "i", "s" }, "<C-q>", exit_snippet, { expr = true })
+	vim.keymap.set({ "i", "s" }, "<C-f>", jump_next, { expr = true })
+	vim.keymap.set({ "i", "s" }, "<C-b>", jump_prev, { expr = true })
+	vim.keymap.set({ "i", "s" }, "<C-l>", exit_snippet, { expr = true })
 end
 
 -- 设置诊断配置

@@ -1,5 +1,3 @@
--- 按键映射简化及设置模块
--- _G.keymap = require("user.keybindings").setKeymap
 -- 设置前置按键
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
