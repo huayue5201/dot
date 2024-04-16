@@ -1,4 +1,4 @@
--- utils.lsp_progress.lua
+-- user.lsp_progress.lua
 local M = {}
 
 -- 图标定义：旋转图标和完成状态图标

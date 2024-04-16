@@ -1,4 +1,8 @@
-local root_files = {
+-- lua/ftplugin/c.lua
+local utils = require("user.utils")
+
+-- 定义潜在的 C/C++ 项目根文件
+local c_root_files = {
 	"main.c",
 	"Makefile",
 	".clangd",
@@ -9,21 +13,25 @@ local root_files = {
 	"configure.ac", -- AutoTools
 }
 
+-- 查找项目的根目录
+local root_dir = utils.find_root_dir(c_root_files)
+
+-- 默认 LSP 客户端能力
 local default_capabilities = vim.lsp.protocol.make_client_capabilities()
 default_capabilities.textDocument.completion.editsNearCursor = true
 
-local config = {
-	name = "clangd", -- 语言服务器名称
-	cmd = { "clangd" }, -- 启动命令
-	root_dir = vim.fs.dirname(vim.fs.find(root_files, { upward = true, stop = vim.env.HOME })[1]),
+-- C/C++ LSP 配置
+local c_config = {
+	name = "clangd",
+	cmd = { "clangd" },
+	root_dir = root_dir,
 	capabilities = default_capabilities,
 }
 
 -- 启动 LSP
-vim.lsp.start(config, {
-	reuse_client = function(client, conf)
-		return (client.name == conf.name and (client.config.root_dir == conf.root_dir or conf.root_dir == nil))
-	end,
+vim.lsp.start(c_config, {
+	-- 重用现有的 LSP 客户端
+	reuse_client = utils.reuse_client,
 })
 
 -- 调用自定义的 LSP 配置模块

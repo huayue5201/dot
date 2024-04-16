@@ -1,12 +1,16 @@
--- lua/util/lsp_config.lua
+-- lua/user/lsp_config.lua
 -- 参考资料: https://vonheikemen.github.io/devlog/tools/neovim-lsp-client-guide/
+
 local M = {}
 
--- snippet片段支持按键映射
+-- 设置按键映射
+--
+-- 此函数定义了各种按键映射，用于与 LSP 功能和诊断功能交互。
+--
+-- @param buf number 当前缓冲区
 local function setup_keymaps(buf)
 	-- 跳转到下一个占位符
 	local function jump_next()
-		-- 警告：此 API 还不稳定
 		if vim.snippet.jumpable(1) then
 			return "<cmd>lua vim.snippet.jump(1)<cr>"
 		else
@@ -16,7 +20,6 @@ local function setup_keymaps(buf)
 
 	-- 跳转到上一个占位符
 	local function jump_prev()
-		-- 警告：此 API 还不稳定
 		if vim.snippet.jumpable(-1) then
 			return "<cmd>lua vim.snippet.jump(-1)<cr>"
 		else
@@ -26,7 +29,6 @@ local function setup_keymaps(buf)
 
 	-- 退出当前代码片段
 	local function exit_snippet()
-		-- 警告：此 API 还不稳定
 		if vim.snippet.active() then
 			return "<cmd>lua vim.snippet.exit()<cr>"
 		else
@@ -34,6 +36,7 @@ local function setup_keymaps(buf)
 		end
 	end
 
+	-- 定义按键映射表
 	local mappings = {
 		{ "n", "<leader>p", "<cmd>lua vim.diagnostic.open_float()<cr>", desc = "打开诊断浮动窗口" },
 		{ "n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<cr>", desc = "跳转到前一个诊断" },
@@ -64,7 +67,7 @@ local function setup_keymaps(buf)
 		},
 	}
 
-	-- 设置主映射
+	-- 应用按键映射
 	for _, map in ipairs(mappings) do
 		local mode, lhs, rhs, desc = unpack(map)
 		vim.keymap.set(mode, lhs, rhs, { noremap = true, silent = true, buffer = buf, desc = desc })
@@ -77,6 +80,9 @@ local function setup_keymaps(buf)
 end
 
 -- 设置诊断配置
+--
+-- 此函数配置了诊断显示方式和虚拟文本的设置。
+--
 local function setup_diagnostics()
 	vim.diagnostic.config({
 		virtual_text = {
@@ -96,31 +102,36 @@ local function setup_diagnostics()
 		severity_sort = true,
 	})
 
+	-- 设置悬停信息和签名帮助的边框样式
 	vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" })
 	vim.lsp.handlers["textDocument/signatureHelp"] =
 		vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" })
 end
 
 -- 进入插入模式立即更新诊断信息
+--
+-- 此函数在进入插入或可视模式时禁用诊断，其他模式下启用诊断。
+--
 local function setup_diagnostics_mode_change()
 	vim.api.nvim_create_autocmd("ModeChanged", {
-		pattern = { "n:i", "v:s" },
-		desc = "Disable diagnostics in insert and select mode",
-		callback = function(e)
-			vim.diagnostic.disable(e.buf)
-		end,
-	})
+		pattern = "*",
+		callback = function()
+			local current_mode = vim.api.nvim_get_mode().mode
 
-	vim.api.nvim_create_autocmd("ModeChanged", {
-		pattern = "i:n",
-		desc = "Enable diagnostics when leaving insert mode",
-		callback = function(e)
-			vim.diagnostic.enable(e.buf)
+			if current_mode == "i" or current_mode == "v" then
+				vim.diagnostic.disable(0)
+			else
+				vim.diagnostic.enable(0)
+			end
 		end,
 	})
 end
 
--- 关键字高亮
+-- 设置关键字高亮
+--
+-- 此函数设置了 LSP 的关键字高亮功能。
+--
+-- @param event table 包含事件数据的表
 local function setup_highlight_symbol(event)
 	local id = vim.tbl_get(event, "data", "client_id")
 	local client = id and vim.lsp.get_client_by_id(id)
@@ -129,14 +140,17 @@ local function setup_highlight_symbol(event)
 	end
 
 	-- 设置高亮组
-	vim.api.nvim_set_hl(0, "LspReferenceRead", { link = "Search" })
-	vim.api.nvim_set_hl(0, "LspReferenceText", { link = "Search" })
-	vim.api.nvim_set_hl(0, "LspReferenceWrite", { link = "Search" })
+	local highlight_groups = { "LspReferenceRead", "LspReferenceText", "LspReferenceWrite" }
+	for _, group in ipairs(highlight_groups) do
+		vim.api.nvim_set_hl(0, group, { link = "Search" })
+	end
 
 	local group = vim.api.nvim_create_augroup("highlight_symbol", { clear = false })
 
+	-- 清除之前的自动命令
 	vim.api.nvim_clear_autocmds({ buffer = event.buf, group = group })
 
+	-- 设置光标悬停时和移动时的高亮
 	vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
 		group = group,
 		buffer = event.buf,
@@ -151,18 +165,22 @@ local function setup_highlight_symbol(event)
 end
 
 -- LSP主设置函数
+--
+-- 此函数用于设置 LSP 的相关功能，包括按键映射、诊断配置、诊断模式改变和关键字高亮。
+--
 M.lspSetup = function()
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 		callback = function(event)
-			-- Enable completion triggered by <c-x><c-o>
+			-- 启用由 <c-x><c-o> 触发的补全
 			vim.bo[event.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
-			setup_keymaps(event.buf) -- 按键映射
-			setup_diagnostics() -- 诊断配置
+			setup_keymaps(event.buf) -- 设置按键映射
+			setup_diagnostics() -- 设置诊断配置
 			setup_diagnostics_mode_change() -- 进入插入模式立即更新诊断信息
-			setup_highlight_symbol(event) -- 关键字高亮
+			setup_highlight_symbol(event) -- 设置关键字高亮
 		end,
-		require("user.lsp_progreess").setup_lsp_progress(), -- lsp加载进度通知
+		-- 加载 LSP 进度通知
+		require("user.lsp_progreess").setup_lsp_progress(),
 	})
 end
 
