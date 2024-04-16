@@ -8,8 +8,6 @@ autocmd("VimEnter", {
 	callback = function()
 		-- 优化大文件打开性能
 		require("user.largefile").setup()
-		-- 加载状态栏模块
-		require("user.statusline")
 	end,
 })
 

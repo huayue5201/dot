@@ -4,6 +4,36 @@ local M = {}
 
 -- 设置按键映射
 local function setup_keymaps(buf)
+	-- 跳转到下一个占位符
+	local function jump_next()
+		-- 警告：此 API 还不稳定
+		if vim.snippet.jumpable(1) then
+			return "<cmd>lua vim.snippet.jump(1)<cr>"
+		else
+			return "<C-j>"
+		end
+	end
+
+	-- 跳转到上一个占位符
+	local function jump_prev()
+		-- 警告：此 API 还不稳定
+		if vim.snippet.jumpable(-1) then
+			return "<cmd>lua vim.snippet.jump(-1)<cr>"
+		else
+			return "<C-k>"
+		end
+	end
+
+	-- 退出当前代码片段
+	local function exit_snippet()
+		-- 警告：此 API 还不稳定
+		if vim.snippet.active() then
+			return "<cmd>lua vim.snippet.exit()<cr>"
+		else
+			return "<C-q>"
+		end
+	end
+
 	local mappings = {
 		{ "n", "<leader>p", "<cmd>lua vim.diagnostic.open_float()<cr>", desc = "打开诊断浮动窗口" },
 		{ "n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<cr>", desc = "跳转到前一个诊断" },
@@ -34,10 +64,16 @@ local function setup_keymaps(buf)
 		},
 	}
 
+	-- 设置主映射
 	for _, map in ipairs(mappings) do
-		local mode, lhs, rhs = unpack(map)
-		vim.keymap.set(mode, lhs, rhs, { noremap = true, silent = true, buffer = buf })
+		local mode, lhs, rhs, desc = unpack(map)
+		vim.keymap.set(mode, lhs, rhs, { noremap = true, silent = true, buffer = buf, desc = desc })
 	end
+
+	-- 单独设置占位符跳转的映射
+	vim.keymap.set({ "i", "s" }, "<C-j>", jump_next, { expr = true })
+	vim.keymap.set({ "i", "s" }, "<C-k>", jump_prev, { expr = true })
+	vim.keymap.set({ "i", "s" }, "<C-q>", exit_snippet, { expr = true })
 end
 
 -- 设置诊断配置

@@ -12,7 +12,7 @@ return {
 	config = function()
 		require("scope").setup({})
 		require("telescope").load_extension("scope")
-		keymap({ "n" }, "<leader>tt", "<cmd>ScopeMoveBuf<cr>", { desc = "移动buferr到别的tabs" })
-		keymap("n", "<space>fb", "<cmd>Telescope scope buffers<cr>", { desc = "buffer检索" })
+		vim.keymap.set({ "n" }, "<leader>tt", "<cmd>ScopeMoveBuf<cr>", { desc = "移动buferr到别的tabs" })
+		vim.keymap.set("n", "<space>fb", "<cmd>Telescope scope buffers<cr>", { desc = "buffer检索" })
 	end,
 }

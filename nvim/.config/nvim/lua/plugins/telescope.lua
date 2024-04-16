@@ -111,9 +111,9 @@ return {
 		require("telescope").load_extension("fzf")
 
 		-- 设置键盘映射
-		keymap("n", "<space>ff", "<cmd>Telescope find_files<cr>", { desc = "文件检索" })
-		keymap("n", "<space>fg", "<cmd>Telescope live_grep<cr>", { desc = "字符检索" })
-		keymap("n", "<space>fo", "<cmd>Telescope oldfiles<cr>", { desc = "历史检索" })
-		keymap("n", "<space>fw", "<cmd>Telescope grep_string<cr>", { desc = "检索光标下的字符" })
+		vim.keymap.set("n", "<space>ff", "<cmd>Telescope find_files<cr>", { desc = "文件检索" })
+		vim.keymap.set("n", "<space>fg", "<cmd>Telescope live_grep<cr>", { desc = "字符检索" })
+		vim.keymap.set("n", "<space>fo", "<cmd>Telescope oldfiles<cr>", { desc = "历史检索" })
+		vim.keymap.set("n", "<space>fw", "<cmd>Telescope grep_string<cr>", { desc = "检索光标下的字符" })
 	end,
 }

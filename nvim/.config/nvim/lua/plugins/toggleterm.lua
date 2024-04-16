@@ -38,9 +38,9 @@ return {
 		local exitTerm = function()
 			vim.cmd(":ToggleTerm")
 		end
-		keymap("t", "<esc><esc>", exitTerm)
+		vim.keymap.set("t", "<esc><esc>", exitTerm)
 		-- 打开终端列表
-		keymap("n", "<leader>\\", function()
+		vim.keymap.set("n", "<leader>\\", function()
 			if #vim.fn.getloclist(0) == 0 then
 				vim.api.nvim_out_write("当前没有打开的终端\n")
 			else

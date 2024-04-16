@@ -71,16 +71,16 @@ return {
 
 		-- 快捷键设置
 		for n = 1, 9 do
-			keymap("n", "g" .. n, function() -- 跳转到第n个buffer
+			vim.keymap.set("n", "g" .. n, function() -- 跳转到第n个buffer
 				require("bufferline").go_to(n, true)
 			end, { desc = "[Bufferline] 跳转到第" .. n .. "个buffer" })
 		end
 
-		keymap("n", "<TAB>", "<cmd>BufferLineCycleNext<cr>", { desc = "下一个缓冲区" })
-		keymap("n", "<S-TAB>", "<cmd>BufferLineCyclePrev<cr>", { desc = "上一个缓冲区" })
-		keymap("n", "<leader>tp", "<cmd>BufferLineTogglePin<cr>", { desc = "图钉📌" })
-		keymap("n", "<leader>tg", ":BufferLinePick<CR>", { desc = "跳转到任意可见标签" })
-		keymap("n", "<leader>tx", ":BufferLinePickClose<CR>", { desc = "删除任意可见标签" })
-		keymap("n", "<leader>td", "<cmd>BufferLineCloseOthers<cr>", { desc = "删除其他所有buffers" })
+		vim.keymap.set("n", "<TAB>", "<cmd>BufferLineCycleNext<cr>", { desc = "下一个缓冲区" })
+		vim.keymap.set("n", "<S-TAB>", "<cmd>BufferLineCyclePrev<cr>", { desc = "上一个缓冲区" })
+		vim.keymap.set("n", "<leader>tp", "<cmd>BufferLineTogglePin<cr>", { desc = "图钉📌" })
+		vim.keymap.set("n", "<leader>tg", ":BufferLinePick<CR>", { desc = "跳转到任意可见标签" })
+		vim.keymap.set("n", "<leader>tx", ":BufferLinePickClose<CR>", { desc = "删除任意可见标签" })
+		vim.keymap.set("n", "<leader>td", "<cmd>BufferLineCloseOthers<cr>", { desc = "删除其他所有buffers" })
 	end,
 }

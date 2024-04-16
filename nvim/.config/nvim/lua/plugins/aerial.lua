@@ -4,7 +4,7 @@ return {
 	"stevearc/aerial.nvim",
 	keys = {
 		{ "<leader>sa", desc = "符号树" },
-		{ "<leader>sv", desc = "符号树浮窗" },
+		{ "<leader>a", desc = "符号树浮窗" },
 	},
 	-- Optional dependencies
 	dependencies = {
@@ -16,8 +16,8 @@ return {
 			-- optionally use on_attach to set keymaps when aerial has attached to a buffer
 			on_attach = function(bufnr)
 				-- Jump forwards/backwards with '{' and '}'
-				keymap("n", "{", "<cmd>AerialPrev<CR>", { buffer = bufnr })
-				keymap("n", "}", "<cmd>AerialNext<CR>", { buffer = bufnr })
+				vim.keymap.set("n", "{", "<cmd>AerialPrev<CR>", { buffer = bufnr })
+				vim.keymap.set("n", "}", "<cmd>AerialNext<CR>", { buffer = bufnr })
 			end,
 			-- 控制aerial窗口的宽度和布局选项
 			-- 包括最大宽度、宽度、最小宽度、默认打开方向和位置
@@ -49,7 +49,7 @@ return {
 			},
 		})
 		-- You probably also want to set a keymap to toggle aerial
-		keymap("n", "<leader>sa", "<cmd>AerialToggle!<CR>")
-		keymap("n", "<leader>sv", "<cmd>AerialNavToggl<CR>")
+		vim.keymap.set("n", "<leader>sa", "<cmd>AerialToggle!<CR>")
+		vim.keymap.set("n", "<leader>a", "<cmd>AerialNavToggl<CR>")
 	end,
 }

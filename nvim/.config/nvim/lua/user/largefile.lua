@@ -15,17 +15,23 @@ end
 --- 处理大文件时自动调整设置
 local function big_file_settings()
 	local bufnr, _, stat, line_count, _ = get_buffer_info()
+
 	if line_count > 10000 or (stat and stat.size or 0) > 100 * 1024 then
-		vim.api.nvim_buf_set_option(bufnr, "foldmethod", "manual")
-		vim.api.nvim_buf_set_option(bufnr, "syntax", "false") -- 改为 false
-		vim.api.nvim_buf_set_option(bufnr, "filetype", "false") -- 改为 false
-		vim.api.nvim_buf_set_option(bufnr, "undofile", false) -- 改为 false
-		vim.api.nvim_buf_set_option(bufnr, "swapfile", false) -- 改为 false
-		vim.api.nvim_buf_set_option(bufnr, "loadplugins", false) -- 改为 false
+		local options = {
+			foldmethod = "manual",
+			syntax = "off",
+			filetype = "off",
+			undofile = false,
+			swapfile = false,
+			loadplugins = false,
+		}
+
+		for key, value in pairs(options) do
+			vim.api.nvim_buf_set_option(bufnr, key, value)
+		end
 	end
 end
 
--- 处理大文件时自动关闭/打开插件
 -- 需要插件自身的启动/关闭命令
 local function close_plugin()
 	local _, _, _, line_count, file_type = get_buffer_info()

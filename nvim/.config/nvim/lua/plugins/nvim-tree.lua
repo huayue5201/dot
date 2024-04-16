@@ -44,7 +44,7 @@ return {
 			},
 		})
 
-		keymap("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })
+		vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })
 
 		-- 当 nvim-tree 是最后一个窗口时自动关闭
 		vim.api.nvim_create_autocmd("QuitPre", {
