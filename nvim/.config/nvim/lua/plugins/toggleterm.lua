@@ -1,9 +1,8 @@
 -- https://github.com/akinsho/toggleterm.nvim
-
 return {
 	"akinsho/toggleterm.nvim",
 	keys = { "<C-\\>", "<leader>\\" },
-	cmd = { "ToggleTerm", "ToggleTermSetName work" },
+	cmd = { "ToggleTerm", "ToggleTermToggleAll" },
 	version = "*",
 	config = function()
 		-- 设置 ToggleTerm 插件
@@ -17,7 +16,7 @@ return {
 				end
 			end,
 			-- 设置打开终端的快捷键
-			open_mapping = [[<c-\>]],
+			open_mapping = "<c-\\>",
 			-- 控制终端窗口的背景色
 			shade_terminals = true, -- 加深终端背景色
 			-- 控制是否隐藏终端窗口的编号
@@ -39,14 +38,9 @@ return {
 			vim.cmd(":ToggleTerm")
 		end
 		vim.keymap.set("t", "<esc><esc>", exitTerm)
-		-- 打开终端列表
-		vim.keymap.set("n", "<leader>\\", function()
-			if #vim.fn.getloclist(0) == 0 then
-				vim.api.nvim_out_write("当前没有打开的终端\n")
-			else
-				vim.cmd("ToggleTermSetName work")
-			end
-		end)
+
+		-- 打开所有终端
+		vim.keymap.set("n", "<space>\\", "<cmd>ToggleTermToggleAll<cr>", { desc = "字符检索" })
 
 		-- 设置终端内部的按键映射
 		function _G.set_terminal_keymaps()

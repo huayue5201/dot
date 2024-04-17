@@ -43,7 +43,7 @@ end
 -- @param conf table LSP 配置
 -- @return boolean 是否重用现有的 LSP 客户端
 function M.reuse_client(client, conf)
-	return (client.name == conf.name and (client.config.root_dir == conf.root_dir or conf.root_dir == nil))
+	return client.name == conf.name and (client.config.root_dir == conf.root_dir or conf.root_dir == nil)
 end
 
 return M

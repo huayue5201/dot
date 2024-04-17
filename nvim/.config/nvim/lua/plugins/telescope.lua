@@ -57,8 +57,8 @@ return {
 
 		-- 定义一个函数，用于在文件名之前添加其父目录名
 		local function filenameFirst(_, path)
-			local tail = vim.fs.basename(path)
-			local parent = vim.fs.dirname(path)
+			local tail = vim.fn.fnamemodify(path, ":t")
+			local parent = vim.fn.fnamemodify(path, ":h")
 			if parent == "." then
 				return tail
 			end

@@ -1,5 +1,4 @@
--- utils.keybindings.lua
-
+-- user/keybindings
 local M = {}
 
 -- 切换位置列表窗口的函数
@@ -12,41 +11,41 @@ M.toggleLocationList = function()
 		vim.api.nvim_out_write("当前没有loclist窗口\n")
 		return
 	end
-	-- 列出当前的窗口
+	-- 获取窗口信息
 	local windows = vim.fn.getwininfo()
 	-- 检查位置列表窗口是否打开
 	local locationListOpen = false
-	for _, window in ipairs(windows) do
-		if window.loclist == 1 then
+	for _, win in ipairs(windows) do
+		if win.loclist == 1 then
 			locationListOpen = true
 			break
 		end
 	end
 	-- 切换位置列表窗口
 	if locationListOpen then
-		vim.cmd([[lclose]])
+		vim.api.nvim_command("lclose")
 	else
-		vim.cmd([[lopen]])
+		vim.api.nvim_command("lopen")
 	end
 end
 
 -- 切换 Quickfix 窗口的函数
 M.toggleQuickfix = function()
-	-- 列出当前窗口
+	-- 获取窗口信息
 	local windows = vim.fn.getwininfo()
 	-- 检查 Quickfix 窗口是否已打开
 	local quickfixOpen = false
-	for _, window in ipairs(windows) do
-		if window.quickfix == 1 then
+	for _, win in ipairs(windows) do
+		if win.quickfix == 1 then
 			quickfixOpen = true
 			break
 		end
 	end
 	-- 切换 Quickfix 窗口的状态
 	if quickfixOpen then
-		vim.cmd([[cclose]])
+		vim.api.nvim_command("cclose")
 	else
-		vim.cmd([[copen]])
+		vim.api.nvim_command("copen")
 	end
 end
 
