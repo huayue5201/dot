@@ -180,7 +180,7 @@ M.lspSetup = function()
 			setup_highlight_symbol(event) -- 设置关键字高亮
 		end,
 		-- 加载 LSP 进度通知
-		require("user.lsp_progreess").setup_lsp_progress(),
+		 require("user.lsp_progreess").setup_lsp_progress(),
 	})
 end
 

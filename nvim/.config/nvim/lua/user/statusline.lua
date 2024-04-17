@@ -77,22 +77,12 @@ function Statusline.lsp()
 	return table.concat(parts, "")
 end
 
--- mfussenegger/nvim-lint
-local lint_progress = function()
-	local linters = require("lint").get_running()
-	if #linters == 0 then
-		return "󰦕"
-	end
-	return "󱉶 " .. table.concat(linters, ", ")
-end
-
 -- 创建状态栏内容
 function Statusline.active()
 	local mode_str = Statusline.mode()
 	local git_str = Statusline.vcs() -- 添加 Git 仓库状态
 	local file_name = " %f"
 	local lsp_str = Statusline.lsp() -- 添加 LSP 状态
-	local lint_str = lint_progress() -- 添加 Lint 进度
 	local line_col = " %l:%c"
 	local file_percent = " %p%%"
 
@@ -104,8 +94,6 @@ function Statusline.active()
 		file_name, -- 显示文件名
 		"%=", -- 使用最大宽度
 		lsp_str,
-		"%=", -- 使用最大宽度
-		lint_str, -- 显示 Lint 状态
 		"%=", -- 使用最大宽度
 		line_col, -- 当前行号和列号
 		file_percent, -- 文件百分比
