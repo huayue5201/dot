@@ -17,8 +17,6 @@ local disabled_plugins = {
 	"netrwSettings", -- netrwSettings 插件
 	"netrwFileHandlers", -- netrwFileHandlers 插件
 }
-
--- 设置禁用的插件
 for _, plugin in ipairs(disabled_plugins) do
 	vim.g["loaded_" .. plugin] = 1
 end
@@ -28,8 +26,6 @@ local disabled_providers = {
 	"perl_provider", -- 禁止 perl 提供者
 	"ruby_provider", -- 禁止 ruby 提供者
 }
-
--- 设置禁用的语言提供者
 for _, provider in ipairs(disabled_providers) do
 	vim.g["loaded_" .. provider] = 0
 end
@@ -82,12 +78,11 @@ local basic_options = {
 	number = true, -- 显示行号
 	relativenumber = true, -- 显示相对行号
 }
-
--- 应用基本设置
 for option, value in pairs(basic_options) do
 	vim.opt[option] = value
 end
 
+-- 各种文本符号设置
 vim.opt.fillchars = {
 	diff = "╱",
 	eob = " ",
