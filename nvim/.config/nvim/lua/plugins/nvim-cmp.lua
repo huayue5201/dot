@@ -131,8 +131,15 @@ return {
       -- 补全文本格式设置
       formatting = {
         fields = { "kind", "abbr", "menu" },
-        format = function(_, vim_item)
+        format = function(entry, vim_item)
           vim_item.kind = cmp_kinds[vim_item.kind] or ""
+          vim_item.menu = ({
+            buffer = "[Buffer]",
+            nvim_lsp = "[LSP]",
+            nvim_lua = "[Lua]",
+            rg = "[RG]",
+            path = "[PATH]"
+          })[entry.source.name]
           return vim_item
         end,
       },
