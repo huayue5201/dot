@@ -136,7 +136,6 @@ return {
           vim_item.menu = ({
             buffer = "[Buffer]",
             nvim_lsp = "[LSP]",
-            nvim_lua = "[Lua]",
             rg = "[RG]",
             path = "[PATH]"
           })[entry.source.name]
