@@ -1,7 +1,6 @@
 -- user/keybindings
 local M = {}
 
--- 切换位置列表窗口的函数
 M.toggleLocationList = function()
 	-- 获取当前的位置列表
 	local locationList = vim.fn.getloclist(0)

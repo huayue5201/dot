@@ -4,9 +4,9 @@
 local M = {}
 
 -- 设置按键映射
---
+
 -- 此函数定义了各种按键映射，用于与 LSP 功能和诊断功能交互。
---
+
 -- @param buf number 当前缓冲区
 local function setup_keymaps(buf)
   -- 跳转到下一个占位符
@@ -75,15 +75,15 @@ local function setup_keymaps(buf)
   end
 
   -- 单独设置占位符跳转的映射
-  vim.keymap.set({ "i", "s" }, "<C-f>", jump_next, { expr = true })
-  vim.keymap.set({ "i", "s" }, "<C-b>", jump_prev, { expr = true })
-  vim.keymap.set({ "i", "s" }, "<C-l>", exit_snippet, { expr = true })
+  vim.keymap.set({'i'}, '<C-f>', jump_next(), { expr = true, noremap = true, silent = true, buffer = buf })
+  vim.keymap.set({'i'}, '<C-b>', jump_prev(), { expr = true, noremap = true, silent = true, buffer = buf })
+  vim.keymap.set({'i'}, '<C-l>', exit_snippet(), { expr = true, noremap = true, silent = true, buffer = buf })
 end
 
 -- 设置诊断配置
---
+
 -- 此函数配置了诊断显示方式和虚拟文本的设置。
---
+
 local function setup_diagnostics()
   vim.diagnostic.config({
     virtual_text = {
@@ -175,10 +175,10 @@ M.lspSetup = function()
     callback = function(event)
       -- 启用由 <c-x><c-o> 触发的补全
       vim.bo[event.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
-      setup_keymaps(event.buf)     -- 设置按键映射
-      setup_diagnostics()          -- 设置诊断配置
+      setup_keymaps(event.buf)        -- 设置按键映射
+      setup_diagnostics()             -- 设置诊断配置
       setup_diagnostics_mode_change() -- 进入插入模式立即更新诊断信息
-      setup_highlight_symbol(event) -- 设置关键字高亮
+      setup_highlight_symbol(event)   -- 设置关键字高亮
     end,
     -- 加载 LSP 进度通知
     require("user.lsp_progreess").setup_lsp_progress(),
