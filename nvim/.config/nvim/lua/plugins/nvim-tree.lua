@@ -47,26 +47,6 @@ return {
 		-- 设置快捷键打开文件树
 		vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })
 
-		-- 当 nvim-tree 是最后一个窗口时自动关闭
-		vim.api.nvim_create_autocmd("QuitPre", {
-			callback = function()
-				local invalid_win = {}
-				local wins = vim.api.nvim_list_wins()
-				for _, w in ipairs(wins) do
-					local bufname = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(w))
-					if bufname:match("NvimTree_") ~= nil then
-						table.insert(invalid_win, w)
-					end
-				end
-				if #invalid_win == #wins - 1 then
-					-- 应该退出，因此关闭所有无效窗口。
-					for _, w in ipairs(invalid_win) do
-						vim.api.nvim_win_close(w, true)
-					end
-				end
-			end,
-		})
-
 		-- 打开文件时自动关闭 nvim-tree 窗口
 		vim.api.nvim_create_autocmd("BufLeave", {
 			callback = function()

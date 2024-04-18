@@ -16,7 +16,7 @@ end
 local function big_file_settings()
 	local bufnr, _, stat, line_count, _ = get_buffer_info()
 
-	if line_count > 10000 or (stat and stat.size or 0) > 100 * 1024 then
+	if line_count > 20000 or (stat and stat.size or 0) > 100 * 1024 then
 		local options = {
 			foldmethod = "manual",
 			syntax = "off",
