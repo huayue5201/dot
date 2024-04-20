@@ -8,7 +8,7 @@ autocmd("VimEnter", {
   callback = function()
     -- 优化大文件打开性能
     require("user.largefile").setup()
-    require("user.terminal").setup()
+    -- require("user.terminal").setup()
   end,
 })
 
@@ -58,7 +58,6 @@ autocmd("FileType", {
 
 -- grep功能优化
 vim.cmd([[command! -nargs=+ Grep execute 'silent grep! <args>' | copen]])
-
 -- 定义快速修复映射函数
 local function QuickfixMapping()
   -- 使快速修复列表可修改
@@ -66,7 +65,6 @@ local function QuickfixMapping()
   -- 在快速修复窗口保存更改
   vim.keymap.set("n", "<leader>o", ":cgetbuffer<CR>:cclose<CR>:copen<CR>", { buffer = true })
 end
-
 autocmd("FileType", {
   group = augroup("quickfix_group", { clear = true }),
   pattern = "qf",

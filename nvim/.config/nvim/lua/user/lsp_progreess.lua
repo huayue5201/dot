@@ -1,5 +1,4 @@
 -- user.lsp_progress.lua
-local M = {}
 
 -- 图标定义：旋转图标和完成状态图标
 local icons = {
@@ -196,6 +195,7 @@ local function handler(args)
 	end
 end
 
+local M = {}
 -- 设置LSP进度
 function M.setup_lsp_progress()
 	local group = vim.api.nvim_create_augroup("lsp_progress", { clear = true })

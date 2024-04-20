@@ -22,9 +22,6 @@ autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
 ### Zinit 安装结束
 
-# 使用 zinit_update 作为 zinit update 的别名
-alias zinit_update=zinit_update
-
 # https://github.com/romkatv/powerlevel10k
 # powerlevel10k
 zinit ice depth"1" # git clone depth

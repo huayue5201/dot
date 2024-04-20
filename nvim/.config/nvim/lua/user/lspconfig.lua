@@ -1,8 +1,6 @@
 -- lua/user/lsp_config.lua
 -- 参考资料: https://vonheikemen.github.io/devlog/tools/neovim-lsp-client-guide/
 
-local M = {}
-
 -- 设置按键映射
 
 -- 此函数定义了各种按键映射，用于与 LSP 功能和诊断功能交互。
@@ -165,6 +163,7 @@ local function setup_highlight_symbol(event)
   })
 end
 
+local M = {}
 -- LSP主设置函数
 --
 -- 此函数用于设置 LSP 的相关功能，包括按键映射、诊断配置、诊断模式改变和关键字高亮。

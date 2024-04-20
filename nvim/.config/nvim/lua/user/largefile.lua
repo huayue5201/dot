@@ -1,5 +1,4 @@
 -- utils/largerfile.lua
-local M = {}
 
 --- 获取缓冲区信息
 ---@return number, string, table, number, string
@@ -41,6 +40,8 @@ local function close_plugin()
     vim.cmd("EnableHL")
   end
 end
+
+local M = {}
 
 function M.setup()
   vim.api.nvim_create_autocmd("BufEnter", {

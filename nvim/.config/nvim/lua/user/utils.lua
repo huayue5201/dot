@@ -7,7 +7,6 @@ local M = {}
 function M.find_root_dir(root_files)
 	local current_dir = vim.fn.getcwd()
 	local root_dir = nil
-
 	-- 检查当前工作目录是否包含潜在的项目根文件
 	for _, file in ipairs(root_files) do
 		local found = vim.fn.findfile(file, current_dir)
@@ -16,7 +15,6 @@ function M.find_root_dir(root_files)
 			break
 		end
 	end
-
 	-- 如果当前工作目录没有包含根文件，则继续查找上层目录
 	if not root_dir then
 		local upper_dir = current_dir
@@ -34,7 +32,6 @@ function M.find_root_dir(root_files)
 			upper_dir = vim.fn.fnamemodify(upper_dir, ":h") -- 上层目录
 		until upper_dir == "/"
 	end
-
 	return root_dir
 end
 
