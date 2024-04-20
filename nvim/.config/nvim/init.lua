@@ -3,11 +3,11 @@ vim.loader.enable()
 
 -- 模块列表
 local modules = {
-  "options",         -- 加载基础配置
-  "keymaps",         -- 加载自定义键绑定
-  "autocmds",        -- 加载自动命令设置
-  "user.lazy",       -- 加载延迟加载配置
-  "user.statusline", -- 加载自定义状态栏
+  "options",         -- 基础配置
+  "keymaps",         -- 自定义键绑定
+  "autocmds",        -- 自动命令
+  "user.lazy",       -- 插件管理
+  "user.statusline", -- 自定义状态栏
 }
 
 -- 加载模块
