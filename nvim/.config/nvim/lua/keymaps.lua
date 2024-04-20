@@ -12,7 +12,7 @@ vim.keymap.set("n", "c", '"_c')
 
 -- 更智能的dd删除
 vim.keymap.set("n", "dd", function()
-	return vim.fn.getline(".") == "" and '"_dd' or "dd"
+  return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true })
 
 -- 将绝对路径复制到剪贴板
@@ -30,7 +30,7 @@ vim.keymap.set("x", "<leader>rc", [[y<cmd>let @/ = escape(@", '/')<cr>"_cgn]])
 vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { desc = "保存" })
 
 -- 删除buffer
-vim.keymap.set("n", "<leader>tq", "<cmd>bdelete<cr>", { desc = "删除buffer" })
+vim.keymap.set({ "n", "t" }, "<leader>tq", "<cmd>bdelete<cr>", { desc = "删除buffer" })
 
 -- tab操作
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<CR>", { desc = "创建选项卡" })
@@ -52,9 +52,9 @@ vim.keymap.set("n", "[l", "<cmd>lprev<cr>")
 
 -- 插入模式下TAB可以跳出()[]....
 vim.keymap.set("i", "<Tab>", function()
-	local cursor = vim.api.nvim_win_get_cursor(0)
-	local line = vim.api.nvim_get_current_line()
-	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
-	local special_chars = { '"', "'", ")", "]", "}", ">" }
-	return next_char == "" or not vim.tbl_contains(special_chars, next_char) and "<Tab>" or "<Right>"
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local line = vim.api.nvim_get_current_line()
+  local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
+  local special_chars = { '"', "'", ")", "]", "}", ">" }
+  return next_char == "" or not vim.tbl_contains(special_chars, next_char) and "<Tab>" or "<Right>"
 end, { expr = true })
