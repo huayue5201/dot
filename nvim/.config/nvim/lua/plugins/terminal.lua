@@ -19,7 +19,7 @@ return {
     vim.keymap.set("n", "[t", term_map.cycle_prev)  -- 在普通模式下，切换到上一个终端
 
     -- 设置终端相关键映射
-    vim.api.nvim_set_keymap('t', '<esc>', '<CMD>Term<CR>', { noremap = true, silent = true })  -- 在终端模式下，按下 <Esc> 键，切换到普通模式
+    vim.api.nvim_set_keymap('t', 'esc', '<CMD>Term<CR>', { noremap = true, silent = true })  -- 在终端模式下，按下 <Esc> 键，切换到普通模式
     vim.api.nvim_set_keymap('t', '<C-h>', '<C-\\><C-n><C-w>h', { noremap = true, silent = true })  -- 在终端模式下，按下 <C-h> 键，切换到左侧窗口
     vim.api.nvim_set_keymap('t', '<C-j>', '<C-\\><C-n><C-w>j', { noremap = true, silent = true })  -- 在终端模式下，按下 <C-j> 键，切换到下方窗口
     vim.api.nvim_set_keymap('t', '<C-k>', '<C-\\><C-n><C-w>k', { noremap = true, silent = true })  -- 在终端模式下，按下 <C-k> 键，切换到上方窗口

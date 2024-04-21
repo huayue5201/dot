@@ -24,6 +24,7 @@ brew tap homebrew/cask-fonts # fonts字体安装
 brew install --cask font-fira-code-nerd-font
 brew install --cask font-victor-mono-nerd-font
 brew install xray
+brew install nnn
 
 # mcu 开发环境
 
@@ -38,5 +39,5 @@ brew tap beeftornado/rmtre # 删除包及其依赖 brew rmtre [packge neme]
 
 # cask
 brew install orbstack # docker和linux虚拟机
-brew install alacritt # 终端
+brew install alacritty # 终端
 
