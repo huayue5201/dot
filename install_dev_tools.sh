@@ -1,13 +1,11 @@
 #!/bin/bash
 
-
 # to maintain cask ....
 #     brew update && brew cleanup
 
-
 # 基本工具
-
 brew install stow # dotfile管理
+cd ~/dotfile && stow git nvim alacritty btop zsh tmux aria2 gitui nnn
 brew install git
 brew install difftastic # git diff语义增强
 brew install gitui # git管理GUI
@@ -24,20 +22,16 @@ brew tap homebrew/cask-fonts # fonts字体安装
 brew install --cask font-fira-code-nerd-font
 brew install --cask font-victor-mono-nerd-font
 brew install xray
-brew install nnn
 
 # mcu 开发环境
-
 brew install --cask gcc-arm-embedded #gcc交叉编译工具
 brew install openocd # debug.烧录工具
-pipx install  compiledb # compile_commands.json生成工具 compiledb make
+pipx install compiledb # compile_commands.json生成工具 compiledb make
 
 # brew 命令扩展
-
 brew tap buo/cask-upgrade # cask更新 brew cu [CASK name]
 brew tap beeftornado/rmtre # 删除包及其依赖 brew rmtre [packge neme]
 
 # cask
 brew install orbstack # docker和linux虚拟机
 brew install alacritty # 终端
-
