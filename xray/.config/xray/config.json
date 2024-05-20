@@ -1,0 +1,97 @@
+{
+  "log": {
+    "loglevel": "warning"  // 日志级别设置为警告
+  },
+  "inbounds": [
+    {
+      "port": 1080,  // 入站端口设置为1080
+      "listen": "127.0.0.1",  // 监听地址设置为127.0.0.1
+      "protocol": "socks",  // 使用SOCKS协议
+      "settings": {
+        "auth": "noauth",  // 不使用身份验证
+        "udp": true,  // 支持UDP协议
+        "ip": "127.0.0.1",  // IP设置为127.0.0.1
+        "userLevel": 0  // 用户级别设置为0
+      },
+      "sniffing": {
+        "enabled": true,  // 启用流量嗅探
+        "destOverride": ["http", "tls"]  // 覆盖目的地为http和tls
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "vless",  // 出站协议设置为vless
+      "settings": {
+        "vnext": [
+          {
+            "address": "xuanyuanlove.top",  // 服务器地址
+            "port": 443,  // 服务器端口
+            "users": [
+              {
+                "id": "126794fa-99da-4e81-8c23-e14a4d6f158e",  // 用户ID
+                "flow": "xtls-rprx-vision"  // 传输流量设置
+              }
+            ],
+            "tls": {
+              "serverName": "xuanyuanlove.top",  // 服务器名称
+              "allowInsecure": false,  // 不允许不安全的连接
+              "alpn": ["http/1.1"],  // 支持的应用层协议
+              "certificates": [
+                "/root/.acme.sh/xuanyuanlove.top_ecc/fullchain.cer",  // 证书路径
+                "/root/.acme.sh/xuanyuanlove.top_ecc/xuanyuanlove.top.key"  // 私钥路径
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",  // 域名策略设置为AsIs
+    "rules": [
+      {
+        "type": "field",
+        "ip": ["geoip:private"],
+        "outboundTag": "block"  // 私有IP地址使用block标签
+      }
+    ],
+    "balancers": [],
+    "settings": {
+      "domainStrategy": "IPIfNonMatch",
+      "rules": [],
+      "balancers": [],
+      "outbound": {}
+    }
+  },
+  "dns": {
+    "servers": [
+      "localhost"
+    ]
+  },
+  "api": {
+    "services": [
+      "HandlerService",
+      "LoggerService",
+      "StatsService"
+    ],
+    "tag": "api"
+  },
+  "stats": {},
+  "policy": {},
+  "reverse": {},
+  "transport": {},
+  "streamSettings": {
+    "network": "tcp",
+    "security": "tls",
+    "tlsSettings": {
+      "serverName": "xuanyuanlove.top",
+      "allowInsecure": false,
+      "alpn": ["http/1.1"],
+      "certificates": [
+        "/root/.acme.sh/xuanyuanlove.top_ecc/fullchain.cer",
+        "/root/.acme.sh/xuanyuanlove.top_ecc/xuanyuanlove.top.key"
+      ]
+    }
+  }
+}

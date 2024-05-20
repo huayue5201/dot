@@ -1,0 +1,74 @@
+# https://alacritty.org/config-alacritty.html
+
+live_config_reload = true # 实时重新加载配置
+
+# 字体设置
+[font]
+size = 19 # 字体大小
+
+[font.bold] # 粗体
+# family = "VictorMono Nerd Font"
+family = "FiraCode Nerd Font"
+# family = "GohuFont uni14 Nerd Font"
+# family = "OpenDyslexicM Nerd Font"
+
+[font.italic] # 斜体
+# family = "VictorMono Nerd Font"
+family = "FiraCode Nerd Font"
+# family = "GohuFont uni14 Nerd Font"
+# family = "OpenDyslexicM Nerd Font"
+
+[font.normal] # 正常
+# family = "VictorMono Nerd Font"
+family = "FiraCode Nerd Font"
+# family = "GohuFont uni14 Nerd Font"
+# family = "OpenDyslexicM Nerd Font"
+
+[font.offset]
+x = 1 # 字间距
+y = 0 # 行间距
+
+# 滚动设置
+[scrolling]
+history = 10000 # 滚动历史行数
+multiplier = 20 # 滚动速度倍数
+
+# Shell 设置
+[shell]
+args = ["-l"]        # Shell 参数
+program = "/bin/zsh" # 使用的Shell程序
+
+# 窗口设置
+[window]
+decorations = "Transparent" # 窗口装饰样式
+dynamic_padding = true      # 动态填充设置
+opacity = 0.8               # 窗口不透明度
+# startup_mode = "SimpleFullscreen" # 启动窗口模式
+option_as_alt = "OnlyLeft" # 选项键行为
+blur = true                # 模糊窗口
+dynamic_title = true       # 动态标题
+
+# 窗口尺寸
+[window.dimensions]
+columns = 100 # 窗口列数
+lines = 60    # 窗口行数
+
+# 窗口填充
+[window.padding]
+x = 8  # 水平填充
+y = 10 # 垂直填充
+
+[selection]
+save_to_clipboard = true # 自动复制文本
+
+# 光标设置
+[cursor]
+blink_interval = 500 # 光标闪烁间隔
+
+[cursor.style]
+shape = "Beam"      # 光标形状
+blinking = "Always" # 光标闪烁模式
+
+# 键盘设置
+[keyboard]
+bindings = [] # 键盘绑定（当前为空）
