@@ -92,12 +92,6 @@ return {
 
 		-- 设置补全框架
 		cmp.setup({
-			-- 片段支持(neovim核心支持lsp片段功能)
-			snippet = {
-				expand = function(args)
-					vim.snippet.expand(args.body)
-				end,
-			},
 
 			-- 补全来源列表
 			sources = {
@@ -141,7 +135,7 @@ return {
 			mapping = cmp.mapping.preset.insert({
 				["<C-d>"] = cmp.mapping.scroll_docs(-4),
 				["<C-f>"] = cmp.mapping.scroll_docs(4),
-				["<C-Space>"] = cmp.mapping.complete(),
+				-- ["<C-Space>"] = cmp.mapping.complete(),
 				["<CR>"] = cmp.mapping({
 					i = function(fallback)
 						if cmp.visible() and cmp.get_active_entry() then
@@ -153,24 +147,6 @@ return {
 					s = cmp.mapping.confirm({ select = true }),
 					c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
 				}),
-				["<Tab>"] = cmp.mapping(function(fallback)
-					if cmp.visible() then
-						cmp.select_next_item()
-					elseif vim.snippet.jumpable(1) then
-						vim.snippet.jump(1)
-					else
-						fallback()
-					end
-				end, { "i", "s" }),
-				["<S-Tab>"] = cmp.mapping(function(fallback)
-					if cmp.visible() then
-						cmp.select_prev_item()
-					elseif vim.snippet.jumpable(-1) then
-						vim.snippet.jump(-1)
-					else
-						fallback()
-					end
-				end, { "i", "s" }),
 			}),
 		})
 	end,

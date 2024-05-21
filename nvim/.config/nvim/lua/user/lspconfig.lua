@@ -39,6 +39,23 @@ local function setup_keymaps(buf)
 		local mode, lhs, rhs, desc = unpack(map)
 		vim.keymap.set(mode, lhs, rhs, { noremap = true, silent = true, buffer = buf, desc = desc })
 	end
+
+	-- snippet片段占位符跳转
+	vim.keymap.set({ "i", "s" }, "<Tab>", function()
+		if vim.snippet.active({ direction = 1 }) then
+			return "<cmd>lua vim.snippet.jump(1)<cr>"
+		else
+			return "<Tab>"
+		end
+	end, { expr = true })
+
+	vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
+		if vim.snippet.active({ direction = -1 }) then
+			return "<cmd>lua vim.snippet.jump(1)<cr>"
+		else
+			return "<Tab>"
+		end
+	end, { expr = true })
 end
 
 -- 设置诊断配置
