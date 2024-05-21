@@ -39,6 +39,26 @@ return {
 			Rule("$", "$", "lua"):with_pair(ts_conds.is_not_ts_node({ "function" })),
 		})
 
+		-- 可以跳过, ;
+		for _, punct in pairs({ ",", ";" }) do
+			require("nvim-autopairs").add_rules({
+				require("nvim-autopairs.rule")("", punct)
+					:with_move(function(opts)
+						return opts.char == punct
+					end)
+					:with_pair(function()
+						return false
+					end)
+					:with_del(function()
+						return false
+					end)
+					:with_cr(function()
+						return false
+					end)
+					:use_key(punct),
+			})
+		end
+
 		-- cmp集成
 		local cmp = require("cmp")
 		local cmp_autopairs = require("nvim-autopairs.completion.cmp")
