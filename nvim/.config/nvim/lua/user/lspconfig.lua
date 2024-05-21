@@ -21,7 +21,7 @@ local function setup_keymaps(buf)
 		{
 			"n",
 			"<leader>i",
-			"<cmd>lua vim.lsp.inlay_hint.enable(0, not vim.lsp.inlay_hint.is_enabled(0))<cr>",
+			"<cmd>lua vim.lsp.inlay_hint.enable( not vim.lsp.inlay_hint.is_enabled())<cr>",
 			desc = "开启/关闭内联提示",
 		},
 		{ "n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", desc = "添加工作区文件夹" },
@@ -116,24 +116,6 @@ local function setup_diagnostics_mode_change()
 	})
 end
 
--- 显示嵌入提示
-local function setup_inlay_hint(event)
-	-- 检查 event 是否为 nil
-	if not event then
-		vim.api.nvim_err_write("Error: event is nil in setup_inlay_hint function.")
-		return
-	end
-	-- 安全地获取 client_id
-	local id = vim.tbl_get(event, "data", "client_id")
-	-- 检查 client_id 是否有效，并且客户端是否支持 inlay hints
-	local client = id and vim.lsp.get_client_by_id(id)
-	if client == nil or not client.supports_method("textDocument/inlayHint") then
-		return
-	end
-	-- 启用 inlay hints
-	vim.lsp.inlay_hint.enable(true, { bufnr = vim.tbl_get(event, "buf") })
-end
-
 -- 设置关键字高亮
 --
 -- 此函数设置了 LSP 的关键字高亮功能。
@@ -182,7 +164,6 @@ M.lspSetup = function()
 		callback = function(event)
 			setup_keymaps(event.buf) -- 设置按键映射
 			setup_diagnostics() -- 设置诊断配置
-			-- setup_inlay_hint() -- 嵌入提示
 			setup_diagnostics_mode_change() -- 进入插入模式立即更新诊断信息
 			setup_highlight_symbol(event) -- 设置关键字高亮
 		end,

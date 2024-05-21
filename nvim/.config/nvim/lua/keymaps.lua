@@ -19,11 +19,11 @@ vim.keymap.set("n", "dd", function()
 end, { expr = true })
 
 -- 将绝对路径复制到剪贴板
-vim.keymap.set("n", "<leader>ya", ':let @+ = expand("%:p")<CR>')
+vim.keymap.set("n", "<leader>yp", ':let @+ = expand("%:p")<CR>')
 -- 将相对路径复制到剪贴板
-vim.keymap.set("n", "<leader>yr", ':let @+ = expand("%:f")<CR>')
+vim.keymap.set("n", "<leader>yf", ':let @+ = expand("%:f")<CR>')
 -- 将文件名复制到剪贴板
-vim.keymap.set("n", "<leader>yf", ':let @+ = expand("%:t")<CR>')
+vim.keymap.set("n", "<leader>yt", ':let @+ = expand("%:t")<CR>')
 
 -- 搜索与替换
 vim.keymap.set("n", "crc", "*``cgn", { desc = "修改文本" })
