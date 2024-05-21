@@ -8,7 +8,7 @@ return {
 			autocmd = { enabled = true },
 			-- 1. Sign column.
 			sign = {
-				enabled = false,
+				enabled = true,
 				-- Text to show in the sign column.
 				-- Must be between 1-2 characters.
 				text = "💡",
