@@ -1,6 +1,40 @@
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
 
+-- 根据表达式查找项目根目录
+-- vim.api.nvim_create_autocmd("BufEnter", {
+-- 	callback = function(ctx)
+-- 		local root = vim.fs.root(ctx.buf, { ".git", ".svn", "Makefile", "mvnw", "package.json" })
+-- 		if root and root ~= "." and root ~= vim.fn.getcwd() then
+-- 			---@diagnostic disable-next-line: undefined-field
+-- 			vim.uv.chdir(root)
+-- 			vim.notify("Set CWD to " .. root)
+-- 		end
+-- 	end,
+-- })
+
+-- 支持从ssh复制/粘贴到本地
+if vim.clipboard and vim.clipboard.osc52 then
+	vim.api.nvim_create_autocmd("VimEnter", {
+		group = augroup("ssh_clipboard"),
+		callback = function()
+			if vim.env.SSH_CONNECTION and vim.clipboard.osc52 then
+				vim.g.clipboard = {
+					name = "OSC 52",
+					copy = {
+						["+"] = require("vim.clipboard.osc52").copy,
+						["*"] = require("vim.clipboard.osc52").copy,
+					},
+					paste = {
+						["+"] = require("vim.clipboard.osc52").paste,
+						["*"] = require("vim.clipboard.osc52").paste,
+					},
+				}
+			end
+		end,
+	})
+end
+
 autocmd("FocusLost", {
 	desc = "窗口切换时自动保存文件",
 	group = augroup("autosave", { clear = true }),
@@ -92,16 +126,16 @@ vim.on_key(function(char)
 	end
 end, vim.api.nvim_create_namespace("auto_hlsearch"))
 
--- 
+--
 vim.api.nvim_create_user_command("MakeDirectory", function()
-    ---@diagnostic disable-next-line: missing-parameter
-    local path = vim.fn.expand("%")
-    local dir = vim.fn.fnamemodify(path, ":p:h")
-    if vim.fn.isdirectory(dir) == 0 then
-        vim.fn.mkdir(dir, "p")
-    else
-        vim.notify("Directory already exists", "WARN", { title = "Nvim" })
-    end
+	---@diagnostic disable-next-line: missing-parameter
+	local path = vim.fn.expand("%")
+	local dir = vim.fn.fnamemodify(path, ":p:h")
+	if vim.fn.isdirectory(dir) == 0 then
+		vim.fn.mkdir(dir, "p")
+	else
+		vim.notify("Directory already exists", "WARN", { title = "Nvim" })
+	end
 end, { desc = "Create directory if it doesn't exist" })
 
 -- 在保证窗口布局的情况下删除缓冲区

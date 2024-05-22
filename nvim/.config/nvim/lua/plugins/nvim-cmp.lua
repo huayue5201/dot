@@ -14,6 +14,8 @@ return {
 		"hrsh7th/cmp-nvim-lsp-signature-help",
 		-- https://github.com/ray-x/cmp-treesitter
 		"ray-x/cmp-treesitter",
+		-- https://github.com/garymjr/nvim-snippets
+		"garymjr/nvim-snippets",
 	},
 	init = function()
 		vim.opt.completeopt = { "menu", "menuone", "noselect" }
@@ -100,6 +102,7 @@ return {
 				{ name = "path" },
 				{ name = "nvim_lsp_signature_help" },
 				{ name = "treesitter" },
+				{ name = "snippets", max_item_count = 10 },
 			},
 
 			-- 补全弹窗设置
@@ -147,6 +150,25 @@ return {
 					s = cmp.mapping.confirm({ select = true }),
 					c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
 				}),
+
+				["<Tab>"] = cmp.mapping(function(fallback)
+					if cmp.visible() then
+						cmp.select_next_item()
+					elseif vim.snippet.active({ direction = 1 }) then
+						feedkey("<cmd>lua vim.snippet.jump(1)<CR>", "")
+					elseif has_words_before() then
+						cmp.complete()
+					else
+						fallback() -- The fallback function sends a already mapped key. In this case, it's probably `<Tab>`.
+					end
+				end, { "i", "s" }),
+				["<S-Tab>"] = cmp.mapping(function()
+					if cmp.visible() then
+						cmp.select_prev_item()
+					elseif vim.snippet.active({ direction = -1 }) then
+						feedkey("<cmd>lua vim.snippet.jump(-1)<CR>", "")
+					end
+				end, { "i", "s" }),
 			}),
 		})
 	end,
