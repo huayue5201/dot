@@ -41,21 +41,21 @@ local function setup_keymaps(buf)
 	end
 
 	-- snippet片段占位符跳转
-	vim.keymap.set({ "i", "s" }, "<Tab>", function()
-		if vim.snippet.active({ direction = 1 }) then
-			return "<cmd>lua vim.snippet.jump(1)<cr>"
-		else
-			return "<Tab>"
-		end
-	end, { expr = true })
-
-	vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
-		if vim.snippet.active({ direction = -1 }) then
-			return "<cmd>lua vim.snippet.jump(1)<cr>"
-		else
-			return "<Tab>"
-		end
-	end, { expr = true })
+	-- 	vim.keymap.set({ "i", "s" }, "<Tab>", function()
+	-- 		if vim.snippet.active({ direction = 1 }) then
+	-- 			return "<cmd>lua vim.snippet.jump(1)<cr>"
+	-- 		else
+	-- 			return "<Tab>"
+	-- 		end
+	-- 	end, { expr = true })
+	--
+	-- 	vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
+	-- 		if vim.snippet.active({ direction = -1 }) then
+	-- 			return "<cmd>lua vim.snippet.jump(1)<cr>"
+	-- 		else
+	-- 			return "<Tab>"
+	-- 		end
+	-- 	end, { expr = true })
 end
 
 -- 设置诊断配置
@@ -106,7 +106,6 @@ local function setup_diagnostics_mode_change()
 		pattern = "*",
 		callback = function()
 			local current_mode = vim.api.nvim_get_mode().mode
-
 			if current_mode == "i" or current_mode == "v" then
 				vim.diagnostic.disable(0)
 			else

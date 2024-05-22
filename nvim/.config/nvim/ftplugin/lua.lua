@@ -50,6 +50,9 @@ local lua_config = {
 			hint = {
 				enable = true,
 			},
+			codeLens = {
+				enable = true,
+			},
 			globals = {
 				"vim",
 			},
