@@ -1,0 +1,149 @@
+--- Startup times for process: Primary/TUI ---
+
+times in msec
+ clock   self+sourced   self:  sourced script
+ clock   elapsed:              other lines
+
+000.001  000.001: --- NVIM STARTING ---
+000.132  000.131: event init
+000.520  000.388: early init
+000.886  000.366: locale set
+000.960  000.074: init first window
+017.103  016.143: inits 1
+017.125  000.022: window checked
+017.131  000.006: parsing arguments
+017.985  000.029  000.029: require('vim.shared')
+018.046  000.031  000.031: require('vim.inspect')
+018.087  000.033  000.033: require('vim._options')
+018.089  000.101  000.037: require('vim._editor')
+018.090  000.189  000.059: require('vim._init_packages')
+018.091  000.771: init lua interpreter
+018.634  000.543: --- NVIM STARTED ---
+
+--- Startup times for process: Embedded ---
+
+times in msec
+ clock   self+sourced   self:  sourced script
+ clock   elapsed:              other lines
+
+000.000  000.000: --- NVIM STARTING ---
+000.055  000.055: event init
+000.147  000.092: early init
+000.419  000.273: locale set
+000.449  000.030: init first window
+000.677  000.228: inits 1
+000.689  000.011: window checked
+000.691  000.002: parsing arguments
+001.005  000.024  000.024: require('vim.shared')
+001.055  000.025  000.025: require('vim.inspect')
+001.083  000.021  000.021: require('vim._options')
+001.084  000.077  000.032: require('vim._editor')
+001.085  000.127  000.025: require('vim._init_packages')
+001.086  000.269: init lua interpreter
+002.885  001.799: expanding arguments
+002.902  000.017: inits 2
+003.095  000.192: init highlight
+003.098  000.003: waiting for UI
+003.189  000.091: done waiting for UI
+003.191  000.002: clear screen
+003.275  000.006  000.006: require('vim.keymap')
+003.928  000.732  000.725: require('vim._defaults')
+003.930  000.006: init default mappings & autocommands
+004.572  000.243  000.243: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/ftplugin.vim
+004.971  000.310  000.310: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/indent.vim
+005.330  000.043  000.043: require('vim.fs')
+005.783  000.404  000.404: require('vim.uri')
+005.796  000.537  000.090: require('vim.loader')
+008.896  000.203  000.203: require('vim.treesitter.language')
+009.093  000.191  000.191: require('vim.func')
+009.748  000.653  000.653: require('vim.func._memoize')
+009.784  001.321  000.273: require('vim.treesitter.query')
+009.898  000.113  000.113: require('vim.treesitter._range')
+010.002  002.071  000.637: require('vim.treesitter.languagetree')
+010.007  003.036  000.966: require('vim.treesitter')
+010.217  000.208  000.208: require('vim.treesitter._fold')
+010.226  000.006  000.006: require('vim.F')
+010.385  004.573  001.322: require('options')
+011.011  000.625  000.625: require('keymaps')
+011.344  000.332  000.332: require('autocmds')
+014.062  002.349  002.349: require('lazy')
+014.095  000.018  000.018: require('ffi')
+014.340  000.241  000.241: require('lazy.stats')
+015.008  000.637  000.637: require('lazy.core.util')
+015.210  000.200  000.200: require('lazy.core.config')
+015.559  000.120  000.120: require('lazy.core.handler')
+015.788  000.228  000.228: require('lazy.core.plugin')
+015.792  000.581  000.233: require('lazy.core.loader')
+016.394  000.292  000.292: require('plugins.aerial')
+016.676  000.270  000.270: require('plugins.arrow')
+016.901  000.219  000.219: require('plugins.bufferline')
+017.089  000.180  000.180: require('plugins.colorscheme')
+017.260  000.134  000.134: require('plugins.compter')
+017.487  000.223  000.223: require('plugins.conform')
+017.643  000.152  000.152: require('plugins.dressing')
+017.806  000.158  000.158: require('plugins.dropbar')
+018.044  000.227  000.227: require('plugins.fidget')
+018.235  000.186  000.186: require('plugins.flash')
+018.631  000.360  000.360: require('plugins.fugit2')
+018.834  000.177  000.177: require('plugins.gitsigns')
+018.993  000.153  000.153: require('plugins.hlchunk')
+019.081  000.074  000.074: require('plugins.mason')
+019.244  000.157  000.157: require('plugins.neo-tree')
+019.530  000.272  000.272: require('plugins.nvim-autopairs')
+019.622  000.081  000.081: require('plugins.nvim-bqf')
+019.851  000.219  000.219: require('plugins.nvim-cmp')
+020.038  000.164  000.164: require('plugins.nvim-dap')
+020.310  000.209  000.209: require('plugins.nvim-dap-cortex-debug')
+020.519  000.197  000.197: require('plugins.nvim-laghtbulb')
+020.776  000.249  000.249: require('plugins.nvim-lint')
+021.043  000.254  000.254: require('plugins.nvim-treesitter-context')
+021.345  000.298  000.298: require('plugins.satellite')
+021.422  000.073  000.073: require('plugins.surround')
+021.596  000.164  000.164: require('plugins.telescope')
+021.756  000.152  000.152: require('plugins.toggleterm')
+021.993  000.230  000.230: require('plugins.trans')
+022.169  000.170  000.170: require('plugins.treesitter')
+022.417  000.238  000.238: require('plugins.ts-comments')
+022.505  000.082  000.082: require('plugins.web-devicons')
+022.666  000.156  000.156: require('plugins.yanky')
+023.167  000.115  000.115: require('lazy.core.handler.event')
+023.168  000.199  000.084: require('lazy.core.handler.ft')
+023.242  000.072  000.072: require('lazy.core.handler.cmd')
+023.387  000.143  000.143: require('lazy.core.handler.keys')
+026.006  000.333  000.333: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/filetype.lua
+026.310  000.083  000.083: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/editorconfig.lua
+026.534  000.151  000.151: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/gzip.vim
+026.670  000.078  000.078: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/man.lua
+027.386  000.240  000.240: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/pack/dist/opt/matchit/plugin/matchit.vim
+027.395  000.680  000.440: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/matchit.vim
+027.648  000.211  000.211: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/matchparen.vim
+027.814  000.128  000.128: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/netrwPlugin.vim
+028.137  000.270  000.270: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/osc52.lua
+028.288  000.112  000.112: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/rplugin.vim
+028.392  000.066  000.066: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/shada.vim
+028.462  000.030  000.030: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/spellfile.vim
+028.540  000.034  000.034: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/tarPlugin.vim
+028.716  000.137  000.137: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/tohtml.lua
+028.786  000.032  000.032: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/tutor.vim
+028.858  000.034  000.034: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/plugin/zipPlugin.vim
+029.375  018.030  005.037: require('user.lazy')
+029.754  000.377  000.377: require('user.statusline')
+030.038  000.283  000.283: require('user.largefile')
+030.039  024.934  000.177: sourcing /Users/lijia/.config/nvim/init.lua
+030.050  000.633: sourcing vimrc file(s)
+030.206  000.028  000.028: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/filetype.lua
+030.696  000.148  000.148: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/syntax/synload.vim
+030.733  000.467  000.319: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/syntax/syntax.vim
+030.737  000.192: inits 3
+033.146  002.409: reading ShaDa
+033.241  000.094: opening buffers
+033.263  000.022: BufEnter autocommands
+033.264  000.001: editing files in windows
+033.292  000.028: VimEnter autocommands
+033.323  000.031: UIEnter autocommands
+033.813  000.403  000.403: sourcing /opt/homebrew/Cellar/neovim/0.10.0/share/nvim/runtime/autoload/provider/clipboard.vim
+033.824  000.098: before starting main loop
+034.613  000.555  000.555: require('vim.diagnostic')
+034.709  000.330: first screen update
+034.710  000.001: --- NVIM STARTED ---
+

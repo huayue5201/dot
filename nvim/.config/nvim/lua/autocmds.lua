@@ -1,18 +1,6 @@
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
 
--- 根据表达式查找项目根目录
--- vim.api.nvim_create_autocmd("BufEnter", {
--- 	callback = function(ctx)
--- 		local root = vim.fs.root(ctx.buf, { ".git", ".svn", "Makefile", "mvnw", "package.json" })
--- 		if root and root ~= "." and root ~= vim.fn.getcwd() then
--- 			---@diagnostic disable-next-line: undefined-field
--- 			vim.uv.chdir(root)
--- 			vim.notify("Set CWD to " .. root)
--- 		end
--- 	end,
--- })
-
 -- 支持从ssh复制/粘贴到本地
 if vim.clipboard and vim.clipboard.osc52 then
 	vim.api.nvim_create_autocmd("VimEnter", {
@@ -126,7 +114,7 @@ vim.on_key(function(char)
 	end
 end, vim.api.nvim_create_namespace("auto_hlsearch"))
 
---
+-- 递归创建缺失文件
 vim.api.nvim_create_user_command("MakeDirectory", function()
 	---@diagnostic disable-next-line: missing-parameter
 	local path = vim.fn.expand("%")
