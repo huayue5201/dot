@@ -4,24 +4,24 @@ live_config_reload = true # 实时重新加载配置
 
 # 字体设置
 [font]
-size = 19 # 字体大小
+size = 20 # 字体大小
 
 [font.bold] # 粗体
 # family = "VictorMono Nerd Font"
-family = "FiraCode Nerd Font"
-# family = "GohuFont uni14 Nerd Font"
+# family = "FiraCode Nerd Font"
+family = "GohuFont uni14 Nerd Font"
 # family = "OpenDyslexicM Nerd Font"
 
 [font.italic] # 斜体
 # family = "VictorMono Nerd Font"
-family = "FiraCode Nerd Font"
-# family = "GohuFont uni14 Nerd Font"
+# family = "FiraCode Nerd Font"
+family = "GohuFont uni14 Nerd Font"
 # family = "OpenDyslexicM Nerd Font"
 
 [font.normal] # 正常
 # family = "VictorMono Nerd Font"
-family = "FiraCode Nerd Font"
-# family = "GohuFont uni14 Nerd Font"
+# family = "FiraCode Nerd Font"
+family = "GohuFont uni14 Nerd Font"
 # family = "OpenDyslexicM Nerd Font"
 
 [font.offset]

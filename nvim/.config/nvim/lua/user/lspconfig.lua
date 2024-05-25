@@ -6,7 +6,7 @@
 -- 此函数定义了各种按键映射，用于与 LSP 功能和诊断功能交互。
 
 -- @param buf number 当前缓冲区
-local function setup_keymaps(buf)
+local function setup_keymaps(bufnr)
 	-- 定义按键映射表
 	local mappings = {
 		{ "n", "<space>dq", "<cmd>lua vim.diagnostic.setloclist()<cr>", desc = "设置诊断位置列表" },
@@ -41,21 +41,21 @@ local function setup_keymaps(buf)
 	end
 
 	-- snippet片段占位符跳转
-	-- 	vim.keymap.set({ "i", "s" }, "<Tab>", function()
-	-- 		if vim.snippet.active({ direction = 1 }) then
-	-- 			return "<cmd>lua vim.snippet.jump(1)<cr>"
-	-- 		else
-	-- 			return "<Tab>"
-	-- 		end
-	-- 	end, { expr = true })
-	--
-	-- 	vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
-	-- 		if vim.snippet.active({ direction = -1 }) then
-	-- 			return "<cmd>lua vim.snippet.jump(1)<cr>"
-	-- 		else
-	-- 			return "<Tab>"
-	-- 		end
-	-- 	end, { expr = true })
+	vim.keymap.set({ "i", "s" }, "<Tab>", function()
+		if vim.snippet.active({ direction = 1 }) then
+			return "<cmd>lua vim.snippet.jump(1)<cr>"
+		else
+			return "<Tab>"
+		end
+	end, { expr = true })
+
+	vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
+		if vim.snippet.active({ direction = -1 }) then
+			return "<cmd>lua vim.snippet.jump(-1)<cr>"
+		else
+			return "<S-Tab>"
+		end
+	end, { expr = true })
 end
 
 -- 设置诊断配置
@@ -152,6 +152,31 @@ local function setup_highlight_symbol(event)
 	})
 end
 
+-- 开启内嵌提示
+local function setup_inlay_hint(event, bufnr)
+	local id = vim.tbl_get(event, "data", "client_id")
+	local client = id and vim.lsp.get_client_by_id(id)
+	if client == nil or not client.supports_method("textDocument/inlayHint") then
+		return
+	end
+	-- warning: this api is not stable yet
+	vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+end
+
+-- 开启codelens
+local function setup_codelen_refresh(event, bufnr)
+	local id = vim.tbl_get(event, "data", "client_id")
+	local client = id and vim.lsp.get_client_by_id(id)
+	if client.supports_method("textDocument/codeLens", { bufnr = bufnr }) then
+		vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
+			buffer = bufnr,
+			callback = function()
+				vim.lsp.codelens.refresh({ bufnr = bufnr })
+			end,
+		})
+	end
+end
+
 local M = {}
 -- LSP主设置函数
 --
@@ -161,10 +186,12 @@ M.lspSetup = function()
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 		callback = function(event)
-			setup_keymaps(event.buf) -- 设置按键映射
+			setup_keymaps(event.bufnr) -- 设置按键映射
 			setup_diagnostics() -- 设置诊断配置
 			setup_diagnostics_mode_change() -- 进入插入模式立即更新诊断信息
 			setup_highlight_symbol(event) -- 设置关键字高亮
+			setup_inlay_hint(event) -- 开启内嵌提示
+			setup_codelen_refresh(event) -- 开启codelen
 		end,
 	})
 end
