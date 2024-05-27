@@ -15,9 +15,13 @@ return {
 		-- https://github.com/ray-x/cmp-treesitter
 		"ray-x/cmp-treesitter",
 		-- https://github.com/garymjr/nvim-snippets
-		{ "garymjr/nvim-snippets", opts = {
-			friendly_snippets = true,
-		} },
+		{
+			"garymjr/nvim-snippets",
+			dependencies = { "rafamadriz/friendly-snippets" },
+			opts = {
+				friendly_snippets = true,
+			},
+		},
 	},
 	init = function()
 		vim.opt.completeopt = { "menu", "menuone", "noselect" }
@@ -97,6 +101,13 @@ return {
 		-- 设置补全框架
 		cmp.setup({
 
+			-- 片段支持(neovim核心支持lsp片段功能)
+			-- snippet = {
+			-- 	expand = function(args)
+			-- 		vim.snippet.expand(args.body)
+			-- 	end,
+			-- },
+
 			-- 补全来源列表
 			sources = {
 				{ name = "nvim_lsp", keyword_length = 2 },
@@ -131,6 +142,7 @@ return {
 						nvim_lsp = "[LSP]",
 						path = "[PATH]",
 						treesitter = "[Treesitter]",
+						snippets = "[Snippet]",
 					})[entry.source.name]
 					return vim_item
 				end,
