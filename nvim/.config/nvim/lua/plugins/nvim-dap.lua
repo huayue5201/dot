@@ -25,7 +25,6 @@ return {
 	config = function()
 		-- 定义调试器断点标志
 		vim.fn.sign_define("DapBreakpoint", { text = "🔴", texthl = "", linehl = "", numhl = "" })
-
 		-- 导入 dap 和 dapui 模块
 		local dap, dapui = require("dap"), require("dapui")
 
@@ -66,11 +65,6 @@ return {
 		codelldb.setup_codelldb_adapter()
 		codelldb.setup_cpp_configuration()
 
-		-- 继续执行程序
-		vim.keymap.set("n", "<F5>", function()
-			dap.continue()
-		end)
-
 		-- 单步进入
 		vim.keymap.set("n", "<F1>", function()
 			dap.step_into()
@@ -84,6 +78,11 @@ return {
 		-- 单步退出
 		vim.keymap.set("n", "<F3>", function()
 			dap.step_out()
+		end)
+
+		-- 继续执行程序
+		vim.keymap.set("n", "<F4>", function()
+			dap.continue()
 		end)
 
 		-- 切换断点

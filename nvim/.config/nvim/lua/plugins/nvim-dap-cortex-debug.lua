@@ -1,5 +1,8 @@
 -- https://github.com/jedrzejboczar/nvim-dap-cortex-debug
 
+-- 单片机调试需要手动修改可执行文件名，并确保工程路径正确
+local mcu_elf_name = "CAN.elf"
+
 return {
 	"jedrzejboczar/nvim-dap-cortex-debug",
 	ft = "c",
@@ -16,5 +19,18 @@ return {
 			-- :DapLoadLaunchJSON 为 C/C++ 注册 cortex-debug，设置为 false 禁用此功能
 			dap_vscode_filetypes = { "c", "cpp" },
 		})
+
+		local dap_cortex_debug = require("dap-cortex-debug")
+		require("dap").configurations.c = {
+			dap_cortex_debug.openocd_config({
+				name = "Example debugging with OpenOCD",
+				cwd = "${workspaceFolder}",
+				executable = "${workspaceFolder}/build/" .. mcu_elf_name,
+				configFiles = { "${workspaceFolder}/openocd.cfg" },
+				gdbTarget = "localhost:3333",
+				rttConfig = dap_cortex_debug.rtt_config(0),
+				showDevDebugOutput = false,
+			}),
+		}
 	end,
 }

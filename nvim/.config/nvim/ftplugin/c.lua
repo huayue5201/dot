@@ -1,4 +1,5 @@
 -- lua/ftplugin/c.lua
+-- https://clangd.llvm.org/installation
 local utils = require("user.utils")
 
 -- 定义潜在的 C/C++ 项目根文件
@@ -26,6 +27,7 @@ local c_config = {
 	cmd = { "clangd" },
 	root_dir = root_dir,
 	capabilities = default_capabilities,
+  single_file_support = true,
 }
 
 -- 启动 LSP
