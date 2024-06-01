@@ -1,6 +1,15 @@
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
 
+autocmd("InsertEnter", {
+	desc = "载入补全图标",
+	group = augroup("completionIcon", { clear = true }),
+	pattern = "*",
+	callback = function()
+		require("user.completion_icon").setup()
+	end,
+})
+
 -- 支持从ssh复制/粘贴到本地
 if vim.clipboard and vim.clipboard.osc52 then
 	vim.api.nvim_create_autocmd("VimEnter", {
@@ -32,12 +41,12 @@ autocmd("FocusLost", {
 	end,
 })
 
-autocmd("BufWritePre", {
-	desc = "保存文件时移除末尾的空白字符",
-	group = augroup("cleanSpace", { clear = true }),
-	pattern = "*",
-	command = "%s/\\s\\+$//e",
-})
+-- autocmd("BufWritePre", {
+-- 	desc = "保存文件时移除末尾的空白字符",
+-- 	group = augroup("cleanSpace", { clear = true }),
+-- 	pattern = "*",
+-- 	command = "%s/\\s\\+$//e",
+-- })
 
 autocmd({ "FileType", "BufEnter" }, {
 	desc = "特定buffer内禁用状态列",

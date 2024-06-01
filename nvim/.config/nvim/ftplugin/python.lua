@@ -3,7 +3,7 @@
 
 local utils = require("user.utils")
 
--- 定义潜在的 C/C++ 项目根文件
+-- 定义潜在的 python 项目根文件
 local python_root_files = {
 	"setup.py",
 	"tox.ini",
