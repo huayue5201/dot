@@ -49,7 +49,7 @@ function M.setup()
 		pattern = "*",
 		callback = function()
 			big_file_settings()
-			close_plugin()
+			-- close_plugin()
 		end,
 	})
 end
