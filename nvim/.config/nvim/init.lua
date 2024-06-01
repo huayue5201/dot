@@ -9,7 +9,6 @@ local modules = {
 	"autocmds", -- 自动命令
 	"user.lazy", -- 插件管理
 	"user.statusline", -- 自定义状态栏
-	"user.largefile", -- 优化大文件打开性能
 }
 
 -- 加载模块
