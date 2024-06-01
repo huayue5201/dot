@@ -19,6 +19,7 @@
   "fugit2.nvim": { "branch": "main", "commit": "84b5a7c09fec1fe9373897fceaf9ea7a8bfd9759" },
   "fzf": { "branch": "master", "commit": "124cd70710cb7c94ef2282773494bb0d727598d8" },
   "gitsigns.nvim": { "branch": "main", "commit": "75dc649106827183547d3bedd4602442340d2f7f" },
+  "grug-far.nvim": { "branch": "main", "commit": "b24216e7130340e9818df0adf3a8dc477f24b7f2" },
   "hlchunk.nvim": { "branch": "main", "commit": "350e4e8f1b6f4c6dbd9a98946547ed557bab5335" },
   "lazy.nvim": { "branch": "main", "commit": "24fa2a97085ca8a7220b5b078916f81e316036fd" },
   "mason.nvim": { "branch": "main", "commit": "49ff59aded1047a773670651cfa40e76e63c6377" },

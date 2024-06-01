@@ -23,7 +23,7 @@ return {
 			formatters_by_ft = {
 				lua = { "stylua" },
 				json = { "dprint" },
-				toml = { "dprint" },
+				toml = { "taplo" },
 			},
 			-- Set up format-on-save
 			format_on_save = function(bufnr)

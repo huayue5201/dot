@@ -1,3 +1,5 @@
+-- lua_root_files参考：https://github.com/neovim/nvim-lspconfig/tree/4a69ad6646eaad752901413c9a0dced73dfb562d/lua/lspconfig/server_configurations
+
 local utils = require("user.utils")
 
 -- 定义潜在的 Lua 项目根文件
