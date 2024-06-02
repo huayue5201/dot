@@ -2,14 +2,12 @@ local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
 
 -- 延迟加载模块
-autocmd("VimEnter", {
-	desc = "延迟加载模块",
-	group = augroup("lazyModule", { clear = true }),
-	callback = function()
-		-- 优化大文件打开性能
-		require("user.largefile").setup()
-	end,
-})
+-- autocmd("VimEnter", {
+-- 	desc = "延迟加载模块",
+-- 	group = augroup("lazyModule", { clear = true }),
+-- 	callback = function()
+-- 	end,
+-- })
 
 -- 支持从ssh复制/粘贴到本地
 if vim.clipboard and vim.clipboard.osc52 then
