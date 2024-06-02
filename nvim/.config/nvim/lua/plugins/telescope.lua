@@ -12,6 +12,7 @@ return {
 		-- { "<leader>fb", desc = "buffer检索" },
 		{ "<leader>fw", desc = "光标下word检索" },
 		{ "<leader>fo", desc = "历史文件检索" },
+		{ "<leader>fm", desc = "标签检索" },
 	},
 	config = function()
 		local previewers = require("telescope.previewers")
@@ -72,5 +73,6 @@ return {
 		vim.keymap.set("n", "<leader>fb", builtin.buffers, {})
 		vim.keymap.set("n", "<leader>fw", builtin.grep_string, {})
 		vim.keymap.set("n", "<leader>fo", builtin.oldfiles, {})
+		vim.keymap.set("n", "<leader>fm", builtin.marks, {})
 	end,
 }

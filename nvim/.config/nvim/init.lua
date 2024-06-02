@@ -4,10 +4,10 @@ vim.loader.enable()
 
 -- 模块列表
 local modules = {
-	"options", -- 基础配置
-	"keymaps", -- 自定义键绑定
-	"autocmds", -- 自动命令
-	"user.lazy", -- 插件管理
+	"basic.options", -- 基础配置
+	"basic.keymaps", -- 自定义键绑定
+	"basic.autocmds", -- 自动命令
+	"basic.lazy", -- 插件管理
 	"user.statusline", -- 自定义状态栏
 }
 
