@@ -43,7 +43,7 @@ return {
 				buffer_previewer_maker = new_maker,
 				preview = {
 					-- 忽略大于阈值的文件
-					filesize_limit = 0.1, -- MB
+					filesize_limit = 1, -- MB
 				},
 			},
 			pickers = {
