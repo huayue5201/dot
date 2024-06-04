@@ -37,6 +37,7 @@ local basic_options = {
 	inccommand = "split", -- 输入时实时预览
 	clipboard = "unnamedplus", -- 启用系统剪贴板
 	modeline = false, -- 禁用 modeline
+	timeout = true,
 	updatetime = 300, -- 更新时间为 300 毫秒
 	jumpoptions = "stack", -- 修改 C-o/C-i 的跳转行为
 	termguicolors = true, -- 开启真彩色
