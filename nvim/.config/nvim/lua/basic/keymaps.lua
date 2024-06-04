@@ -32,6 +32,7 @@ vim.keymap.set("n", "crs", ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<left><left><left>
 
 -- 保存
 vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { desc = "保存" })
+vim.keymap.set("i", "<C-s>", "<esc><cmd>w<cr>", { desc = "保存" })
 
 -- 终端映射
 -- vim.keymap.set("t", "<esc>", "<C-\\><C-n>", { noremap = true, silent = true })

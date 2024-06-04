@@ -14,7 +14,7 @@ return {
 	keys = {
 		{ "<leader>b", desc = "切换断点" },
 		{ "<leader>B", desc = "设置日志断点" },
-		{ "<leader>du", desc = "调试模式" },
+		{ "<F7>", desc = "调试模式" },
 		-- { "<leader>dl", desc = "运行上次的调试会话" },
 		-- { "<leader>dr", desc = "REPL" },
 		-- { "<leader>dh", desc = "鼠标悬停" },
@@ -97,9 +97,6 @@ return {
 
 		-- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
 		vim.keymap.set("n", "<F7>", dapui.toggle, { desc = "Debug: See last session result." })
-
-		-- debug ui
-		vim.keymap.set("n", "<leader>du", "<cmd>lua require'dapui'.toggle()<cr>")
 
 		-- -- 打开REPL
 		-- map("n", "<Leader>dr", function()

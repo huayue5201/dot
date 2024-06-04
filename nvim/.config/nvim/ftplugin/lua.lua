@@ -21,44 +21,33 @@ local lua_config = {
 	name = "lua_ls",
 	cmd = { "lua-language-server", "--stdio" },
 	root_dir = root_dir,
-	on_init = function(client)
-		-- 检查客户端的工作区目录是否存在
-		if not client.workspace_folders or not client.workspace_folders[1] then
-			return
-		end
-
-		local path = client.workspace_folders[1].name
-		-- 检查是否存在.luarc.json或.luarc.jsonc文件
-		local luarc_exists = vim.fn.filereadable(path .. "/.luarc.json") == 1
-			or vim.fn.filereadable(path .. "/.luarc.jsonc") == 1
-
-		-- 如果不存在.luarc.json或.luarc.jsonc文件，则设置 Lua 语言服务器的配置
-		if not luarc_exists then
-			client.config.settings.Lua = vim.tbl_deep_extend("force", client.config.settings.Lua, {
-				runtime = {
-					version = "LuaJIT", -- 指定使用的 Lua 版本
-				},
-				workspace = {
-					checkThirdParty = false,
-					library = {
-						vim.env.VIMRUNTIME, -- 加入 Neovim 的运行时库
-					},
-				},
-			})
-		end
-	end,
 	settings = {
 		Lua = {
-			hint = {
-				enable = true,
+			version = "LuaJIT", -- 指定使用的 Lua 版本
+			workspace = {
+				checkThirdParty = false,
 			},
 			codeLens = {
 				enable = true,
 			},
+			completion = {
+				callSnippet = "Replace",
+			},
+			doc = {
+				privateName = { "^_" },
+			},
+			hint = {
+				enable = true,
+				setType = false,
+				paramType = true,
+				paramName = "Disable",
+				semicolon = "Disable",
+				arrayIndex = "Disable",
+			},
 			globals = {
 				"vim",
 			},
-		}, -- Lua 语言服务器的其他设置
+		},
 	},
 }
 

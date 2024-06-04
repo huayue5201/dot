@@ -4,6 +4,7 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
 	event = { "BufReadPre", "BufNewFile" },
+	lazy = vim.fn.argc(-1) == 0, -- load treesitter early when opening a file from the cmdline
 	dependencies = {
 		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 		"nvim-treesitter/nvim-treesitter-textobjects",
@@ -74,23 +75,55 @@ return {
 						["<leader>K"] = { query = "@class.outer", desc = "预览类的外部区域定义" }, -- 查看类的外部区域定义
 					},
 				},
+				move = {
+					enable = true,
+					set_jumps = true, -- whether to set jumps in the jumplist
+					goto_next_start = {
+						["]m"] = "@function.outer",
+						["gj"] = "@function.outer",
+						["]]"] = "@class.outer",
+						["]b"] = "@block.outer",
+						["]a"] = "@parameter.inner",
+					},
+					goto_next_end = {
+						["]M"] = "@function.outer",
+						["gJ"] = "@function.outer",
+						["]["] = "@class.outer",
+						["]B"] = "@block.outer",
+						["]A"] = "@parameter.inner",
+					},
+					goto_previous_start = {
+						["[m"] = "@function.outer",
+						["gk"] = "@function.outer",
+						["[["] = "@class.outer",
+						["[b"] = "@block.outer",
+						["[a"] = "@parameter.inner",
+					},
+					goto_previous_end = {
+						["[M"] = "@function.outer",
+						["gK"] = "@function.outer",
+						["[]"] = "@class.outer",
+						["[B"] = "@block.outer",
+						["[A"] = "@parameter.inner",
+					},
+				},
 				select = {
 					enable = true,
 					-- 自动跳转到文本对象，类似于 targets.vim 插件
 					lookahead = true,
 					keymaps = {
-						-- 使用 textobjects.scm 中定义的捕获组进行选择
-						["af"] = {
-							query = "@function.outer",
-							desc = "选择函数的外部区域",
-						},
-						["if"] = {
-							query = "@function.inner",
-							desc = "选择函数的内部区域",
-						},
-						["ac"] = { query = "@class.outer", desc = "选择类的外部区域" }, -- 选择类的外部区域
-						["ic"] = { query = "@class.inner", desc = "选择类的内部区域" }, -- 选择类的内部区域
-						["as"] = { query = "@scope", desc = "选择语言范围", query_group = "locals" }, -- 选择语言范围
+						["af"] = "@function.outer",
+						["if"] = "@function.inner",
+						["ac"] = "@class.outer",
+						["ic"] = "@class.inner",
+						["ab"] = "@block.outer",
+						["ib"] = "@block.inner",
+						["al"] = "@loop.outer",
+						["il"] = "@loop.inner",
+						["a/"] = "@comment.outer",
+						["i/"] = "@comment.outer", -- no inner for comment
+						["aa"] = "@parameter.outer", -- parameter -> argument
+						["ia"] = "@parameter.inner",
 					},
 					-- 选择模式设置
 					selection_modes = {
