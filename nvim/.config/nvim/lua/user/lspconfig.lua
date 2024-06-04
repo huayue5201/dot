@@ -65,7 +65,9 @@ end
 local function setup_diagnostics()
 	vim.diagnostic.config({
 		virtual_text = {
-			source = "always",
+			spacing = 4,
+			source = "if_many",
+			-- source = "always",
 			prefix = "■",
 			severity = {
 				min = vim.diagnostic.severity.ERROR,

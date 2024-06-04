@@ -1,7 +1,7 @@
 -- https://github.com/jedrzejboczar/nvim-dap-cortex-debug
 
 -- 单片机调试需要手动修改可执行文件名，并确保工程路径正确
-local mcu_elf_name = "CAN.elf"
+local mcu_elf_name = "f103_CAN.elf"
 
 return {
 	"jedrzejboczar/nvim-dap-cortex-debug",
