@@ -6,10 +6,10 @@
 -- 此函数定义了各种按键映射，用于与 LSP 功能和诊断功能交互。
 
 -- @param buf number 当前缓冲区
-local function setup_keymaps(bufnr)
+local function setup_keymaps()
 	-- 定义按键映射表
 	local mappings = {
-		{ "n", "<space>dq", "<cmd>lua vim.diagnostic.setloclist()<cr>", desc = "设置诊断位置列表" },
+		{ "n", "<space>od", "<cmd>lua vim.diagnostic.setloclist()<cr>", desc = "设置诊断位置列表" },
 		{ "n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", desc = "跳转到定义" },
 		{ "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>", desc = "跳转到声明" },
 		{ "n", "gl", "<cmd>lua vim.lsp.buf.implementation()<cr>", desc = "跳转到实现" },
@@ -23,6 +23,12 @@ local function setup_keymaps(bufnr)
 			"<leader>i",
 			"<cmd>lua vim.lsp.inlay_hint.enable( not vim.lsp.inlay_hint.is_enabled())<cr>",
 			desc = "开启/关闭内联提示",
+		},
+		{
+			"n",
+			"<leader>cl",
+			"<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>",
+			desc = "关闭lsp",
 		},
 		{ "n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", desc = "添加工作区文件夹" },
 		{ "n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>", desc = "移除工作区文件夹" },
