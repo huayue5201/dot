@@ -6,7 +6,7 @@
 -- 此函数定义了各种按键映射，用于与 LSP 功能和诊断功能交互。
 
 -- @param buf number 当前缓冲区
-local function setup_keymaps()
+local function setup_keymaps(buf)
 	-- 定义按键映射表
 	local mappings = {
 		{ "n", "<space>od", "<cmd>lua vim.diagnostic.setloclist()<cr>", desc = "设置诊断位置列表" },
@@ -14,10 +14,10 @@ local function setup_keymaps()
 		{ "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>", desc = "跳转到声明" },
 		{ "n", "gl", "<cmd>lua vim.lsp.buf.implementation()<cr>", desc = "跳转到实现" },
 		{ "n", "gy", "<cmd>lua vim.lsp.buf.type_definition()<cr>", desc = "跳转到类型定义" },
-		{ "n", "gr", "<cmd>lua vim.lsp.buf.references()<cr>", desc = "查找引用" },
+		{ "n", "grr", "<cmd>lua vim.lsp.buf.references()<cr>", desc = "查找引用" },
 		{ "n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<cr>", desc = "显示函数签名帮助" },
-		{ "n", "crn", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "重命名符号" },
-		{ "n", "crr", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "代码操作" },
+		{ "n", "grn", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "重命名符号" },
+		{ "n", "gra", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "代码操作" },
 		{
 			"n",
 			"<leader>i",
@@ -25,6 +25,11 @@ local function setup_keymaps()
 			desc = "开启/关闭内联提示",
 		},
 		{
+			-- TODO: 实现lsp关闭/启动命令 lsp开启命令：lua vim.lsp.start({cmd={"clangd"}})
+			-- 实现逻辑：
+			-- 1、判断当前buffer文件类型
+			-- 2、根据文件类型匹配lsp名称
+			-- 3、执行启动命令
 			"n",
 			"<leader>cl",
 			"<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>",
@@ -128,8 +133,8 @@ end
 -- 此函数设置了 LSP 的关键字高亮功能。
 --
 -- @param event table 包含事件数据的表
-local function setup_highlight_symbol(event)
-	local id = vim.tbl_get(event, "data", "client_id")
+local function setup_highlight_symbol(args)
+	local id = vim.tbl_get(args, "data", "client_id")
 	local client = id and vim.lsp.get_client_by_id(id)
 	if client == nil or not client.supports_method("textDocument/documentHighlight") then
 		return
@@ -144,42 +149,42 @@ local function setup_highlight_symbol(event)
 	local group = vim.api.nvim_create_augroup("highlight_symbol", { clear = false })
 
 	-- 清除之前的自动命令
-	vim.api.nvim_clear_autocmds({ buffer = event.buf, group = group })
+	vim.api.nvim_clear_autocmds({ buffer = args.buf, group = group })
 
 	-- 设置光标悬停时和移动时的高亮
 	vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
 		group = group,
-		buffer = event.buf,
+		buffer = args.buf,
 		callback = vim.lsp.buf.document_highlight,
 	})
 
 	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
 		group = group,
-		buffer = event.buf,
+		buffer = args.buf,
 		callback = vim.lsp.buf.clear_references,
 	})
 end
 
 -- 开启内嵌提示
-local function setup_inlay_hint(event, bufnr)
-	local id = vim.tbl_get(event, "data", "client_id")
+local function setup_inlay_hint(args)
+	local id = vim.tbl_get(args, "data", "client_id")
 	local client = id and vim.lsp.get_client_by_id(id)
 	if client == nil or not client.supports_method("textDocument/inlayHint") then
 		return
 	end
 	-- warning: this api is not stable yet
-	vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+	vim.lsp.inlay_hint.enable(true, { bufnr = args.buf })
 end
 
 -- 开启codelens
-local function setup_codelen_refresh(event, bufnr)
-	local id = vim.tbl_get(event, "data", "client_id")
+local function setup_codelen_refresh(args)
+	local id = vim.tbl_get(args, "data", "client_id")
 	local client = id and vim.lsp.get_client_by_id(id)
-	if client.supports_method("textDocument/codeLens", { bufnr = bufnr }) then
+	if client.supports_method("textDocument/codeLens", { bufnr = args.buf }) then
 		vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
 			buffer = bufnr,
 			callback = function()
-				vim.lsp.codelens.refresh({ bufnr = bufnr })
+				vim.lsp.codelens.refresh({ bufnr = args.buf })
 			end,
 		})
 	end
@@ -193,13 +198,14 @@ local M = {}
 M.lspSetup = function()
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspConfig", {}),
-		callback = function(event)
-			setup_keymaps(event.bufnr) -- 设置按键映射
+		callback = function(args)
+			-- print(vim.inspect(args)) -- 这会打印 args 表格的内容
+			setup_keymaps(args.buf) -- 设置按键映射
 			setup_diagnostics() -- 设置诊断配置
 			setup_diagnostics_mode_change() -- 进入插入模式立即更新诊断信息
-			setup_highlight_symbol(event) -- 设置关键字高亮
-			setup_inlay_hint(event) -- 开启内嵌提示
-			setup_codelen_refresh(event) -- 开启codelen
+			setup_highlight_symbol(args) -- 设置关键字高亮
+			setup_inlay_hint(args) -- 开启内嵌提示
+			setup_codelen_refresh(args) -- 开启codelen
 		end,
 	})
 end
