@@ -40,12 +40,12 @@ autocmd("FocusLost", {
 	end,
 })
 
--- autocmd("BufWritePre", {
--- 	desc = "保存文件时移除末尾的空白字符",
--- 	group = augroup("cleanSpace", { clear = true }),
--- 	pattern = "*",
--- 	command = "%s/\\s\\+$//e",
--- })
+autocmd("BufWritePre", {
+	desc = "保存文件时移除末尾的空白字符",
+	group = augroup("cleanSpace", { clear = true }),
+	pattern = "*",
+	command = "%s/\\s\\+$//e",
+})
 
 autocmd({ "FileType", "BufEnter" }, {
 	desc = "特定buffer内禁用状态列",
