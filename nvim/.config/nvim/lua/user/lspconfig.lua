@@ -16,7 +16,7 @@ local function setup_keymaps(buf)
 		{ "n", "gy", "<cmd>lua vim.lsp.buf.type_definition()<cr>", desc = "跳转到类型定义" },
 		{ "n", "grr", "<cmd>lua vim.lsp.buf.references()<cr>", desc = "查找引用" },
 		{ "n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<cr>", desc = "显示函数签名帮助" },
-		{ "n", "grn", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "重命名符号" },
+		{ "n", "crn", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "重命名符号" },
 		{ "n", "gra", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "代码操作" },
 		{
 			"n",
@@ -102,12 +102,17 @@ local function setup_diagnostics()
 		severity_sort = true,
 	})
 
-	-- vim.diagnostic.goto_next({ severity = { min = vim.diagnostic.severity.HINT } })
-
 	-- 设置悬停信息和签名帮助的边框样式
-	vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "rounded" })
-	vim.lsp.handlers["textDocument/signatureHelp"] =
-		vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" })
+	vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+		-- Use a sharp border with `FloatBorder` highlights
+		border = "single",
+		-- add the title in hover float window
+		title = "hover",
+	})
+	vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
+		-- Use a sharp border with `FloatBorder` highlights
+		border = "single",
+	})
 end
 
 -- 进入插入模式立即更新诊断信息
@@ -182,7 +187,7 @@ local function setup_codelen_refresh(args)
 	local client = id and vim.lsp.get_client_by_id(id)
 	if client.supports_method("textDocument/codeLens", { bufnr = args.buf }) then
 		vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
-			buffer = bufnr,
+			buffer = args.buf,
 			callback = function()
 				vim.lsp.codelens.refresh({ bufnr = args.buf })
 			end,
