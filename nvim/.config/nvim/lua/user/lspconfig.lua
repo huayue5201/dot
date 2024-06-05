@@ -133,15 +133,20 @@ local function setup_diagnostics_mode_change()
 	})
 end
 
--- 设置关键字高亮
---
--- 此函数设置了 LSP 的关键字高亮功能。
---
--- @param event table 包含事件数据的表
-local function setup_highlight_symbol(args)
+-- 辅助函数，用于从args中提取client_id，并检查client是否存在及其是否支持指定方法
+local function get_and_check_lsp_client(args, method)
 	local id = vim.tbl_get(args, "data", "client_id")
 	local client = id and vim.lsp.get_client_by_id(id)
-	if client == nil or not client.supports_method("textDocument/documentHighlight") then
+	if client == nil or not client.supports_method(method) then
+		return nil
+	end
+	return client
+end
+
+-- 设置符号高亮
+local function setup_highlight_symbol(args)
+	local client = get_and_check_lsp_client(args, "textDocument/documentHighlight")
+	if not client then
 		return
 	end
 
@@ -172,27 +177,27 @@ end
 
 -- 开启内嵌提示
 local function setup_inlay_hint(args)
-	local id = vim.tbl_get(args, "data", "client_id")
-	local client = id and vim.lsp.get_client_by_id(id)
-	if client == nil or not client.supports_method("textDocument/inlayHint") then
+	local client = get_and_check_lsp_client(args, "textDocument/inlayHint")
+	if not client then
 		return
 	end
 	-- warning: this api is not stable yet
 	vim.lsp.inlay_hint.enable(true, { bufnr = args.buf })
 end
 
--- 开启codelens
+-- 开启codelens刷新
 local function setup_codelen_refresh(args)
-	local id = vim.tbl_get(args, "data", "client_id")
-	local client = id and vim.lsp.get_client_by_id(id)
-	if client.supports_method("textDocument/codeLens", { bufnr = args.buf }) then
-		vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
-			buffer = args.buf,
-			callback = function()
-				vim.lsp.codelens.refresh({ bufnr = args.buf })
-			end,
-		})
+	local client = get_and_check_lsp_client(args, "textDocument/codeLens")
+	if not client then
+		return
 	end
+
+	vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
+		buffer = args.buf,
+		callback = function()
+			vim.lsp.codelens.refresh({ bufnr = args.buf })
+		end,
+	})
 end
 
 local M = {}
