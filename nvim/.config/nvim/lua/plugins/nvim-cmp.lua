@@ -100,13 +100,12 @@ return {
 
 		-- 设置补全框架
 		cmp.setup({
-
-			-- 片段支持(neovim核心支持lsp片段功能)
-			-- snippet = {
-			-- 	expand = function(args)
-			-- 		vim.snippet.expand(args.body)
-			-- 	end,
-			-- },
+			snippet = {
+				-- REQUIRED - you must specify a snippet engine
+				expand = function(args)
+					vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
+				end,
+			},
 
 			-- 补全来源列表
 			sources = {
@@ -118,9 +117,13 @@ return {
 				{ name = "snippets", max_item_count = 10 },
 			},
 
+			-- 当光标靠近屏幕底部时，菜单在光标上方打开时，类容排序自下而上
+			view = {
+				entries = { name = "custom", selection_order = "near_cursor" },
+			},
+
 			-- 补全弹窗设置
 			window = {
-				-- nvim_lsp_signature_help弹窗大小
 				documentation = {
 					maxheight = 15,
 					maxwidth = 50, -- 根据需要调整这个值
