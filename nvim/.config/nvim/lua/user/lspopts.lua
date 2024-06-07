@@ -78,14 +78,13 @@ local function setup_diagnostics()
 		virtual_text = {
 			spacing = 4,
 			source = "if_many",
-			-- source = "always",
 			prefix = "■",
-			severity = {
-				min = vim.diagnostic.severity.ERROR,
-			},
+			-- severity = {
+			-- 	min = vim.diagnostic.severity.ERROR,
+			-- },
 		},
 		float = {
-			source = "always",
+			source = "if_many",
 			border = "rounded",
 		},
 		-- signs = true,
@@ -125,9 +124,9 @@ local function setup_diagnostics_mode_change()
 		callback = function()
 			local current_mode = vim.api.nvim_get_mode().mode
 			if current_mode == "i" or current_mode == "v" then
-				vim.diagnostic.disable(0)
+				vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 			else
-				vim.diagnostic.enable(0)
+				vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 			end
 		end,
 	})
