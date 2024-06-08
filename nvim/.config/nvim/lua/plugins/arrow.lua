@@ -2,7 +2,7 @@
 
 return {
 	"otavioschwanck/arrow.nvim",
-	event = "VeryLazy",
+	keys = ";",
 	config = function()
 		require("arrow").setup({
 			show_icons = true,
