@@ -8,21 +8,21 @@ size = 20 # 字体大小
 
 [font.bold] # 粗体
 # family = "VictorMono Nerd Font"
-# family = "FiraCode Nerd Font"
-family = "GohuFont uni14 Nerd Font"
-# family = "OpenDyslexicM Nerd Font"
+family = "FiraCode Nerd Font"
+# family = "GohuFont uni14 Nerd Font"
+# family = "anonymice Nerd Font"
 
 [font.italic] # 斜体
 # family = "VictorMono Nerd Font"
-# family = "FiraCode Nerd Font"
-family = "GohuFont uni14 Nerd Font"
-# family = "OpenDyslexicM Nerd Font"
+family = "FiraCode Nerd Font"
+# family = "GohuFont uni14 Nerd Font"
+# family = "anonymice Nerd Font"
 
 [font.normal] # 正常
 # family = "VictorMono Nerd Font"
-# family = "FiraCode Nerd Font"
-family = "GohuFont uni14 Nerd Font"
-# family = "OpenDyslexicM Nerd Font"
+family = "FiraCode Nerd Font"
+# family = "GohuFont uni14 Nerd Font"
+# family = "anonymice Nerd Font"
 
 [font.offset]
 x = 1 # 字间距

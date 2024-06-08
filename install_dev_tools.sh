@@ -50,3 +50,4 @@ brew tap homebrew/cask-fonts # fonts字体安装
 brew install --cask font-fira-code-nerd-font
 brew install --cask font-victor-mono-nerd-font
 brew install --cask font-gohufont-nerd-font
+brew install --cask font-anonymice-nerd-font
