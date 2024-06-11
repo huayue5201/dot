@@ -4,7 +4,8 @@ return {
 	"stevearc/overseer.nvim",
 	keys = { "<leader>ru", "<leader>rt" },
 	config = function()
-		require("overseer").setup({
+		local oversee = require("overseer")
+		oversee.setup({
 			-- Default task strategy
 			strategy = "terminal",
 			-- Template modules to load
