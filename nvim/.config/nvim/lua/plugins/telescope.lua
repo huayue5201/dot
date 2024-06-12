@@ -9,7 +9,7 @@ return {
 	keys = {
 		{ "<leader>ff", desc = "文件检索" },
 		{ "<leader>fg", desc = "字符检索" },
-		-- { "<leader>fb", desc = "buffer检索" },
+		{ "<leader>fb", desc = "buffer检索" },
 		{ "<leader>fw", desc = "光标下word检索" },
 		{ "<leader>fo", desc = "历史文件检索" },
 		{ "<leader>fm", desc = "标签检索" },
