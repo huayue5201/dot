@@ -1,4 +1,5 @@
 -- https://github.com/neovim/neovim
+-- https://github.com/neovim/neovim/releases/
 -- 启用 Lua 加载器以提高启动速度
 vim.loader.enable()
 

@@ -6,24 +6,34 @@ return {
 	config = function()
 		local lspconfig = require("lspconfig")
 		local capabilities = require("cmp_nvim_lsp").default_capabilities()
-
+		-- rust
+		lspconfig.rust_analyzer.setup({
+			capabilities = capabilities,
+			settings = {
+				["rust-analyzer"] = {
+					imports = {
+						granularity = {
+							group = "module",
+						},
+						prefix = "self",
+					},
+					cargo = {
+						buildScripts = {
+							enable = true,
+						},
+					},
+					procMacro = {
+						enable = true,
+					},
+				},
+			},
+		})
 		-- python
 		lspconfig.pylyzer.setup({
 			capabilities = capabilities,
 		})
 		-- c/c++
 		lspconfig.clangd.setup({})
-		-- rust
-		lspconfig.rust_analyzer.setup({
-			capabilities = capabilities,
-			settings = {
-				["rust-analyzer"] = {
-					diagnostics = {
-						enable = false,
-					},
-				},
-			},
-		})
 		-- toml
 		lspconfig.taplo.setup({
 			capabilities = capabilities,
