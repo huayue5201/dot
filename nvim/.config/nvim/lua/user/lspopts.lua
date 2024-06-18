@@ -181,7 +181,7 @@ local function setup_inlay_hint(args)
 		return
 	end
 	-- warning: this api is not stable yet
-	vim.lsp.inlay_hint.enable(true, { bufnr = args.buf })
+	vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
 end
 
 -- 开启codelens刷新
