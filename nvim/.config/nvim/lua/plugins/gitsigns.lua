@@ -23,7 +23,6 @@ return {
 						gitsigns.nav_hunk("next")
 					end
 				end)
-
 				map("n", "[h", function()
 					if vim.wo.diff then
 						vim.cmd.normal({ "[h", bang = true })
@@ -50,6 +49,8 @@ return {
 				map("n", "<leader>hb", function()
 					gitsigns.blame_line({ full = true })
 				end, { desc = "查看提交信息" })
+
+				map("n", "<leader>hp", gitsigns.preview_hunk, { desc = "查看改动" })
 
 				map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", { desc = "选中hunk" })
 			end,
