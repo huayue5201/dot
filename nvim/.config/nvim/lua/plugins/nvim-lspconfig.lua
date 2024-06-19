@@ -25,6 +25,12 @@ return {
 					procMacro = {
 						enable = true,
 					},
+					hint = {
+						enable = true,
+					},
+					codelens = {
+						enable = true,
+					},
 				},
 			},
 		})
@@ -33,7 +39,9 @@ return {
 			capabilities = capabilities,
 		})
 		-- c/c++
-		lspconfig.clangd.setup({})
+		lspconfig.clangd.setup({
+			capabilities = capabilities,
+		})
 		-- toml
 		lspconfig.taplo.setup({
 			capabilities = capabilities,
@@ -52,6 +60,13 @@ return {
 						-- (most likely LuaJIT in the case of Neovim)
 						version = "LuaJIT",
 					},
+					hint = {
+						enable = true,
+					},
+					codelens = {
+						enable = true,
+					},
+
 					-- Make the server aware of Neovim runtime files
 					workspace = {
 						checkThirdParty = false,
