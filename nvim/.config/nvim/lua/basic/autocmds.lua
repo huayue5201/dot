@@ -10,26 +10,28 @@ local augroup = vim.api.nvim_create_augroup
 -- })
 
 -- 支持从ssh复制/粘贴到本地
-if vim.clipboard and vim.clipboard.osc52 then
-	vim.api.nvim_create_autocmd("VimEnter", {
-		group = augroup("ssh_clipboard"),
-		callback = function()
-			if vim.env.SSH_CONNECTION and vim.clipboard.osc52 then
-				vim.g.clipboard = {
-					name = "OSC 52",
-					copy = {
-						["+"] = require("vim.clipboard.osc52").copy,
-						["*"] = require("vim.clipboard.osc52").copy,
-					},
-					paste = {
-						["+"] = require("vim.clipboard.osc52").paste,
-						["*"] = require("vim.clipboard.osc52").paste,
-					},
-				}
-			end
-		end,
-	})
+local function write(osc52)
+	local success = false
+	if vim.fn.filewritable("/dev/fd/2") == 1 then
+		success = vim.fn.writefile({ osc52 }, "/dev/fd/2", "b") == 0
+	else
+		success = vim.fn.chansend(vim.v.stderr, osc52) > 0
+	end
+	return success
 end
+vim.api.nvim_create_autocmd({ "TermRequest" }, {
+	desc = "Handles OSC 52",
+	callback = function(args)
+		if args.data:match("\027]52;c;") then
+			local to_copy = args.data:gsub("\027]52;c;", "")
+			local osc52 = string.format("\27]52;c;%s\7", to_copy)
+			if os.getenv("TMUX") or os.getenv("TERM"):match("^tmux") or os.getenv("TERM"):match("^screen") then
+				osc52 = string.format("\27Ptmux;\27%s\27\\", osc52)
+			end
+			write(osc52)
+		end
+	end,
+})
 
 autocmd("FocusLost", {
 	desc = "窗口切换时自动保存文件",

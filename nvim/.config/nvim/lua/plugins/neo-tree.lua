@@ -6,7 +6,7 @@ return {
 		{ "<leader>oe", desc = "文件树" },
 		{ "<leader>ob", desc = "buffers" },
 		{ "<leader>og", desc = "git" },
-		-- { "<leader>os", desc = "符号树" },
+		{ "<leader>os", desc = "符号树" },
 	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
@@ -17,12 +17,12 @@ return {
 	config = function()
 		require("neo-tree").setup({
 			close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
-			-- sources = {
-			-- 	"filesystem",
-			-- 	"buffers",
-			-- 	"git_status",
-			-- 	-- "document_symbols",
-			-- },
+			sources = {
+				"filesystem",
+				"buffers",
+				"git_status",
+				"document_symbols",
+			},
 			source_selector = {
 				winbar = true,
 				statusline = false,
@@ -30,7 +30,7 @@ return {
 					{ source = "filesystem" },
 					{ source = "buffers" },
 					{ source = "git_status" },
-					-- { source = "document_symbols" },
+					{ source = "document_symbols" },
 				},
 			},
 			window = {
@@ -60,14 +60,17 @@ return {
 						end
 					end,
 					-- 类目切换
-					["e"] = function()
+					["<A-e>"] = function()
 						vim.api.nvim_exec("Neotree focus filesystem left", true)
 					end,
-					["b"] = function()
+					["<A-b>"] = function()
 						vim.api.nvim_exec("Neotree focus buffers left", true)
 					end,
-					["g"] = function()
+					["<A-g>"] = function()
 						vim.api.nvim_exec("Neotree focus git_status left", true)
+					end,
+					["<A-s>"] = function()
+						vim.api.nvim_exec("Neotree focus document_symbols left", true)
 					end,
 					-- 用系统默认文件管理器打开文件
 					["O"] = "system_open",
@@ -140,6 +143,6 @@ return {
 		vim.keymap.set("n", "<leader>oe", "<cmd>Neotree toggle<cr>", { desc = "文件树" })
 		vim.keymap.set("n", "<leader>ob", "<cmd>Neotree buffers toggle<cr>", { desc = "文件树" })
 		vim.keymap.set("n", "<leader>og", "<cmd>Neotree git_status toggle<cr>", { desc = "文件树" })
-		-- vim.keymap.set("n", "<leader>os", "<cmd>Neotree document_symbols toggle<cr>", { desc = "文件树" })
+		vim.keymap.set("n", "<leader>os", "<cmd>Neotree document_symbols toggle<cr>", { desc = "文件树" })
 	end,
 }
