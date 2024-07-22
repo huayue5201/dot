@@ -67,9 +67,9 @@ vim.cmd([[command! -nargs=+ Grep execute 'silent grep! <args>' | copen]])
 -- 2、根据判断结果执行对应的按键映射
 local function QuickfixMapping()
 	-- to the previous location and stay in the quickfix window
-	vim.keymap.set("n", "K", ":cprev<CR>zz<C-w>w", { buffer = true })
+	vim.keymap.set("n", "{", ":cprev<CR>zz<C-w>w", { buffer = true })
 	-- to the next location and stay in the quickfix window
-	vim.keymap.set("n", "J", ":cnext<CR>zz<C-w>w", { buffer = true })
+	vim.keymap.set("n", "}", ":cnext<CR>zz<C-w>w", { buffer = true })
 	-- 使快速修复列表可修改
 	vim.keymap.set("n", "<leader>ow", ":set modifiable<CR>", { buffer = true })
 end

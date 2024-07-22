@@ -18,15 +18,6 @@ return {
 			-- dir = os.getenv("HOME") .. "/.vim/dict",
 			frontend = {
 				hover = {
-					keymaps = {
-						pageup = "<C-u>",
-						pagedown = "<C-d>",
-						pin = "<leader>[",
-						close = "<leader>]",
-						toggle_entry = "<leader>;",
-					},
-				},
-				hover = {
 					icon = {
 						-- or use emoji
 						list = "●", -- ● | ○ | ◉ | ◯ | ◇ | ◆ | ▪ | ▫ | ⬤ | 🟢 | 🟡 | 🟣 | 🟤 | 🟠| 🟦 | 🟨 | 🟧 | 🟥 | 🟪 | 🟫 | 🟩 | 🟦
