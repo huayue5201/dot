@@ -19,7 +19,6 @@ return {
 				max_prefix_length = 8, -- 去重时的前缀长度
 				tab_size = 10, -- tab的大小
 				diagnostics = "nvim_lsp", -- 开启诊断提示，来源为nvim_lsp
-				diagnostics_update_in_insert = true, -- 插入模式下不更新诊断提示
 				diagnostics_indicator = function(count, level) -- 诊断提示的图标和数量显示
 					local icon = level:match("error") and "✘ " or " "
 					return "" .. icon .. count
