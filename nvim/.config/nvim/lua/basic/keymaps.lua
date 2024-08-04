@@ -1,7 +1,7 @@
 -- 设置前置按键
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
-vim.keymap.set("n", "<space>", "<Nop>")
+vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
 -- 代码块移动
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
