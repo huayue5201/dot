@@ -209,6 +209,7 @@ M.lspSetup = function()
 		group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 		callback = function(args)
 			-- print(vim.inspect(args)) -- 这会打印 args 表格的内容
+			-- vim.bo[args.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
 			setup_keymaps(args.buf) -- 设置按键映射
 			setup_diagnostics() -- 设置诊断配置
 			setup_diagnostics_mode_change() -- 进入插入模式立即更新诊断信息

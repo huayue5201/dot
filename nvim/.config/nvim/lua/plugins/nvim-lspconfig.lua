@@ -60,13 +60,6 @@ return {
 						-- (most likely LuaJIT in the case of Neovim)
 						version = "LuaJIT",
 					},
-					hint = {
-						enable = true,
-					},
-					codelens = {
-						enable = true,
-					},
-
 					-- Make the server aware of Neovim runtime files
 					workspace = {
 						checkThirdParty = false,
@@ -82,7 +75,14 @@ return {
 				})
 			end,
 			settings = {
-				Lua = {},
+				Lua = {
+					hint = {
+						enable = true,
+					},
+					codelens = {
+						enable = true,
+					},
+				},
 				globals = {
 					"vim",
 				},
