@@ -2,7 +2,6 @@
 
 return {
 	"akinsho/toggleterm.nvim",
-	version = "*",
 	keys = {
 		{ "<c-\\>" },
 		{ "<leader>te", desc = "终端列表" },
