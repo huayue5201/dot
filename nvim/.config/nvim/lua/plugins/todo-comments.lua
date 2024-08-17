@@ -6,7 +6,7 @@ return {
 		"nvim-lua/plenary.nvim",
 		"nvim-telescope/telescope.nvim",
 	},
-	keys = { "<leader>to" },
+	keys = { { "<leader>to", desc = "TODO检索" } },
 	config = function()
 		require("todo-comments").setup()
 
