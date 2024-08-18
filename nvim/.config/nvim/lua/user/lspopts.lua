@@ -10,14 +10,10 @@ local function setup_keymaps(buf)
 	-- 定义按键映射表
 	local mappings = {
 		{ "n", "<space>od", "<cmd>lua vim.diagnostic.setloclist()<cr>", desc = "设置诊断位置列表" },
-		{ "n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", desc = "跳转到定义" },
 		{ "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>", desc = "跳转到声明" },
 		{ "n", "gl", "<cmd>lua vim.lsp.buf.implementation()<cr>", desc = "跳转到实现" },
 		{ "n", "gy", "<cmd>lua vim.lsp.buf.type_definition()<cr>", desc = "跳转到类型定义" },
-		{ "n", "grr", "<cmd>lua vim.lsp.buf.references()<cr>", desc = "查找引用" },
 		{ "n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<cr>", desc = "显示函数签名帮助" },
-		{ "n", "crn", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "重命名符号" },
-		{ "n", "gra", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "代码操作" },
 		{
 			"n",
 			"<leader>i",
