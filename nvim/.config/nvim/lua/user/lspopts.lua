@@ -1,3 +1,23 @@
+-- :h lsp-defaults
+--
+-- NORMAL MODE
+-- K        : hover
+-- grn      : rename
+-- gra      : code action
+-- grr      : references
+-- CTRL-]   : definition
+-- CTRL-W_] : definition in new window
+-- CTRL-W_} : definition in preview window
+--
+-- VISUAL MODE
+-- gq : format
+--
+-- INSERT MODE
+-- CTRL-S        : signature help
+-- CTRL-X_CTRL-O : completion
+
+---server configurations copied from <https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md>
+
 -- lua/user/lsp_config.lua
 -- 参考资料: https://vonheikemen.github.io/devlog/tools/neovim-lsp-client-guide/
 -- https://github.com/neovim/nvim-lspconfig
@@ -9,17 +29,23 @@
 local function setup_keymaps(buf)
 	-- 定义按键映射表
 	local mappings = {
-		{ "n", "<space>od", "<cmd>lua vim.diagnostic.setloclist()<cr>", desc = "设置诊断位置列表" },
-		{ "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>", desc = "跳转到声明" },
-		{ "n", "gl", "<cmd>lua vim.lsp.buf.implementation()<cr>", desc = "跳转到实现" },
-		{ "n", "gy", "<cmd>lua vim.lsp.buf.type_definition()<cr>", desc = "跳转到类型定义" },
-		{ "n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<cr>", desc = "显示函数签名帮助" },
+		-- 设置诊断位置列表
+		{ "n", "<leader>od", "<cmd>lua vim.diagnostic.setloclist()<cr>" },
+		-- 跳转到声明
+		{ "n", "grd", "<cmd>lua vim.lsp.buf.declaration()<cr>" },
+		-- 跳转到实现
+		{ "n", "gri", "<cmd>lua vim.lsp.buf.implementation()<cr>" },
+		-- 跳转到类型定义
+		{ "n", "grt", "<cmd>lua vim.lsp.buf.type_definition()<cr>" },
+		-- 显示函数签名帮助
+		{ "n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<cr>" },
+		-- 开启/关闭内联提示
 		{
 			"n",
 			"<leader>i",
 			"<cmd>lua vim.lsp.inlay_hint.enable( not vim.lsp.inlay_hint.is_enabled())<cr>",
-			desc = "开启/关闭内联提示",
 		},
+		-- 关闭lsp
 		{
 			-- TODO: 实现lsp关闭/启动命令 lsp开启命令：lua vim.lsp.start({cmd={"clangd"}})
 			-- 实现逻辑：
@@ -29,15 +55,16 @@ local function setup_keymaps(buf)
 			"n",
 			"<leader>cl",
 			"<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>",
-			desc = "关闭lsp",
 		},
-		{ "n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", desc = "添加工作区文件夹" },
-		{ "n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>", desc = "移除工作区文件夹" },
+		-- 添加工作区文件夹
+		{ "n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>" },
+		-- 移除工作区文件夹
+		{ "n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>" },
+		-- 列出工作区文件夹
 		{
 			"n",
 			"<space>wl",
 			"<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>",
-			desc = "列出工作区文件夹",
 		},
 	}
 
@@ -202,7 +229,7 @@ local M = {}
 --
 M.lspSetup = function()
 	vim.api.nvim_create_autocmd("LspAttach", {
-		group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+		group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
 		callback = function(args)
 			-- print(vim.inspect(args)) -- 这会打印 args 表格的内容
 			-- vim.bo[args.buf].omnifunc = "v:lua.vim.lsp.omnifunc"

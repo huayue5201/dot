@@ -2,7 +2,7 @@
 
 return {
 	"yorickpeterse/nvim-pqf",
-	event = "UIEnter",
+	event = "VeryLazy",
 	config = function()
 		require("pqf").setup({
 			signs = {
