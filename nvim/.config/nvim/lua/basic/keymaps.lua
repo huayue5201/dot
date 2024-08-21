@@ -48,12 +48,22 @@ vim.keymap.set("n", "<leader>tq", "<cmd>bdelete<cr>", { desc = "删除buffer" })
 vim.keymap.set("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
 
 -- 切换quickfix窗口
-vim.keymap.set("n", "<leader>q", '<cmd>lua require("user.keybindings").toggleQuickfix()<cr>')
+vim.keymap.set(
+	"n",
+	"<leader>q",
+	'<cmd>lua require("user.keybindings").toggleQuickfix()<cr>',
+	{ desc = " QuickfixToggle" }
+)
 vim.keymap.set("n", "]q", "<cmd>cprev<cr>")
 vim.keymap.set("n", "[q", "<cmd>cnext<cr>")
 
 -- 切换loclist窗口
-vim.keymap.set("n", "<leader>l", '<cmd>lua require("user.keybindings").toggleLocationList()<cr>')
+vim.keymap.set(
+	"n",
+	"<leader>l",
+	'<cmd>lua require("user.keybindings").toggleLocationList()<cr>',
+	{ desc = " LoclistToggle" }
+)
 vim.keymap.set("n", "]l", "<cmd>lnext<cr>")
 vim.keymap.set("n", "[l", "<cmd>lprev<cr>")
 
