@@ -6,7 +6,7 @@ return {
 		{ "<leader>oe", desc = "文件树" },
 		{ "<leader>ob", desc = "buffers" },
 		{ "<leader>og", desc = "git" },
-		{ "<leader>os", desc = "符号树" },
+		{ "<leader>os", desc = "Symbols Explorer" },
 	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
@@ -141,8 +141,8 @@ return {
 		})
 		-- 设置快捷键打开文件树
 		vim.keymap.set("n", "<leader>oe", "<cmd>Neotree toggle<cr>", { desc = "文件树" })
-		vim.keymap.set("n", "<leader>ob", "<cmd>Neotree buffers toggle<cr>", { desc = "文件树" })
-		vim.keymap.set("n", "<leader>og", "<cmd>Neotree git_status toggle<cr>", { desc = "文件树" })
-		vim.keymap.set("n", "<leader>os", "<cmd>Neotree document_symbols toggle<cr>", { desc = "文件树" })
+		vim.keymap.set("n", "<leader>ob", "<cmd>Neotree buffers toggle<cr>", { desc = "buffer" })
+		vim.keymap.set("n", "<leader>og", "<cmd>Neotree git_status toggle<cr>", { desc = "git" })
+		vim.keymap.set("n", "<leader>os", "<cmd>Neotree document_symbols toggle<cr>", { desc = "Symbols Explorer" })
 	end,
 }

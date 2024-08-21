@@ -3,8 +3,8 @@
 return {
 	"stevearc/aerial.nvim",
 	keys = {
-		{ "<leader>oa", desc = "符号树" },
-		{ "<leader>a", desc = "符号树浮窗" },
+		{ "<leader>oa", desc = "AerialToggle" },
+		{ "<leader>a", desc = "AerialNavToggl" },
 	},
 	-- Optional dependencies
 	dependencies = {
