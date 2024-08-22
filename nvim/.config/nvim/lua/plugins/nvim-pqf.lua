@@ -2,7 +2,7 @@
 
 return {
 	"yorickpeterse/nvim-pqf",
-	event = "VeryLazy",
+	event = "BufReadPost",
 	config = function()
 		require("pqf").setup({
 			signs = {

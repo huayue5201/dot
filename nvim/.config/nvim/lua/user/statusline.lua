@@ -53,29 +53,50 @@ function Statusline.vcs()
 	return " " .. table.concat(parts, " ") .. " "
 end
 
--- LSP状态
-function Statusline.lsp()
+function Statusline.get_lsp_clients()
+	local attached_clients = vim.lsp.get_clients({ bufnr = 0 })
+	if #attached_clients == 0 then
+		return ""
+	end
+	local names = {}
+	for _, client in ipairs(attached_clients) do
+		local name = client.name:gsub("language.server", "ls")
+		table.insert(names, name)
+	end
+	return "[" .. table.concat(names, ", ") .. "]"
+end
+
+function Statusline.get_lsp_diagnostics()
 	local count = {
-		errors = vim.tbl_count(vim.diagnostic.get(0, { severity = "Error" })),
-		warnings = vim.tbl_count(vim.diagnostic.get(0, { severity = "Warn" })),
-		hints = vim.tbl_count(vim.diagnostic.get(0, { severity = "Hint" })),
-		info = vim.tbl_count(vim.diagnostic.get(0, { severity = "Info" })),
+		errors = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR }),
+		warnings = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.WARN }),
+		hints = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.HINT }),
+		info = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.INFO }),
 	}
 	local parts = {}
-	if count["errors"] > 0 then
-		table.insert(parts, " 󰅚  " .. count["errors"])
+	if count.errors > 0 then
+		table.insert(parts, "✘" .. count.errors)
 	end
-	if count["warnings"] > 0 then
-		table.insert(parts, " 󰀪 " .. count["warnings"])
+	if count.warnings > 0 then
+		table.insert(parts, "▲" .. count.warnings)
 	end
-	if count["hints"] > 0 then
-		table.insert(parts, " 󰌶 " .. count["hints"])
+	if count.hints > 0 then
+		table.insert(parts, "⚑" .. count.hints)
 	end
-	if count["info"] > 0 then
-		table.insert(parts, "   " .. count["info"])
+	if count.info > 0 then
+		table.insert(parts, "»" .. count.info)
 	end
-	return table.concat(parts, "")
+	return table.concat(parts, " ")
 end
+
+function Statusline.lsp()
+	local lsp_clients = Statusline.get_lsp_clients()
+	local lsp_diagnostics = Statusline.get_lsp_diagnostics()
+	return lsp_clients .. " " .. lsp_diagnostics
+end
+
+-- Example usage:
+-- vim.api.nvim_set_hl(0, "StatusLine", { text = "%!Statusline.update()" })
 
 -- 创建状态栏内容
 function Statusline.active()
