@@ -6,7 +6,6 @@ return {
 	event = "VeryLazy",
 	config = function()
 		local bufferline = require("bufferline")
-
 		-- Bufferline 插件设置
 		bufferline.setup({
 			options = {
