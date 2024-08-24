@@ -8,6 +8,7 @@ vim.lsp.start({
 		"Cargo.toml",
 		"rust-project.json",
 	}),
+	filetypes = { "rust" },
 	settings = {
 		["rust-analyzer"] = {
 			imports = {
