@@ -29,23 +29,17 @@
 local function setup_keymaps(buf)
 	-- 定义按键映射表
 	local mappings = {
-		-- 设置诊断位置列表
-		{ "n", "<leader>od", "<cmd>lua vim.diagnostic.setloclist()<cr>" },
-		-- 跳转到声明
-		{ "n", "grd", "<cmd>lua vim.lsp.buf.declaration()<cr>" },
-		-- 跳转到实现
-		{ "n", "gri", "<cmd>lua vim.lsp.buf.implementation()<cr>" },
-		-- 跳转到类型定义
-		{ "n", "grt", "<cmd>lua vim.lsp.buf.type_definition()<cr>" },
-		-- 显示函数签名帮助
-		{ "n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<cr>" },
-		-- 开启/关闭内联提示
+		{ "n", "<leader>od", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
+		{ "n", "grd", "<cmd>lua vim.lsp.buf.declaration()<cr>", "跳转到声明" },
+		{ "n", "gri", "<cmd>lua vim.lsp.buf.implementation()<cr>", "跳转到实现" },
+		{ "n", "grt", "<cmd>lua vim.lsp.buf.type_definition()<cr>", "跳转到类型定义" },
+		{ "n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<cr>", "显示函数签名帮助" },
 		{
 			"n",
 			"<leader>i",
 			"<cmd>lua vim.lsp.inlay_hint.enable( not vim.lsp.inlay_hint.is_enabled())<cr>",
+			"开启/关闭内联提示",
 		},
-		-- 关闭lsp
 		{
 			-- TODO: 实现lsp关闭/启动命令 lsp开启命令：lua vim.lsp.start({cmd={"clangd"}})
 			-- 实现逻辑：
@@ -55,16 +49,15 @@ local function setup_keymaps(buf)
 			"n",
 			"<leader>cl",
 			"<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>",
+			"关闭LSP客户端",
 		},
-		-- 添加工作区文件夹
-		{ "n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>" },
-		-- 移除工作区文件夹
-		{ "n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>" },
-		-- 列出工作区文件夹
+		{ "n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", "添加工作区文件夹" },
+		{ "n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>", "移除工作区文件夹" },
 		{
 			"n",
 			"<space>wl",
 			"<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>",
+			"列出工作区文件夹",
 		},
 	}
 
