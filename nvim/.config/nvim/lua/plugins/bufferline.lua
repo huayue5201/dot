@@ -52,12 +52,6 @@ return {
 						text_align = "center",
 						separator = true,
 					},
-					{
-						filetype = "aerial",
-						text = "Symbol Explorer",
-						text_align = "center",
-						separator = true,
-					},
 				},
 				hover = { -- 鼠标悬停设置
 					enabled = true, -- 开启鼠标悬停
