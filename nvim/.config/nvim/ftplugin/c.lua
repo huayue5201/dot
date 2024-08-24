@@ -13,4 +13,5 @@ vim.lsp.start({
 		"configure.ac",
 		".git",
 	}),
+	filetypes = { "c" },
 })
