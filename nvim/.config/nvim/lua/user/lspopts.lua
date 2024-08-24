@@ -34,6 +34,20 @@ local function setup_keymaps(buf)
 		{ "n", "gri", "<cmd>lua vim.lsp.buf.implementation()<cr>", "跳转到实现" },
 		{ "n", "grt", "<cmd>lua vim.lsp.buf.type_definition()<cr>", "跳转到类型定义" },
 		{ "n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<cr>", "显示函数签名帮助" },
+		{ "n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", "添加工作区文件夹" },
+		{ "n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>", "移除工作区文件夹" },
+		{
+			"n",
+			"<space>wl",
+			"<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>",
+			"列出工作区文件夹",
+		},
+		{
+			"n",
+			"<leader>d",
+			"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
+			"打开/关闭诊断功能",
+		},
 		{
 			"n",
 			"<leader>i",
@@ -50,14 +64,6 @@ local function setup_keymaps(buf)
 			"<leader>cl",
 			"<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>",
 			"关闭LSP客户端",
-		},
-		{ "n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", "添加工作区文件夹" },
-		{ "n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>", "移除工作区文件夹" },
-		{
-			"n",
-			"<space>wl",
-			"<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>",
-			"列出工作区文件夹",
 		},
 	}
 
