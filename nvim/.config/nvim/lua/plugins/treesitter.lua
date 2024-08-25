@@ -8,7 +8,6 @@ return {
 	dependencies = {
 		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 		"nvim-treesitter/nvim-treesitter-textobjects",
-		"nvim-treesitter/nvim-treesitter-context",
 	},
 	config = function()
 		-- 导入 Treesitter 插件的配置模块(语法分析器)
