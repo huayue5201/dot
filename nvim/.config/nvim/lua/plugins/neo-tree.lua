@@ -6,7 +6,7 @@ return {
 		{ "<leader>oe", desc = "文件树" },
 		{ "<leader>ob", desc = "buffers" },
 		{ "<leader>og", desc = "git" },
-		{ "<leader>os", desc = "Symbols Explorer" },
+		-- { "<leader>os", desc = "Symbols Explorer" },
 	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
@@ -21,7 +21,7 @@ return {
 				"filesystem",
 				"buffers",
 				"git_status",
-				"document_symbols",
+				-- "document_symbols",
 			},
 			source_selector = {
 				winbar = true,
@@ -30,12 +30,12 @@ return {
 					{ source = "filesystem" },
 					{ source = "buffers" },
 					{ source = "git_status" },
-					{ source = "document_symbols" },
+					-- { source = "document_symbols" },
 				},
 			},
 			window = {
 				position = "left",
-				width = 30,
+				width = 40,
 				mappings = {
 					["<space>"] = {
 						"toggle_node",
@@ -60,18 +60,18 @@ return {
 						end
 					end,
 					-- 类目切换
-					["<A-e>"] = function()
+					["e"] = function()
 						vim.api.nvim_exec("Neotree focus filesystem left", true)
 					end,
-					["<A-b>"] = function()
+					["b"] = function()
 						vim.api.nvim_exec("Neotree focus buffers left", true)
 					end,
-					["<A-g>"] = function()
+					["g"] = function()
 						vim.api.nvim_exec("Neotree focus git_status left", true)
 					end,
-					["<A-s>"] = function()
-						vim.api.nvim_exec("Neotree focus document_symbols left", true)
-					end,
+					-- ["<A-s>"] = function()
+					-- 	vim.api.nvim_exec("Neotree focus document_symbols left", true)
+					-- end,
 					-- 用系统默认文件管理器打开文件
 					["O"] = "system_open",
 					-- 打开文件但不丢失焦点
@@ -143,6 +143,6 @@ return {
 		vim.keymap.set("n", "<leader>oe", "<cmd>Neotree toggle<cr>", { desc = "文件树" })
 		vim.keymap.set("n", "<leader>ob", "<cmd>Neotree buffers toggle<cr>", { desc = "buffer" })
 		vim.keymap.set("n", "<leader>og", "<cmd>Neotree git_status toggle<cr>", { desc = "git" })
-		vim.keymap.set("n", "<leader>os", "<cmd>Neotree document_symbols toggle<cr>", { desc = "Symbols Explorer" })
+		-- vim.keymap.set("n", "<leader>os", "<cmd>Neotree document_symbols toggle<cr>", { desc = "Symbols Explorer" })
 	end,
 }
