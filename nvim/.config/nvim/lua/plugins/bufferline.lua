@@ -10,7 +10,7 @@ return {
 		bufferline.setup({
 			options = {
 				separator_style = "thick", -- 分隔符样式设置为thick
-				custom_filter = function(buf, buf_nums) -- 过滤qf缓冲区
+				custom_filter = function(buf) -- 过滤qf缓冲区
 					return vim.bo[buf].filetype ~= "qf"
 				end,
 				numbers = "ordinal", -- 显示buffer的编号
