@@ -42,7 +42,7 @@ vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<CR>", { desc = "关闭选项卡
 vim.keymap.set("n", "<leader>to", "<cmd>tabonly<CR>", { desc = "仅保留当前标签页打开" })
 -- vim.keymap.set("n", "<TAB>", "<cmd>bn<CR>", { desc = "切换buffer" })
 -- vim.keymap.set("n", "<S-TAB>", "<cmd>bp<CR>", { desc = "切换buffer" })
-vim.keymap.set("n", "<leader>tq", "<cmd>bdelete<cr>", { desc = "删除buffer" })
+vim.keymap.set("n", "<c-q>", "<cmd>BufferDelete<cr>", { desc = "删除buffer" })
 
 -- 删除标记
 vim.keymap.set("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
