@@ -30,6 +30,7 @@ local function setup_keymaps(buf)
 	-- 定义按键映射表
 	local mappings = {
 		{ "n", "<leader>od", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
+		{ "n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", "跳转到定义" },
 		{ "n", "grd", "<cmd>lua vim.lsp.buf.declaration()<cr>", "跳转到声明" },
 		{ "n", "gri", "<cmd>lua vim.lsp.buf.implementation()<cr>", "跳转到实现" },
 		{ "n", "grt", "<cmd>lua vim.lsp.buf.type_definition()<cr>", "跳转到类型定义" },

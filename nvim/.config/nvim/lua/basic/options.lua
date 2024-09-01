@@ -40,7 +40,6 @@ local basic_options = {
 	timeout = true,
 	updatetime = 300, -- 更新时间为 300 毫秒
 	jumpoptions = "stack", -- 修改 C-o/C-i 的跳转行为
-	termguicolors = true, -- 开启真彩色
 	cursorline = true, -- 高亮当前行
 	list = true, -- 显示特殊字符
 	foldenable = true, -- 启用折叠功能
