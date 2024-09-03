@@ -105,14 +105,14 @@ autocmd({ "InsertEnter", "WinLeave" }, {
 	command = "set nocursorline",
 })
 
--- autocmd("TextYankPost", {
--- 	desc = "复制文本同时高亮该文本",
--- 	group = augroup("YankHighlight", { clear = true }),
--- 	pattern = "*",
--- 	callback = function()
--- 		vim.highlight.on_yank()
--- 	end,
--- })
+autocmd("TextYankPost", {
+	desc = "复制文本同时高亮该文本",
+	group = augroup("YankHighlight", { clear = true }),
+	pattern = "*",
+	callback = function()
+		vim.highlight.on_yank()
+	end,
+})
 
 -- 自动关闭？/搜索匹配高亮
 vim.on_key(function(char)

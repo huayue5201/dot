@@ -7,10 +7,10 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
--- vim.keymap.set("n", "J", "mzJ'z")
+vim.keymap.set("n", "J", "mzJ'z")
 
 -- 指向黑洞寄存器
--- vim.keymap.set("n", "x", '"_x')
+vim.keymap.set("n", "x", '"_x')
 vim.keymap.set("n", "c", '"_c')
 
 -- 更智能的dd删除

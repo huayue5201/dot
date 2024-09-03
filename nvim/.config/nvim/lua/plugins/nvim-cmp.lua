@@ -14,14 +14,6 @@ return {
 		"hrsh7th/cmp-nvim-lsp-signature-help",
 		-- https://github.com/ray-x/cmp-treesitter
 		"ray-x/cmp-treesitter",
-		-- https://github.com/garymjr/nvim-snippets
-		{
-			"garymjr/nvim-snippets",
-			dependencies = { "rafamadriz/friendly-snippets" },
-			opts = {
-				friendly_snippets = true,
-			},
-		},
 	},
 	init = function()
 		vim.opt.completeopt = { "menu", "menuone", "noselect" }
@@ -114,7 +106,6 @@ return {
 				{ name = "path" },
 				{ name = "nvim_lsp_signature_help" },
 				{ name = "treesitter" },
-				{ name = "snippets", max_item_count = 10 },
 			},
 
 			-- 当光标靠近屏幕底部时，菜单在光标上方打开时，类容排序自下而上
@@ -145,7 +136,6 @@ return {
 						nvim_lsp = "[LSP]",
 						path = "[PATH]",
 						treesitter = "[Treesitter]",
-						snippets = "[Snippet]",
 					})[entry.source.name]
 					return vim_item
 				end,
