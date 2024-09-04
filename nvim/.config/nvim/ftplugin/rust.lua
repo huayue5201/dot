@@ -9,8 +9,12 @@ vim.lsp.start({
 		"rust-project.json",
 	}),
 	filetypes = { "rust" },
+	single_file_support = true,
 	settings = {
 		["rust-analyzer"] = {
+			experimental = {
+				serverStatusNotification = true,
+			},
 			imports = {
 				granularity = {
 					group = "module",
