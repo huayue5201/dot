@@ -1,38 +1,6 @@
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
 
--- 延迟加载模块
--- autocmd("VimEnter", {
--- 	desc = "延迟加载模块",
--- 	group = augroup("lazyModule", { clear = true }),
--- 	callback = function()
--- 	end,
--- })
-
--- 支持从ssh复制/粘贴到本地
-local function write(osc52)
-	local success = false
-	if vim.fn.filewritable("/dev/fd/2") == 1 then
-		success = vim.fn.writefile({ osc52 }, "/dev/fd/2", "b") == 0
-	else
-		success = vim.fn.chansend(vim.v.stderr, osc52) > 0
-	end
-	return success
-end
-vim.api.nvim_create_autocmd({ "TermRequest" }, {
-	desc = "Handles OSC 52",
-	callback = function(args)
-		if args.data:match("\027]52;c;") then
-			local to_copy = args.data:gsub("\027]52;c;", "")
-			local osc52 = string.format("\27]52;c;%s\7", to_copy)
-			if os.getenv("TMUX") or os.getenv("TERM"):match("^tmux") or os.getenv("TERM"):match("^screen") then
-				osc52 = string.format("\27Ptmux;\27%s\27\\", osc52)
-			end
-			write(osc52)
-		end
-	end,
-})
-
 autocmd("FocusLost", {
 	desc = "窗口切换时自动保存文件",
 	group = augroup("autosave", { clear = true }),
@@ -111,6 +79,30 @@ autocmd("TextYankPost", {
 	pattern = "*",
 	callback = function()
 		vim.highlight.on_yank()
+	end,
+})
+
+-- 支持从ssh复制/粘贴到本地
+local function write(osc52)
+	local success = false
+	if vim.fn.filewritable("/dev/fd/2") == 1 then
+		success = vim.fn.writefile({ osc52 }, "/dev/fd/2", "b") == 0
+	else
+		success = vim.fn.chansend(vim.v.stderr, osc52) > 0
+	end
+	return success
+end
+autocmd({ "TermRequest" }, {
+	desc = "Handles OSC 52",
+	callback = function(args)
+		if args.data:match("\027]52;c;") then
+			local to_copy = args.data:gsub("\027]52;c;", "")
+			local osc52 = string.format("\27]52;c;%s\7", to_copy)
+			if os.getenv("TMUX") or os.getenv("TERM"):match("^tmux") or os.getenv("TERM"):match("^screen") then
+				osc52 = string.format("\27Ptmux;\27%s\27\\", osc52)
+			end
+			write(osc52)
+		end
 	end,
 })
 
