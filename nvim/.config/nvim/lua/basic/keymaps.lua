@@ -67,27 +67,6 @@ vim.keymap.set(
 vim.keymap.set("n", "]l", "<cmd>lnext<cr>")
 vim.keymap.set("n", "[l", "<cmd>lprev<cr>")
 
--- grep功能优化
-vim.cmd([[command! -nargs=+ Grep execute 'silent grep! <args>' | copen]])
--- 定义快速修复映射函数
--- TODO: 加入loclist按键映射
--- 实现逻辑：
--- 1、判断当前buffer是loclist还是quickfix
--- 2、根据判断结果执行对应的按键映射
-local function QuickfixMapping()
-	-- to the previous location and stay in the quickfix window
-	vim.keymap.set("n", "{", ":cprev<CR>zz<C-w>w", { buffer = true })
-	-- to the next location and stay in the quickfix window
-	vim.keymap.set("n", "}", ":cnext<CR>zz<C-w>w", { buffer = true })
-	-- 使快速修复列表可修改
-	vim.keymap.set("n", "<leader>ow", ":set modifiable<CR>", { buffer = true })
-end
-vim.api.nvim_create_autocmd("FileType", {
-	group = vim.api.nvim_create_augroup("quickfix_group", { clear = true }),
-	pattern = "qf",
-	callback = QuickfixMapping,
-})
-
 -- snippet片段占位符跳转
 vim.keymap.set({ "i", "s" }, "<Tab>", function()
 	if vim.snippet.active({ direction = 1 }) then

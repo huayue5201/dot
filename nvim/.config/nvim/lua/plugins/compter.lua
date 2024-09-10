@@ -2,7 +2,6 @@
 
 return {
 	"RutaTang/compter.nvim",
-	-- keys = { "<C-a>,<C-x>" },
 	event = "BufReadPost",
 	config = function()
 		require("compter").setup({
