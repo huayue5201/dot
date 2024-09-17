@@ -159,7 +159,7 @@ vim.api.nvim_create_user_command("ToggleQuickfix", function()
 	end
 end, { desc = "Toggle Quickfix window" })
 
-vim.api.nvim_create_user_command("ToggleLocationList", function()
+vim.api.nvim_create_user_command("ToggleLoclist", function()
 	local locationList = vim.fn.getloclist(0)
 	if #locationList == 0 then
 		vim.api.nvim_err_write("当前没有loclist窗口\n")
