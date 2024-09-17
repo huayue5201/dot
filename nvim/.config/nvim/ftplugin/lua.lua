@@ -26,6 +26,9 @@ vim.lsp.start({
 				-- (most likely LuaJIT in the case of Neovim)
 				version = "LuaJIT",
 			},
+			codelens = {
+				enable = true,
+			},
 			-- Make the server aware of Neovim runtime files
 			workspace = {
 				checkThirdParty = false,
@@ -43,9 +46,6 @@ vim.lsp.start({
 	settings = {
 		Lua = {
 			hint = {
-				enable = true,
-			},
-			codelens = {
 				enable = true,
 			},
 		},

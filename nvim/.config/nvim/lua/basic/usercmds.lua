@@ -106,6 +106,15 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 	end,
 })
 
+vim.api.nvim_create_autocmd({ "CursorHold", "FileType" }, {
+	desc = "Force commentstring to include spaces",
+	group = vim.api.nvim_create_augroup("commentstring_spaces", { clear = true }),
+	callback = function(args)
+		local cs = vim.bo[args.buf].commentstring
+		vim.bo[args.buf].commentstring = cs:gsub("(%S)%%s", "%1 %%s"):gsub("%%s(%S)", "%%s %1")
+	end,
+})
+
 -- 递归创建缺失文件
 vim.api.nvim_create_user_command("MakeDirectory", function()
 	---@diagnostic disable-next-line: missing-parameter
