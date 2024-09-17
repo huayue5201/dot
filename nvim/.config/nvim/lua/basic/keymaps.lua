@@ -53,7 +53,7 @@ vim.keymap.set("n", "]q", "<cmd>cprev<cr>")
 vim.keymap.set("n", "[q", "<cmd>cnext<cr>")
 
 -- 切换loclist窗口
-vim.keymap.set("n", "<leader>l", "<cmd>ToggleLocationList<cr>", { desc = " LoclistToggle" })
+vim.keymap.set("n", "<leader>l", "<cmd>ToggleLoclist<cr>", { desc = " LoclistToggle" })
 vim.keymap.set("n", "]l", "<cmd>lnext<cr>")
 vim.keymap.set("n", "[l", "<cmd>lprev<cr>")
 
