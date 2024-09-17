@@ -133,3 +133,40 @@ vim.api.nvim_create_user_command("BufferDelete", function()
 	local force = not vim.bo.buflisted or vim.bo.buftype == "nofile"
 	vim.cmd(force and "bd!" or string.format("bp | bd! %s", vim.api.nvim_get_current_buf()))
 end, { desc = "Delete the current Buffer while maintaining the window layout" })
+
+vim.api.nvim_create_user_command("ToggleQuickfix", function()
+	local windows = vim.fn.getwininfo()
+	local quickfixOpen = false
+	for _, win in ipairs(windows) do
+		if win.quickfix == 1 then
+			quickfixOpen = true
+			break
+		end
+	end
+	if quickfixOpen then
+		vim.cmd("cclose")
+	else
+		vim.cmd("copen")
+	end
+end, { desc = "Toggle Quickfix window" })
+
+vim.api.nvim_create_user_command("ToggleLocationList", function()
+	local locationList = vim.fn.getloclist(0)
+	if #locationList == 0 then
+		vim.api.nvim_err_write("当前没有loclist窗口\n")
+		return
+	end
+	local windows = vim.fn.getwininfo()
+	local locationListOpen = false
+	for _, win in ipairs(windows) do
+		if win.loclist == 1 then
+			locationListOpen = true
+			break
+		end
+	end
+	if locationListOpen then
+		vim.cmd("lclose")
+	else
+		vim.cmd("lopen")
+	end
+end, { desc = "Toggle Location List" }) -- 添加描述

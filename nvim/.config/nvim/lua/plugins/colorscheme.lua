@@ -13,6 +13,7 @@ return {
 	config = function()
 		-- vim.cmd("colorscheme Duskfox")
 		-- vim.cmd("colorscheme Dayfox")
+		-- require("night-owl").setup()
 		-- vim.cmd.colorscheme("night-owl")
 		vim.cmd.colorscheme("tokyonight-night")
 		-- vim.cmd.colorscheme("dracula")
