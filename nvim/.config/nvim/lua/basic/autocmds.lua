@@ -1,23 +1,11 @@
-local autocmd = vim.api.nvim_create_autocmd
-local augroup = vim.api.nvim_create_augroup
-
-autocmd("FocusLost", {
-	desc = "窗口切换时自动保存文件",
-	group = augroup("autosave", { clear = true }),
-	pattern = "*",
-	callback = function()
-		vim.cmd("silent! wa")
-	end,
-})
-
-autocmd("BufWritePre", {
+vim.api.nvim_create_autocmd("BufWritePre", {
 	desc = "保存文件时移除末尾的空白字符",
-	group = augroup("cleanSpace", { clear = true }),
+	group = vim.api.nvim_create_augroup("cleanSpace", { clear = true }),
 	pattern = "*",
 	command = "%s/\\s\\+$//e",
 })
 
-autocmd({ "FileType", "BufEnter" }, {
+vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	desc = "特定buffer内禁用状态列",
 	callback = function()
 		local special_filetypes = { "neo-tree", "aerial", "toggleterm", "qf", "help", "man" }
@@ -27,9 +15,9 @@ autocmd({ "FileType", "BufEnter" }, {
 	end,
 })
 
-autocmd("BufReadPost", {
+vim.api.nvim_create_autocmd("BufReadPost", {
 	desc = "记住最后的光标位置",
-	group = augroup("LastPlace", { clear = true }),
+	group = vim.api.nvim_create_augroup("LastPlace", { clear = true }),
 	pattern = { "*" },
 	callback = function()
 		local mark = vim.api.nvim_buf_get_mark(0, '"')
@@ -40,7 +28,7 @@ autocmd("BufReadPost", {
 	end,
 })
 
-autocmd("FileType", {
+vim.api.nvim_create_autocmd("FileType", {
 	desc = "换行不要延续注释符号",
 	pattern = "*",
 	callback = function()
@@ -48,34 +36,34 @@ autocmd("FileType", {
 	end,
 })
 
-autocmd("FileType", {
+vim.api.nvim_create_autocmd("FileType", {
 	desc = "用q关闭窗口",
 	pattern = { "help", "startuptime", "qf", "lspinfo", "checkhealth" },
 	command = [[nnoremap <buffer><silent> q :close<CR>]],
 })
-autocmd("FileType", {
+vim.api.nvim_create_autocmd("FileType", {
 	desc = "用q关闭man窗口",
 	pattern = "man",
 	command = [[nnoremap <buffer><silent> q :quit<CR>]],
 })
 
-local cursorLineGroup = augroup("CursorLineGroup", { clear = true })
-autocmd({ "InsertLeave", "WinEnter" }, {
+local cursorLineGroup = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true })
+vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
 	desc = "仅在活动窗口显示光标线",
 	group = cursorLineGroup,
 	pattern = "*",
 	command = "set cursorline",
 })
-autocmd({ "InsertEnter", "WinLeave" }, {
+vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
 	desc = "仅在活动窗口显示光标线",
 	group = cursorLineGroup,
 	pattern = "*",
 	command = "set nocursorline",
 })
 
-autocmd("TextYankPost", {
+vim.api.nvim_create_autocmd("TextYankPost", {
 	desc = "复制文本同时高亮该文本",
-	group = augroup("YankHighlight", { clear = true }),
+	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
 	pattern = "*",
 	callback = function()
 		vim.highlight.on_yank()
@@ -92,7 +80,7 @@ local function write(osc52)
 	end
 	return success
 end
-autocmd({ "TermRequest" }, {
+vim.api.nvim_create_autocmd({ "TermRequest" }, {
 	desc = "Handles OSC 52",
 	callback = function(args)
 		if args.data:match("\027]52;c;") then
@@ -102,6 +90,18 @@ autocmd({ "TermRequest" }, {
 				osc52 = string.format("\27Ptmux;\27%s\27\\", osc52)
 			end
 			write(osc52)
+		end
+	end,
+})
+
+vim.api.nvim_create_autocmd("BufWinEnter", {
+	group = vim.api.nvim_create_augroup("IrreplaceableWindows", { clear = true }),
+	pattern = "*",
+	callback = function()
+		local filetypes = { "neo-tree" }
+		local buftypes = { "nofile", "terminal" }
+		if vim.tbl_contains(buftypes, vim.bo.buftype) and vim.tbl_contains(filetypes, vim.bo.filetype) then
+			vim.cmd("set winfixbuf")
 		end
 	end,
 })
