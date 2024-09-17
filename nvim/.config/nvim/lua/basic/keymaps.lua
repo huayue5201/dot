@@ -85,13 +85,13 @@ vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
 end, { expr = true })
 
 -- 插入模式下TAB可以跳出()[]....
-vim.keymap.set("i", "<Tab>", function()
-	local cursor = vim.api.nvim_win_get_cursor(0)
-	local line = vim.api.nvim_get_current_line()
-	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
-	local special_chars = { '"', "'", ")", "]", "}", ">" }
-	return next_char == "" or not vim.tbl_contains(special_chars, next_char) and "<Tab>" or "<Right>"
-end, { expr = true })
+-- vim.keymap.set("i", "<Tab>", function()
+-- 	local cursor = vim.api.nvim_win_get_cursor(0)
+-- 	local line = vim.api.nvim_get_current_line()
+-- 	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
+-- 	local special_chars = { '"', "'", ")", "]", "}", ">" }
+-- 	return next_char == "" or not vim.tbl_contains(special_chars, next_char) and "<Tab>" or "<Right>"
+-- end, { expr = true })
 
 -- 自动关闭？/搜索匹配高亮
 vim.on_key(function(char)
