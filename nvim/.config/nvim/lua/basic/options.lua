@@ -101,4 +101,4 @@ vim.opt.listchars = {
 }
 
 -- 优化大文件打开性能
-require("user.largefile").setup()
+require("utils.largefile").setup()
