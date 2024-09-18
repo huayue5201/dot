@@ -115,19 +115,6 @@ vim.api.nvim_create_autocmd({ "CursorHold", "FileType" }, {
 	end,
 })
 
--- 递归创建缺失文件
-vim.api.nvim_create_user_command("MakeDirectory", function()
-	---@diagnostic disable-next-line: missing-parameter
-	local path = vim.fn.expand("%")
-	local dir = vim.fn.fnamemodify(path, ":p:h")
-	if vim.fn.isdirectory(dir) == 0 then
-		vim.fn.mkdir(dir, "p")
-	else
-		vim.notify("Directory already exists", "WARN", { title = "Nvim" })
-	end
-end, { desc = "Create directory if it doesn't exist" })
-
--- 在保证窗口布局的情况下删除缓冲区
 vim.api.nvim_create_user_command("BufferDelete", function()
 	---@diagnostic disable-next-line: missing-parameter
 	local file_exists = vim.fn.filereadable(vim.fn.expand("%p"))
@@ -178,4 +165,4 @@ vim.api.nvim_create_user_command("ToggleLoclist", function()
 	else
 		vim.cmd("lopen")
 	end
-end, { desc = "Toggle Location List" }) -- 添加描述
+end, { desc = "Toggle Location List" })

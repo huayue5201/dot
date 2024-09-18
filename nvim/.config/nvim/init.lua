@@ -9,7 +9,7 @@ local modules = {
 	"basic.keymaps", -- 自定义键绑定
 	"basic.usercmds", -- 自动命令
 	"basic.lazy", -- 插件管理
-	"user.statusline", -- 自定义状态栏
+	"utils.statusline", -- 自定义状态栏
 }
 
 -- 加载模块

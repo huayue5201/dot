@@ -11,4 +11,4 @@ vim.lsp.start({
 	}),
 })
 -- 调用lsp配置
-require("user.lspopts").lspSetup()
+require("utils.lspopts").lspSetup()
