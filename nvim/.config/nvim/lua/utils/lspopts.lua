@@ -219,7 +219,7 @@ M.lspSetup = function()
 			setup_keymaps(args.buf) -- 设置按键映射
 			setup_diagnostics() -- 设置诊断配置
 			setup_diagnostics_mode_change() -- 进入插入模式立即更新诊断信息
-			setup_highlight_symbol(args) -- 设置关键字高亮
+			-- setup_highlight_symbol(args) -- 设置关键字高亮
 			setup_inlay_hint(args) -- 开启内嵌提示
 			setup_codelen_refresh(args) -- 开启codelen
 		end,

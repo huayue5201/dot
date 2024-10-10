@@ -26,6 +26,7 @@ return {
 				"c",
 				"cmake",
 				"json",
+				"rust",
 			},
 			-- 是否同步安装解析器
 			sync_install = true,
