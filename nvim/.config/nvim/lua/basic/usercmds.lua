@@ -39,12 +39,12 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("FileType", {
 	desc = "用q关闭窗口",
 	pattern = { "help", "startuptime", "qf", "lspinfo", "checkhealth" },
-	command = [[nnoremap <buffer><silent> q :close<CR>]],
+	command = "nnoremap <buffer><silent> q :close<CR>",
 })
 vim.api.nvim_create_autocmd("FileType", {
 	desc = "用q关闭man窗口",
 	pattern = "man",
-	command = [[nnoremap <buffer><silent> q :quit<CR>]],
+	command = "nnoremap <buffer><silent> q :quit<CR>",
 })
 
 local cursorLineGroup = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true })
