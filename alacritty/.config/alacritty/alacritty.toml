@@ -1,5 +1,6 @@
 # https://alacritty.org/config-alacritty.html
 
+[general]
 live_config_reload = true # 实时重新加载配置
 
 # 字体设置
@@ -34,7 +35,7 @@ history = 10000 # 滚动历史行数
 multiplier = 20 # 滚动速度倍数
 
 # Shell 设置
-[shell]
+[terminal.shell]
 args = ["-l"]        # Shell 参数
 program = "/bin/zsh" # 使用的Shell程序
 
