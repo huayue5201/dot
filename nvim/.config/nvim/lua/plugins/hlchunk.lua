@@ -15,6 +15,9 @@ return {
 			},
 			indent = {
 				enable = true,
+				style = {
+					vim.api.nvim_get_hl(0, { name = "Whitespace" }),
+				},
 			},
 			line_num = {
 				enabled = true,
