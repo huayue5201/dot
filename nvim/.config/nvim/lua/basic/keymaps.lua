@@ -34,7 +34,7 @@ vim.keymap.set("n", "crs", ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<left><left><left>
 vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { desc = "保存" })
 
 -- 终端映射
--- vim.keymap.set("t", "<esc>", "<C-\\><C-n>", { noremap = true, silent = true })
+vim.keymap.set("t", "<esc>", "<C-\\><C-n>", { noremap = true, silent = true })
 
 -- tab操作
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<CR>", { desc = "创建选项卡" })

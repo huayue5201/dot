@@ -75,16 +75,16 @@ function Statusline.get_lsp_diagnostics()
 	}
 	local parts = {}
 	if count.errors > 0 then
-		table.insert(parts, "✘" .. count.errors)
+		table.insert(parts, "✘ " .. count.errors)
 	end
 	if count.warnings > 0 then
-		table.insert(parts, "▲" .. count.warnings)
+		table.insert(parts, "▲ " .. count.warnings)
 	end
 	if count.hints > 0 then
-		table.insert(parts, "⚑" .. count.hints)
+		table.insert(parts, "⚑ " .. count.hints)
 	end
 	if count.info > 0 then
-		table.insert(parts, "»" .. count.info)
+		table.insert(parts, "» " .. count.info)
 	end
 	return table.concat(parts, " ")
 end

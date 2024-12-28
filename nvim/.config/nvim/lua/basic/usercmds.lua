@@ -94,17 +94,17 @@ vim.api.nvim_create_autocmd({ "TermRequest" }, {
 	end,
 })
 
-vim.api.nvim_create_autocmd("BufWinEnter", {
-	group = vim.api.nvim_create_augroup("IrreplaceableWindows", { clear = true }),
-	pattern = "*",
-	callback = function()
-		local filetypes = { "neo-tree" }
-		local buftypes = { "nofile", "terminal" }
-		if vim.tbl_contains(buftypes, vim.bo.buftype) and vim.tbl_contains(filetypes, vim.bo.filetype) then
-			vim.cmd("set winfixbuf")
-		end
-	end,
-})
+-- vim.api.nvim_create_autocmd("BufWinEnter", {
+-- 	group = vim.api.nvim_create_augroup("IrreplaceableWindows", { clear = true }),
+-- 	pattern = "*",
+-- 	callback = function()
+-- 		local filetypes = { "neo-tree" }
+-- 		local buftypes = { "nofile", "terminal" }
+-- 		if vim.tbl_contains(buftypes, vim.bo.buftype) and vim.tbl_contains(filetypes, vim.bo.filetype) then
+-- 			vim.cmd("set winfixbuf")
+-- 		end
+-- 	end,
+-- })
 
 vim.api.nvim_create_autocmd({ "CursorHold", "FileType" }, {
 	desc = "Force commentstring to include spaces",
