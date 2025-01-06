@@ -95,9 +95,6 @@ function Statusline.lsp()
 	return lsp_clients .. " " .. lsp_diagnostics
 end
 
--- Example usage:
--- vim.api.nvim_set_hl(0, "StatusLine", { text = "%!Statusline.update()" })
-
 -- 创建状态栏内容
 function Statusline.active()
 	local mode_str = Statusline.mode()

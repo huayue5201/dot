@@ -1,6 +1,5 @@
 -- 设置前置按键
-vim.g.mapleader = " "
-vim.g.maplocalleader = "\\"
+vim.g.mapleader = vim.keycode("<Space>")
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
 -- 代码块移动
