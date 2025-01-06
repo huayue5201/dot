@@ -25,48 +25,77 @@
 -- 设置按键映射
 -- 此函数定义了各种按键映射，用于与 LSP 功能和诊断功能交互。
 
--- @param buf number 当前缓冲区
+-- @param buf number 当前缓冲区 local function setup_keymaps(buf)     -- 定义按键映射表
 local function setup_keymaps(buf)
-	-- 定义按键映射表
+	-- 按钮映射表，用于设置 Vim 的关键功能
 	local mappings = {
+		-- 启动诊断列表
 		{ "n", "<leader>od", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
+
+		-- 重命名
+		{ "n", "grn", "<cmd>lua vim.lsp.buf.rename()<cr>", "重命名" },
+
+		-- 代码建议
+		{ "n", "gra", "<cmd>lua vim.lsp.buf.code_action()<cr>", "代码建议" },
+
+		-- 跳转到引用
+		{ "n", "grr", "<cmd>lua vim.lsp.buf.references()<cr>", "跳转到引用" },
+
+		-- 代码实现
+		{ "n", "gri", "<cmd>lua vim.lsp.buf.implementation()<cr>", "代码建议" },
+
+		-- 代码符号
+		{ "n", "gO", "<cmd>lua vim.lsp.buf.document_symbol()<cr>", "代码符号" },
+
+		-- 跳转到定义
 		{ "n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", "跳转到定义" },
+
+		-- 跳转到声明
 		{ "n", "grd", "<cmd>lua vim.lsp.buf.declaration()<cr>", "跳转到声明" },
+
+		-- 跳转到实现
 		{ "n", "gri", "<cmd>lua vim.lsp.buf.implementation()<cr>", "跳转到实现" },
+
+		-- 跳转到类型定义
 		{ "n", "grt", "<cmd>lua vim.lsp.buf.type_definition()<cr>", "跳转到类型定义" },
+
+		-- 显示函数签名帮助
 		{ "n", "<leader>k", "<cmd>lua vim.lsp.buf.signature_help()<cr>", "显示函数签名帮助" },
+
+		-- 添加工作区文件夹
 		{ "n", "<leader>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", "添加工作区文件夹" },
+
+		-- 移除工作区文件夹
 		{ "n", "<leader>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>", "移除工作区文件夹" },
+
+		-- 列出工作区文件夹
 		{
 			"n",
 			"<leader>wl",
 			"<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>",
 			"列出工作区文件夹",
 		},
+
+		-- 启动/关闭诊断功能
 		{
 			"n",
 			"<leader>d",
 			"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
 			"打开/关闭诊断功能",
 		},
+
+		-- 开启/关闭内联提示
 		{
 			"n",
 			"<leader>i",
 			"<cmd>lua vim.lsp.inlay_hint.enable( not vim.lsp.inlay_hint.is_enabled())<cr>",
 			"开启/关闭内联提示",
 		},
-		{
-			-- TODO: 实现lsp关闭/启动命令 lsp开启命令：lua vim.lsp.start({cmd={"clangd"}})
-			-- 实现逻辑：
-			-- 1、判断当前buffer文件类型
-			-- 2、根据文件类型匹配lsp名称
-			-- 3、执行启动命令
-			"n",
-			"<leader>cl",
-			"<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>",
-			"关闭LSP客户端",
-		},
+
+		-- 关闭LSP客户端
+		{ "n", "<leader>cl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭LSP客户端" },
 	}
+	-- 定义按键映射表
 
 	-- 应用按键映射
 	for _, map in ipairs(mappings) do

@@ -15,3 +15,6 @@ vim.lsp.start({
 	}),
 	filetypes = { "c" },
 })
+
+-- 调用lsp配置
+require("utils.lspopts").lspSetup()
