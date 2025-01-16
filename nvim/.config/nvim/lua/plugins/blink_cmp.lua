@@ -2,7 +2,7 @@
 
 return {
 	"saghen/blink.cmp",
-	event = { "InsertEnter", "CmdlineEnter" },
+	event = { "InsertEnter" },
 	-- optional: provides snippets for the snippet source
 	-- dependencies = "rafamadriz/friendly-snippets",
 
@@ -16,7 +16,6 @@ return {
 	---@module 'blink.cmp'
 	---@type blink.cmp.Config
 	opts = {
-		signature = { enabled = true },
 		-- 'default' for mappings similar to built-in completion
 		-- 'super-tab' for mappings similar to vscode (tab to accept, arrow keys to navigate)
 		-- 'enter' for mappings similar to 'super-tab' but with 'enter' to accept
@@ -34,12 +33,14 @@ return {
 			-- Adjusts spacing to ensure icons are aligned
 			nerd_font_variant = "mono",
 		},
-
+		-- 开启签名帮助
+		signature = { enabled = true },
 		-- Default list of enabled providers defined so that you can extend it
 		-- elsewhere in your config, without redefining it, due to `opts_extend`
 		sources = {
 			default = { "lsp", "path", "snippets", "buffer" },
+			-- 禁用命令行补全
+			cmdline = {},
 		},
 	},
-	opts_extend = { "sources.default" },
 }

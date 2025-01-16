@@ -25,21 +25,21 @@
       "settings": {
         "vnext": [
           {
-            "address": "xuanyuanlove.top",  // 服务器地址
+            "address": "lovexy.top",  // 服务器地址
             "port": 443,  // 服务器端口
             "users": [
               {
-                "id": "126794fa-99da-4e81-8c23-e14a4d6f158e",  // 用户ID
+                "id": "59EECC97-F3DB-4BFE-99A8-0D0343109D11",  // 用户ID
                 "flow": "xtls-rprx-vision"  // 传输流量设置
               }
             ],
             "tls": {
-              "serverName": "xuanyuanlove.top",  // 服务器名称
+              "serverName": "lovexy.top",  // 服务器名称
               "allowInsecure": false,  // 不允许不安全的连接
               "alpn": ["http/1.1"],  // 支持的应用层协议
               "certificates": [
-                "/root/.acme.sh/xuanyuanlove.top_ecc/fullchain.cer",  // 证书路径
-                "/root/.acme.sh/xuanyuanlove.top_ecc/xuanyuanlove.top.key"  // 私钥路径
+                "/root/.acme.sh/lovexy.top_ecc/fullchain.cer",  // 证书路径
+                "/root/.acme.sh/lovexy.top_ecc/xuanyuanlove.top.key"  // 私钥路径
               ]
             }
           }
@@ -85,12 +85,12 @@
     "network": "tcp",
     "security": "tls",
     "tlsSettings": {
-      "serverName": "xuanyuanlove.top",
+      "serverName": "lovexy.top",
       "allowInsecure": false,
       "alpn": ["http/1.1"],
       "certificates": [
-        "/root/.acme.sh/xuanyuanlove.top_ecc/fullchain.cer",
-        "/root/.acme.sh/xuanyuanlove.top_ecc/xuanyuanlove.top.key"
+        "/root/.acme.sh/lovexy.top_ecc/fullchain.cer",
+        "/root/.acme.sh/lovexy.top_ecc/xuanyuanlove.top.key"
       ]
     }
   }
