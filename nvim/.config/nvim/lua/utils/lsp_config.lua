@@ -97,7 +97,7 @@ M.lspSetup = function()
     callback = function(args)
       local buf = args.buf
       setup_keymaps(buf)
-      setup_highlight_symbol(buf) -- 高亮关键字
+      -- setup_highlight_symbol(buf) -- 高亮关键字
       setup_codelens_refresh(buf) -- 刷新 CodeLens
     end,
   })
