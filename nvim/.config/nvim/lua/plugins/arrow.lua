@@ -7,7 +7,7 @@ return {
     -- or if using `mini.icons`
     -- { "echasnovski/mini.icons" },
   },
-  keys = { ";" },
+  keys = { ";", "m" },
   opts = {
     show_icons = true,
     leader_key = ';',        -- Recommended to be a single key

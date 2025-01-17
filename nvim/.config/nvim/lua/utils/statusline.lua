@@ -33,11 +33,10 @@ function Statusline.mode()
 end
 
 -- Git 仓库状态
--- 依赖lewis6991/gitsigns.nvim插件
 function Statusline.vcs()
   local git_info = vim.b.gitsigns_status_dict
   if not git_info or git_info.head == "" then
-    return "  N/A "
+    return "  No Git "
   end
   local parts = {}
   if git_info.added and git_info.added > 0 then
@@ -53,10 +52,11 @@ function Statusline.vcs()
   return " " .. table.concat(parts, " ") .. " "
 end
 
+-- 获取 LSP 客户端信息
 function Statusline.get_lsp_clients()
   local attached_clients = vim.lsp.get_clients({ bufnr = 0 })
   if #attached_clients == 0 then
-    return ""
+    return "No LSP"
   end
   local names = {}
   for _, client in ipairs(attached_clients) do
@@ -66,6 +66,7 @@ function Statusline.get_lsp_clients()
   return "[" .. table.concat(names, ", ") .. "]"
 end
 
+-- 获取 LSP 诊断信息
 function Statusline.get_lsp_diagnostics()
   local count = {
     errors = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR }),
@@ -89,6 +90,7 @@ function Statusline.get_lsp_diagnostics()
   return table.concat(parts, " ")
 end
 
+-- 获取 LSP 状态（客户端和诊断信息）
 function Statusline.lsp()
   local lsp_clients = Statusline.get_lsp_clients()
   local lsp_diagnostics = Statusline.get_lsp_diagnostics()
@@ -98,22 +100,21 @@ end
 -- 创建状态栏内容
 function Statusline.active()
   local mode_str = Statusline.mode()
-  local git_str = Statusline.vcs() -- 添加 Git 仓库状态
+  local git_str = Statusline.vcs() -- Git 状态
   local file_name = " %f"
-  local lsp_str = Statusline.lsp() -- 添加 LSP 状态
+  local lsp_str = Statusline.lsp() -- LSP 状态
   local line_col = " %l:%c"
   local file_percent = " %p%%"
 
   return table.concat({
     "%#Normal#",  -- 设置为默认文本颜色
-    -- "%#Statusline#",
     mode_str,     -- 显示模式
-    git_str,      -- 显示 Git 仓库状态
-    file_name,    -- 显示文件名
-    "%=",         -- 使用最大宽度
-    lsp_str,
-    "%=",         -- 使用最大宽度
-    line_col,     -- 当前行号和列号
+    git_str,      -- Git 状态
+    file_name,    -- 文件名
+    "%=",         -- 最大宽度
+    lsp_str,      -- LSP 状态
+    "%=",         -- 最大宽度
+    line_col,     -- 行列号
     file_percent, -- 文件百分比
   })
 end
