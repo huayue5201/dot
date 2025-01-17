@@ -71,16 +71,18 @@ end
 
 -- 设置关键字高亮
 local function setup_highlight_symbol(buf)
-  local group = vim.api.nvim_create_augroup("highlight_symbol", { clear = false })
-
+  local group_name = "highlight_symbol"
+  -- 检查是否已经创建过该自动命令组，如果没有则创建
+  local group = vim.api.nvim_create_augroup(group_name, { clear = false })
+  -- 清除已有的自动命令，避免重复
   vim.api.nvim_clear_autocmds({ buffer = buf, group = group })
-
+  -- 设置光标停留时高亮符号
   vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
     group = group,
     buffer = buf,
     callback = vim.lsp.buf.document_highlight,
   })
-
+  -- 设置光标移动时清除高亮
   vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
     group = group,
     buffer = buf,
@@ -112,7 +114,7 @@ M.lspSetup = function()
     callback = function(args)
       local buf = args.buf
       setup_keymaps(buf)          -- 设置缓冲区特定的按键映射
-      -- setup_highlight_symbol(buf) -- 高亮关键字
+      setup_highlight_symbol(buf) -- 高亮关键字
       setup_codelens_refresh(buf) -- 刷新 CodeLens
     end,
   })
