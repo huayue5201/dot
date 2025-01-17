@@ -144,3 +144,22 @@ vim.api.nvim_create_user_command("ToggleLoclist", function()
     vim.cmd("lopen")
   end
 end, { desc = "Toggle Location List" })
+
+vim.api.nvim_create_user_command("BufferDelete", function()
+  -- 检查当前文件是否存在
+  local file_exists = vim.fn.filereadable(vim.fn.expand("%p"))
+  -- 检查当前缓冲区是否被修改
+  local modified = vim.api.nvim_get_option_value("modified", { buf = 0 })
+  -- 如果文件不存在且缓冲区已修改，询问用户是否强制删除
+  if file_exists == 0 and modified then
+    local user_choice = vim.fn.input("The file is not saved, force delete? (y/n): ")
+    if user_choice == "y" or user_choice == "" then
+      vim.cmd("bd!")
+    end
+    return
+  end
+  -- 如果是未列出的缓冲区或临时缓冲区，强制删除
+  local force = not vim.bo.buflisted or vim.bo.buftype == "nofile"
+  -- 执行删除操作，保持简洁
+  vim.cmd(force and "bd!" or "bp | bd!")
+end, { desc = "Delete the current buffer while maintaining the window layout" })

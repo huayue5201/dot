@@ -1,3 +1,5 @@
+-- https://github.com/linrongbin16/fzfx.nvim
+
 return {
   "linrongbin16/fzfx.nvim",
   dependencies = { "nvim-tree/nvim-web-devicons" },
