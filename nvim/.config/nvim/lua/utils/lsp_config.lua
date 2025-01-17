@@ -72,21 +72,29 @@ end
 -- 设置关键字高亮
 local function setup_highlight_symbol(buf)
   local group_name = "highlight_symbol"
-  -- 检查是否已经创建过该自动命令组，如果没有则创建
+  -- 创建自动命令组
   local group = vim.api.nvim_create_augroup(group_name, { clear = false })
-  -- 清除已有的自动命令，避免重复
+  -- 清除已有的自动命令
   vim.api.nvim_clear_autocmds({ buffer = buf, group = group })
   -- 设置光标停留时高亮符号
   vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
     group = group,
     buffer = buf,
-    callback = vim.lsp.buf.document_highlight,
+    callback = function()
+      -- 直接调用 LSP 高亮，减少延迟提高响应速度
+      vim.defer_fn(function()
+        vim.lsp.buf.document_highlight()
+      end, 50) -- 将延迟减少至50ms，进一步优化性能
+    end,
   })
   -- 设置光标移动时清除高亮
   vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
     group = group,
     buffer = buf,
-    callback = vim.lsp.buf.clear_references,
+    callback = function()
+      -- 清除高亮，不再重复检查缓冲区
+      vim.lsp.buf.clear_references()
+    end,
   })
 end
 
