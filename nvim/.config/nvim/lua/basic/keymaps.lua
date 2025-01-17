@@ -14,7 +14,7 @@ vim.keymap.set("n", "c", '"_c')
 
 -- 更智能的dd删除
 vim.keymap.set("n", "dd", function()
-	return vim.fn.getline(".") == "" and '"_dd' or "dd"
+  return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true })
 
 -- 将绝对路径复制到剪贴板
@@ -33,7 +33,7 @@ vim.keymap.set("n", "crs", ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<left><left><left>
 vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { desc = "保存" })
 
 -- 终端映射
-vim.keymap.set("t", "<esc>", "<C-\\><C-n>", { noremap = true, silent = true })
+-- vim.keymap.set("t", "<esc>", "<C-\\><C-n>", { noremap = true, silent = true })
 
 -- tab操作
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<CR>", { desc = "创建选项卡" })
@@ -58,19 +58,19 @@ vim.keymap.set("n", "[l", "<cmd>lprev<cr>")
 
 -- snippet片段占位符跳转
 vim.keymap.set({ "i", "s" }, "<Tab>", function()
-	if vim.snippet.active({ direction = 1 }) then
-		return "<cmd>lua vim.snippet.jump(1)<cr>"
-	else
-		return "<Tab>"
-	end
+  if vim.snippet.active({ direction = 1 }) then
+    return "<cmd>lua vim.snippet.jump(1)<cr>"
+  else
+    return "<Tab>"
+  end
 end, { expr = true })
 
 vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
-	if vim.snippet.active({ direction = -1 }) then
-		return "<cmd>lua vim.snippet.jump(-1)<cr>"
-	else
-		return "<S-Tab>"
-	end
+  if vim.snippet.active({ direction = -1 }) then
+    return "<cmd>lua vim.snippet.jump(-1)<cr>"
+  else
+    return "<S-Tab>"
+  end
 end, { expr = true })
 
 -- 插入模式下TAB可以跳出()[]....
@@ -84,10 +84,10 @@ end, { expr = true })
 
 -- 自动关闭？/搜索匹配高亮
 vim.on_key(function(char)
-	if vim.fn.mode() == "n" then
-		local new_hlsearch = vim.tbl_contains({ "<CR>", "n", "N", "*", "#", "?", "/" }, vim.fn.keytrans(char))
-		if vim.opt.hlsearch:get() ~= new_hlsearch then
-			vim.opt.hlsearch = new_hlsearch
-		end
-	end
+  if vim.fn.mode() == "n" then
+    local new_hlsearch = vim.tbl_contains({ "<CR>", "n", "N", "*", "#", "?", "/" }, vim.fn.keytrans(char))
+    if vim.opt.hlsearch:get() ~= new_hlsearch then
+      vim.opt.hlsearch = new_hlsearch
+    end
+  end
 end, vim.api.nvim_create_namespace("auto_hlsearch"))

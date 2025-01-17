@@ -1,6 +1,44 @@
--- lua/user/lsp_config_optimized.lua
+-- lua/user/lsp_config.lua
 
 local M = {}
+
+-- 设置全局按键映射（仅初始化一次）
+local function setup_global_keymaps()
+  local mappings = {
+    { "n", "<leader>od", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" }, -- 打开当前缓冲区的诊断信息列表
+    { "n", "<leader>ds", "<cmd>lua vim.diagnostic.setqflist()<cr>", "打开快速修复列表" }, -- 打开快速修复列表
+    { "n", "<leader>cl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭LSP客户端" }, -- 停止所有LSP客户端
+    { "n", "<leader>wl", "<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>", "列出工作区文件夹" }, -- 列出工作区文件夹
+  }
+
+  -- 设置全局快捷键映射
+  for _, map in ipairs(mappings) do
+    -- 这些映射只需要初始化一次，可以放在 LspAttach 之前设置
+    vim.keymap.set(map[1], map[2], map[3], { noremap = true, silent = true, desc = map[4] })
+  end
+end
+
+-- 设置每个缓冲区的按键映射
+local function setup_keymaps(buf)
+  local mappings = {
+    -- LSP相关操作映射
+    { "n", "<leader>gd", "<cmd>lua vim.lsp.buf.definition()<cr>", "跳转到定义" }, -- 跳转到符号定义
+    { "n", "<leader>gr", "<cmd>lua vim.lsp.buf.references()<cr>", "跳转到引用" }, -- 跳转到符号引用
+    { "n", "<leader>gn", "<cmd>lua vim.lsp.buf.rename()<cr>", "重命名当前符号" }, -- 重命名符号
+    { "n", "<leader>ga", "<cmd>lua vim.lsp.buf.code_action()<cr>", "触发代码操作" }, -- 触发代码建议或修复
+    { "n", "<leader>gi", "<cmd>lua vim.lsp.buf.implementation()<cr>", "跳转到实现" }, -- 跳转到符号实现
+    { "n", "<leader>gO", "<cmd>lua vim.lsp.buf.document_symbol()<cr>", "查看文档符号" }, -- 查看文档符号列表
+    { "n", "<leader>grt", "<cmd>lua vim.lsp.buf.type_definition()<cr>", "跳转到类型定义" }, -- 跳转到类型定义
+    { "n", "<leader>k", "<cmd>lua vim.lsp.buf.signature_help()<cr>", "显示函数签名帮助" }, -- 显示函数签名帮助
+    { "n", "<leader>i", "<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>", "开启/关闭内联提示" }, -- 开启或关闭内联提示
+  }
+
+  -- 设置缓冲区的快捷键映射
+  for _, map in ipairs(mappings) do
+    -- 这些映射与缓冲区绑定，仅在 LSP 附加到缓冲区时设置
+    vim.keymap.set(map[1], map[2], map[3], { noremap = true, silent = true, buffer = buf, desc = map[4] })
+  end
+end
 
 -- 全局诊断配置（仅初始化一次）
 local function setup_global_diagnostics()
@@ -28,33 +66,7 @@ local function setup_global_diagnostics()
   })
 
   vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "single" })
-  vim.lsp.handlers["textDocument/signatureHelp"] =
-      vim.lsp.with(vim.lsp.handlers.signature_help, { border = "single" })
-end
-
--- 设置按键映射
-local function setup_keymaps(buf)
-  local mappings = {
-    { "n", "<leader>od", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
-    { "n", "grn", "<cmd>lua vim.lsp.buf.rename()<cr>", "重命名" },
-    { "n", "gra", "<cmd>lua vim.lsp.buf.code_action()<cr>", "代码建议" },
-    { "n", "grr", "<cmd>lua vim.lsp.buf.references()<cr>", "跳转到引用" },
-    { "n", "gri", "<cmd>lua vim.lsp.buf.implementation()<cr>", "跳转到实现" },
-    { "n", "gO", "<cmd>lua vim.lsp.buf.document_symbol()<cr>", "代码符号" },
-    { "n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>", "跳转到定义" },
-    { "n", "grd", "<cmd>lua vim.lsp.buf.declaration()<cr>", "跳转到声明" },
-    { "n", "grt", "<cmd>lua vim.lsp.buf.type_definition()<cr>", "跳转到类型定义" },
-    { "n", "<leader>k", "<cmd>lua vim.lsp.buf.signature_help()<cr>", "显示函数签名帮助" },
-    { "n", "<leader>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>", "添加工作区文件夹" },
-    { "n", "<leader>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>", "移除工作区文件夹" },
-    { "n", "<leader>wl", "<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>", "列出工作区文件夹" },
-    { "n", "<leader>d", "<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>", "打开/关闭诊断功能" },
-    { "n", "<leader>i", "<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>", "开启/关闭内联提示" },
-    { "n", "<leader>cl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭LSP客户端" },
-  }
-  for _, map in ipairs(mappings) do
-    vim.keymap.set(map[1], map[2], map[3], { noremap = true, silent = true, buffer = buf, desc = map[4] })
-  end
+  vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "single" })
 end
 
 -- 设置关键字高亮
@@ -92,11 +104,14 @@ end
 -- LSP 主设置函数
 M.lspSetup = function()
   setup_global_diagnostics() -- 全局诊断配置
+  setup_global_keymaps()     -- 设置全局按键映射
+
+  -- 创建 LspAttach 自动命令
   vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
     callback = function(args)
       local buf = args.buf
-      setup_keymaps(buf)
+      setup_keymaps(buf)          -- 设置缓冲区特定的按键映射
       -- setup_highlight_symbol(buf) -- 高亮关键字
       setup_codelens_refresh(buf) -- 刷新 CodeLens
     end,
