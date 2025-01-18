@@ -69,8 +69,13 @@ local function setup_global_diagnostics()
   vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "single" })
 end
 
--- 设置关键字高亮
 local function setup_highlight_symbol(buf)
+  -- 获取当前活动缓冲区
+  local current_buf = vim.api.nvim_get_current_buf()
+  -- 只有在当前缓冲区内才设置高亮功能
+  if buf ~= current_buf then
+    return
+  end
   local group_name = "highlight_symbol"
   -- 创建自动命令组
   local group = vim.api.nvim_create_augroup(group_name, { clear = false })
@@ -81,10 +86,10 @@ local function setup_highlight_symbol(buf)
     group = group,
     buffer = buf,
     callback = function()
-      -- 直接调用 LSP 高亮，减少延迟提高响应速度
+      -- 直接调用 LSP 的高亮功能
       vim.defer_fn(function()
         vim.lsp.buf.document_highlight()
-      end, 50) -- 将延迟减少至50ms，进一步优化性能
+      end, 50) -- 适当延迟减少性能消耗
     end,
   })
   -- 设置光标移动时清除高亮
@@ -92,7 +97,7 @@ local function setup_highlight_symbol(buf)
     group = group,
     buffer = buf,
     callback = function()
-      -- 清除高亮，不再重复检查缓冲区
+      -- 清除高亮
       vim.lsp.buf.clear_references()
     end,
   })
@@ -100,8 +105,11 @@ end
 
 -- 开启 CodeLens 刷新
 local function setup_codelens_refresh(buf)
-  local group = vim.api.nvim_create_augroup("codelens_refresh", { clear = false })
-
+  -- 确保 buf 是有效的
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return
+  end
+  local group = vim.api.nvim_create_augroup("codelens_refresh", { clear = true })
   vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
     group = group,
     buffer = buf,
