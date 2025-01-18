@@ -1,3 +1,16 @@
+-- Helper function to create augroups more efficiently
+local function create_augroup(name, events)
+  local group = vim.api.nvim_create_augroup(name, { clear = true })
+  for _, event in ipairs(events) do
+    vim.api.nvim_create_autocmd(event[1], {
+      group = group,
+      desc = event[2],
+      callback = event[3],
+    })
+  end
+end
+
+-- 清理尾部空白字符
 vim.api.nvim_create_autocmd("BufWritePre", {
   desc = "保存文件时移除末尾的空白字符",
   group = vim.api.nvim_create_augroup("cleanSpace", { clear = true }),
@@ -5,20 +18,21 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   command = "%s/\\s\\+$//e",
 })
 
-vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
-  desc = "特定buffer内禁用状态列",
-  callback = function()
+-- 禁用特定 buffer 中的状态列
+create_augroup("disableStatusColumn", {
+  { "FileType", "禁用特定buffer内的状态列", function()
     local special_filetypes = { "neo-tree", "aerial", "toggleterm", "qf", "help", "man" }
     if vim.tbl_contains(special_filetypes, vim.bo.filetype) then
       vim.wo.statuscolumn = ""
     end
-  end,
+  end }
 })
 
+-- 记住最后的光标位置
 vim.api.nvim_create_autocmd("BufReadPost", {
   desc = "记住最后的光标位置",
   group = vim.api.nvim_create_augroup("LastPlace", { clear = true }),
-  pattern = { "*" },
+  pattern = "*",
   callback = function()
     local mark = vim.api.nvim_buf_get_mark(0, '"')
     local lcount = vim.api.nvim_buf_line_count(0)
@@ -28,6 +42,7 @@ vim.api.nvim_create_autocmd("BufReadPost", {
   end,
 })
 
+-- 禁止换行时延续注释符号
 vim.api.nvim_create_autocmd("FileType", {
   desc = "换行不要延续注释符号",
   pattern = "*",
@@ -36,70 +51,73 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
-vim.api.nvim_create_autocmd("FileType", {
-  desc = "用q关闭窗口",
-  pattern = { "help", "startuptime", "qf", "lspinfo", "checkhealth" },
-  command = "nnoremap <buffer><silent> q :close<CR>",
-})
-vim.api.nvim_create_autocmd("FileType", {
-  desc = "用q关闭man窗口",
-  pattern = "man",
-  command = "nnoremap <buffer><silent> q :quit<CR>",
+-- 在特定文件类型中用 q 关闭窗口
+create_augroup("closeWithQ", {
+  { "FileType", "用q关闭窗口", function()
+    local filetypes = { "help", "startuptime", "qf", "lspinfo", "checkhealth" }
+    if vim.tbl_contains(filetypes, vim.bo.filetype) then
+      vim.api.nvim_buf_set_keymap(0, "n", "q", ":close<CR>", { noremap = true, silent = true })
+    end
+  end },
+  { "FileType", "用q关闭man窗口", function()
+    if vim.bo.filetype == "man" then
+      vim.api.nvim_buf_set_keymap(0, "n", "q", ":quit<CR>", { noremap = true, silent = true })
+    end
+  end }
 })
 
-local cursorLineGroup = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true })
+-- 仅在活动窗口显示光标线
 vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
   desc = "仅在活动窗口显示光标线",
-  group = cursorLineGroup,
   pattern = "*",
   command = "set cursorline",
+  group = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true })
 })
 vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
   desc = "仅在活动窗口显示光标线",
-  group = cursorLineGroup,
   pattern = "*",
   command = "set nocursorline",
+  group = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true })
 })
 
-vim.api.nvim_create_autocmd({ "TextYankPost" }, {
+-- 高亮文本复制
+vim.api.nvim_create_autocmd("TextYankPost", {
   group = vim.api.nvim_create_augroup("YankHighlightRestoreCursor", { clear = true }),
   pattern = "*",
   callback = function()
-    -- 保存光标位置
     local cursor = vim.api.nvim_win_get_cursor(0)
-    -- 高亮复制文本（限制为小文本）
     if #vim.v.event.regcontents <= 100 then
       vim.highlight.on_yank()
     end
-    -- 如果是复制操作，延迟恢复光标位置
     if vim.v.event.operator == "y" then
-      vim.defer_fn(function()
-        vim.api.nvim_win_set_cursor(0, cursor)
-      end, 10)
+      vim.defer_fn(function() vim.api.nvim_win_set_cursor(0, cursor) end, 10)
     end
   end,
 })
 
-vim.api.nvim_create_autocmd({ "CursorHold", "FileType" }, {
-  desc = "Force commentstring to include spaces",
-  group = vim.api.nvim_create_augroup("commentstring_spaces", { clear = true }),
-  callback = function(args)
+-- 强制注释符号包括空格
+create_augroup("commentstring_spaces", {
+  { "CursorHold", "确保注释符号后有空格", function(args)
     local cs = vim.bo[args.buf].commentstring
     vim.bo[args.buf].commentstring = cs:gsub("(%S)%%s", "%1 %%s"):gsub("%%s(%S)", "%%s %1")
-  end,
+  end },
+  { "FileType", "强制设置注释符号格式", function()
+    -- 在特定文件类型中强制注释格式（可以扩展）
+    local cs = vim.bo.commentstring
+    vim.bo.commentstring = cs:gsub("(%S)%%s", "%1 %%s"):gsub("%%s(%S)", "%%s %1")
+  end }
 })
 
+-- 支持从 SSH 复制内容到本地剪贴板
 vim.api.nvim_create_autocmd("TermRequest", {
   desc = "支持从 SSH 复制内容到本地剪贴板",
   callback = function(args)
     local data = args.data:match("\027]52;c;(.+)")
     if not data then return end
-    -- 构造 OSC 52 序列
     local osc52 = string.format("\27]52;c;%s\7", data)
     if os.getenv("TMUX") or os.getenv("TERM"):match("^tmux") or os.getenv("TERM"):match("^screen") then
       osc52 = string.format("\27Ptmux;\27%s\27\\", osc52)
     end
-    -- 写入剪贴板
     if vim.loop.fs_stat("/dev/fd/2") then
       vim.fn.writefile({ osc52 }, "/dev/fd/2", "b")
     else
@@ -108,15 +126,17 @@ vim.api.nvim_create_autocmd("TermRequest", {
   end,
 })
 
+-- Toggle Quickfix 和 Location List
 vim.api.nvim_create_user_command("ToggleQuickfix", function()
-  local windows = vim.fn.getwininfo()
+  -- 检查是否有 Quickfix 窗口
   local quickfixOpen = false
-  for _, win in ipairs(windows) do
+  for _, win in ipairs(vim.fn.getwininfo()) do
     if win.quickfix == 1 then
       quickfixOpen = true
       break
     end
   end
+
   if quickfixOpen then
     vim.cmd("cclose")
   else
@@ -125,26 +145,29 @@ vim.api.nvim_create_user_command("ToggleQuickfix", function()
 end, { desc = "Toggle Quickfix window" })
 
 vim.api.nvim_create_user_command("ToggleLoclist", function()
-  local locationList = vim.fn.getloclist(0)
-  if #locationList == 0 then
-    vim.api.nvim_err_write("当前没有loclist窗口\n")
-    return
-  end
-  local windows = vim.fn.getwininfo()
+  -- 检查是否有 Location List 窗口
   local locationListOpen = false
-  for _, win in ipairs(windows) do
+  for _, win in ipairs(vim.fn.getwininfo()) do
     if win.loclist == 1 then
       locationListOpen = true
       break
     end
   end
+  -- 如果有 Location List 窗口，则切换打开或关闭
   if locationListOpen then
     vim.cmd("lclose")
   else
-    vim.cmd("lopen")
+    -- 如果没有 Location List, 提示用户没有内容
+    local locationList = vim.fn.getloclist(0)
+    if #locationList == 0 then
+      vim.api.nvim_err_write("当前没有 loclist 可用\n")
+    else
+      vim.cmd("lopen")
+    end
   end
 end, { desc = "Toggle Location List" })
 
+-- 删除当前缓冲区，同时保持窗口布局
 vim.api.nvim_create_user_command("BufferDelete", function()
   local file_exists = vim.fn.filereadable(vim.fn.expand("%p"))
   local modified = vim.api.nvim_get_option_value("modified", { buf = 0 })
@@ -158,3 +181,27 @@ vim.api.nvim_create_user_command("BufferDelete", function()
   local force = not vim.bo.buflisted or vim.bo.buftype == "nofile"
   vim.cmd(force and "bd!" or "bp | bd!")
 end, { desc = "Delete the current buffer while maintaining the window layout" })
+
+-- 自动命令: 进入插入模式时清除搜索高亮
+create_augroup("ibhagwan/ToggleSearchHL", {
+  { "InsertEnter", "进入插入模式时清除搜索高亮", function() vim.cmd("nohlsearch") end },
+  { "CursorMoved", "光标移动时更新搜索高亮", function()
+    local view, rpos = vim.fn.winsaveview(), vim.fn.getpos(".")
+    vim.cmd(string.format("silent! keepjumps go%s",
+      (vim.fn.line2byte(view.lnum) + view.col + 1 - (vim.v.searchforward == 1 and 2 or 0))))
+    local ok, _ = pcall(function()
+      if vim.fn.search(vim.fn.getreg("/"), "W") == 0 then
+        return false
+      end
+      return true
+    end)
+    local insearch = ok and (function()
+      local npos = vim.fn.getpos(".")
+      return npos[2] == rpos[2] and npos[3] == rpos[3]
+    end)()
+    vim.fn.winrestview(view)
+    if not insearch then
+      vim.schedule(function() vim.cmd("nohlsearch") end)
+    end
+  end }
+})
