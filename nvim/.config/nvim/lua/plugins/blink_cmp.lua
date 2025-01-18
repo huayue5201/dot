@@ -16,11 +16,27 @@ return {
   ---@module 'blink.cmp'
   ---@type blink.cmp.Config
   opts = {
+    completion = {
+      menu = {
+        draw = {
+          columns = { { "kind_icon" }, { "label", "label_description", gap = 1 }, { "kind" } },
+          -- 启用treesitter菜单文本高亮功能
+          treesitter = { 'lsp' }
+        }
+      },
+      -- 自动弹出文档
+      documentation = {
+        auto_show = true,
+        auto_show_delay_ms = 500,
+      }
+    },
+
     -- 'default' for mappings similar to built-in completion
     -- 'super-tab' for mappings similar to vscode (tab to accept, arrow keys to navigate)
     -- 'enter' for mappings similar to 'super-tab' but with 'enter' to accept
     -- See the full "keymap" documentation for information on defining your own keymap.
     keymap = {
+      preset = 'default',
       ["<CR>"] = { "accept", "fallback" },
     },
 
