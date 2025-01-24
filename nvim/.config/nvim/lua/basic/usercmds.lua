@@ -21,9 +21,9 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 -- 禁用特定 buffer 中的状态列
 create_augroup("disableStatusColumn", {
   { "FileType", "禁用特定buffer内的状态列", function()
-    local special_filetypes = { "neo-tree", "aerial", "toggleterm", "qf", "help", "man" }
+    local special_filetypes = { "aerial", "qf", "help", "man" }
     if vim.tbl_contains(special_filetypes, vim.bo.filetype) then
-      vim.wo.statuscolumn = ""
+      vim.wo.statuscolumn = " "
     end
   end }
 })
@@ -167,20 +167,20 @@ vim.api.nvim_create_user_command("ToggleLoclist", function()
   end
 end, { desc = "Toggle Location List" })
 
--- 删除当前缓冲区，同时保持窗口布局
 vim.api.nvim_create_user_command("BufferDelete", function()
+  ---@diagnostic disable-next-line: missing-parameter
   local file_exists = vim.fn.filereadable(vim.fn.expand("%p"))
-  local modified = vim.api.nvim_get_option_value("modified", { buf = 0 })
+  local modified = vim.api.nvim_buf_get_option(0, "modified")
   if file_exists == 0 and modified then
-    local user_choice = vim.fn.input("The file is not saved, force delete? (y/n): ")
-    if user_choice == "y" or user_choice == "" then
+    local user_choice = vim.fn.input("The file is not saved, whether to force delete? Press enter or input [y/n]:")
+    if user_choice == "y" or string.len(user_choice) == 0 then
       vim.cmd("bd!")
     end
     return
   end
   local force = not vim.bo.buflisted or vim.bo.buftype == "nofile"
-  vim.cmd(force and "bd!" or "bp | bd!")
-end, { desc = "Delete the current buffer while maintaining the window layout" })
+  vim.cmd(force and "bd!" or string.format("bp | bd! %s", vim.api.nvim_get_current_buf()))
+end, { desc = "Delete the current Buffer while maintaining the window layout" })
 
 -- 自动命令: 进入插入模式时清除搜索高亮
 create_augroup("ibhagwan/ToggleSearchHL", {

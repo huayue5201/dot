@@ -8,11 +8,10 @@ brew install stow # dotfile管理
 cd ~/dotfile
 stow git
 stow nvim
-stow alacritty
+stow ghostty
 stow btop
 stow tmux
 stow aria2
-stow gitui
 brew install git
 brew install difftastic # git diff语义增强
 brew install lazygit # git管理GUI
@@ -45,7 +44,7 @@ brew tap beeftornado/rmtre # 删除包及其依赖 brew rmtre [packge neme]
 
 # cask
 brew install orbstack # docker和linux虚拟机
-brew install alacritty # 终端
+brew install --cask ghostty
 brew tap homebrew/cask-fonts # fonts字体安装
 brew install --cask font-fira-code-nerd-font
 brew install --cask font-victor-mono-nerd-font
