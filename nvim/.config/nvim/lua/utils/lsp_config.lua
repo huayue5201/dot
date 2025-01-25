@@ -140,7 +140,7 @@ M.lspSetup = function()
     group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
     callback = function(args)
       local buf = args.buf
-      local client = vim.lsp.get_client_by_id(args.data.client_id)
+      -- local client = vim.lsp.get_client_by_id(args.data.client_id)
       setup_keymaps(buf)          -- 设置缓冲区特定的按键映射
       setup_highlight_symbol(buf) -- 高亮关键字
       setup_codelens_refresh(buf) -- 刷新 CodeLens
