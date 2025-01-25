@@ -119,6 +119,17 @@ local function setup_codelens_refresh(buf)
   })
 end
 
+-- 设置折叠功能
+local function setup_folding(buf, client)
+  if client and client.supports_method('textDocument/foldingRange') then
+    local win_id = vim.fn.bufwinid(buf)
+    if win_id ~= -1 then
+      vim.api.nvim_set_option_value('foldmethod', 'expr', { win = win_id })
+      vim.api.nvim_set_option_value('foldexpr', 'v:lua.vim.lsp.foldexpr()', { win = win_id })
+    end
+  end
+end
+
 -- LSP 主设置函数
 M.lspSetup = function()
   setup_global_diagnostics() -- 全局诊断配置
@@ -129,9 +140,11 @@ M.lspSetup = function()
     group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
     callback = function(args)
       local buf = args.buf
+      local client = vim.lsp.get_client_by_id(args.data.client_id)
       setup_keymaps(buf)          -- 设置缓冲区特定的按键映射
       setup_highlight_symbol(buf) -- 高亮关键字
       setup_codelens_refresh(buf) -- 刷新 CodeLens
+      -- setup_folding(buf, client)  -- 设置折叠功能
     end,
   })
 end
