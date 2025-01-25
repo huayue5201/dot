@@ -170,7 +170,7 @@ end, { desc = "Toggle Location List" })
 vim.api.nvim_create_user_command("BufferDelete", function()
   ---@diagnostic disable-next-line: missing-parameter
   local file_exists = vim.fn.filereadable(vim.fn.expand("%p"))
-  local modified = vim.api.nvim_buf_get_option(0, "modified")
+  local modified = vim.api.nvim_get_option_value("modified", { scope = "local", buf = 0 })
   if file_exists == 0 and modified then
     local user_choice = vim.fn.input("The file is not saved, whether to force delete? Press enter or input [y/n]:")
     if user_choice == "y" or string.len(user_choice) == 0 then
