@@ -30,6 +30,7 @@ brew install xray # 作为后台启动:brew services start xray
 brew install llvm
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # 安装rust
 brew install lsusb # usb设备查看工具
+brew install stylua # lua格式化工具
 
 # mcu 开发环境
 brew install --cask gcc-arm-embedded #gcc交叉编译工具
