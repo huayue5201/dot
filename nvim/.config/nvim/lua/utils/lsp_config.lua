@@ -135,7 +135,7 @@ local function setup_codelens_refresh(buf)
 end
 
 -- 设置折叠功能
-local function setup_folding(buf, client)
+local function setup_folding(buf, _)
 	local supported_methods = get_supported_lsp_methods(buf)
 	if supported_methods.foldingRange then
 		local win_id = vim.fn.bufwinid(buf)
