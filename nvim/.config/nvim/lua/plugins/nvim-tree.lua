@@ -7,7 +7,7 @@ return {
 		-- or if using `mini.icons`
 		-- { "echasnovski/mini.icons" },
 	},
-	keys = { "<leader>oe", desc = "文件树" },
+	keys = { "<leader>e", desc = "文件树" },
 	config = function()
 		-- OR setup with some options
 		require("nvim-tree").setup({
@@ -63,6 +63,6 @@ return {
 			nested = true,
 		})
 
-		vim.keymap.set("n", "<leader>oe", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })
+		vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })
 	end,
 }
