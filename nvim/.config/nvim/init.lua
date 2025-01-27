@@ -10,6 +10,7 @@ local modules = {
 	"basic.usercmds", -- 自动命令
 	"basic.lazy", -- 插件管理
 	"utils.statusline", -- 自定义状态栏
+	-- "lsp.clangd",
 }
 
 -- 加载模块
