@@ -8,6 +8,7 @@ local function create_augroup(name, events)
 			callback = event[3],
 		})
 	end
+	return group
 end
 
 -- 清理尾部空白字符
@@ -85,6 +86,7 @@ vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
 	command = "set cursorline",
 	group = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true }),
 })
+
 vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
 	desc = "仅在活动窗口显示光标线",
 	pattern = "*",
@@ -112,20 +114,19 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 -- 强制注释符号包括空格
 create_augroup("commentstring_spaces", {
 	{
+		"FileType",
+		"强制设置注释符号格式",
+		function()
+			local cs = vim.bo.commentstring
+			vim.bo.commentstring = cs:gsub("(%S)%s", "%1 %%s")
+		end,
+	},
+	{
 		"CursorHold",
 		"确保注释符号后有空格",
 		function(args)
 			local cs = vim.bo[args.buf].commentstring
-			vim.bo[args.buf].commentstring = cs:gsub("(%S)%%s", "%1 %%s"):gsub("%%s(%S)", "%%s %1")
-		end,
-	},
-	{
-		"FileType",
-		"强制设置注释符号格式",
-		function()
-			-- 在特定文件类型中强制注释格式（可以扩展）
-			local cs = vim.bo.commentstring
-			vim.bo.commentstring = cs:gsub("(%S)%%s", "%1 %%s"):gsub("%%s(%S)", "%%s %1")
+			vim.bo[args.buf].commentstring = cs:gsub("(%S)%s", "%1 %%s")
 		end,
 	},
 })
@@ -152,7 +153,6 @@ vim.api.nvim_create_autocmd("TermRequest", {
 
 -- Toggle Quickfix 和 Location List
 vim.api.nvim_create_user_command("ToggleQuickfix", function()
-	-- 检查是否有 Quickfix 窗口
 	local quickfixOpen = false
 	for _, win in ipairs(vim.fn.getwininfo()) do
 		if win.quickfix == 1 then
@@ -169,7 +169,6 @@ vim.api.nvim_create_user_command("ToggleQuickfix", function()
 end, { desc = "Toggle Quickfix window" })
 
 vim.api.nvim_create_user_command("ToggleLoclist", function()
-	-- 检查是否有 Location List 窗口
 	local locationListOpen = false
 	for _, win in ipairs(vim.fn.getwininfo()) do
 		if win.loclist == 1 then
@@ -177,14 +176,12 @@ vim.api.nvim_create_user_command("ToggleLoclist", function()
 			break
 		end
 	end
-	-- 如果有 Location List 窗口，则切换打开或关闭
 	if locationListOpen then
 		vim.cmd("lclose")
 	else
-		-- 如果没有 Location List, 提示用户没有内容
 		local locationList = vim.fn.getloclist(0)
 		if #locationList == 0 then
-			vim.api.nvim_err_write("当前没有 loclist 可用\n")
+			vim.notify("当前没有 loclist 可用", vim.log.levels.WARN)
 		else
 			vim.cmd("lopen")
 		end
@@ -192,19 +189,18 @@ vim.api.nvim_create_user_command("ToggleLoclist", function()
 end, { desc = "Toggle Location List" })
 
 vim.api.nvim_create_user_command("BufferDelete", function()
-	---@diagnostic disable-next-line: missing-parameter
 	local file_exists = vim.fn.filereadable(vim.fn.expand("%p"))
 	local modified = vim.api.nvim_get_option_value("modified", { scope = "local", buf = 0 })
 	if file_exists == 0 and modified then
-		local user_choice = vim.fn.input("The file is not saved, whether to force delete? Press enter or input [y/n]:")
-		if user_choice == "y" or string.len(user_choice) == 0 then
+		local user_choice = vim.fn.input("The file is not saved, force delete? (y/n): ")
+		if user_choice == "y" or user_choice == "" then
 			vim.cmd("bd!")
 		end
-		return
+	else
+		local force = not vim.bo.buflisted or vim.bo.buftype == "nofile"
+		vim.cmd(force and "bd!" or "bp | bd! %s", vim.api.nvim_get_current_buf())
 	end
-	local force = not vim.bo.buflisted or vim.bo.buftype == "nofile"
-	vim.cmd(force and "bd!" or string.format("bp | bd! %s", vim.api.nvim_get_current_buf()))
-end, { desc = "Delete the current Buffer while maintaining the window layout" })
+end, { desc = "Delete the current buffer while maintaining the window layout" })
 
 -- 自动命令: 进入插入模式时清除搜索高亮
 create_augroup("ibhagwan/ToggleSearchHL", {
@@ -219,34 +215,16 @@ create_augroup("ibhagwan/ToggleSearchHL", {
 		"CursorMoved",
 		"光标移动时更新搜索高亮",
 		function()
-			local view, rpos = vim.fn.winsaveview(), vim.fn.getpos(".")
-			vim.cmd(
-				string.format(
-					"silent! keepjumps go%s",
-					(vim.fn.line2byte(view.lnum) + view.col + 1 - (vim.v.searchforward == 1 and 2 or 0))
-				)
-			)
-			local ok, _ = pcall(function()
-				if vim.fn.search(vim.fn.getreg("/"), "W") == 0 then
-					return false
-				end
-				return true
-			end)
-			local insearch = ok
-				and (function()
-					local npos = vim.fn.getpos(".")
-					return npos[2] == rpos[2] and npos[3] == rpos[3]
-				end)()
-			vim.fn.winrestview(view)
-			if not insearch then
-				vim.schedule(function()
-					vim.cmd("nohlsearch")
-				end)
+			if vim.fn.search(vim.fn.getreg("/"), "W") ~= 0 then
+				vim.highlight.on_yank()
+			else
+				vim.cmd("nohlsearch")
 			end
 		end,
 	},
 })
 
+-- 查看 vim 信息
 vim.api.nvim_create_user_command("Messages", function()
 	local scratch_buffer = vim.api.nvim_create_buf(false, true)
 	vim.bo[scratch_buffer].filetype = "vim"
