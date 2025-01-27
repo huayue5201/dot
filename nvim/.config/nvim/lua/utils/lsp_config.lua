@@ -26,15 +26,6 @@ end
 -- 设置每个缓冲区的按键映射
 local function setup_keymaps(buf)
 	local mappings = {
-		-- LSP相关操作映射
-		{ "n", "<leader>gd", "<cmd>lua vim.lsp.buf.definition()<cr>", "跳转到定义" }, -- 跳转到符号定义
-		{ "n", "<leader>gr", "<cmd>lua vim.lsp.buf.references()<cr>", "跳转到引用" }, -- 跳转到符号引用
-		{ "n", "<leader>gn", "<cmd>lua vim.lsp.buf.rename()<cr>", "重命名当前符号" }, -- 重命名符号
-		{ "n", "<leader>ga", "<cmd>lua vim.lsp.buf.code_action()<cr>", "触发代码操作" }, -- 触发代码建议或修复
-		{ "n", "<leader>gi", "<cmd>lua vim.lsp.buf.implementation()<cr>", "跳转到实现" }, -- 跳转到符号实现
-		{ "n", "<leader>gO", "<cmd>lua vim.lsp.buf.document_symbol()<cr>", "查看文档符号" }, -- 查看文档符号列表
-		{ "n", "<leader>grt", "<cmd>lua vim.lsp.buf.type_definition()<cr>", "跳转到类型定义" }, -- 跳转到类型定义
-		{ "n", "<leader>k", "<cmd>lua vim.lsp.buf.signature_help()<cr>", "显示函数签名帮助" }, -- 显示函数签名帮助
 		{
 			"n",
 			"<leader>i",
@@ -42,7 +33,6 @@ local function setup_keymaps(buf)
 			"开启/关闭内联提示",
 		}, -- 开启或关闭内联提示
 	}
-
 	-- 设置缓冲区的快捷键映射
 	for _, map in ipairs(mappings) do
 		-- 这些映射与缓冲区绑定，仅在 LSP 附加到缓冲区时设置
@@ -87,29 +77,52 @@ local function setup_highlight_symbol(buf)
 	if buf ~= current_buf then
 		return
 	end
+
 	local group_name = "highlight_symbol"
 	-- 创建自动命令组
 	local group = vim.api.nvim_create_augroup(group_name, { clear = false })
 	-- 清除已有的自动命令
 	vim.api.nvim_clear_autocmds({ buffer = buf, group = group })
+
 	-- 设置光标停留时高亮符号
 	vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
 		group = group,
 		buffer = buf,
 		callback = function()
-			-- 直接调用 LSP 的高亮功能
-			vim.defer_fn(function()
-				vim.lsp.buf.document_highlight()
-			end, 50) -- 适当延迟减少性能消耗
+			-- 直接调用 LSP 的高亮功能，前提是 LSP 支持该功能
+			local clients = vim.lsp.get_clients({ bufnr = buf })
+			for _, client in ipairs(clients) do
+				if client:supports_method("textDocument/documentHighlight") then
+					vim.defer_fn(function()
+						local success, err = pcall(vim.lsp.buf.document_highlight)
+						if not success then
+							-- 如果调用失败，打印错误信息
+							print("LSP document_highlight error: " .. err)
+						end
+					end, 50) -- 适当延迟减少性能消耗
+					return
+				end
+			end
 		end,
 	})
+
 	-- 设置光标移动时清除高亮
 	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
 		group = group,
 		buffer = buf,
 		callback = function()
-			-- 清除高亮
-			vim.lsp.buf.clear_references()
+			-- 清除高亮，前提是 LSP 支持该功能
+			local clients = vim.lsp.get_clients({ bufnr = buf })
+			for _, client in ipairs(clients) do
+				if client:supports_method("textDocument/documentHighlight") then
+					local success, err = pcall(vim.lsp.buf.clear_references)
+					if not success then
+						-- 如果调用失败，打印错误信息
+						print("LSP clear_references error: " .. err)
+					end
+					return
+				end
+			end
 		end,
 	})
 end
@@ -151,11 +164,11 @@ M.lspSetup = function()
 		group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
 		callback = function(args)
 			local buf = args.buf
-			-- local client = vim.lsp.get_client_by_id(args.data.client_id)
+			local client = vim.lsp.get_client_by_id(args.data.client_id)
 			setup_keymaps(buf) -- 设置缓冲区特定的按键映射
-			-- setup_highlight_symbol(buf) -- 高亮关键字
+			setup_highlight_symbol(buf) -- 高亮关键字
 			setup_codelens_refresh(buf) -- 刷新 CodeLens
-			-- setup_folding(buf, client)  -- 设置折叠功能
+			setup_folding(buf, client) -- 设置折叠功能
 		end,
 	})
 end
