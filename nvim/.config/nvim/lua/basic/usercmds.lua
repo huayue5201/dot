@@ -56,6 +56,17 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
+vim.api.nvim_create_autocmd("TextYankPost", {
+	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
+	pattern = "*",
+	callback = function()
+		-- 只有当复制内容小于100个字符时才进行高亮
+		if #vim.v.event.regcontents <= 1000 then
+			vim.highlight.on_yank()
+		end
+	end,
+})
+
 -- 在特定文件类型中用 q 关闭窗口
 create_augroup("closeWithQ", {
 	{
@@ -92,23 +103,6 @@ vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
 	pattern = "*",
 	command = "set nocursorline",
 	group = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true }),
-})
-
--- 高亮文本复制
-vim.api.nvim_create_autocmd("TextYankPost", {
-	group = vim.api.nvim_create_augroup("YankHighlightRestoreCursor", { clear = true }),
-	pattern = "*",
-	callback = function()
-		local cursor = vim.api.nvim_win_get_cursor(0)
-		if #vim.v.event.regcontents <= 100 then
-			vim.highlight.on_yank()
-		end
-		if vim.v.event.operator == "y" then
-			vim.defer_fn(function()
-				vim.api.nvim_win_set_cursor(0, cursor)
-			end, 10)
-		end
-	end,
 })
 
 -- 强制注释符号包括空格
@@ -160,7 +154,6 @@ vim.api.nvim_create_user_command("ToggleQuickfix", function()
 			break
 		end
 	end
-
 	if quickfixOpen then
 		vim.cmd("cclose")
 	else
@@ -201,28 +194,6 @@ vim.api.nvim_create_user_command("BufferDelete", function()
 		vim.cmd(force and "bd!" or "bp | bd! %s", vim.api.nvim_get_current_buf())
 	end
 end, { desc = "Delete the current buffer while maintaining the window layout" })
-
--- 自动命令: 进入插入模式时清除搜索高亮
-create_augroup("ibhagwan/ToggleSearchHL", {
-	{
-		"InsertEnter",
-		"进入插入模式时清除搜索高亮",
-		function()
-			vim.cmd("nohlsearch")
-		end,
-	},
-	{
-		"CursorMoved",
-		"光标移动时更新搜索高亮",
-		function()
-			if vim.fn.search(vim.fn.getreg("/"), "W") ~= 0 then
-				vim.highlight.on_yank()
-			else
-				vim.cmd("nohlsearch")
-			end
-		end,
-	},
-})
 
 -- 查看 vim 信息
 vim.api.nvim_create_user_command("Messages", function()
