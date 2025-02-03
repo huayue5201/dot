@@ -1,5 +1,5 @@
 -- 设置前置按键
-vim.g.mapleader = vim.keycode("<Space>")
+vim.g.mapleader = vim.keycode("<space>")
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
 -- 代码块移动
@@ -14,7 +14,7 @@ vim.keymap.set("n", "c", '"_c')
 
 -- 更智能的dd删除
 vim.keymap.set("n", "dd", function()
-  return vim.fn.getline(".") == "" and '"_dd' or "dd"
+	return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true })
 
 -- 将绝对路径复制到剪贴板
@@ -41,7 +41,7 @@ vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<CR>", { desc = "关闭选项卡
 vim.keymap.set("n", "<leader>to", "<cmd>tabonly<CR>", { desc = "仅保留当前标签页打开" })
 -- vim.keymap.set("n", "<TAB>", "<cmd>bn<CR>", { desc = "切换buffer" })
 -- vim.keymap.set("n", "<S-TAB>", "<cmd>bp<CR>", { desc = "切换buffer" })
-vim.keymap.set("n", "<c-q>", "<cmd>BufferDelete<cr>", { desc = "删除buffer" })
+-- vim.keymap.set("n", "<c-q>", "<cmd>BufferDelete<cr>", { desc = "删除buffer" })%s
 
 -- 删除标记
 vim.keymap.set("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
@@ -58,19 +58,19 @@ vim.keymap.set("n", "[l", "<cmd>lprev<cr>")
 
 -- snippet片段占位符跳转
 vim.keymap.set({ "i", "s" }, "<Tab>", function()
-  if vim.snippet.active({ direction = 1 }) then
-    return "<cmd>lua vim.snippet.jump(1)<cr>"
-  else
-    return "<Tab>"
-  end
+	if vim.snippet.active({ direction = 1 }) then
+		return "<cmd>lua vim.snippet.jump(1)<cr>"
+	else
+		return "<Tab>"
+	end
 end, { expr = true })
 
 vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
-  if vim.snippet.active({ direction = -1 }) then
-    return "<cmd>lua vim.snippet.jump(-1)<cr>"
-  else
-    return "<S-Tab>"
-  end
+	if vim.snippet.active({ direction = -1 }) then
+		return "<cmd>lua vim.snippet.jump(-1)<cr>"
+	else
+		return "<S-Tab>"
+	end
 end, { expr = true })
 
 -- 插入模式下TAB可以跳出()[]....

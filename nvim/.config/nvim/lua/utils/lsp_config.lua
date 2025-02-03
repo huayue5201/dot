@@ -86,17 +86,13 @@ local function setup_highlight_symbol(buf)
 		group = group,
 		buffer = buf,
 		callback = function()
-			local clients = vim.lsp.get_clients({ bufnr = buf })
-			for _, client in ipairs(clients) do
-				if client:supports_method("textDocument/documentHighlight") then
-					vim.defer_fn(function()
-						local success, err = pcall(vim.lsp.buf.document_highlight)
-						if not success then
-							print("LSP document_highlight error: " .. err)
-						end
-					end, 50)
-					return
-				end
+			if supported_methods.documentHighlight then
+				vim.defer_fn(function()
+					local success, err = pcall(vim.lsp.buf.document_highlight)
+					if not success then
+						print("LSP document_highlight error: " .. err)
+					end
+				end, 50)
 			end
 		end,
 	})
@@ -105,31 +101,14 @@ local function setup_highlight_symbol(buf)
 		group = group,
 		buffer = buf,
 		callback = function()
-			local clients = vim.lsp.get_clients({ bufnr = buf })
-			for _, client in ipairs(clients) do
-				if client:supports_method("textDocument/documentHighlight") then
+			if supported_methods.documentHighlight then
+				vim.defer_fn(function()
 					local success, err = pcall(vim.lsp.buf.clear_references)
 					if not success then
 						print("LSP clear_references error: " .. err)
 					end
-					return
-				end
+				end, 50)
 			end
-		end,
-	})
-end
-
--- 设置 CodeLens 刷新
-local function setup_codelens_refresh(buf)
-	if not vim.api.nvim_buf_is_valid(buf) then
-		return
-	end
-	local group = vim.api.nvim_create_augroup("codelens_refresh", { clear = true })
-	vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
-		group = group,
-		buffer = buf,
-		callback = function()
-			vim.lsp.codelens.refresh({ bufnr = buf })
 		end,
 	})
 end
@@ -159,7 +138,6 @@ M.lspSetup = function()
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
 			setup_keymaps(buf)
 			setup_highlight_symbol(buf)
-			setup_codelens_refresh(buf)
 			setup_folding(buf, client)
 		end,
 	})
