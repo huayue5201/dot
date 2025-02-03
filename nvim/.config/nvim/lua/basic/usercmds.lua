@@ -125,26 +125,6 @@ create_augroup("commentstring_spaces", {
 	},
 })
 
--- 支持从 SSH 复制内容到本地剪贴板
-vim.api.nvim_create_autocmd("TermRequest", {
-	desc = "支持从 SSH 复制内容到本地剪贴板",
-	callback = function(args)
-		local data = args.data:match("\027]52;c;(.+)")
-		if not data then
-			return
-		end
-		local osc52 = string.format("\27]52;c;%s\7", data)
-		if os.getenv("TMUX") or os.getenv("TERM"):match("^tmux") or os.getenv("TERM"):match("^screen") then
-			osc52 = string.format("\27Ptmux;\27%s\27\\", osc52)
-		end
-		if vim.loop.fs_stat("/dev/fd/2") then
-			vim.fn.writefile({ osc52 }, "/dev/fd/2", "b")
-		else
-			vim.fn.chansend(vim.v.stderr, osc52)
-		end
-	end,
-})
-
 -- Toggle Quickfix 和 Location List
 vim.api.nvim_create_user_command("ToggleQuickfix", function()
 	local quickfixOpen = false
@@ -180,20 +160,6 @@ vim.api.nvim_create_user_command("ToggleLoclist", function()
 		end
 	end
 end, { desc = "Toggle Location List" })
-
-vim.api.nvim_create_user_command("BufferDelete", function()
-	local file_exists = vim.fn.filereadable(vim.fn.expand("%p"))
-	local modified = vim.api.nvim_get_option_value("modified", { scope = "local", buf = 0 })
-	if file_exists == 0 and modified then
-		local user_choice = vim.fn.input("The file is not saved, force delete? (y/n): ")
-		if user_choice == "y" or user_choice == "" then
-			vim.cmd("bd!")
-		end
-	else
-		local force = not vim.bo.buflisted or vim.bo.buftype == "nofile"
-		vim.cmd(force and "bd!" or "bp | bd! %s", vim.api.nvim_get_current_buf())
-	end
-end, { desc = "Delete the current buffer while maintaining the window layout" })
 
 -- 查看 vim 信息
 vim.api.nvim_create_user_command("Messages", function()

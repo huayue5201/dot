@@ -1,4 +1,4 @@
-vim.lsp.config.clangd = {
+return {
 	cmd = {
 		"clangd",
 		"--clang-tidy",
@@ -8,4 +8,3 @@ vim.lsp.config.clangd = {
 	root_markers = { ".clangd", "compile_commands.json", ".git" },
 	filetypes = { "c", "cpp" },
 }
-vim.lsp.enable("clangd")

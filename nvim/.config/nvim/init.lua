@@ -10,7 +10,6 @@ local modules = {
 	"basic.usercmds", -- 自动命令
 	"basic.lazy", -- 插件管理
 	"utils.statusline", -- 自定义状态栏
-	-- "lsp.clangd",
 }
 
 -- 加载模块
@@ -22,3 +21,6 @@ for _, module in ipairs(modules) do
 		print("加载", module, "时发生错误:", module_func)
 	end
 end
+
+-- 开启lsp
+vim.lsp.enable({ "lua_ls", "clangd", "taplo" })
