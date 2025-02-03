@@ -22,5 +22,5 @@ for _, module in ipairs(modules) do
 	end
 end
 
--- 开启lsp
+-- 开启lsp-servers
 vim.lsp.enable({ "lua_ls", "clangd", "taplo" })
