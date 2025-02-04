@@ -41,7 +41,7 @@ vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<CR>", { desc = "关闭选项卡
 vim.keymap.set("n", "<leader>to", "<cmd>tabonly<CR>", { desc = "仅保留当前标签页打开" })
 -- vim.keymap.set("n", "<TAB>", "<cmd>bn<CR>", { desc = "切换buffer" })
 -- vim.keymap.set("n", "<S-TAB>", "<cmd>bp<CR>", { desc = "切换buffer" })
--- vim.keymap.set("n", "<c-q>", "<cmd>BufferDelete<cr>", { desc = "删除buffer" })%s
+-- vim.keymap.set("n", "<c-q>", "<cmd>bd!<cr>", { desc = "删除buffer" })%s
 
 -- 删除标记
 vim.keymap.set("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
@@ -74,10 +74,15 @@ vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
 end, { expr = true })
 
 -- 插入模式下TAB可以跳出()[]....
--- vim.keymap.set("i", "<Tab>", function()
--- 	local cursor = vim.api.nvim_win_get_cursor(0)
--- 	local line = vim.api.nvim_get_current_line()
--- 	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
--- 	local special_chars = { '"', "'", ")", "]", "}", ">" }
--- 	return next_char == "" or not vim.tbl_contains(special_chars, next_char) and "<Tab>" or "<Right>"
--- end, { expr = true })
+vim.keymap.set("i", "<Tab>", function()
+	local cursor = vim.api.nvim_win_get_cursor(0)
+	local line = vim.api.nvim_get_current_line()
+	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
+	if next_char == nil then
+		return "<Tab>"
+	end
+	if not vim.tbl_contains({ '"', "'", ")", "]", "}" }, next_char) then
+		return "<Tab>"
+	end
+	return "<Right>"
+end, { expr = true })
