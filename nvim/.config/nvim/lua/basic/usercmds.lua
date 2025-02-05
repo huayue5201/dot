@@ -105,26 +105,6 @@ vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
 	group = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true }),
 })
 
--- 强制注释符号包括空格
-create_augroup("commentstring_spaces", {
-	{
-		"FileType",
-		"强制设置注释符号格式",
-		function()
-			local cs = vim.bo.commentstring
-			vim.bo.commentstring = cs:gsub("(%S)%s", "%1 %%s")
-		end,
-	},
-	{
-		"CursorHold",
-		"确保注释符号后有空格",
-		function(args)
-			local cs = vim.bo[args.buf].commentstring
-			vim.bo[args.buf].commentstring = cs:gsub("(%S)%s", "%1 %%s")
-		end,
-	},
-})
-
 -- Toggle Quickfix 和 Location List
 vim.api.nvim_create_user_command("ToggleQuickfix", function()
 	local quickfixOpen = false
@@ -181,8 +161,8 @@ vim.api.nvim_create_user_command("DelMarks", function()
 	if mark ~= "" then
 		-- 删除对应的标记
 		vim.cmd("delmarks " .. mark)
-		print("Deleted mark: " .. mark)
+		vim.notify("Deleted mark: " .. mark)
 	else
-		print("No mark entered. Aborting.")
+		vim.notify("No mark entered. Aborting.")
 	end
 end, { desc = "Delete a specific mark" })
