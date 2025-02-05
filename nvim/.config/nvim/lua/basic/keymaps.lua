@@ -44,7 +44,8 @@ vim.keymap.set("n", "<leader>to", "<cmd>tabonly<CR>", { desc = "仅保留当前�
 -- vim.keymap.set("n", "<c-q>", "<cmd>bd!<cr>", { desc = "删除buffer" })%s
 
 -- 删除标记
-vim.keymap.set("n", "dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
+vim.keymap.set("n", "dm", "<cmd>DelMarks<cr>", { desc = "删除标记" })
+vim.keymap.set("n", "<leader>dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
 
 -- 切换quickfix窗口
 vim.keymap.set("n", "<leader>q", "<cmd>ToggleQuickfix<cr>", { desc = "quickfix切换" })

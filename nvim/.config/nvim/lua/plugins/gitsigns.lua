@@ -32,7 +32,6 @@ return {
 				end)
 
 				map("n", "<leader>hs", gitsigns.stage_buffer, { desc = "暂存更改" })
-
 				map("v", "<leader>hs", function()
 					gitsigns.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
 				end, { desc = "暂存更改" })

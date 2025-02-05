@@ -173,3 +173,16 @@ vim.api.nvim_create_user_command("Messages", function()
 	vim.bo.bufhidden = "wipe"
 	vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = scratch_buffer })
 end, {})
+
+vim.api.nvim_create_user_command("DelMarks", function()
+	-- 等待用户输入标记
+	local mark = vim.fn.input("Enter mark to delete: ")
+	-- 检查用户输入是否为空
+	if mark ~= "" then
+		-- 删除对应的标记
+		vim.cmd("delmarks " .. mark)
+		print("Deleted mark: " .. mark)
+	else
+		print("No mark entered. Aborting.")
+	end
+end, { desc = "Delete a specific mark" })
