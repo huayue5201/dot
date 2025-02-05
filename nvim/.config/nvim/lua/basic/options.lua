@@ -36,6 +36,7 @@ vim.opt.foldmethod = "expr" -- 设置折叠方法为表达式
 vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 使用 Treesitter 表达式进行折叠
 vim.opt.foldcolumn = "1" -- 显示折叠列
 vim.opt.foldlevel = 99 -- 设置折叠级别
+vim.opt.wrap = false -- 禁用自动换行
 
 -- 编辑行为设置
 vim.opt.autoindent = true -- 自动缩进
@@ -55,6 +56,17 @@ vim.opt.grepprg = "rg --vimgrep --smart-case --hidden" -- 使用 ripgrep 作为�
 vim.opt.grepformat = "%f:%l:%c:%m" -- 设置 grep 格式
 vim.opt.ignorecase = true -- 忽略大小写
 vim.opt.smartcase = true -- 在搜索时，智能区分大小写
+
+-- 工作区配置 (`shada` 文件)
+vim.opt.exrc = true -- 启用 exrc 配置，允许在当前工作目录加载配置文件
+vim.opt.secure = true -- 启用安全模式，防止加载不安全的配置文件
+
+-- 生成唯一的 `shada` 文件路径
+local workspace_path = vim.fn.getcwd() -- 获取当前工作目录的路径
+local cache_dir = vim.fn.stdpath("data") -- 获取 Neovim 的缓存目录路径
+local unique_id = vim.fn.fnamemodify(workspace_path, ":t") .. "_" .. vim.fn.sha256(workspace_path):sub(1, 8) ---@type string
+local shadafile = cache_dir .. "/myshada/" .. unique_id .. ".shada" -- 根据唯一 ID 生成 `shada` 文件的存储路径
+vim.opt.shadafile = shadafile -- 设置 `shada` 文件路径
 
 -- 窗口和分割设置
 vim.opt.splitbelow = true -- 新分割窗口默认在下方
