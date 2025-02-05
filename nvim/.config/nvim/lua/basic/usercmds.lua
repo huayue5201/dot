@@ -56,6 +56,7 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
+-- 高亮复制内容
 vim.api.nvim_create_autocmd("TextYankPost", {
 	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
 	pattern = "*",
@@ -73,18 +74,10 @@ create_augroup("closeWithQ", {
 		"FileType",
 		"用q关闭窗口",
 		function()
-			local filetypes = { "help", "startuptime", "qf", "lspinfo", "checkhealth" }
+			local close_cmd = vim.bo.filetype == "man" and ":quit<CR>" or ":close<CR>"
+			local filetypes = { "help", "startuptime", "qf", "lspinfo", "checkhealth", "man" }
 			if vim.tbl_contains(filetypes, vim.bo.filetype) then
-				vim.api.nvim_buf_set_keymap(0, "n", "q", ":close<CR>", { noremap = true, silent = true })
-			end
-		end,
-	},
-	{
-		"FileType",
-		"用q关闭man窗口",
-		function()
-			if vim.bo.filetype == "man" then
-				vim.api.nvim_buf_set_keymap(0, "n", "q", ":quit<CR>", { noremap = true, silent = true })
+				vim.api.nvim_buf_set_keymap(0, "n", "q", close_cmd, { noremap = true, silent = true })
 			end
 		end,
 	},
@@ -95,13 +88,6 @@ vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
 	desc = "仅在活动窗口显示光标线",
 	pattern = "*",
 	command = "set cursorline",
-	group = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true }),
-})
-
-vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
-	desc = "仅在活动窗口显示光标线",
-	pattern = "*",
-	command = "set nocursorline",
 	group = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true }),
 })
 
@@ -157,6 +143,8 @@ end, {})
 vim.api.nvim_create_user_command("DelMarks", function()
 	-- 等待用户输入标记
 	local mark = vim.fn.input("Enter mark to delete: ")
+	-- 重新绘制屏幕，清除上一条消息
+	vim.cmd("redraw!")
 	-- 检查用户输入是否为空
 	if mark ~= "" then
 		-- 删除对应的标记
