@@ -25,9 +25,10 @@ create_augroup("disableStatusColumn", {
 		"FileType",
 		"禁用特定buffer内的状态列",
 		function()
-			local special_filetypes = { "aerial", "qf", "help", "man" }
+			local special_filetypes = { "aerial", "qf", "help", "man", "NvimTree" } -- 添加 NvimTree
 			if vim.tbl_contains(special_filetypes, vim.bo.filetype) then
-				vim.wo.statuscolumn = " "
+				-- 只在特定 buffer 内禁用状态列
+				vim.wo.statuscolumn = ""
 			end
 		end,
 	},

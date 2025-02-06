@@ -78,7 +78,10 @@ vim.opt.showmode = false -- 禁用模式显示
 vim.opt.laststatus = 3 -- 显示全局状态栏
 vim.opt.showtabline = 2 -- 永远显示标签页栏
 vim.opt.cmdheight = 1 -- 命令行高度为 1
-vim.opt.statuscolumn = "%=%{v:relnum?v:relnum:v:lnum}%s%C" -- 状态列显示相对行号和其他信息
+-- vim.opt.statuscolumn = "%!v:lua.require('utils.statucolumn').Statuscolumn()" -- 状态列显示相对行号和其他信息
+vim.opt.statuscolumn = " %s%=%l %C" -- 状态列显示相对行号和其他信息
+-- vim.opt.statusline = "%!v:lua.require('utils.statusline')"
+vim.opt.relativenumber = true -- 相对行号
 vim.opt.signcolumn = "yes" -- 总是显示标志列
 
 -- 显示和符号设置
