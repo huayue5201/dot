@@ -56,6 +56,8 @@ end
 -- 设置诊断的全局配置
 local function setup_global_diagnostics()
 	vim.diagnostic.config({
+		virtual_text = { spacing = 4, source = "if_many", prefix = "■" },
+		float = { source = "if_many", border = "rounded" },
 		signs = {
 			text = {
 				-- 错误（ERROR）的标志文本为空
