@@ -56,20 +56,38 @@ end
 -- 设置诊断的全局配置
 local function setup_global_diagnostics()
 	vim.diagnostic.config({
-		virtual_text = { spacing = 4, source = "if_many", prefix = "■" },
-		float = { source = "if_many", border = "rounded" },
 		signs = {
 			text = {
-				[vim.diagnostic.severity.ERROR] = "✘",
-				[vim.diagnostic.severity.WARN] = "▲",
-				[vim.diagnostic.severity.HINT] = "⚑",
-				[vim.diagnostic.severity.INFO] = "»",
+				-- 错误（ERROR）的标志文本为空
+				[vim.diagnostic.severity.ERROR] = "",
+				-- 警告（WARN）的标志文本为空
+				[vim.diagnostic.severity.WARN] = "",
+			},
+			linehl = {
+				-- 错误的行高亮使用 'ErrorMsg' 样式
+				[vim.diagnostic.severity.ERROR] = "ErrorMsg",
+			},
+			numhl = {
+				-- 警告的行号高亮使用 'WarningMsg' 样式
+				[vim.diagnostic.severity.WARN] = "WarningMsg",
 			},
 		},
-		underline = true,
-		update_in_insert = false,
-		severity_sort = true,
 	})
+	-- vim.diagnostic.config({
+	-- 	virtual_text = { spacing = 4, source = "if_many", prefix = "■" },
+	-- 	float = { source = "if_many", border = "rounded" },
+	-- 	signs = {
+	-- 		text = {
+	-- 			[vim.diagnostic.severity.ERROR] = "✘",
+	-- 			[vim.diagnostic.severity.WARN] = "▲",
+	-- 			[vim.diagnostic.severity.HINT] = "⚑",
+	-- 			[vim.diagnostic.severity.INFO] = "»",
+	-- 		},
+	-- 	},
+	-- 	underline = true,
+	-- 	update_in_insert = false,
+	-- 	severity_sort = true,
+	-- })
 end
 
 -- 高亮符号设置

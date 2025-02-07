@@ -152,6 +152,7 @@ vim.api.nvim_create_user_command("DelMarks", function()
 		vim.cmd("delmarks " .. mark)
 		vim.notify("Deleted mark: " .. mark)
 	else
-		vim.notify("No mark entered. Aborting.")
+		-- 使用 vim.api.nvim_echo 显示红色警告信息
+		vim.api.nvim_echo({ { "No mark entered. Aborting.", "Error" } }, true, {})
 	end
 end, { desc = "Delete a specific mark" })
