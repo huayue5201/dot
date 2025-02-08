@@ -1,12 +1,13 @@
 -- https://github.com/neovim/neovim
 -- https://github.com/neovim/neovim/releases/
+-- https://vim.rtorr.com/lang/zh_cn vim 操作手册
 -- 启用 Lua 加载器以提高启动速度
 vim.loader.enable()
 
 -- 模块列表
 local modules = {
 	"basic.options", -- 基础配置
-	-- "colors.colorscheme", -- 主题颜色
+	"colors.colorscheme", -- 主题颜色
 	"basic.keymaps", -- 自定义键绑定
 	"basic.usercmds", -- 自动命令
 	"basic.lazy", -- 插件管理
