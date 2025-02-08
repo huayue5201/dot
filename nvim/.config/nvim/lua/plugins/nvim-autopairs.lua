@@ -32,7 +32,7 @@ return {
 			},
 		})
 
-		-- press % => %% only while inside a comment or string
+		-- 只有当光标位于注释或字符串中时，按下 % 键才会触发自动配对，插入成%|%
 		npairs.add_rules({
 			Rule("%", "%", "lua"):with_pair(ts_conds.is_ts_node({ "string", "comment" })),
 			Rule("$", "$", "lua"):with_pair(ts_conds.is_not_ts_node({ "function" })),
