@@ -56,40 +56,45 @@ end
 -- 设置诊断的全局配置
 local function setup_global_diagnostics()
 	vim.diagnostic.config({
-		virtual_text = { spacing = 4, source = "if_many", prefix = "■" },
-		float = { source = "if_many", border = "rounded" },
+		-- 虚拟文本配置
+		virtual_text = {
+			spacing = 4, -- 设置虚拟文本与代码行之间的距离为 4 个字符
+			source = "if_many", -- 如果有多个诊断源（如多个 LSP 客户端），选择一个源来显示
+			prefix = "■", -- 设置虚拟文本前缀为 "■"，用图形符号表示诊断
+		},
+		severity_sort = true, -- 启用按严重性级别排序诊断，ERROR > WARN > HINT > INFO
+		virtual_lines = {
+			current_line = true, -- 在当前行显示虚拟文本，突出当前行的诊断信息
+		},
+		-- 浮动窗口配置
+		float = {
+			source = "if_many", -- 如果诊断有多个源，浮动窗口显示其中一个源的信息
+			border = "rounded", -- 设置浮动窗口的边框样式为圆角
+		},
 		signs = {
-			text = {
-				-- 错误（ERROR）的标志文本为空
-				[vim.diagnostic.severity.ERROR] = "",
-				-- 警告（WARN）的标志文本为空
-				[vim.diagnostic.severity.WARN] = "",
+			text = { -- 配置诊断标志文本，这里是空文本设置
+				[vim.diagnostic.severity.ERROR] = "", -- 错误标志文本为空
+				[vim.diagnostic.severity.WARN] = "", -- 警告标志文本为空
 			},
-			linehl = {
-				-- 错误的行高亮使用 'ErrorMsg' 样式
-				[vim.diagnostic.severity.ERROR] = "ErrorMsg",
+			linehl = { -- 设置标志行的高亮样式
+				[vim.diagnostic.severity.ERROR] = "ErrorMsg", -- 错误行的高亮样式为 'ErrorMsg'（通常是红色）
 			},
-			numhl = {
-				-- 警告的行号高亮使用 'WarningMsg' 样式
-				[vim.diagnostic.severity.WARN] = "WarningMsg",
+			numhl = { -- 设置标志行号的高亮样式
+				[vim.diagnostic.severity.WARN] = "WarningMsg", -- 警告行号的高亮样式为 'WarningMsg'（通常是黄色）
 			},
 		},
+		-- 下面这一部分被注释掉了，可以选择启用显示标志符号的方式
+		-- signs = {
+		-- 	text = {
+		-- 		[vim.diagnostic.severity.ERROR] = "✘",   -- 错误用 '✘' 表示
+		-- 		[vim.diagnostic.severity.WARN] = "▲",    -- 警告用 '▲' 表示
+		-- 		[vim.diagnostic.severity.HINT] = "⚑",    -- 提示用 '⚑' 表示
+		-- 		[vim.diagnostic.severity.INFO] = "»",    -- 信息用 '»' 表示
+		-- 	},
+		-- },
+		underline = true, -- 启用错误信息的下划线样式，让错误信息更显眼
+		update_in_insert = false, -- 禁止在插入模式下更新诊断信息，减少插入模式的干扰
 	})
-	-- vim.diagnostic.config({
-	-- 	virtual_text = { spacing = 4, source = "if_many", prefix = "■" },
-	-- 	float = { source = "if_many", border = "rounded" },
-	-- 	signs = {
-	-- 		text = {
-	-- 			[vim.diagnostic.severity.ERROR] = "✘",
-	-- 			[vim.diagnostic.severity.WARN] = "▲",
-	-- 			[vim.diagnostic.severity.HINT] = "⚑",
-	-- 			[vim.diagnostic.severity.INFO] = "»",
-	-- 		},
-	-- 	},
-	-- 	underline = true,
-	-- 	update_in_insert = false,
-	-- 	severity_sort = true,
-	-- })
 end
 
 -- 高亮符号设置
