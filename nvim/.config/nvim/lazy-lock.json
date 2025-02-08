@@ -16,6 +16,5 @@
   "nvim-treesitter": { "branch": "master", "commit": "62911c78a868bac24c8a86f2c1c412d0b799f885" },
   "nvim-treesitter-textobjects": { "branch": "master", "commit": "ad8f0a472148c3e0ae9851e26a722ee4e29b1595" },
   "nvim-web-devicons": { "branch": "master", "commit": "402377242b04be3f4f0f3720bd952df86e946c30" },
-  "telescope-fzf-native.nvim": { "branch": "main", "commit": "dae2eac9d91464448b584c7949a31df8faefec56" },
-  "tokyonight.nvim": { "branch": "main", "commit": "dca4adba7dc5f09302a00b0e76078d54d82d2658" }
+  "telescope-fzf-native.nvim": { "branch": "main", "commit": "dae2eac9d91464448b584c7949a31df8faefec56" }
 }
