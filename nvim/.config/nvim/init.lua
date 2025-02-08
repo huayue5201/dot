@@ -12,6 +12,7 @@ local modules = {
 	"basic.usercmds", -- 自动命令
 	"basic.lazy", -- 插件管理
 	"utils.statusline", -- 自定义状态栏
+	"utils.largefile", -- 大文件优化
 }
 
 -- 加载模块

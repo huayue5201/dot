@@ -30,7 +30,6 @@ vim.opt.timeout = true -- 启用超时设置
 vim.opt.updatetime = 300 -- 设置更新延迟时间（毫秒）
 vim.opt.jumpoptions = "stack" -- 启用跳转历史堆栈
 vim.opt.cursorline = true -- 高亮当前行
-vim.opt.list = true -- 显示不可见字符
 vim.opt.foldenable = true -- 启用折叠
 vim.opt.foldmethod = "expr" -- 设置折叠方法为表达式
 vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 使用 Treesitter 表达式进行折叠
@@ -85,6 +84,7 @@ vim.opt.relativenumber = true -- 相对行号
 vim.opt.signcolumn = "yes" -- 总是显示标志列
 
 -- 显示和符号设置
+vim.opt.list = true -- 显示不可见字符
 vim.opt.fillchars = {
 	diff = "╱", -- 区分符号
 	eob = " ", -- 空行字符
@@ -101,4 +101,5 @@ vim.opt.listchars = {
 	leadmultispace = "┊ ", -- 显示多余空格
 	trail = "␣", -- 显示尾随空格
 	nbsp = "⍽", -- 显示不间断空格
+	eol = "↲", -- 换行符
 }
