@@ -24,6 +24,3 @@ for _, module in ipairs(modules) do
 		print("加载", module, "时发生错误:", module_func)
 	end
 end
-
--- 开启lsp-servers
-vim.lsp.enable({ "lua_ls", "clangd", "taplo" })

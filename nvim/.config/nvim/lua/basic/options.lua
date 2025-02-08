@@ -103,3 +103,6 @@ vim.opt.listchars = {
 	nbsp = "⍽", -- 显示不间断空格
 	eol = "↲", -- 换行符
 }
+
+-- 开启lsp-servers
+vim.lsp.enable({ "lua_ls", "clangd", "taplo" })
