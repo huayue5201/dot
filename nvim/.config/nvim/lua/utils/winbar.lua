@@ -1,9 +1,10 @@
+-- lua/utils/winbar.lua
 Winbar = {}
 
 -- 配置
 Winbar.config = {
 	separator = " %#WinbarSeparator# ",
-	folder_icon = "",
+	folder_icon = "   ",
 	special_dirs = {
 		CODE = vim.g.projects_dir,
 		DOTFILES = vim.fn.stdpath("config"),
@@ -29,20 +30,17 @@ end
 
 -- 格式化路径
 function Winbar.format_path(path)
-	path = path:gsub("^/", "")
 	local segments = vim.split(path, "/")
-	return table.concat(
-		vim.tbl_map(function(segment)
-			return string.format("%%#Winbar#%s", segment)
-		end, segments),
-		Winbar.config.separator
-	)
+	local formatted_segments = vim.tbl_map(function(segment)
+		return string.format("%%#Winbar#%s", segment)
+	end, segments)
+	return table.concat(formatted_segments, Winbar.config.separator)
 end
 
 -- 渲染 Winbar
 function Winbar.render()
 	local full_path = vim.fs.normalize(vim.fn.expand("%:p"))
-	local cwd = vim.fn.getcwd() -- 使用 vim.fn.getcwd() 获取当前工作目录（通常是 Git 项目根目录）
+	local cwd = vim.fn.getcwd() -- 获取当前工作目录（通常是 Git 项目根目录）
 	local path
 	-- 仅在当前文件属于工作目录时使用相对路径
 	if vim.startswith(full_path, cwd) then
@@ -50,12 +48,19 @@ function Winbar.render()
 	else
 		path = vim.fn.pathshorten(full_path) -- 否则使用缩短的绝对路径
 	end
+	-- 处理特殊目录前缀
 	local prefix
 	prefix, path = Winbar.process_special_dirs(path)
-	return string.format(" %s%s", prefix, Winbar.format_path(path))
+	-- 通过拼接方式构建最终的 winbar 内容
+	local winbar_content = {}
+	-- 文件夹图标
+	table.insert(winbar_content, Winbar.config.folder_icon)
+	-- 处理并插入路径
+	table.insert(winbar_content, prefix .. Winbar.format_path(path))
+	-- 拼接最终字符串
+	return table.concat(winbar_content, "")
 end
 
--- 直接创建自动命令，无需手动 setup
 vim.api.nvim_create_autocmd("BufWinEnter", {
 	group = vim.api.nvim_create_augroup("Winbar", { clear = true }),
 	desc = "Attach winbar",
