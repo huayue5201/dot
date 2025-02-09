@@ -79,11 +79,9 @@ function Statusline.lsp_progress()
 	if progress == "" then
 		return ""
 	end
-
 	-- 获取当前 spinner 帧，并更新下标
 	local spinner = spinner_frames[spinner_index]
 	spinner_index = (spinner_index % #spinner_frames) + 1
-
 	-- 截断进度信息，避免过长
 	local max_len = 30
 	if #progress > max_len then
@@ -93,12 +91,26 @@ function Statusline.lsp_progress()
 	return string.format(" %s %s", spinner, progress)
 end
 
--- LSP 状态（包含诊断和进度信息）
+-- 新增：获取当前 buffer 附加的 LSP 客户端名称
+function Statusline.lsp_clients()
+	local buf_clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
+	if not buf_clients or vim.tbl_isempty(buf_clients) then
+		return ""
+	end
+	local client_names = {}
+	for _, client in ipairs(buf_clients) do
+		table.insert(client_names, client.name)
+	end
+	-- 使用图标（例如 ）作为前缀，后面显示客户端名称（多个客户端用逗号分隔）
+	return "  " .. table.concat(client_names, ", ") .. " "
+end
+
+-- LSP 状态（包含客户端名称、诊断和进度信息）
 function Statusline.lsp()
+	local lsp_clients = Statusline.lsp_clients()
 	local lsp_diagnostics = Statusline.lsp_diagnostics()
 	local lsp_progress = Statusline.lsp_progress()
-	-- 显示 LSP 客户端信息也可以加入，不过这里仅显示诊断和进度
-	return lsp_diagnostics .. " " .. lsp_progress
+	return lsp_clients .. lsp_diagnostics .. " " .. lsp_progress
 end
 
 -- 创建状态栏内容
@@ -116,7 +128,7 @@ function Statusline.active()
 		git_str, -- Git 状态
 		file_name, -- 文件名
 		"%=", -- 自动分隔（左右对齐）
-		lsp_str, -- LSP 诊断及进度
+		lsp_str, -- LSP 客户端名称、诊断及进度
 		"%=", -- 自动分隔
 		line_col, -- 行列号
 		file_percent, -- 文件百分比
@@ -125,15 +137,12 @@ end
 
 -- 启动一个定时器，每 100 毫秒刷新一次状态栏，确保 spinner 能更新
 if not Statusline._spinner_timer then
-	Statusline._spinner_timer = vim.loop.new_timer()
-	Statusline._spinner_timer:start(
-		0,
-		100,
-		vim.schedule_wrap(function()
-			-- 重绘 statusline
-			vim.cmd("redrawstatus")
-		end)
-	)
+	Statusline._spinner_timer = true
+	local function update_spinner()
+		vim.cmd("redrawstatus")
+		vim.defer_fn(update_spinner, 150) -- 100ms 后再次调用
+	end
+	update_spinner()
 end
 
 -- 设置状态栏：在窗口进入、缓冲区进入时更新
