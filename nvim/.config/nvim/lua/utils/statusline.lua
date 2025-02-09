@@ -7,66 +7,47 @@ Statusline.modes = {
 	["n"] = "NORMAL",
 	["no"] = "NORMAL",
 	["v"] = "VISUAL",
-	["V"] = "VISUAL LINE",
-	[""] = "VISUAL BLOCK",
+	["V"] = "V-LINE",
+	[""] = "V-BLOCK",
 	["s"] = "SELECT",
-	["S"] = "SELECT LINE",
-	[""] = "SELECT BLOCK",
+	["S"] = "S-LINE",
+	[""] = "S-BLOCK",
 	["i"] = "INSERT",
 	["ic"] = "INSERT",
 	["R"] = "REPLACE",
-	["Rv"] = "VISUAL REPLACE",
+	["Rv"] = "V-REPLACE",
 	["c"] = "COMMAND",
-	["cv"] = "VIM EX",
-	["ce"] = "EX",
-	["r"] = "PROMPT",
-	["rm"] = "MOAR",
-	["r?"] = "CONFIRM",
-	["!"] = "SHELL",
 	["t"] = "TERMINAL",
 }
 
 -- 获取当前模式
 function Statusline.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
-	return Statusline.modes[current_mode] and string.format(" %s ", Statusline.modes[current_mode]):upper() or ""
+	return Statusline.modes[current_mode] and string.format(" %s ", Statusline.modes[current_mode]) or ""
 end
 
--- Git 仓库状态
+-- Git 状态
 function Statusline.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or git_info.head == "" then
-		return "  No Git "
+		return ""
 	end
 	local parts = {}
 	if git_info.added and git_info.added > 0 then
-		table.insert(parts, ("%#GitSignsAdd#+" .. git_info.added))
+		table.insert(parts, (" " .. git_info.added))
 	end
 	if git_info.changed and git_info.changed > 0 then
-		table.insert(parts, ("%#GitSignsChange#~" .. git_info.changed))
+		table.insert(parts, (" " .. git_info.changed))
 	end
 	if git_info.removed and git_info.removed > 0 then
-		table.insert(parts, ("%#GitSignsDelete#-" .. git_info.removed))
+		table.insert(parts, (" " .. git_info.removed))
 	end
-	table.insert(parts, ("%#GitSignsAdd# " .. git_info.head .. " %#Normal#"))
+	table.insert(parts, (" " .. git_info.head))
 	return " " .. table.concat(parts, " ") .. " "
 end
 
--- 获取 LSP 客户端信息
-function Statusline.get_lsp_clients()
-	local attached_clients = vim.lsp.get_clients({ bufnr = 0 })
-	if #attached_clients == 0 then
-		return "No LSP"
-	end
-	local names = {}
-	for _, client in ipairs(attached_clients) do
-		local name = client.name:gsub("language.server", "ls")
-		table.insert(names, name)
-	end
-	return "[" .. table.concat(names, ", ") .. "]"
-end
 -- 获取 LSP 诊断信息
-function Statusline.get_lsp_diagnostics()
+function Statusline.lsp_diagnostics()
 	local count = {
 		errors = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR }),
 		warnings = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.WARN }),
@@ -88,41 +69,78 @@ function Statusline.get_lsp_diagnostics()
 	end
 	return table.concat(parts, " ")
 end
--- 获取 LSP 状态（客户端和诊断信息）
+
+-- LSP 进度动画（不做屏幕宽度判断，直接显示）
+local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+local spinner_index = 1
+
+function Statusline.lsp_progress()
+	local progress = vim.lsp.status() or ""
+	if progress == "" then
+		return ""
+	end
+
+	-- 获取当前 spinner 帧，并更新下标
+	local spinner = spinner_frames[spinner_index]
+	spinner_index = (spinner_index % #spinner_frames) + 1
+
+	-- 截断进度信息，避免过长
+	local max_len = 30
+	if #progress > max_len then
+		progress = string.sub(progress, 1, max_len) .. "…"
+	end
+
+	return string.format(" %s %s", spinner, progress)
+end
+
+-- LSP 状态（包含诊断和进度信息）
 function Statusline.lsp()
-	local lsp_clients = Statusline.get_lsp_clients()
-	local lsp_diagnostics = Statusline.get_lsp_diagnostics()
-	return lsp_clients .. " " .. lsp_diagnostics
+	local lsp_diagnostics = Statusline.lsp_diagnostics()
+	local lsp_progress = Statusline.lsp_progress()
+	-- 显示 LSP 客户端信息也可以加入，不过这里仅显示诊断和进度
+	return lsp_diagnostics .. " " .. lsp_progress
 end
 
 -- 创建状态栏内容
 function Statusline.active()
 	local mode_str = Statusline.mode()
-	local git_str = Statusline.vcs() -- Git 状态
+	local git_str = Statusline.vcs()
 	local file_name = " %f"
-	local lsp_str = Statusline.lsp() -- LSP 状态
+	local lsp_str = Statusline.lsp()
 	local line_col = " %l:%c"
 	local file_percent = " %p%%"
 
 	return table.concat({
-		"%#Normal#", -- 设置为默认文本颜色
-		mode_str, -- 显示模式
+		"%#Normal#", -- 默认文本高亮组
+		mode_str, -- 模式
 		git_str, -- Git 状态
 		file_name, -- 文件名
-		"%=", -- 最大宽度
-		lsp_str, -- LSP 状态
-		"%=", -- 最大宽度
+		"%=", -- 自动分隔（左右对齐）
+		lsp_str, -- LSP 诊断及进度
+		"%=", -- 自动分隔
 		line_col, -- 行列号
 		file_percent, -- 文件百分比
 	})
 end
 
--- 显示状态栏
+-- 启动一个定时器，每 100 毫秒刷新一次状态栏，确保 spinner 能更新
+if not Statusline._spinner_timer then
+	Statusline._spinner_timer = vim.loop.new_timer()
+	Statusline._spinner_timer:start(
+		0,
+		100,
+		vim.schedule_wrap(function()
+			-- 重绘 statusline
+			vim.cmd("redrawstatus")
+		end)
+	)
+end
+
+-- 设置状态栏：在窗口进入、缓冲区进入时更新
 vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
 	group = vim.api.nvim_create_augroup("Statusline", { clear = true }),
 	callback = function()
 		local win_id = vim.api.nvim_get_current_win()
-		-- 设置窗口的 statusline 选项
 		vim.api.nvim_set_option_value("statusline", "%!v:lua.Statusline.active()", { win = win_id })
 	end,
 })

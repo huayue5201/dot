@@ -101,7 +101,10 @@ local highlight_groups = {
 	["Title"] = { fg = colors.poggers, bold = true },
 	["Visual"] = { bg = colors.foreground_dark },
 	["Whitespace"] = { fg = colors.shade },
-	["WinBar"] = { link = "TabLine" },
+	-- 设置默认的 winbar 高亮
+	["WinBar"] = { fg = colors.yellow, bold = true }, -- 设置 winbar 默认颜色为橙色并加粗
+	["WinBarSpecial"] = { fg = colors.blue, bold = true }, -- 设置特殊目录为绿色并加粗
+	["WinBarSeparator"] = { fg = colors.poggers }, -- 设置分隔符颜色为灰色
 	["WinBarNC"] = { link = "WinBar" },
 
 	-- lsp诊断相关
