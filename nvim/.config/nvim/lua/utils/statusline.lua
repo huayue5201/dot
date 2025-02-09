@@ -102,7 +102,7 @@ function Statusline.lsp_clients()
 		table.insert(client_names, client.name)
 	end
 	-- 使用图标（例如 ）作为前缀，后面显示客户端名称（多个客户端用逗号分隔）
-	return "  " .. table.concat(client_names, ", ") .. " "
+	return "  " .. table.concat(client_names, ", ") .. ": "
 end
 
 -- LSP 状态（包含客户端名称、诊断和进度信息）
