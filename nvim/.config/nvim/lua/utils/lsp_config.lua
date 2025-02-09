@@ -73,6 +73,10 @@ local function setup_global_diagnostics()
 		},
 		signs = {
 			text = { -- 配置诊断标志文本，这里是空文本设置
+				-- 		[vim.diagnostic.severity.ERROR] = "✘",   -- 错误用 '✘' 表示
+				-- 		[vim.diagnostic.severity.WARN] = "▲",    -- 警告用 '▲' 表示
+				-- 		[vim.diagnostic.severity.HINT] = "⚑",    -- 提示用 '⚑' 表示
+				-- 		[vim.diagnostic.severity.INFO] = "»",    -- 信息用 '»' 表示
 				[vim.diagnostic.severity.ERROR] = "", -- 错误标志文本为空
 				[vim.diagnostic.severity.WARN] = "", -- 警告标志文本为空
 			},
@@ -83,15 +87,6 @@ local function setup_global_diagnostics()
 				[vim.diagnostic.severity.WARN] = "WarningMsg", -- 警告行号的高亮样式为 'WarningMsg'（通常是黄色）
 			},
 		},
-		-- 下面这一部分被注释掉了，可以选择启用显示标志符号的方式
-		-- signs = {
-		-- 	text = {
-		-- 		[vim.diagnostic.severity.ERROR] = "✘",   -- 错误用 '✘' 表示
-		-- 		[vim.diagnostic.severity.WARN] = "▲",    -- 警告用 '▲' 表示
-		-- 		[vim.diagnostic.severity.HINT] = "⚑",    -- 提示用 '⚑' 表示
-		-- 		[vim.diagnostic.severity.INFO] = "»",    -- 信息用 '»' 表示
-		-- 	},
-		-- },
 		underline = true, -- 启用错误信息的下划线样式，让错误信息更显眼
 		update_in_insert = false, -- 禁止在插入模式下更新诊断信息，减少插入模式的干扰
 	})
