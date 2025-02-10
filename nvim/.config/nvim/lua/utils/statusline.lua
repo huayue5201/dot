@@ -135,12 +135,12 @@ function Statusline.active()
 	})
 end
 
--- 启动一个定时器，每 100 毫秒刷新一次状态栏，确保 spinner 能更新
+-- 启动一个定时器，每 150 毫秒刷新一次状态栏，确保 spinner 能更新
 if not Statusline._spinner_timer then
 	Statusline._spinner_timer = true
 	local function update_spinner()
 		vim.cmd("redrawstatus")
-		vim.defer_fn(update_spinner, 150) -- 100ms 后再次调用
+		vim.defer_fn(update_spinner, 150) -- 150ms 后再次调用
 	end
 	update_spinner()
 end
