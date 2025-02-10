@@ -74,16 +74,16 @@ vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
 	end
 end, { expr = true })
 
--- 插入模式下TAB可以跳出()[]....
-vim.keymap.set("i", "<Tab>", function()
-	local cursor = vim.api.nvim_win_get_cursor(0)
-	local line = vim.api.nvim_get_current_line()
-	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
-	if next_char == nil then
-		return "<Tab>"
-	end
-	if not vim.tbl_contains({ '"', "'", ")", "]", "}" }, next_char) then
-		return "<Tab>"
-	end
-	return "<Right>"
-end, { expr = true })
+-- -- 插入模式下TAB可以跳出()[]....
+-- vim.keymap.set("i", "<Tab>", function()
+-- 	local cursor = vim.api.nvim_win_get_cursor(0)
+-- 	local line = vim.api.nvim_get_current_line()
+-- 	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
+-- 	if next_char == nil then
+-- 		return "<Tab>"
+-- 	end
+-- 	if not vim.tbl_contains({ '"', "'", ")", "]", "}" }, next_char) then
+-- 		return "<Tab>"
+-- 	end
+-- 	return "<Right>"
+-- end, { expr = true })
