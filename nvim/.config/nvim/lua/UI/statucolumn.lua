@@ -2,6 +2,15 @@
 
 local Statuscolumn = {}
 
+Statuscolumn.border = function()
+	-- NOTE: lua tables start at 1 but relnum starts at 0, so we add 1 to it to get the highlight group
+	if vim.v.relnum < 9 then
+		return "%#Gradient_" .. (vim.v.lnum + 1) .. "#│"
+	else
+		return "%#Gradient_10#│"
+	end
+end
+
 -- 行号配置
 Statuscolumn.line_number = function()
 	return "%l"
@@ -38,12 +47,14 @@ end
 Statuscolumn.active = function()
 	local line_str = Statuscolumn.line_number() -- 行号
 	-- local fold_str = Statuscolumn.fold_config() -- 折叠文本
+	-- local border_str = Statuscolumn.border()
 
 	return table.concat({
 		" %s",
 		"%=", -- 自动分隔（左右对齐）
 		line_str,
 		"%=", -- 自动分隔（左右对齐）
+		-- border_str,
 		"%C",
 		-- fold_str,
 	})
