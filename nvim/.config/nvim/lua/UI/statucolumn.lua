@@ -20,11 +20,11 @@ Statuscolumn.fold_config = function()
 	end
 	-- Line is a closed fold(I know second condition feels unnecessary but I will still add it)
 	if foldclosed ~= -1 and foldclosed == vim.v.lnum then
-		return "▶"
+		return "▾"
 	end
 	-- I didn't use ~= because it couldn't make a nested fold have a lower level than it's parent fold and it's not something I would use
 	if foldlevel > foldlevel_before then
-		return "▽"
+		return "▸"
 	end
 	-- The line is the last line in the fold
 	if foldlevel > foldlevel_after then
@@ -36,11 +36,12 @@ end
 
 -- 设置拼接的内容
 Statuscolumn.active = function()
-	-- local fold_str = Statuscolumn.fold_config() -- 折叠文本
 	local line_str = Statuscolumn.line_number() -- 行号
+	-- local fold_str = Statuscolumn.fold_config() -- 折叠文本
 
 	return table.concat({
-		"%s",
+		" %s",
+		"%=", -- 自动分隔（左右对齐）
 		line_str,
 		"%=", -- 自动分隔（左右对齐）
 		"%C",

@@ -78,8 +78,8 @@ vim.opt.laststatus = 3 -- 显示全局状态栏
 vim.opt.showtabline = 2 -- 永远显示标签页栏
 vim.opt.cmdheight = 1 -- 命令行高度为 1
 -- 载入 statuscolumn 配置
--- vim.o.statuscolumn = "%!v:lua.require('UI.statucolumn').active()"
-vim.opt.statuscolumn = " %s%=%l %C" -- 状态列显示相对行号和其他信息
+vim.o.statuscolumn = "%!v:lua.require('UI.statucolumn').active()"
+-- vim.opt.statuscolumn = " %s%=%l %C" -- 状态列显示相对行号和其他信息
 -- vim.opt.statusline = "%!v:lua.require('utils.statusline')"
 vim.opt.relativenumber = true -- 相对行号
 vim.opt.signcolumn = "yes" -- 总是显示标志列
