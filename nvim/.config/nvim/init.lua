@@ -7,12 +7,12 @@ vim.loader.enable()
 -- 模块列表
 local modules = {
 	"basic.options", -- 基础配置
-	"UI.colorscheme", -- 主题颜色
+	"ui.colorscheme", -- 主题颜色
 	"basic.keymaps", -- 自定义键绑定
 	"basic.usercmds", -- 自动命令
 	"basic.lazy", -- 插件管理
-	"UI.statusline", -- 自定义状态栏
-	-- "UI.winbar",
+	"ui.statusline", -- 自定义状态栏
+	-- "ui.winbar",
 	"utils.largefile", -- 大文件优化
 }
 
