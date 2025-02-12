@@ -12,7 +12,7 @@ local modules = {
 	"basic.usercmds", -- 自动命令
 	"basic.lazy", -- 插件管理
 	"ui.statusline", -- 自定义状态栏
-	-- "ui.winbar",
+	-- "ui.winbar", -- winbar模块
 	"utils.largefile", -- 大文件优化
 }
 
