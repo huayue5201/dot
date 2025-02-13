@@ -4,16 +4,14 @@
 -- 启用 Lua 加载器以提高启动速度
 vim.loader.enable()
 
+-- 设置前置按键
+vim.g.mapleader = vim.keycode("<space>")
+vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
+
 -- 模块列表
 local modules = {
-	"basic.options", -- 基础配置
-	"ui.colorscheme", -- 主题颜色
-	"basic.keymaps", -- 自定义键绑定
-	"basic.usercmds", -- 自动命令
 	"basic.lazy", -- 插件管理
-	"ui.statusline", -- 自定义状态栏
-	-- "ui.winbar", -- winbar模块
-	"utils.largefile", -- 大文件优化
+	"statusline", -- 自定义状态栏
 }
 
 -- 加载模块
