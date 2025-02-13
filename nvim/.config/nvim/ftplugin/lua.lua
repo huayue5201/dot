@@ -1,2 +1,2 @@
 -- 调用lsp配置
-require("utils.lsp_config").lspSetup()
+require("lsp_config").lspSetup()
