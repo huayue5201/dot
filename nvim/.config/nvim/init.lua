@@ -4,6 +4,9 @@
 -- 启用 Lua 加载器以提高启动速度
 vim.loader.enable()
 
+-- colorscheme 设置
+vim.cmd("colorscheme dawn")
+
 -- 设置前置按键
 vim.g.mapleader = vim.keycode("<space>")
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
