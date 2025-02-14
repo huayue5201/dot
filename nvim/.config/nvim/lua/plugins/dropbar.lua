@@ -1,11 +1,11 @@
 -- https://github.com/Bekaboo/dropbar.nvim?tab=readme-ov-file
 
-vim.g.add({
-	source = "Bekaboo/dropbar.nvim",
-	depnds = { "nvim-telescope/telescope-fzf-native.nvim" },
-})
-
 vim.g.later(function()
+	vim.g.add({
+		source = "Bekaboo/dropbar.nvim",
+		depnds = { "nvim-telescope/telescope-fzf-native.nvim" },
+	})
+
 	local dropbar_api = require("dropbar.api")
 	vim.keymap.set("n", "<Leader>;", dropbar_api.pick, { desc = "Pick symbols in winbar" })
 	vim.keymap.set("n", "[;", dropbar_api.goto_context_start, { desc = "Go to start of current context" })

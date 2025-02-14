@@ -1,14 +1,14 @@
 -- https://github.com/stevearc/aerial.nvim
 
-vim.g.add({
-	source = "stevearc/aerial.nvim",
-	depnds = {
-		"nvim-treesitter/nvim-treesitter",
-		"nvim-tree/nvim-web-devicons",
-	},
-})
-
 vim.g.later(function()
+	vim.g.add({
+		source = "stevearc/aerial.nvim",
+		depnds = {
+			"nvim-treesitter/nvim-treesitter",
+			"nvim-tree/nvim-web-devicons",
+		},
+	})
+
 	require("aerial").setup({
 		-- optionally use on_attach to set keymaps when aerial has attached to a buffer
 		on_attach = function(bufnr)

@@ -1,11 +1,11 @@
 -- https://github.com/linrongbin16/fzfx.nvim
 
-vim.g.add({
-	source = "linrongbin16/fzfx.nvim",
-	depnds = { "nvim-tree/nvim-web-devicons" },
-})
-
 vim.g.later(function()
+	vim.g.add({
+		source = "linrongbin16/fzfx.nvim",
+		depnds = { "nvim-tree/nvim-web-devicons" },
+	})
+
 	require("fzfx").setup()
 	vim.keymap.set("n", "<space>ff", "<cmd>FzfxFiles<cr>", { silent = true, noremap = true, desc = "Find files" })
 	-- live grep

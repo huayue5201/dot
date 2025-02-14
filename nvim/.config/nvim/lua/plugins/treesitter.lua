@@ -1,21 +1,21 @@
 -- https://github.com/nvim-treesitter/nvim-treesitter
 
-vim.g.add({
-	source = "nvim-treesitter/nvim-treesitter",
-	-- Use 'master' while monitoring updates in 'main'
-	-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
-	depnds = { "nvim-treesitter/nvim-treesitter-textobjects" },
-	checkout = "master",
-	monitor = "main",
-	-- Perform action after every checkout
-	hooks = {
-		post_checkout = function()
-			vim.cmd("TSUpdate")
-		end,
-	},
-})
-
 vim.g.now(function()
+	vim.g.add({
+		source = "nvim-treesitter/nvim-treesitter",
+		-- Use 'master' while monitoring updates in 'main'
+		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+		depnds = { "nvim-treesitter/nvim-treesitter-textobjects" },
+		checkout = "master",
+		monitor = "main",
+		-- Perform action after every checkout
+		hooks = {
+			post_checkout = function()
+				vim.cmd("TSUpdate")
+			end,
+		},
+	})
+
 	require("nvim-treesitter.configs").setup({
 		-- 确保所需的语言解析器被安装
 		ensure_installed = {

@@ -1,8 +1,8 @@
 -- https://github.com/echasnovski/mini.nvim/blob/main/readmes/mini-jump2d.md
 
-vim.g.add({ source = "echasnovski/mini.jump2d" })
-
 vim.g.later(function()
+	vim.g.add({ source = "echasnovski/mini.jump2d" })
+
 	require("mini.jump2d").setup(
 		-- No need to copy this inside `setup()`. Will be used automatically.
 		{
