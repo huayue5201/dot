@@ -718,3 +718,191 @@ times in msec
 054.868  001.105: first screen update
 054.870  000.001: --- NVIM STARTED ---
 
+--- Startup times for process: Primary (or UI client) ---
+
+times in msec
+ clock   self+sourced   self:  sourced script
+ clock   elapsed:              other lines
+
+000.000  000.000: --- NVIM STARTING ---
+000.111  000.110: event init
+000.271  000.160: early init
+000.826  000.555: locale set
+000.866  000.040: init first window
+001.350  000.484: inits 1
+001.357  000.007: window checked
+001.360  000.004: parsing arguments
+001.929  000.047  000.047: require('vim.shared')
+002.018  000.032  000.032: require('vim.inspect')
+002.061  000.034  000.034: require('vim._options')
+002.063  000.130  000.064: require('vim._editor')
+002.064  000.249  000.072: require('vim._init_packages')
+002.066  000.456: init lua interpreter
+004.853  002.787: nvim_ui_attach
+005.197  000.345: nvim_set_client_info
+005.203  000.005: --- NVIM STARTED ---
+
+--- Startup times for process: Embedded ---
+
+times in msec
+ clock   self+sourced   self:  sourced script
+ clock   elapsed:              other lines
+
+000.000  000.000: --- NVIM STARTING ---
+000.080  000.080: event init
+000.175  000.095: early init
+000.441  000.266: locale set
+000.464  000.023: init first window
+000.745  000.282: inits 1
+000.758  000.012: window checked
+000.759  000.002: parsing arguments
+001.156  000.036  000.036: require('vim.shared')
+001.227  000.028  000.028: require('vim.inspect')
+001.279  000.044  000.044: require('vim._options')
+001.281  000.123  000.050: require('vim._editor')
+001.282  000.205  000.046: require('vim._init_packages')
+001.284  000.319: init lua interpreter
+002.903  001.619: expanding arguments
+002.914  000.011: inits 2
+003.119  000.205: init highlight
+003.120  000.001: waiting for UI
+003.231  000.111: done waiting for UI
+003.236  000.005: clear screen
+003.345  000.027  000.027: require('vim.keymap')
+004.359  001.120  001.093: require('vim._defaults')
+004.361  000.004: init default mappings & autocommands
+004.921  000.056  000.056: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/ftplugin.vim
+005.004  000.024  000.024: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/indent.vim
+005.295  000.089  000.089: require('vim.fs')
+005.522  000.221  000.221: require('vim.uri')
+005.536  000.366  000.057: require('vim.loader')
+005.973  000.166  000.166: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/colors/default.vim
+006.118  000.480  000.314: sourcing /Users/lijia/.config/nvim/colors/dawn.lua
+006.587  000.444  000.444: require('mini.deps')
+006.660  000.004  000.004: require('vim.F')
+007.441  000.022  000.022: sourcing /Users/lijia/.local/share/nvim/site/pack/deps/opt/nvim-web-devicons/plugin/nvim-web-devicons.vim
+008.898  000.167  000.167: require('bufferline.lazy')
+009.059  000.154  000.154: require('bufferline.commands')
+009.290  000.227  000.227: require('bufferline.config')
+009.322  001.544  000.997: require('bufferline')
+009.679  000.135  000.135: require('bufferline.utils')
+009.681  000.332  000.197: require('bufferline.groups')
+010.057  000.169  000.169: require('bufferline.constants')
+010.144  000.085  000.085: require('bufferline.colors')
+010.664  000.108  000.108: require('bufferline.highlights')
+011.265  000.124  000.124: require('vim.version')
+012.087  001.042  000.918: require('bufferline.hover')
+012.279  000.158  000.158: require('bufferline.ui')
+012.578  000.294  000.294: require('vim.diagnostic')
+015.117  000.279  000.279: require('nvim-treesitter.utils')
+015.963  000.203  000.203: require('vim.treesitter.language')
+016.073  000.108  000.108: require('vim.func')
+016.191  000.116  000.116: require('vim.func._memoize')
+016.207  000.566  000.139: require('vim.treesitter.query')
+016.300  000.091  000.091: require('vim.treesitter._range')
+016.332  000.791  000.133: require('vim.treesitter.languagetree')
+016.336  000.904  000.113: require('vim.treesitter')
+016.758  001.638  000.734: require('nvim-treesitter.parsers')
+017.258  000.093  000.093: require('nvim-treesitter.compat')
+017.496  000.139  000.139: require('nvim-treesitter.ts_utils')
+017.500  000.241  000.102: require('nvim-treesitter.tsrange')
+017.589  000.088  000.088: require('nvim-treesitter.caching')
+017.599  000.615  000.193: require('nvim-treesitter.query')
+017.613  000.744  000.130: require('nvim-treesitter.configs')
+017.616  000.857  000.113: require('nvim-treesitter.info')
+017.721  000.105  000.105: require('nvim-treesitter.shell_command_selectors')
+017.748  003.149  000.270: require('nvim-treesitter.install')
+017.834  000.085  000.085: require('nvim-treesitter.statusline')
+017.956  000.121  000.121: require('nvim-treesitter.query_predicates')
+017.958  004.022  000.668: require('nvim-treesitter')
+018.119  000.157  000.157: require('vim.iter')
+018.848  005.014  000.834: sourcing /Users/lijia/.local/share/nvim/site/pack/deps/opt/nvim-treesitter/plugin/nvim-treesitter.lua
+019.340  000.037  000.037: sourcing /Users/lijia/.local/share/nvim/site/pack/deps/opt/nvim-treesitter/plugin/nvim-treesitter.lua
+020.591  000.809  000.809: require('nvim-treesitter-textobjects')
+021.286  000.279  000.279: require('nvim-treesitter.textobjects.shared')
+021.295  000.463  000.184: require('nvim-treesitter.textobjects.select')
+021.602  000.095  000.095: require('nvim-treesitter.textobjects.attach')
+021.701  000.097  000.097: require('nvim-treesitter.textobjects.repeatable_move')
+021.705  000.324  000.133: require('nvim-treesitter.textobjects.move')
+021.948  000.084  000.084: require('nvim-treesitter.textobjects.swap')
+022.052  000.088  000.088: require('nvim-treesitter.textobjects.lsp_interop')
+022.064  002.290  000.522: sourcing /Users/lijia/.local/share/nvim/site/pack/deps/opt/nvim-treesitter-textobjects/plugin/nvim-treesitter-textobjects.vim
+023.201  000.096  000.096: require('nvim-treesitter.indent')
+023.335  000.083  000.083: require('nvim-treesitter.highlight')
+023.545  000.086  000.086: require('nvim-treesitter.locals')
+023.548  000.178  000.092: require('nvim-treesitter.incremental_selection')
+023.753  018.646  005.900: sourcing /Users/lijia/.config/nvim/init.lua
+023.759  000.673: sourcing vimrc file(s)
+024.029  000.014  000.014: sourcing /Applications/Ghostty.app/Contents/Resources/ghostty/../nvim/site/ftdetect/ghostty.vim
+024.041  000.197  000.183: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua
+024.227  000.064  000.064: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/syntax/synload.vim
+024.285  000.196  000.132: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/syntax/syntax.vim
+024.925  000.168  000.168: sourcing /Users/lijia/.config/nvim/plugin/keymaps.lua
+025.003  000.039  000.039: sourcing /Users/lijia/.config/nvim/plugin/largefile.lua
+025.264  000.149  000.149: require('vim.treesitter._fold')
+029.649  000.101  000.101: require('vim.lsp.log')
+029.955  000.305  000.305: require('vim.lsp.protocol')
+030.135  000.178  000.178: require('vim.lsp.util')
+030.302  000.078  000.078: require('vim.lsp.sync')
+030.306  000.169  000.091: require('vim.lsp._changetracking')
+030.486  000.082  000.082: require('vim.lsp._transport')
+030.494  000.188  000.106: require('vim.lsp.rpc')
+030.559  001.165  000.225: require('vim.lsp')
+030.567  005.526  004.212: sourcing /Users/lijia/.config/nvim/plugin/options.lua
+030.878  000.081  000.081: require('bufferline.pick')
+030.956  000.076  000.076: require('bufferline.duplicates')
+031.047  000.089  000.089: require('bufferline.diagnostics')
+031.142  000.095  000.095: require('bufferline.models')
+031.144  000.432  000.091: require('bufferline.buffers')
+031.234  000.080  000.080: require('bufferline.state')
+031.482  000.098  000.098: require('nvim-web-devicons.filetypes')
+031.727  000.165  000.165: require('nvim-web-devicons.default.icons_by_filename')
+032.318  000.590  000.590: require('nvim-web-devicons.default.icons_by_file_extension')
+032.453  000.133  000.133: require('nvim-web-devicons.default.icons_by_operating_system')
+032.537  000.083  000.083: require('nvim-web-devicons.default.icons_by_desktop_environment')
+032.624  000.087  000.087: require('nvim-web-devicons.default.icons_by_window_manager')
+032.626  001.137  000.080: require('nvim-web-devicons.icons-default')
+032.792  001.522  000.287: require('nvim-web-devicons')
+035.449  000.165  000.165: require('bufferline.numbers')
+035.726  000.183  000.183: require('bufferline.sorters')
+035.969  000.218  000.218: require('bufferline.tabpages')
+036.170  000.132  000.132: require('bufferline.offset')
+036.282  000.107  000.107: require('bufferline.custom_area')
+036.730  000.142  000.142: require('statucolumn')
+036.851  006.229  003.246: sourcing /Users/lijia/.config/nvim/plugin/statusline.lua
+037.086  000.185  000.185: sourcing /Users/lijia/.config/nvim/plugin/usercmds.lua
+037.885  000.621  000.621: sourcing /Users/lijia/.local/share/nvim/site/pack/deps/opt/nvim-treesitter-textobjects/plugin/nvim-treesitter-textobjects.vim
+038.048  000.042  000.042: sourcing /Users/lijia/.local/share/nvim/site/pack/deps/opt/nvim-treesitter/plugin/nvim-treesitter.lua
+038.201  000.020  000.020: sourcing /Users/lijia/.local/share/nvim/site/pack/deps/opt/nvim-web-devicons/plugin/nvim-web-devicons.vim
+039.018  000.028  000.028: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/gzip.vim
+039.672  000.129  000.129: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/pack/dist/opt/matchit/plugin/matchit.vim
+039.704  000.649  000.519: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/matchit.vim
+039.851  000.111  000.111: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/matchparen.vim
+039.893  000.006  000.006: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/netrwPlugin.vim
+040.024  000.096  000.096: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/rplugin.vim
+040.103  000.043  000.043: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/shada.vim
+040.154  000.011  000.011: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/spellfile.vim
+040.200  000.009  000.009: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/tarPlugin.vim
+040.249  000.011  000.011: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/tutor.vim
+040.293  000.009  000.009: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/zipPlugin.vim
+040.387  000.057  000.057: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/editorconfig.lua
+040.515  000.090  000.090: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/man.lua
+040.725  000.104  000.104: require('vim.termcap')
+040.864  000.131  000.131: require('vim.text')
+040.875  000.322  000.087: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/osc52.lua
+040.972  000.059  000.059: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/tohtml.lua
+040.986  002.506: loading rtp plugins
+041.163  000.177: loading packages
+041.539  000.376: loading after plugins
+041.547  000.008: inits 3
+043.199  001.653: reading ShaDa
+043.253  000.054: opening buffers
+043.274  000.021: BufEnter autocommands
+043.278  000.004: editing files in windows
+043.316  000.038: VimEnter autocommands
+043.317  000.001: UIEnter autocommands
+043.531  000.136  000.136: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/autoload/provider/clipboard.vim
+043.535  000.081: before starting main loop
+044.251  000.716: first screen update
+044.252  000.001: --- NVIM STARTED ---
+

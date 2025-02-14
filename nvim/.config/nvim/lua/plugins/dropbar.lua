@@ -4,6 +4,12 @@ vim.g.later(function()
 	vim.g.add({
 		source = "Bekaboo/dropbar.nvim",
 		depends = { "nvim-telescope/telescope-fzf-native.nvim" },
+		hooks = {
+			post_install = function()
+				-- 运行构建命令（例如 make 或 cargo）
+				vim.fn.system("cd ~/.local/share/nvim/site/pack/deps/opt/telescope-fzf-native.nvim && make")
+			end,
+		},
 	})
 
 	local dropbar_api = require("dropbar.api")
