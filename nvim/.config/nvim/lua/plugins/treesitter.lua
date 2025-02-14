@@ -3,9 +3,6 @@
 vim.g.now(function()
 	vim.g.add({
 		source = "nvim-treesitter/nvim-treesitter",
-		-- Use 'master' while monitoring updates in 'main'
-		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
-		depnds = { "nvim-treesitter/nvim-treesitter-textobjects" },
 		checkout = "master",
 		monitor = "main",
 		-- Perform action after every checkout
@@ -14,6 +11,12 @@ vim.g.now(function()
 				vim.cmd("TSUpdate")
 			end,
 		},
+	})
+
+	vim.g.add({
+		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+		source = "nvim-treesitter/nvim-treesitter-textobjects",
+		depends = { "nvim-treesitter/nvim-treesitter" },
 	})
 
 	require("nvim-treesitter.configs").setup({
@@ -45,7 +48,7 @@ vim.g.now(function()
 		highlight = {
 			enable = true,
 			-- 或者使用一个函数来灵活配置，例如，对于大文件禁用 Treesitter 高亮以提高性能
-			disable = function(lang, buf)
+			disable = function(_, buf)
 				local max_filesize = 1 * 1024 * 1024 -- 1 MB
 				local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
 				if ok and stats and stats.size > max_filesize then

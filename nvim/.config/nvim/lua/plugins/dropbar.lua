@@ -3,7 +3,7 @@
 vim.g.later(function()
 	vim.g.add({
 		source = "Bekaboo/dropbar.nvim",
-		depnds = { "nvim-telescope/telescope-fzf-native.nvim" },
+		depends = { "nvim-telescope/telescope-fzf-native.nvim" },
 	})
 
 	local dropbar_api = require("dropbar.api")

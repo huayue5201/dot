@@ -3,7 +3,7 @@
 vim.g.later(function()
 	vim.g.add({
 		source = "kylechui/nvim-surround",
-		depnds = {
+		depends = {
 			"nvim-treesitter/nvim-treesitter",
 			"nvim-treesitter/nvim-treesitter-textobjects",
 		},
