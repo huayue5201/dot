@@ -49,10 +49,8 @@ require("mini.deps").setup({ path = { package = path_package } })
 -- 加载 MiniDeps
 local MiniDeps = require("mini.deps")
 
--- 将 `add` 和 `later` 设置为全局变量
-vim.g.add = MiniDeps.add
-vim.g.now = MiniDeps.now
-vim.g.later = MiniDeps.later
+-- 将 `add` 和 `later` , 'now' 设置为全局变量
+vim.g.add, vim.g.now, vim.g.later = MiniDeps.add, MiniDeps.now, MiniDeps.later
 
 local plugin_dir = vim.fn.stdpath("config") .. "/lua/plugins"
 for _, plugin in ipairs(vim.fn.readdir(plugin_dir)) do
