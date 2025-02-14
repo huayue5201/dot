@@ -8,4 +8,6 @@ vim.g.later(function()
 			"nvim-treesitter/nvim-treesitter-textobjects",
 		},
 	})
+
+	require("nvim-surround").setup()
 end)
