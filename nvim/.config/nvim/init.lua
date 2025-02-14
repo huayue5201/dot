@@ -9,6 +9,27 @@ vim.loader.enable()
 -- 设置配色方案
 vim.cmd("colorscheme dawn")
 
+-- 配置 fzf 查找文件和 buffers 的功能
+
+-- 启动 fzf 查找文件
+local function find_files()
+	local result = vim.fn.systemlist("fzf")
+	if #result > 0 then
+		vim.cmd("edit " .. result[1]) -- 打开选中的文件
+	end
+end
+
+-- 启动 fzf 查找当前 buffers
+local function find_buffers()
+	local result = vim.fn.systemlist('fzf --query="' .. vim.fn.expand("<cword>") .. '"')
+	if #result > 0 then
+		vim.cmd("buffer " .. result[1]) -- 切换到选中的 buffer
+	end
+end
+
+-- 配置快捷键
+vim.api.nvim_set_keymap("n", "<Leader>ff", ":lua find_files()<CR>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<Leader>fb", ":lua find_buffers()<CR>", { noremap = true, silent = true })
 -- 设置前置按键为空格键
 vim.g.mapleader = vim.keycode("<space>") -- 设置 Leader 键为空格
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true }) -- 禁用空格键默认的功能
