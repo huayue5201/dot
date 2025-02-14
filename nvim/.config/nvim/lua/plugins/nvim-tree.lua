@@ -1,29 +1,11 @@
 -- https://github.com/nvim-tree/nvim-tree.lua
 
-return {
-	"nvim-tree/nvim-tree.lua",
-	dependencies = {
-		{ "nvim-tree/nvim-web-devicons" },
-		-- or if using `mini.icons`
-		-- { "echasnovski/mini.icons" },
-	},
-	keys = { "<leader>e", desc = "文件树" },
-	config = function()
-		-- OR setup with some options
-		require("nvim-tree").setup({
-			sort = {
-				sorter = "case_sensitive",
-			},
-			view = {
-				width = 30,
-			},
-			renderer = {
-				group_empty = true,
-			},
-			filters = {
-				dotfiles = true,
-			},
-		})
-		vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })
-	end,
-}
+vim.g.add({
+	source = "nvim-tree/nvim-tree.lua",
+	depnds = { "nvim-tree/nvim-web-devicons" },
+})
+
+vim.g.later(function()
+require("nvim-tree").setup()
+vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "文件树" })
+end)

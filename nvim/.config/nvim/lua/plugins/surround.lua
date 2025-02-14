@@ -1,11 +1,9 @@
 -- https://github.com/kylechui/nvim-surround
 
-return {
-   "kylechui/nvim-surround",
-   dependencies = {
+vim.g.add{
+   source="kylechui/nvim-surround",
+   depnds= {
       "nvim-treesitter/nvim-treesitter",
       "nvim-treesitter/nvim-treesitter-textobjects",
    },
-   keys = { "cs", "ds", "ys" },
-   opts = {},
 }
