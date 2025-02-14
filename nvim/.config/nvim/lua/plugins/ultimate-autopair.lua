@@ -1,8 +1,8 @@
 -- https://github.com/altermo/ultimate-autopair.nvim
 
-vim.g.add({ source = "altermo/ultimate-autopair.nvim" })
-
 vim.g.later(function()
+	vim.g.add({ source = "altermo/ultimate-autopair.nvim" })
+
 	require("ultimate-autopair").setup({
 		-- 后退键配置
 		bs = {

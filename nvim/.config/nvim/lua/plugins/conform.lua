@@ -1,8 +1,8 @@
 -- https://github.com/stevearc/conform.nvim
 
-vim.g.add({ source = "stevearc/conform.nvim" })
--- Everything in opts will be passed to setup()
 vim.g.later(function()
+	vim.g.add({ source = "stevearc/conform.nvim" })
+
 	local slow_format_filetypes = {}
 	require("conform").setup({
 		-- Define your formatters
@@ -39,14 +39,4 @@ vim.g.later(function()
 	})
 	-- If you want the formatexpr, here is the place to set it
 	vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
-
-	vim.keymap.set(
-		"n",
-		-- Customize or remove this keymap to your liking
-		"<S-A-f>",
-		function()
-			require("conform").format({ async = true, lsp_fallback = true })
-		end,
-		{ desc = "Format buffer" }
-	)
 end)

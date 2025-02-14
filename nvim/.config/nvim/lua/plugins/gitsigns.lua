@@ -1,8 +1,8 @@
 -- https://github.com/lewis6991/gitsigns.nvim
 
-vim.g.add({ source = "lewis6991/gitsigns.nvim" })
-
 vim.g.later(function()
+	vim.g.add({ source = "lewis6991/gitsigns.nvim" })
+
 	require("gitsigns").setup({
 		on_attach = function(bufnr)
 			local gitsigns = package.loaded.gitsigns -- 加载 gitsigns 模块

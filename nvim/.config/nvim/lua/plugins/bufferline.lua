@@ -1,11 +1,11 @@
 -- https://github.com/akinsho/bufferline.nvim
 
-vim.g.add({
-	source = "akinsho/bufferline.nvim",
-	depnds = "nvim-tree/nvim-web-devicons",
-})
-
 vim.g.now(function()
+	vim.g.add({
+		source = "akinsho/bufferline.nvim",
+		depnds = "nvim-tree/nvim-web-devicons",
+	})
+
 	require("bufferline").setup({
 		options = {
 			separator_style = "thick", -- 分隔符样式设置为thick
