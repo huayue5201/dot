@@ -52,3 +52,6 @@ local MiniDeps = require("mini.deps")
 -- 将 `add`、`now` 和 `later` 设置为全局变量，方便后续使用
 -- `add`, `now`, 和 `later` 是 MiniDeps 插件的核心 API，直接赋值为全局变量
 vim.g.add, vim.g.now, vim.g.later = MiniDeps.add, MiniDeps.now, MiniDeps.later
+
+-- 添加fzf运行时
+vim.opt.runtimepath:append("/opt/homebrew/opt/fzf")
