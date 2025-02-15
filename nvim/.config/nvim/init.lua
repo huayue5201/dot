@@ -13,6 +13,12 @@ vim.cmd("colorscheme dawn")
 vim.g.mapleader = vim.keycode("<space>") -- 设置 Leader 键为空格
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true }) -- 禁用空格键默认的功能
 
+require("config.settings")
+require("config.autocmds_and_commands")
+require("config.statusline")
+require("config.largefile")
+require("config.keymaps")
+
 -- 插件管理器：手动克隆 `mini.nvim` 插件并通过 `mini.deps` 管理
 local path_package = vim.fn.stdpath("data") .. "/site/" -- 获取插件安装路径
 local mini_path = path_package .. "pack/deps/start/mini.nvim" -- 定义 `mini.nvim` 插件路径
