@@ -1,4 +1,3 @@
--- lua/user/lsp_config.lua
 local M = {}
 
 -- 缓存 LSP 客户端支持的方法，减少频繁查询
