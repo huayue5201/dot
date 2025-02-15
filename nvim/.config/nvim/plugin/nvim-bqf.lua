@@ -8,13 +8,4 @@ vim.g.later(function()
 			"nvim-treesitter/nvim-treesitter",
 		},
 	})
-
-	vim.g.add({
-		source = "junegunn/fzf",
-		hooks = {
-			post_checkout = function()
-				vim.fn["fzf#install"]()
-			end,
-		},
-	})
 end)
