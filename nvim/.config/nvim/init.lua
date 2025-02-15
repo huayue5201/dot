@@ -46,12 +46,3 @@ local MiniDeps = require("mini.deps")
 
 -- 将 `add`、`now` 和 `later` 设置为全局变量，方便后续使用
 vim.g.add, vim.g.now, vim.g.later = MiniDeps.add, MiniDeps.now, MiniDeps.later
-
--- 加载配置目录下的所有插件配置文件
-local plugin_dir = vim.fn.stdpath("config") .. "/lua/plugins"
-for _, plugin in ipairs(vim.fn.readdir(plugin_dir)) do
-	local plugin_file = plugin_dir .. "/" .. plugin
-	if plugin:match("%.lua$") then -- 仅加载 `.lua` 后缀的文件
-		dofile(plugin_file) -- 执行插件配置文件
-	end
-end
