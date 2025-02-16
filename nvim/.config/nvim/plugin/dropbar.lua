@@ -1,6 +1,6 @@
 -- https://github.com/Bekaboo/dropbar.nvim?tab=readme-ov-file
 
-vim.g.later(function()
+vim.g.now(function()
 	vim.g.add({
 		source = "Bekaboo/dropbar.nvim",
 		depends = { "nvim-telescope/telescope-fzf-native.nvim" },
