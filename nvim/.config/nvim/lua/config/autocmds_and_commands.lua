@@ -19,21 +19,6 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 	command = "%s/\\s\\+$//e",
 })
 
--- 禁用特定 buffer 中的状态列
-create_augroup("disableStatusColumn", {
-	{
-		"FileType",
-		"禁用特定buffer内的状态列",
-		function()
-			local special_filetypes = { "aerial", "qf", "help", "man", "NvimTree" } -- 添加 NvimTree
-			if vim.tbl_contains(special_filetypes, vim.bo.filetype) then
-				-- 只在特定 buffer 内禁用状态列
-				vim.wo.statuscolumn = ""
-			end
-		end,
-	},
-})
-
 -- 记住最后的光标位置
 vim.api.nvim_create_autocmd("BufReadPost", {
 	desc = "记住最后的光标位置",
@@ -82,14 +67,6 @@ create_augroup("closeWithQ", {
 			end
 		end,
 	},
-})
-
--- 仅在活动窗口显示光标线
-vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
-	desc = "仅在活动窗口显示光标线",
-	pattern = "*",
-	command = "set cursorline",
-	group = vim.api.nvim_create_augroup("CursorLineGroup", { clear = true }),
 })
 
 -- Toggle Quickfix 和 Location List
