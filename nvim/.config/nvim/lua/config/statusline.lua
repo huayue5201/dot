@@ -1,5 +1,3 @@
--- lua/util/statusline.lua
-
 Statusline = {}
 
 -- 定义模式指示器
@@ -135,15 +133,26 @@ function Statusline.active()
 	})
 end
 
--- 启动一个定时器，每 150 毫秒刷新一次状态栏，确保 spinner 能更新
-if not Statusline._spinner_timer then
-	Statusline._spinner_timer = true
-	local function update_spinner()
-		vim.cmd("redrawstatus")
-		vim.defer_fn(update_spinner, 150) -- 150ms 后再次调用
-	end
-	update_spinner()
-end
+-- 启动一个定时器，每 500 毫秒刷新一次状态栏，确保 spinner 能更新
+local timer = vim.loop.new_timer()
+
+vim.api.nvim_create_autocmd("LspProgress", {
+	group = vim.api.nvim_create_augroup("LSPProgress", { clear = true }),
+	callback = function()
+		vim.cmd.redrawstatus()
+		if timer then
+			timer:stop()
+			timer:start(
+				150,
+				0,
+				vim.schedule_wrap(function()
+					timer:stop()
+					vim.cmd.redrawstatus()
+				end)
+			)
+		end
+	end,
+})
 
 -- 设置状态栏：在窗口进入、缓冲区进入时更新
 vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
