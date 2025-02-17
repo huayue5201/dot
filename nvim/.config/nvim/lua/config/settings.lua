@@ -47,6 +47,7 @@ vim.opt.sidescrolloff = 5 -- 保持光标左右至少 5 列可见
 vim.bo.omnifunc = "" -- 禁用 omnifunc 补全
 vim.opt.complete = "" -- 禁用补全
 vim.opt.completeopt = "menuone,noinsert,noselect" -- 补全菜单的选项
+-- vim.o.completeopt = "menu,menuone,popup,fuzzy" -- modern completion menu
 
 -- 搜索设置
 vim.opt.grepprg = "rg --vimgrep --smart-case --hidden" -- 使用 ripgrep 作为搜索程序
