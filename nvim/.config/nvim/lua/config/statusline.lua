@@ -133,9 +133,17 @@ function Statusline.active()
 	})
 end
 
+-- 设置状态栏：在窗口进入、缓冲区进入时更新
+vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
+	group = vim.api.nvim_create_augroup("Statusline", { clear = true }),
+	callback = function()
+		local win_id = vim.api.nvim_get_current_win()
+		vim.api.nvim_set_option_value("statusline", "%!v:lua.Statusline.active()", { win = win_id })
+	end,
+})
+
 -- 启动一个定时器，每 500 毫秒刷新一次状态栏，确保 spinner 能更新
 local timer = vim.loop.new_timer()
-
 vim.api.nvim_create_autocmd("LspProgress", {
 	group = vim.api.nvim_create_augroup("LSPProgress", { clear = true }),
 	callback = function()
@@ -151,14 +159,5 @@ vim.api.nvim_create_autocmd("LspProgress", {
 				end)
 			)
 		end
-	end,
-})
-
--- 设置状态栏：在窗口进入、缓冲区进入时更新
-vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
-	group = vim.api.nvim_create_augroup("Statusline", { clear = true }),
-	callback = function()
-		local win_id = vim.api.nvim_get_current_win()
-		vim.api.nvim_set_option_value("statusline", "%!v:lua.Statusline.active()", { win = win_id })
 	end,
 })

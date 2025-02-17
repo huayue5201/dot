@@ -16,13 +16,14 @@ vim.cmd("colorscheme dawn")
 vim.g.mapleader = vim.keycode("<space>") -- 设置 Leader 键为空格
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true }) -- 禁用空格键默认的功能
 
--- 加载其他配置文件
--- 这些配置文件通常包含了更具体的功能配置
 require("config.settings") -- 加载全局设置
 require("config.autocmds_and_commands") -- 加载自动命令和用户命令配置
 require("config.statusline") -- 加载状态栏配置
 require("config.largefile") -- 加载大文件配置
 require("config.keymaps") -- 加载按键映射配置
+
+-- 开启lsp-servers
+vim.lsp.enable({ "lua_ls", "clangd", "taplo" })
 
 -- 插件管理器：手动克隆 `mini.nvim` 插件并通过 `mini.deps` 管理
 local path_package = vim.fn.stdpath("data") .. "/site/" -- 获取插件安装路径
