@@ -121,14 +121,12 @@ function Statusline.active()
 	local file_percent = " %p%%"
 
 	-- 固定宽度显示信息，防止跳动
-	-- local fixed_width_git = string.format("%-20s", git_str) -- 固定 20 个字符宽度
 	local fixed_width_lsp = string.format("%-30s", lsp_str) -- 固定 30 个字符宽度
 
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
 		mode_str, -- 模式
 		git_str,
-		-- fixed_width_git,
 		file_name,
 		fixed_width_lsp, -- LSP 状态
 		"%=",
