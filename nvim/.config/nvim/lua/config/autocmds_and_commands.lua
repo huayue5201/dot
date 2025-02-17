@@ -119,17 +119,12 @@ vim.api.nvim_create_user_command("Messages", function()
 end, {})
 
 vim.api.nvim_create_user_command("DelMarks", function()
-	-- 等待用户输入标记
 	local mark = vim.fn.input("Enter mark to delete: ")
-	-- 重新绘制屏幕，清除上一条消息
 	vim.cmd("redraw!")
-	-- 检查用户输入是否为空
 	if mark ~= "" then
-		-- 删除对应的标记
 		vim.cmd("delmarks " .. mark)
 		vim.notify("Deleted mark: " .. mark)
 	else
-		-- 使用 vim.api.nvim_echo 显示红色警告信息
 		vim.api.nvim_echo({ { "No mark entered. Aborting.", "Error" } }, true, {})
 	end
 end, { desc = "Delete a specific mark" })
