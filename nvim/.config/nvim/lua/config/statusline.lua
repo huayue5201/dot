@@ -100,7 +100,7 @@ function Statusline.lsp_clients()
 		table.insert(client_names, client.name)
 	end
 	-- 使用图标（例如 ）作为前缀，后面显示客户端名称（多个客户端用逗号分隔）
-	return "  " .. table.concat(client_names, ", ") .. ": "
+	return "   " .. table.concat(client_names, ", ") .. ": "
 end
 
 -- LSP 状态（包含客户端名称、诊断和进度信息）
@@ -120,14 +120,18 @@ function Statusline.active()
 	local line_col = " %l:%c"
 	local file_percent = " %p%%"
 
+	-- 固定宽度显示信息，防止跳动
+	-- local fixed_width_git = string.format("%-20s", git_str) -- 固定 20 个字符宽度
+	local fixed_width_lsp = string.format("%-30s", lsp_str) -- 固定 30 个字符宽度
+
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
 		mode_str, -- 模式
-		git_str, -- Git 状态
-		file_name, -- 文件名
-		"%=", -- 自动分隔（左右对齐）
-		lsp_str, -- LSP 客户端名称、诊断及进度
-		"%=", -- 自动分隔
+		git_str,
+		-- fixed_width_git,
+		file_name,
+		fixed_width_lsp, -- LSP 状态
+		"%=",
 		line_col, -- 行列号
 		file_percent, -- 文件百分比
 	})
