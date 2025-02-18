@@ -71,10 +71,8 @@ function Statusline.lsp_progress()
 	if progress == "" then
 		return ""
 	end
-	-- 获取当前 spinner 帧，并更新下标
 	local spinner = spinner_frames[spinner_index]
 	spinner_index = (spinner_index % #spinner_frames) + 1
-	-- 截断进度信息，避免过长
 	progress = #progress > 50 and string.sub(progress, 1, 50) .. "…" or progress
 	return " " .. spinner .. " " .. progress
 end
@@ -128,6 +126,6 @@ vim.api.nvim_create_autocmd("LspProgress", {
 	callback = function()
 		vim.cmd.redrawstatus()
 		timer:stop() -- 停止之前的定时器
-		timer:start(150, 0, vim.schedule_wrap(vim.cmd.redrawstatus)) -- 延迟执行重绘
+		timer:start(200, 0, vim.schedule_wrap(vim.cmd.redrawstatus)) -- 延迟执行重绘
 	end,
 })

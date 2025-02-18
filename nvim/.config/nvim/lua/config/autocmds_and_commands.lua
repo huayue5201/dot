@@ -1,16 +1,3 @@
--- Helper function to create augroups more efficiently
-local function create_augroup(name, events)
-	local group = vim.api.nvim_create_augroup(name, { clear = true })
-	for _, event in ipairs(events) do
-		vim.api.nvim_create_autocmd(event[1], {
-			group = group,
-			desc = event[2],
-			callback = event[3],
-		})
-	end
-	return group
-end
-
 -- 清理尾部空白字符
 vim.api.nvim_create_autocmd("BufWritePre", {
 	desc = "保存文件时移除末尾的空白字符",
@@ -55,18 +42,16 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 -- 在特定文件类型中用 q 关闭窗口
-create_augroup("closeWithQ", {
-	{
-		"FileType",
-		"用q关闭窗口",
-		function()
-			local close_cmd = vim.bo.filetype == "man" and ":quit<CR>" or ":close<CR>"
-			local filetypes = { "help", "startuptime", "qf", "lspinfo", "checkhealth", "man" }
-			if vim.tbl_contains(filetypes, vim.bo.filetype) then
-				vim.api.nvim_buf_set_keymap(0, "n", "q", close_cmd, { noremap = true, silent = true })
-			end
-		end,
-	},
+vim.api.nvim_create_autocmd("FileType", {
+	desc = "用q关闭窗口",
+	pattern = "*",
+	callback = function()
+		local close_cmd = vim.bo.filetype == "man" and ":quit<CR>" or ":close<CR>"
+		local filetypes = { "help", "startuptime", "qf", "lspinfo", "checkhealth", "man" }
+		if vim.tbl_contains(filetypes, vim.bo.filetype) then
+			vim.api.nvim_buf_set_keymap(0, "n", "q", close_cmd, { noremap = true, silent = true })
+		end
+	end,
 })
 
 -- Toggle Quickfix 和 Location List
