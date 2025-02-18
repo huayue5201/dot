@@ -119,6 +119,8 @@ vim.api.nvim_create_user_command("Messages", function()
 end, {})
 
 vim.api.nvim_create_user_command("DelMarks", function()
+	local marks_output = vim.fn.execute("marks")
+	vim.notify("Current marks:\n" .. marks_output, vim.log.levels.INFO)
 	local mark = vim.fn.input("Enter mark to delete: ")
 	vim.cmd("redraw!")
 	if mark ~= "" then
