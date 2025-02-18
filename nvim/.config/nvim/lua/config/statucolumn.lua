@@ -1,5 +1,4 @@
 -- statuscolumn.lua
-
 local Statuscolumn = {}
 
 Statuscolumn.border = function()
