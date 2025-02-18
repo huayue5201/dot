@@ -54,38 +54,32 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
--- Toggle Quickfix 和 Location List
-vim.api.nvim_create_user_command("ToggleQuickfix", function()
-	local quickfixOpen = false
+local function is_window_open(win_type)
 	for _, win in ipairs(vim.fn.getwininfo()) do
-		if win.quickfix == 1 then
-			quickfixOpen = true
-			break
+		if win[win_type] == 1 then
+			return true
 		end
 	end
-	if quickfixOpen then
+	return false
+end
+-- Toggle Quickfix
+vim.api.nvim_create_user_command("ToggleQuickfix", function()
+	if is_window_open("quickfix") then
 		vim.cmd("cclose")
 	else
 		vim.cmd("copen")
 	end
 end, { desc = "Toggle Quickfix window" })
-
+-- Toggle Location List
 vim.api.nvim_create_user_command("ToggleLoclist", function()
-	local locationListOpen = false
-	for _, win in ipairs(vim.fn.getwininfo()) do
-		if win.loclist == 1 then
-			locationListOpen = true
-			break
-		end
-	end
-	if locationListOpen then
+	if is_window_open("loclist") then
 		vim.cmd("lclose")
 	else
 		local locationList = vim.fn.getloclist(0)
-		if #locationList == 0 then
-			vim.notify("当前没有 loclist 可用", vim.log.levels.WARN)
-		else
+		if #locationList > 0 then
 			vim.cmd("lopen")
+		else
+			vim.notify("当前没有 loclist 可用", vim.log.levels.WARN)
 		end
 	end
 end, { desc = "Toggle Location List" })
@@ -103,7 +97,7 @@ vim.api.nvim_create_user_command("Messages", function()
 	vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = scratch_buffer })
 end, {})
 
-vim.api.nvim_create_user_command("DelMarks", function()
+vim.api.nvim_create_user_command("DeleteMarks", function()
 	local marks_output = vim.fn.execute("marks")
 	vim.notify("Current marks:\n" .. marks_output, vim.log.levels.INFO)
 	local mark = vim.fn.input("Enter mark to delete: ")
