@@ -95,6 +95,7 @@ vim.opt.fillchars = {
 vim.opt.listchars = {
 	tab = "┊ ", -- 显示 Tab 字符
 	leadmultispace = "┊ ", -- 显示多余空格
+	multispace = "┊ ",
 	trail = "␣", -- 显示尾随空格
 	nbsp = "⍽", -- 显示不间断空格
 	eol = "↲", -- 换行符
