@@ -1,4 +1,3 @@
--- utils/largerfile.lua
 local M = {}
 
 --- 获取缓冲区信息
@@ -8,7 +7,6 @@ local function get_buffer_info()
 	local bufname = vim.api.nvim_buf_get_name(bufnr)
 	local stat = vim.fn.stat(bufname) -- 使用 vim.fn.stat 来代替 vim.loop.fs_stat
 	local line_count = vim.api.nvim_buf_line_count(bufnr)
-	-- 使用 nvim_get_option_value 替代 nvim_buf_get_option
 	local file_type = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
 	return bufnr, bufname, stat, line_count, file_type
 end
@@ -23,52 +21,33 @@ local function is_big_file(stat, line_count)
 	return (stat and stat.size or 0) > size_limit or line_count > line_limit
 end
 
---- 处理大文件时禁用一些功能
-local function disable_large_file_features()
-	-- 直接调用 get_buffer_info，不再使用 bufnr 变量
-	local _, _, stat, line_count, _ = get_buffer_info()
+--- 禁用大文件功能
+local function disable_large_file_features(stat, line_count)
 	if is_big_file(stat, line_count) then
-		local options = {
-			foldmethod = "manual", -- 禁用自动折叠
-			syntax = "off", -- 禁用语法高亮
-			filetype = "off", -- 禁用文件类型检测
-			undofile = false, -- 禁用撤销文件
-			swapfile = false, -- 禁用交换文件
-			loadplugins = false, -- 禁用插件加载
-		}
-
 		-- 使用 vim.bo 设置缓冲区选项
-		for key, value in pairs(options) do
-			vim.bo[key] = value
-		end
+		vim.bo.foldmethod = "manual"
+		vim.bo.syntax = "off"
+		vim.bo.filetype = "off"
+		vim.bo.undofile = false
+		vim.bo.swapfile = false
+		vim.bo.loadplugins = false
 		-- 通知用户
 		vim.notify("Large file detected. Disabling some features for better performance.")
 	end
 end
 
---- 启用默认设置
+--- 恢复默认设置
 local function restore_default_settings()
-	-- 直接调用 get_buffer_info，不再使用 bufnr 变量
-	local options = {
-		foldmethod = "marker", -- 恢复默认折叠方式
-		syntax = "on", -- 启用语法高亮
-		filetype = "on", -- 启用文件类型检测
-		undofile = true, -- 启用撤销文件
-		swapfile = true, -- 启用交换文件
-		loadplugins = true, -- 启用插件加载
-	}
-
-	-- 使用 vim.bo 设置缓冲区选项
-	for key, value in pairs(options) do
-		vim.bo[key] = value
-	end
+	vim.bo.foldmethod = "marker"
+	vim.bo.syntax = "on"
+	vim.bo.filetype = "on"
+	vim.bo.undofile = true
+	vim.bo.swapfile = true
+	vim.bo.loadplugins = true
 end
 
---- 插件控制逻辑（根据文件类型或行数禁用/启用插件）
-local function handle_plugin_for_large_file()
-	local _, _, _, line_count, file_type = get_buffer_info()
-
-	-- 如果是日志文件或文件行数超过 5000，禁用插件
+--- 根据文件类型或行数禁用插件
+local function handle_plugin_for_large_file(file_type, line_count)
 	if file_type == "log" or line_count > 5000 then
 		vim.cmd("DisableHL") -- 假设插件有 DisableHL 命令
 	else
@@ -79,24 +58,22 @@ end
 --- 自动命令设置
 function M.setup()
 	local group = vim.api.nvim_create_augroup("LargeFileHandling", { clear = true })
-
-	-- 在文件读取之前处理大文件
+	-- 读取文件前处理
 	vim.api.nvim_create_autocmd("BufReadPre", {
 		group = group,
 		pattern = "*",
 		callback = function()
-			disable_large_file_features() -- 禁用大文件的相关设置
-			handle_plugin_for_large_file() -- 根据文件类型或行数禁用插件
+			local _, _, stat, line_count, file_type = get_buffer_info()
+			disable_large_file_features(stat, line_count) -- 禁用大文件的相关设置
+			handle_plugin_for_large_file(file_type, line_count) -- 根据文件类型或行数禁用插件
 		end,
 	})
 
-	-- 在文件读取之后恢复设置
+	-- 读取文件后恢复设置
 	vim.api.nvim_create_autocmd("BufReadPost", {
 		group = group,
 		pattern = "*",
-		callback = function()
-			restore_default_settings() -- 恢复默认设置
-		end,
+		callback = restore_default_settings, -- 恢复默认设置
 	})
 end
 
