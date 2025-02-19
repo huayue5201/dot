@@ -18,7 +18,6 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 require("config.settings") -- 加载全局设置
 require("config.autocmds_and_commands") -- 加载自动命令和用户命令配置
 require("config.statusline") -- 加载状态栏配置
-require("config.largefile") -- 加载大文件配置
 require("config.keymaps") -- 加载按键映射配置
 
 -- 开启lsp-servers
