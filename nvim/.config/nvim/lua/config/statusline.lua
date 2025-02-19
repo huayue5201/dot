@@ -24,22 +24,25 @@ function Statusline.mode()
 end
 
 -- Git 状态
+-- Git 状态
 function Statusline.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or not git_info.head then
 		return ""
 	end
 	local parts = {}
+	-- 始终先显示当前分支信息
+	table.insert(parts, " " .. git_info.head)
+	-- 显示其他修改信息
 	for key, icon in pairs({
-		added = "",
+		added = "",
 		changed = "",
-		removed = "",
+		removed = "",
 	}) do
 		if git_info[key] and git_info[key] > 0 then
 			table.insert(parts, icon .. " " .. git_info[key])
 		end
 	end
-	table.insert(parts, " " .. git_info.head)
 	return " " .. table.concat(parts, " ") .. " "
 end
 
@@ -73,7 +76,7 @@ function Statusline.lsp_progress()
 	end
 	local spinner = spinner_frames[spinner_index]
 	spinner_index = (spinner_index % #spinner_frames) + 1
-	progress = #progress > 50 and string.sub(progress, 1, 50) .. "…" or progress
+	progress = #progress > 32 and string.sub(progress, 1, 32) .. "…" or progress
 	return " " .. spinner .. " " .. progress
 end
 
@@ -102,13 +105,12 @@ end
 function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
-		Statusline.mode(),
-		" ",
-		" " .. string.format("%-4s", "%t"),
-		string.format("%-30s", Statusline.lsp()), -- 固定 30 个字符宽度显示 LSP 状态
+		string.format("%-9s", Statusline.mode()),
+		" " .. string.format("%-4s", "%t"), -- 文件名
+		Statusline.lsp(), -- lsp 状态
 		"%=", -- 分隔符
 		Statusline.vcs(), -- Git 状态
-		" %l:%c", -- 行列号
+		" %l/%c", -- 行列号
 		" %p%%", -- 文件百分比
 	})
 end
