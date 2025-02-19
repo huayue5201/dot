@@ -1,20 +1,19 @@
--- 引用 Neovim 官方文档和操作手册链接
--- Neovim 官方 GitHub：https://github.com/neovim/neovim
--- Neovim 官方发布：https://github.com/neovim/neovim/releases/
--- Vim 中文操作手册：https://vim.rtorr.com/lang/zh_cn
+-- Neovim 官方 GitHub
+-- https://github.com/neovim/neovim
+-- Neovim 官方发布
+-- https://github.com/neovim/neovim/releases/
+-- Vim 中文操作手册
+-- https://vim.rtorr.com/lang/zh_cn
 
--- 启用 Lua 加载器以提高启动速度
 -- 启动时开启 Lua 的内置加载器，可以加速 Neovim 启动过程
 vim.loader.enable()
 
 -- 设置配色方案
--- 使用 "dawn" 配色方案
 vim.cmd("colorscheme dawn")
 
--- 设置前置按键为空格键
 -- 将 Leader 键设置为空格
-vim.g.mapleader = vim.keycode("<space>") -- 设置 Leader 键为空格
-vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true }) -- 禁用空格键默认的功能
+vim.g.mapleader = vim.keycode("<space>")
+vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
 require("config.settings") -- 加载全局设置
 require("config.autocmds_and_commands") -- 加载自动命令和用户命令配置
@@ -31,17 +30,17 @@ local mini_path = path_package .. "pack/deps/start/mini.nvim" -- 定义 `mini.nv
 
 -- 如果 `mini.nvim` 插件未安装，则进行克隆
 if not vim.loop.fs_stat(mini_path) then
-	vim.cmd('echo "Installing `mini.nvim`" | redraw') -- 显示安装信息
+	vim.cmd('echo "Installing `mini.nvim`" | redraw')
 	local clone_cmd = {
-		"git", -- 使用 git 克隆插件
-		"clone", -- 克隆操作
-		"--filter=blob:none", -- 只克隆所需的文件，避免下载过多无用数据
-		"https://github.com/echasnovski/mini.nvim", -- 插件的 GitHub 地址
-		mini_path, -- 插件安装路径
+		"git",
+		"clone",
+		"--filter=blob:none",
+		"https://github.com/echasnovski/mini.nvim",
+		mini_path,
 	}
-	vim.fn.system(clone_cmd) -- 执行克隆命令
-	vim.cmd("packadd mini.nvim | helptags ALL") -- 加载插件并生成帮助标签
-	vim.cmd('echo "Installed `mini.nvim`" | redraw') -- 显示安装完成信息
+	vim.fn.system(clone_cmd)
+	vim.cmd("packadd mini.nvim | helptags ALL")
+	vim.cmd('echo "Installed `mini.nvim`" | redraw')
 end
 
 -- 设置 `mini.deps` 插件的安装路径
