@@ -70,6 +70,22 @@ vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
 	end
 end, { expr = true })
 
+-- 光标跳跃
+-- local function search_with_two_chars(search_command)
+-- 	return function()
+-- 		local char1 = vim.fn.getchar()
+-- 		local char2 = vim.fn.getchar()
+-- 		char1 = vim.fn.nr2char(char1)
+-- 		char2 = vim.fn.nr2char(char2)
+-- 		local search_term = char1 .. char2
+-- 		vim.api.nvim_feedkeys(search_command .. search_term .. "\n", "n", false)
+-- 	end
+-- end
+-- vim.api.nvim_set_keymap("n", "s", "", { noremap = true, silent = true, callback = search_with_two_chars("/") })
+-- vim.api.nvim_set_keymap("x", "s", "", { noremap = true, silent = true, callback = search_with_two_chars("/") })
+-- vim.api.nvim_set_keymap("n", "S", "", { noremap = true, silent = true, callback = search_with_two_chars("?") })
+-- vim.api.nvim_set_keymap("x", "S", "", { noremap = true, silent = true, callback = search_with_two_chars("?") })
+
 -- -- 插入模式下TAB可以跳出()[]....
 -- vim.keymap.set("i", "<Tab>", function()
 -- 	local cursor = vim.api.nvim_win_get_cursor(0)
