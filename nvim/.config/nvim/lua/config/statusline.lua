@@ -102,10 +102,12 @@ end
 function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
-		Statusline.mode(), -- 模式
-		Statusline.vcs(), -- Git 状态
+		Statusline.mode(),
+		" ",
+		" " .. string.format("%-4s", "%t"),
 		string.format("%-30s", Statusline.lsp()), -- 固定 30 个字符宽度显示 LSP 状态
 		"%=", -- 分隔符
+		Statusline.vcs(), -- Git 状态
 		" %l:%c", -- 行列号
 		" %p%%", -- 文件百分比
 	})
