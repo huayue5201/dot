@@ -24,7 +24,6 @@ function Statusline.mode()
 end
 
 -- Git 状态
--- Git 状态
 function Statusline.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or not git_info.head then
