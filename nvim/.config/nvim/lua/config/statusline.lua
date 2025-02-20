@@ -130,6 +130,6 @@ vim.api.nvim_create_autocmd("LspProgress", {
 	callback = function()
 		vim.cmd.redrawstatus()
 		timer:stop() -- 停止之前的定时器
-		timer:start(200, 0, vim.schedule_wrap(vim.cmd.redrawstatus)) -- 延迟执行重绘
+		timer:start(150, 0, vim.schedule_wrap(vim.cmd.redrawstatus)) -- 延迟执行重绘
 	end,
 })
