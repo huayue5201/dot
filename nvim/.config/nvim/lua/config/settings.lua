@@ -26,7 +26,7 @@ vim.opt.inccommand = "split" -- 增量命令模式
 vim.opt.clipboard = "unnamedplus" -- 使用系统剪贴板
 vim.opt.modeline = false -- 禁用 modeline
 vim.opt.updatetime = 300 -- 设置更新延迟时间（毫秒）
-vim.opt.jumpoptions = "stack" -- 启用跳转历史堆栈
+-- vim.opt.jumpoptions = "stack" -- 启用跳转历史堆栈
 vim.opt.cursorline = true -- 高亮当前行
 vim.opt.wrap = false -- 禁用自动换行
 
