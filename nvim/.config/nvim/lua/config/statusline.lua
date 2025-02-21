@@ -78,7 +78,7 @@ function Statusline.lsp_progress()
 	end
 	local spinner = spinner_frames[spinner_index]
 	spinner_index = (spinner_index % #spinner_frames) + 1
-	progress = #progress > 32 and string.sub(progress, 1, 32) .. "…" or progress
+	progress = #progress > 50 and string.sub(progress, 1, 50) .. "…" or progress
 	return " " .. spinner .. " " .. progress
 end
 

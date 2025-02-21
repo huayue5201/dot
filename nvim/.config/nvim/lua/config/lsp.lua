@@ -37,7 +37,7 @@ local function setup_global_diagnostics()
 end
 
 -- 设置按键映射
-local function set_keymaps(buf, supported_methods)
+local function set_keymaps(buf, _)
 	local keymaps = {
 		{ "<leader>od", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
 		{ "<leader>cl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭LSP客户端" },
