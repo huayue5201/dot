@@ -1,3 +1,6 @@
+-- 设置粗体高亮组
+vim.cmd("highlight Bold gui=bold")
+
 Statusline = {}
 
 -- 定义模式指示器
@@ -17,10 +20,12 @@ Statusline.modes = {
 	["c"] = "COMMAND",
 	["t"] = "TERMINAL",
 }
+
 -- 获取当前模式
 function Statusline.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
-	return Statusline.modes[current_mode] and " " .. Statusline.modes[current_mode] .. " " or ""
+	-- 使用粗体的高亮组
+	return "%#Bold#" .. "  " .. (Statusline.modes[current_mode] or " ")
 end
 
 -- Git 状态
@@ -29,10 +34,8 @@ function Statusline.vcs()
 	if not git_info or not git_info.head then
 		return ""
 	end
-	local parts = {}
-	-- 始终先显示当前分支信息
-	table.insert(parts, " " .. git_info.head)
-	-- 显示其他修改信息
+	local parts = { " " .. git_info.head }
+	-- 显示修改状态的图标
 	for key, icon in pairs({
 		added = "",
 		changed = "",
@@ -97,16 +100,20 @@ end
 
 -- LSP 状态（包含客户端名称、诊断和进度信息）
 function Statusline.lsp()
-	return Statusline.lsp_clients() .. Statusline.lsp_diagnostics() .. " " .. Statusline.lsp_progress()
+	return table.concat({
+		Statusline.lsp_clients(),
+		Statusline.lsp_diagnostics(),
+		" " .. Statusline.lsp_progress(),
+	}, " ")
 end
 
 -- 创建状态栏内容
 function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
-		string.format("%-9s", Statusline.mode()),
-		" " .. string.format("%-4s", "%t"), -- 文件名
-		Statusline.lsp(), -- lsp 状态
+		string.format("%-19s", Statusline.mode()), -- 左对齐，13个字符
+		"  " .. "%t  ", -- 文件名
+		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
 		Statusline.vcs(), -- Git 状态
 		" %l/%c", -- 行列号
@@ -118,17 +125,21 @@ end
 vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
 	group = vim.api.nvim_create_augroup("Statusline", { clear = true }),
 	callback = function()
-		local win_id = vim.api.nvim_get_current_win()
-		vim.api.nvim_set_option_value("statusline", "%!v:lua.Statusline.active()", { win = win_id })
+		vim.api.nvim_set_option_value(
+			"statusline",
+			"%!v:lua.Statusline.active()",
+			{ win = vim.api.nvim_get_current_win() }
+		)
 	end,
 })
 
+-- LSP 进度更新的定时器处理
 local timer = vim.loop.new_timer()
 vim.api.nvim_create_autocmd("LspProgress", {
 	group = vim.api.nvim_create_augroup("LSPProgress", { clear = true }),
 	callback = function()
 		vim.cmd.redrawstatus()
 		timer:stop() -- 停止之前的定时器
-		timer:start(100, 0, vim.schedule_wrap(vim.cmd.redrawstatus)) -- 延迟执行重绘
+		timer:start(150, 0, vim.schedule_wrap(vim.cmd.redrawstatus)) -- 延迟执行重绘
 	end,
 })
