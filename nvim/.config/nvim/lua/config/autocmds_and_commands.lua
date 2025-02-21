@@ -121,6 +121,12 @@ vim.api.nvim_create_user_command("DeleteMarks", function()
 		vim.cmd("delmarks " .. mark)
 		vim.notify("Deleted mark: " .. mark)
 	else
-		vim.api.nvim_echo({ { "No mark entered. Aborting.", "Error" } }, true, {})
+		vim.api.nvim_echo({ { " No mark entered. Aborting.", "Error" } }, true, {})
 	end
 end, { desc = "Delete a specific mark" })
+
+vim.api.nvim_create_user_command("DelAllMarks", function()
+	vim.cmd("delmarks a-z")
+	vim.cmd("delmarks A-Z")
+	vim.notify(" All marks have been deleted!", vim.log.levels.INFO)
+end, { desc = "删除所有标记" })

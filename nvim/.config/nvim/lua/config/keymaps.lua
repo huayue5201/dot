@@ -2,8 +2,6 @@
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
-vim.keymap.set("n", "J", "mzJ'z")
-
 -- 指向黑洞寄存器
 vim.keymap.set("n", "x", '"_x')
 vim.keymap.set("n", "c", '"_c')
@@ -41,7 +39,7 @@ vim.keymap.set("n", "<leader>to", "<cmd>tabonly<CR>", { desc = "仅保留当前�
 
 -- 删除标记
 vim.keymap.set("n", "dm", "<cmd>DeleteMarks<cr>", { desc = "删除标记" })
-vim.keymap.set("n", "<leader>dm", "<cmd>delmarks!<cr>", { desc = "删除标记" })
+vim.keymap.set("n", "<leader>dm", "<cmd>DelAllMarks<cr>", { desc = "删除标记" })
 
 -- 切换quickfix窗口
 vim.keymap.set("n", "<leader>q", "<cmd>ToggleQuickfix<cr>", { desc = "quickfix切换" })
