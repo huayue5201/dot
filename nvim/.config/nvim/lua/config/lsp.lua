@@ -111,6 +111,7 @@ M.lspSetup = function()
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
 		callback = function(args)
+			-- vim.lsp.completion.enable(true, args.data.client_id, args.buf)
 			local buf = args.buf
 			local supported_methods = get_supported_lsp_methods(buf)
 			-- 设置按键映射、符号高亮和折叠功能
