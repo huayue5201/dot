@@ -65,7 +65,7 @@ vim.opt.secure = true -- 启用安全模式，防止加载不安全的配置文�
 local workspace_path = vim.fn.getcwd() -- 获取当前工作目录路径
 local cache_dir = vim.fn.stdpath("data") -- 获取缓存目录路径
 local unique_id = vim.fn.fnamemodify(workspace_path, ":t") .. "_" .. vim.fn.sha256(workspace_path):sub(1, 8) -- 生成唯一 ID
-local shadafile = cache_dir .. "/myshada/" .. unique_id .. ".shada" -- 设置 `shada` 文件路径
+local shadafile = cache_dir .. "/shada/" .. unique_id .. ".shada" -- 设置 `shada` 文件路径
 vim.opt.shadafile = shadafile -- 设置 `shada` 文件路径
 
 -- -------------- 窗口和分割设置 --------------
