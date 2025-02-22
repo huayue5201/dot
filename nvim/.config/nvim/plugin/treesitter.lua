@@ -70,49 +70,6 @@ vim.g.now(function()
 		},
 		-- 设置文本对象选择操作
 		textobjects = {
-			-- 启用与LSP交互的文本对象
-			-- lsp_interop = {
-			-- 	enable = true,
-			-- 	border = "none", -- 边框样式设置为无边框
-			-- 	floating_preview_opts = {}, -- 悬浮预览选项，用于配置悬浮窗口的外观和行为
-			-- 	-- 使用快捷键来预览函数和类的定义
-			-- 	peek_definition_code = {
-			-- 		["<leader>k"] = { query = "@function.outer", desc = "预览函数的外部区域定义" }, -- 查看函数的外部区域定义
-			-- 		["<leader>K"] = { query = "@class.outer", desc = "预览类的外部区域定义" }, -- 查看类的外部区域定义
-			-- 	},
-			-- },
-			move = {
-				enable = true,
-				set_jumps = true, -- whether to set jumps in the jumplist
-				goto_next_start = {
-					["]m"] = "@function.outer",
-					["gj"] = "@function.outer",
-					["]]"] = "@class.outer",
-					["]b"] = "@block.outer",
-					["]a"] = "@parameter.inner",
-				},
-				goto_next_end = {
-					["]M"] = "@function.outer",
-					["gJ"] = "@function.outer",
-					["]["] = "@class.outer",
-					["]B"] = "@block.outer",
-					["]A"] = "@parameter.inner",
-				},
-				goto_previous_start = {
-					["[m"] = "@function.outer",
-					["gk"] = "@function.outer",
-					["[["] = "@class.outer",
-					["[b"] = "@block.outer",
-					["[a"] = "@parameter.inner",
-				},
-				goto_previous_end = {
-					["[M"] = "@function.outer",
-					["gK"] = "@function.outer",
-					["[]"] = "@class.outer",
-					["[B"] = "@block.outer",
-					["[A"] = "@parameter.inner",
-				},
-			},
 			select = {
 				enable = true,
 				-- 自动跳转到文本对象，类似于 targets.vim 插件

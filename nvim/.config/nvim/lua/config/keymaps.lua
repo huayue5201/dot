@@ -24,7 +24,7 @@ vim.keymap.set("x", "crc", [[y<cmd>let @/ = escape(@", '/')<cr>"_cgn]])
 vim.keymap.set("n", "crs", ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<left><left><left>")
 
 -- 保存
--- vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { desc = "保存" })
+vim.keymap.set("n", "<leader>s", "<cmd>w<cr>", { desc = "保存" })
 
 -- 终端映射
 -- vim.keymap.set("t", "<esc>", "<C-\\><C-n>", { noremap = true, silent = true })
@@ -33,9 +33,6 @@ vim.keymap.set("n", "crs", ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<left><left><left>
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<CR>", { desc = "创建选项卡" })
 vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<CR>", { desc = "关闭选项卡" })
 vim.keymap.set("n", "<leader>to", "<cmd>tabonly<CR>", { desc = "仅保留当前标签页打开" })
--- vim.keymap.set("n", "<TAB>", "<cmd>bn<CR>", { desc = "切换buffer" })
--- vim.keymap.set("n", "<S-TAB>", "<cmd>bp<CR>", { desc = "切换buffer" })
--- vim.keymap.set("n", "<c-q>", "<cmd>bd!<cr>", { desc = "删除buffer" })%s
 
 -- 删除标记
 vim.keymap.set("n", "dm", "<cmd>DeleteMarks<cr>", { desc = "删除标记" })
@@ -43,30 +40,9 @@ vim.keymap.set("n", "<leader>dm", "<cmd>DelAllMarks<cr>", { desc = "删除标记
 
 -- 切换quickfix窗口
 vim.keymap.set("n", "<leader>q", "<cmd>ToggleQuickfix<cr>", { desc = "quickfix切换" })
-vim.keymap.set("n", "]q", "<cmd>cprev<cr>")
-vim.keymap.set("n", "[q", "<cmd>cnext<cr>")
 
 -- 切换loclist窗口
 vim.keymap.set("n", "<leader>l", "<cmd>ToggleLoclist<cr>", { desc = " LoclistToggle" })
-vim.keymap.set("n", "]l", "<cmd>lnext<cr>")
-vim.keymap.set("n", "[l", "<cmd>lprev<cr>")
-
--- snippet片段占位符跳转
-vim.keymap.set({ "i", "s" }, "<Tab>", function()
-	if vim.snippet.active({ direction = 1 }) then
-		return "<cmd>lua vim.snippet.jump(1)<cr>"
-	else
-		return "<Tab>"
-	end
-end, { expr = true })
-
-vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
-	if vim.snippet.active({ direction = -1 }) then
-		return "<cmd>lua vim.snippet.jump(-1)<cr>"
-	else
-		return "<S-Tab>"
-	end
-end, { expr = true })
 
 -- 光标跳跃
 -- local function search_with_two_chars(search_command)

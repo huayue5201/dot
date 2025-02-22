@@ -73,8 +73,6 @@ vim.g.now(function()
 		end, { desc = "[Bufferline] 跳转到第" .. n .. "个buffer" })
 	end
 
-	vim.keymap.set("n", "<TAB>", "<cmd>BufferLineCycleNext<cr>", { desc = "下一个缓冲区" })
-	vim.keymap.set("n", "<S-TAB>", "<cmd>BufferLineCyclePrev<cr>", { desc = "上一个缓冲区" })
 	vim.keymap.set("n", "<leader>tp", "<cmd>BufferLineTogglePin<cr>", { desc = "图钉📌" })
 	vim.keymap.set("n", "<leader>tb", ":BufferLinePick<CR>", { desc = "跳转到任意可见标签" })
 	vim.keymap.set("n", "<leader>tx", ":BufferLinePickClose<CR>", { desc = "删除任意可见标签" })
