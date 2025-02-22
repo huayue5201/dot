@@ -9,23 +9,22 @@ vim.cmd.source("$VIMRUNTIME/colors/default.vim")
 vim.g.colors_name = "dawn"
 
 local colors = {
-	poggers = "#7480c2",
-	background = "#11111b",
-	shade = "#1e1e2e",
-	comment = "#3c5e7f",
-	delimiter = "#6c7086",
-	foreground_dark = "#313244",
-	foreground = "#585b70",
-	text = "#cdd6f4",
-	lavender = "#b4befe",
-	blue = "#89b4fa",
-	green = "#a6e3a1",
-	yellow = "#f9e2af",
-	orange = "#fab387",
-	red = "#f38ba8",
-	purple = "#cba6f7",
+	poggers = "#7480c2", -- 柔和的蓝色，通常用于突出显示或强调文本（例如，当前模式指示器等）。
+	background = "#11111b", -- 非常暗的灰色接近黑色，作为背景色，提供深色背景，凸显其他元素。
+	shade = "#1e1e2e", -- 深灰色，带有蓝色调，适用于深色背景和阴影部分，增强深度感。
+	comment = "#3c5e7f", -- 浅灰蓝色，通常用于代码中的注释部分，给人温和、冷静的感觉。
+	delimiter = "#6c7086", -- 中性色，带有灰色调，通常用于分隔符、标点符号等。
+	foreground_dark = "#313244", -- 深灰蓝色，适用于较暗文本或其他元素的前景色。
+	foreground = "#585b70", -- 灰蓝色，比 `foreground_dark` 明亮，常用于主要文本部分。
+	text = "#cdd6f4", -- 柔和的浅蓝色，用作普通文本内容，舒适易读。
+	lavender = "#b4befe", -- 淡紫色，通常用于突出显示或强调文本，如特殊文本或标签。
+	blue = "#89b4fa", -- 亮蓝色，常用于标识符、链接或强调文本，充满活力。
+	green = "#a6e3a1", -- 柔和的绿色，常用于表示成功、正常状态或通过的部分。
+	yellow = "#f9e2af", -- 温暖的黄色，常用于警告、提示或高亮部分。
+	orange = "#fab387", -- 暖橙色，通常用于吸引注意，给人活跃、亲切的感觉。
+	red = "#f38ba8", -- 柔和的粉红色，带有红色调，通常用于错误、警告或重要提示。
+	purple = "#cba6f7", -- 柔和的紫色，常用于强调、标签、注释等部分，具有梦幻感。
 }
-
 -- unmodified catppuccin to match my terminal theme:
 -- https://github.com/catppuccin/base16/blob/99aa911b29c9c7972f7e1d868b6242507efd508c/base16/mocha.yaml
 local terminal_colors = {
@@ -72,8 +71,8 @@ local highlight_groups = {
 	["Folded"] = { link = "Comment" },
 	["FoldColumn"] = { link = "SignColumn" },
 	["SignColumn"] = { link = "Normal" },
-	["LineNr"] = { fg = colors.foreground_dark },
-	["CursorLineNr"] = { fg = colors.lavender },
+	["LineNr"] = { fg = "#7a7f8d" },
+	["CursorLineNr"] = { fg = "#c9d1d9" },
 	["CursorLineFold"] = { link = "NONE" },
 	["CursorLineSign"] = { link = "NONE" },
 	["MatchParen"] = { bg = colors.foreground },
@@ -105,7 +104,7 @@ local highlight_groups = {
 	-- ["WinBar"] = { fg = colors.yellow, bold = true }, -- 设置 winbar 默认颜色为橙色并加粗
 	-- ["WinBarSpecial"] = { fg = colors.blue, bold = true }, -- 设置特殊目录为绿色并加粗
 	-- ["WinBarSeparator"] = { fg = colors.poggers }, -- 设置分隔符颜色为灰色
-	["WinBarNC"] = { link = "WinBar" },
+	-- ["WinBarNC"] = { link = "WinBar" },
 
 	-- lsp诊断相关
 	["DiagnosticError"] = { fg = colors.red },
