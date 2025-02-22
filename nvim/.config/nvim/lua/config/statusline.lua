@@ -1,31 +1,39 @@
--- 设置粗体高亮组
-vim.cmd("highlight Bold gui=bold")
+-- 定义自定义高亮组，确保字体始终粗体，改变颜色
+vim.cmd("highlight NormalMode gui=bold guifg=#4EEE94")
+vim.cmd("highlight InsertMode gui=bold guifg=#FF4040")
+vim.cmd("highlight VisualMode gui=bold guifg=#CD6839")
+vim.cmd("highlight ReplaceMode gui=bold guifg=#CDCD00")
 
 Statusline = {}
 
 -- 定义模式指示器
 Statusline.modes = {
-	["n"] = "NORMAL",
-	["no"] = "NORMAL",
-	["v"] = "VISUAL",
-	["V"] = "V-LINE",
-	[""] = "V-BLOCK",
-	["s"] = "SELECT",
-	["S"] = "S-LINE",
-	[""] = "S-BLOCK",
-	["i"] = "INSERT",
-	["ic"] = "INSERT",
-	["R"] = "REPLACE",
-	["Rv"] = "V-REPLACE",
-	["c"] = "COMMAND",
-	["t"] = "TERMINAL",
+	["n"] = { label = "NORMAL", hl = "NormalMode" },
+	["no"] = { label = "NORMAL", hl = "NormalMode" },
+	["v"] = { label = "VISUAL", hl = "VisualMode" },
+	["V"] = { label = "V-LINE", hl = "VisualMode" },
+	[""] = { label = "V-BLOCK", hl = "VisualMode" },
+	["s"] = { label = "SELECT", hl = "NormalMode" },
+	["S"] = { label = "S-LINE", hl = "NormalMode" },
+	[""] = { label = "S-BLOCK", hl = "NormalMode" },
+	["i"] = { label = "INSERT", hl = "InsertMode" },
+	["ic"] = { label = "INSERT", hl = "InsertMode" },
+	["R"] = { label = "REPLACE", hl = "ReplaceMode" },
+	["Rv"] = { label = "V-REPLACE", hl = "ReplaceMode" },
+	["c"] = { label = "COMMAND", hl = "NormalMode" },
+	["t"] = { label = "TERMINAL", hl = "NormalMode" },
 }
-
--- 获取当前模式
+-- 获取当前模式并应用颜色高亮
 function Statusline.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
-	-- 使用粗体的高亮组
-	return "%#Bold#" .. "  " .. (Statusline.modes[current_mode] or " ")
+	local mode_info = Statusline.modes[current_mode]
+	if mode_info then
+		-- 只为模式的标签部分应用粗体和颜色，其他部分保持不变
+		return "%#" .. mode_info.hl .. "#" .. "  " .. mode_info.label .. "%*"
+	else
+		-- 如果模式没有配置，返回空字符串
+		return ""
+	end
 end
 
 -- Git 状态
@@ -111,7 +119,7 @@ end
 function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
-		string.format("%-19s", Statusline.mode()), -- 左对齐，13个字符
+		string.format("%-28s", Statusline.mode()), -- 左对齐，13个字符
 		"  " .. "%t  ", -- 文件名
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
