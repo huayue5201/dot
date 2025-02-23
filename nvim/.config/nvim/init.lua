@@ -53,3 +53,38 @@ vim.g.add, vim.g.now, vim.g.later = MiniDeps.add, MiniDeps.now, MiniDeps.later
 
 -- 将/opt/homebrew/opt/fzf 添加到 runtimepath 运行时
 vim.opt.runtimepath:append("/opt/homebrew/opt/fzf")
+
+-- -------------- 工作区配置 (`shada` 文件) --------------
+vim.opt.exrc = true -- 启用 exrc 配置，允许在当前工作目录加载配置文件
+vim.opt.secure = true -- 启用安全模式，防止加载不安全的配置文件
+local workspace_path = vim.fn.getcwd() -- 当前工作目录路径
+local data_dir = vim.fn.stdpath("data") -- 缓存目录路径
+local unique_id = vim.fn.fnamemodify(workspace_path, ":t") .. "_" .. vim.fn.sha256(workspace_path):sub(1, 8) -- 生成唯一 ID
+local shadafile = data_dir .. "/shada/" .. unique_id .. ".shada" -- 设置 `shada` 文件路径
+vim.opt.shadafile = shadafile -- 设置 `shada` 文件路径
+-- 删除超过 7 天的 `shada` 文件
+local function cleanup_shada()
+	local days_old = 7
+	local current_time = os.time()
+	local shada_files = vim.fn.glob(data_dir .. "/shada/*.shada", true, true)
+	if #shada_files == 0 then
+		print("No shada files found.")
+		return
+	end
+	for _, filename in ipairs(shada_files) do
+		local file_time = vim.fn.getftime(filename)
+		if file_time ~= -1 then
+			local age_in_days = os.difftime(current_time, file_time) / (24 * 60 * 60)
+			if age_in_days > days_old then
+				vim.fn.delete(filename) -- 删除过期文件
+				print("Deleted file: " .. filename)
+			end
+		else
+			print("Unable to get file time for: " .. filename)
+		end
+	end
+end
+-- 设置定时器每隔一天运行一次清理操作
+vim.defer_fn(function()
+	cleanup_shada()
+end, 86400) -- 86400 秒 = 1 天
