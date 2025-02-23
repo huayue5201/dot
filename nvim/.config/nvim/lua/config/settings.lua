@@ -38,6 +38,7 @@ vim.opt.foldmethod = "expr" -- 设置折叠方法为表达式
 vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 使用 Treesitter 表达式折叠
 vim.opt.foldcolumn = "1" -- 显示折叠列
 vim.opt.foldlevel = 99 -- 设置默认折叠级别
+vim.opt.foldtext = "v:lua.require('config.foldtext').custom_foldtext()"
 
 -- -------------- 编辑行为设置 --------------
 vim.opt.expandtab = true -- 将 Tab 转为空格
