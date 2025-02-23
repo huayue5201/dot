@@ -20,8 +20,6 @@ vim.keymap.set("n", "<leader>yt", ':let @+ = expand("%:t")<CR>')
 
 -- 搜索与替换
 vim.keymap.set("n", "crc", "*``cgn", { desc = "修改文本" })
-vim.keymap.set("x", "crc", [[y<cmd>let @/ = escape(@", '/')<cr>"_cgn]])
-vim.keymap.set("n", "crs", ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<left><left><left>")
 
 -- 保存
 vim.keymap.set("n", "<leader>s", "<cmd>w<cr>", { desc = "保存" })
@@ -43,22 +41,6 @@ vim.keymap.set("n", "<leader>q", "<cmd>ToggleQuickfix<cr>", { desc = "quickfix�
 
 -- 切换loclist窗口
 vim.keymap.set("n", "<leader>l", "<cmd>ToggleLoclist<cr>", { desc = " LoclistToggle" })
-
--- 光标跳跃
--- local function search_with_two_chars(search_command)
--- 	return function()
--- 		local char1 = vim.fn.getchar()
--- 		local char2 = vim.fn.getchar()
--- 		char1 = vim.fn.nr2char(char1)
--- 		char2 = vim.fn.nr2char(char2)
--- 		local search_term = char1 .. char2
--- 		vim.api.nvim_feedkeys(search_command .. search_term .. "\n", "n", false)
--- 	end
--- end
--- vim.api.nvim_set_keymap("n", "s", "", { noremap = true, silent = true, callback = search_with_two_chars("/") })
--- vim.api.nvim_set_keymap("x", "s", "", { noremap = true, silent = true, callback = search_with_two_chars("/") })
--- vim.api.nvim_set_keymap("n", "S", "", { noremap = true, silent = true, callback = search_with_two_chars("?") })
--- vim.api.nvim_set_keymap("x", "S", "", { noremap = true, silent = true, callback = search_with_two_chars("?") })
 
 -- -- 插入模式下TAB可以跳出()[]....
 -- vim.keymap.set("i", "<Tab>", function()

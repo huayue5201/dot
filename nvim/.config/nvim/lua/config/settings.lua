@@ -54,8 +54,6 @@ vim.opt.completeopt = "menuone,noinsert,noselect" -- 补全菜单的选项
 -- vim.o.completeopt = "menu,menuone,popup,fuzzy" -- 现代补全菜单
 
 -- -------------- 搜索设置 --------------
-vim.opt.grepprg = "rg --vimgrep --smart-case --hidden" -- 使用 ripgrep 作为搜索工具
-vim.opt.grepformat = "%f:%l:%c:%m" -- 设置 grep 输出格式
 vim.opt.ignorecase = true -- 搜索时忽略大小写
 vim.opt.smartcase = true -- 智能区分大小写
 
