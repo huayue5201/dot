@@ -20,6 +20,12 @@ vim.keymap.set("n", "<leader>yt", ':let @+ = expand("%:t")<CR>')
 
 -- 搜索与替换
 vim.keymap.set("n", "crc", "*``cgn", { desc = "修改文本" })
+-- 搜索光标下的单词
+vim.keymap.set("n", "g/", function()
+	local last_search = vim.fn.getreg("/")
+	vim.cmd("vimgrep /" .. last_search .. "/j %")
+	vim.cmd("cw")
+end, { desc = "Search using vimgrep and open quickfix" })
 
 -- 保存
 vim.keymap.set("n", "<leader>s", "<cmd>w<cr>", { desc = "保存" })
