@@ -27,7 +27,6 @@ vim.keymap.set("n", "crs", ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<left><left><left>
 vim.keymap.set("n", "<leader>s", "<cmd>w<cr>", { desc = "保存" })
 
 -- 终端映射
--- vim.keymap.set("t", "<esc>", "<C-\\><C-n>", { noremap = true, silent = true })
 vim.keymap.set("n", "<leader>te", ":botright new | resize 20 | terminal<CR>")
 
 -- tab操作
