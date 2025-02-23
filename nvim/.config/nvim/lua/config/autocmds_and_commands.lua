@@ -43,7 +43,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 
 -- 可视模式下复制时固定光标位置
 local cursorPreYank
-vim.keymap.set({ "x" }, "y", function()
+vim.keymap.set({ "n", "x" }, "y", function()
 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
 	return "y"
 end, { expr = true })
