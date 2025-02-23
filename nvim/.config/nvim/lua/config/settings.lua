@@ -58,16 +58,6 @@ vim.opt.grepformat = "%f:%l:%c:%m" -- 设置 grep 输出格式
 vim.opt.ignorecase = true -- 搜索时忽略大小写
 vim.opt.smartcase = true -- 智能区分大小写
 
--- -------------- 工作区配置 (`shada` 文件) --------------
-vim.opt.exrc = true -- 启用 exrc 配置，允许在当前工作目录加载配置文件
-vim.opt.secure = true -- 启用安全模式，防止加载不安全的配置文件
--- 生成唯一的 `shada` 文件路径
-local workspace_path = vim.fn.getcwd() -- 获取当前工作目录路径
-local cache_dir = vim.fn.stdpath("data") -- 获取缓存目录路径
-local unique_id = vim.fn.fnamemodify(workspace_path, ":t") .. "_" .. vim.fn.sha256(workspace_path):sub(1, 8) -- 生成唯一 ID
-local shadafile = cache_dir .. "/shada/" .. unique_id .. ".shada" -- 设置 `shada` 文件路径
-vim.opt.shadafile = shadafile -- 设置 `shada` 文件路径
-
 -- -------------- 窗口和分割设置 --------------
 vim.opt.splitbelow = true -- 新分割窗口默认在下方
 vim.opt.splitright = true -- 新分割窗口默认在右边
