@@ -1,7 +1,6 @@
 vim.keymap.set("v", "J", ":m '>+1<cr>gv=gv", { desc = "向下移动选中的代码块" })
 vim.keymap.set("v", "K", ":m '<-2<cr>gv=gv", { desc = "向上移动选中的代码块" })
 
-vim.keymap.set("n", "x", '"_x', { desc = "删除并丢弃到黑洞寄存器" })
 vim.keymap.set("n", "c", '"_c', { desc = "修改并丢弃到黑洞寄存器" })
 
 vim.keymap.set("n", "dd", function()
