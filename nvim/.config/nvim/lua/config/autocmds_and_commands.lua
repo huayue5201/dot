@@ -123,7 +123,8 @@ vim.api.nvim_create_user_command("Messages", function()
 	vim.bo[scratch_buffer].filetype = "vim"
 	local messages = vim.split(vim.fn.execute("messages", "silent"), "\n")
 	vim.api.nvim_buf_set_text(scratch_buffer, 0, 0, 0, 0, messages)
-	vim.cmd("vertical sbuffer " .. scratch_buffer)
+	vim.cmd("belowright split") -- 或者使用 :belowright vsplit 进行垂直分屏
+	vim.api.nvim_win_set_buf(0, scratch_buffer) -- 设置当前窗口的缓冲区为 scratch_buffer
 	vim.opt_local.wrap = true
 	vim.bo.buflisted = false
 	vim.bo.bufhidden = "wipe"
