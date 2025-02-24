@@ -29,13 +29,13 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
--- 高亮复制内容
+-- 高亮复制内容 (默认不限制字符数)
 vim.api.nvim_create_autocmd("TextYankPost", {
 	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
 	pattern = "*",
 	callback = function()
-		-- 只有当复制内容小于100个字符时才进行高亮
-		if #vim.v.event.regcontents <= 1000 then
+		-- 高亮复制内容时不限制字符数
+		if #vim.v.event.regcontents > 0 then
 			vim.highlight.on_yank()
 		end
 	end,
@@ -59,6 +59,87 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
+-- 用 q 关闭窗口
+vim.api.nvim_create_autocmd("FileType", {
+	desc = "用 q 关闭窗口",
+	pattern = "*",
+	callback = function()
+		local close_cmd = vim.bo.filetype == "man" and ":quit<CR>" or ":close<CR>"
+		local filetypes = { "help", "startuptime", "qf", "lspinfo", "checkhealth", "man" }
+		if vim.tbl_contains(filetypes, vim.bo.filetype) then
+			vim.api.nvim_buf_set_keymap(0, "n", "q", close_cmd, { noremap = true, silent = true })
+		end
+	end,
+})
+
+-- 判断窗口是否打开
+local function is_window_open(win_type)
+	for _, win in ipairs(vim.fn.getwininfo()) do
+		if win[win_type] == 1 then
+			return true
+		end
+	end
+	return false
+end
+
+-- 切换 Quickfix
+vim.api.nvim_create_user_command("ToggleQuickfix", function()
+	if is_window_open("quickfix") then
+		vim.cmd("cclose")
+	else
+		vim.cmd("copen")
+	end
+end, { desc = "切换 Quickfix 窗口" })
+
+-- 切换 Location List
+vim.api.nvim_create_user_command("ToggleLoclist", function()
+	if is_window_open("loclist") then
+		vim.cmd("lclose")
+	else
+		local locationList = vim.fn.getloclist(0)
+		if #locationList > 0 then
+			vim.cmd("lopen")
+		else
+			vim.notify("当前没有 loclist 可用", vim.log.levels.WARN)
+		end
+	end
+end, { desc = "切换 Location List" })
+
+-- 查看 vim 信息
+vim.api.nvim_create_user_command("Messages", function()
+	local scratch_buffer = vim.api.nvim_create_buf(false, true)
+	vim.bo[scratch_buffer].filetype = "vim"
+	local messages = vim.split(vim.fn.execute("messages", "silent"), "\n")
+	vim.api.nvim_buf_set_text(scratch_buffer, 0, 0, 0, 0, messages)
+	vim.cmd("belowright split")
+	vim.api.nvim_win_set_buf(0, scratch_buffer)
+	vim.opt_local.wrap = true
+	vim.bo.buflisted = false
+	vim.bo.bufhidden = "wipe"
+	vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = scratch_buffer })
+end, {})
+
+-- 删除标记
+vim.api.nvim_create_user_command("DeleteMarks", function()
+	local marks_output = vim.fn.execute("marks")
+	vim.notify("当前标记:\n" .. marks_output, vim.log.levels.INFO)
+	local mark = vim.fn.input("输入要删除的标记: ")
+	vim.cmd("redraw!")
+	if mark ~= "" then
+		vim.cmd("delmarks " .. mark)
+		vim.notify("已删除标记: " .. mark)
+	else
+		vim.api.nvim_echo({ { "未输入标记，操作已中止.", "Error" } }, true, {})
+	end
+end, { desc = "删除指定标记" })
+
+-- 删除所有标记
+vim.api.nvim_create_user_command("DelAllMarks", function()
+	vim.cmd("delmarks a-z")
+	vim.cmd("delmarks A-Z")
+	vim.notify("所有标记已删除!", vim.log.levels.INFO)
+end, { desc = "删除所有标记" })
+
 -- vim.api.nvim_create_autocmd("LspProgress", {
 -- 	---@param ev {data: {client_id: integer, params: lsp.ProgressParams}}
 -- 	callback = function(ev)
@@ -73,82 +154,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 -- 		})
 -- 	end,
 -- })
-
--- 在特定文件类型中用 q 关闭窗口
-vim.api.nvim_create_autocmd("FileType", {
-	desc = "用q关闭窗口",
-	pattern = "*",
-	callback = function()
-		local close_cmd = vim.bo.filetype == "man" and ":quit<CR>" or ":close<CR>"
-		local filetypes = { "help", "startuptime", "qf", "lspinfo", "checkhealth", "man" }
-		if vim.tbl_contains(filetypes, vim.bo.filetype) then
-			vim.api.nvim_buf_set_keymap(0, "n", "q", close_cmd, { noremap = true, silent = true })
-		end
-	end,
-})
-
-local function is_window_open(win_type)
-	for _, win in ipairs(vim.fn.getwininfo()) do
-		if win[win_type] == 1 then
-			return true
-		end
-	end
-	return false
-end
--- Toggle Quickfix
-vim.api.nvim_create_user_command("ToggleQuickfix", function()
-	if is_window_open("quickfix") then
-		vim.cmd("cclose")
-	else
-		vim.cmd("copen")
-	end
-end, { desc = "Toggle Quickfix window" })
--- Toggle Location List
-vim.api.nvim_create_user_command("ToggleLoclist", function()
-	if is_window_open("loclist") then
-		vim.cmd("lclose")
-	else
-		local locationList = vim.fn.getloclist(0)
-		if #locationList > 0 then
-			vim.cmd("lopen")
-		else
-			vim.notify("当前没有 loclist 可用", vim.log.levels.WARN)
-		end
-	end
-end, { desc = "Toggle Location List" })
-
--- 查看 vim 信息
-vim.api.nvim_create_user_command("Messages", function()
-	local scratch_buffer = vim.api.nvim_create_buf(false, true)
-	vim.bo[scratch_buffer].filetype = "vim"
-	local messages = vim.split(vim.fn.execute("messages", "silent"), "\n")
-	vim.api.nvim_buf_set_text(scratch_buffer, 0, 0, 0, 0, messages)
-	vim.cmd("belowright split") -- 或者使用 :belowright vsplit 进行垂直分屏
-	vim.api.nvim_win_set_buf(0, scratch_buffer) -- 设置当前窗口的缓冲区为 scratch_buffer
-	vim.opt_local.wrap = true
-	vim.bo.buflisted = false
-	vim.bo.bufhidden = "wipe"
-	vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = scratch_buffer })
-end, {})
-
-vim.api.nvim_create_user_command("DeleteMarks", function()
-	local marks_output = vim.fn.execute("marks")
-	vim.notify("Current marks:\n" .. marks_output, vim.log.levels.INFO)
-	local mark = vim.fn.input("Enter mark to delete: ")
-	vim.cmd("redraw!")
-	if mark ~= "" then
-		vim.cmd("delmarks " .. mark)
-		vim.notify("Deleted mark: " .. mark)
-	else
-		vim.api.nvim_echo({ { " No mark entered. Aborting.", "Error" } }, true, {})
-	end
-end, { desc = "Delete a specific mark" })
-
-vim.api.nvim_create_user_command("DelAllMarks", function()
-	vim.cmd("delmarks a-z")
-	vim.cmd("delmarks A-Z")
-	vim.notify(" All marks have been deleted!", vim.log.levels.INFO)
-end, { desc = "删除所有标记" })
 
 -- vim.api.nvim_create_user_command("ToggleTerm", function()
 -- 	local height = vim.v.count > 0 and vim.v.count or 20
