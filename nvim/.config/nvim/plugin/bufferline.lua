@@ -3,7 +3,6 @@
 vim.g.now(function()
 	vim.g.add({
 		source = "akinsho/bufferline.nvim",
-		depends = { "nvim-tree/nvim-web-devicons" },
 	})
 
 	require("bufferline").setup({
