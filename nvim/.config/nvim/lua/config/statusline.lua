@@ -124,6 +124,8 @@ function Statusline.active()
 		"  " .. "%t  ", -- 文件名
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
+		-- 由akinsho/toggleterm.nvim提供
+		'%{&ft == "toggleterm" ? "terminal (".b:toggle_number.")" : ""}',
 		Statusline.vcs(), -- Git 状态
 		" %l/%c", -- 行列号
 		" %p%%", -- 文件百分比

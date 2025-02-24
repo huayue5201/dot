@@ -1,5 +1,5 @@
-vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "向下移动选中的代码块" })
-vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "向上移动选中的代码块" })
+vim.keymap.set("v", "J", ":m '>+1<cr>gv=gv", { desc = "向下移动选中的代码块" })
+vim.keymap.set("v", "K", ":m '<-2<cr>gv=gv", { desc = "向上移动选中的代码块" })
 
 vim.keymap.set("n", "x", '"_x', { desc = "删除并丢弃到黑洞寄存器" })
 vim.keymap.set("n", "c", '"_c', { desc = "修改并丢弃到黑洞寄存器" })
@@ -8,9 +8,9 @@ vim.keymap.set("n", "dd", function()
 	return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true, desc = "删除当前行（空行使用黑洞寄存器）" })
 
-vim.keymap.set("n", "<leader>yp", ':let @+ = expand("%:p")<CR>', { desc = "复制文件的绝对路径" })
-vim.keymap.set("n", "<leader>yf", ':let @+ = expand("%:f")<CR>', { desc = "复制文件的相对路径" })
-vim.keymap.set("n", "<leader>yt", ':let @+ = expand("%:t")<CR>', { desc = "复制文件名" })
+vim.keymap.set("n", "<leader>yp", ':let @+ = expand("%:p")<cr>', { desc = "复制文件的绝对路径" })
+vim.keymap.set("n", "<leader>yf", ':let @+ = expand("%:f")<cr>', { desc = "复制文件的相对路径" })
+vim.keymap.set("n", "<leader>yt", ':let @+ = expand("%:t")<cr>', { desc = "复制文件名" })
 
 vim.keymap.set("n", "crc", "*``cgn", { desc = "修改当前选中文本" })
 
@@ -22,11 +22,9 @@ end, { desc = "使用 vimgrep 搜索并打开 quickfix" })
 
 vim.keymap.set("n", "<leader>s", "<cmd>w<cr>", { desc = "保存当前文件" })
 
-vim.keymap.set({ "n", "t" }, "<C-\\>", "<cmd>ToggleTerm<CR>", { desc = "切换终端" })
-
-vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<CR>", { desc = "创建新的标签页" })
-vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<CR>", { desc = "关闭当前标签页" })
-vim.keymap.set("n", "<leader>to", "<cmd>tabonly<CR>", { desc = "仅保留当前标签页" })
+vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { desc = "创建新的标签页" })
+vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<cr>", { desc = "关闭当前标签页" })
+vim.keymap.set("n", "<leader>to", "<cmd>tabonly<cr>", { desc = "仅保留当前标签页" })
 
 vim.keymap.set("n", "dm", "<cmd>DeleteMarks<cr>", { desc = "删除当前标记" })
 vim.keymap.set("n", "<leader>dm", "<cmd>DelAllMarks<cr>", { desc = "删除所有标记" })
