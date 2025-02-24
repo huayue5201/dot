@@ -22,6 +22,8 @@ end, { desc = "使用 vimgrep 搜索并打开 quickfix" })
 
 vim.keymap.set("n", "<leader>s", "<cmd>w<cr>", { desc = "保存当前文件" })
 
+-- vim.keymap.set({ "n", "t" }, "<C-\\>", "<cmd>ToggleTerm<cr>", { desc = "切换终端" })
+
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { desc = "创建新的标签页" })
 vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<cr>", { desc = "关闭当前标签页" })
 vim.keymap.set("n", "<leader>to", "<cmd>tabonly<cr>", { desc = "仅保留当前标签页" })

@@ -149,3 +149,34 @@ vim.api.nvim_create_user_command("DelAllMarks", function()
 	vim.cmd("delmarks A-Z")
 	vim.notify(" All marks have been deleted!", vim.log.levels.INFO)
 end, { desc = "删除所有标记" })
+
+-- vim.api.nvim_create_user_command("ToggleTerm", function()
+-- 	local height = vim.v.count > 0 and vim.v.count or 20
+-- 	local term_window, term_buf
+-- 	for _, win in ipairs(vim.api.nvim_list_wins()) do
+-- 		local buf = vim.api.nvim_win_get_buf(win)
+-- 		if vim.api.nvim_get_option_value("buftype", { buf = buf }) == "terminal" then
+-- 			term_window, term_buf = win, buf
+-- 			break
+-- 		end
+-- 	end
+-- 	if term_window and vim.api.nvim_win_is_valid(term_window) then
+-- 		if vim.api.nvim_win_get_buf(term_window) == term_buf then
+-- 			vim.api.nvim_win_close(term_window, true)
+-- 			vim.api.nvim_set_option_value("bufhidden", "hide", { buf = term_buf }) -- 使用新的 API 隐藏缓冲区
+-- 		else
+-- 			vim.api.nvim_set_current_win(term_window)
+-- 		end
+-- 	else
+-- 		vim.api.nvim_command("new") -- 创建新窗口
+-- 		vim.api.nvim_command("wincmd J") -- 移动到新窗口
+-- 		term_window = vim.api.nvim_get_current_win()
+-- 		vim.api.nvim_win_set_height(term_window, height)
+-- 		vim.wo.winfixheight = true
+-- 		vim.api.nvim_command("term") -- 创建新的终端
+-- 		term_buf = vim.api.nvim_get_current_buf()
+-- 		vim.api.nvim_set_option_value("buftype", "terminal", { buf = term_buf })
+-- 		vim.api.nvim_set_option_value("bufhidden", "hide", { buf = term_buf })
+-- 		vim.api.nvim_set_option_value("buflisted", false, { buf = term_buf })
+-- 	end
+-- end, { desc = "Toggle terminal window" })
