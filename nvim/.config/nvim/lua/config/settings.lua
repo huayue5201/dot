@@ -73,14 +73,28 @@ vim.opt.signcolumn = "yes" -- 始终显示标志列
 -- -------------- 显示和符号设置 --------------
 vim.opt.list = true -- 显示不可见字符
 vim.opt.fillchars = {
-	diff = "╱", -- 区分符号
-	eob = " ", -- 空行字符
-	fold = " ", -- 折叠符号
-	vert = "│", -- 垂直分割符号
-	msgsep = "‾", -- 消息分隔符
-	foldopen = "▾", -- 折叠打开符号
-	foldsep = "│", -- 折叠分隔符
-	foldclose = "▸", -- 折叠关闭符号
+	stl = " ", -- 当前窗口的状态栏区域字符
+	stlnc = " ", -- 非当前窗口的状态栏区域字符
+	wbr = " ", -- winbar 区域字符
+	-- 水平分隔符字符
+	horiz = "━", -- 水平分隔符（例如 :split 使用）
+	horizup = "┻", -- 向上的水平分隔符
+	horizdown = "┳", -- 向下的水平分隔符
+	-- 垂直分隔符字符
+	vert = "┃", -- 垂直分隔符（例如 :vsplit 使用）
+	vertleft = "┫", -- 向左的垂直分隔符
+	vertright = "┣", -- 向右的垂直分隔符
+	verthoriz = "╋", -- 垂直和水平重叠的分隔符
+	-- 折叠相关字符
+	fold = " ", -- 折叠文本填充字符
+	foldopen = "▾", -- 折叠打开时的标记字符
+	foldclose = "▸", -- 折叠关闭时的标记字符
+	foldsep = "│", -- 打开折叠时的中间分隔符
+	-- 其他
+	diff = "╱", -- 显示差异时，已删除的行字符
+	msgsep = "‾", -- 消息分隔符字符（例如用于 `display`）
+	eob = "~", -- 空行字符（用于表示缓冲区末尾）
+	lastline = "@", -- 最后一行或截断字符
 }
 
 vim.opt.listchars = {
