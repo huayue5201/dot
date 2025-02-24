@@ -3,11 +3,10 @@ local Statuscolumn = {}
 -- 获取标记的函数
 vim.cmd("highlight RedMark guifg=#FF0000 gui=bold") -- 创建红色高亮组
 local function get_mark(buf, lnum)
-	local marks = vim.fn.getmarklist(buf)
-	vim.list_extend(marks, vim.fn.getmarklist())
+	local marks = vim.fn.getmarklist(buf) -- 获取当前 buffer 的标记
+	vim.list_extend(marks, vim.fn.getmarklist()) -- 获取全局的标记
 	for _, mark in ipairs(marks) do
 		if mark.pos[1] == buf and mark.pos[2] == lnum and mark.mark:match("[a-zA-Z]") then
-			-- 返回标记符号和高亮组
 			return { text = mark.mark:sub(2), texthl = "RedMark" }
 		end
 	end

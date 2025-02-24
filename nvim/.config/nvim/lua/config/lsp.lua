@@ -3,12 +3,13 @@ local M = {}
 -- 缓存 LSP 客户端支持的方法，减少频繁查询
 local function get_supported_lsp_methods(buf)
 	local supported_methods = {}
-	for _, client in ipairs(vim.lsp.get_clients({ bufnr = buf })) do
-		if client:supports_method("textDocument/documentHighlight") then
-			supported_methods.documentHighlight = true
-		end
-		if client:supports_method("textDocument/foldingRange") then
-			supported_methods.foldingRange = true
+	local clients = vim.lsp.get_clients({ bufnr = buf })
+	if #clients > 0 then
+		for _, client in ipairs(clients) do
+			supported_methods.documentHighlight = supported_methods.documentHighlight
+				or client:supports_method("textDocument/documentHighlight")
+			supported_methods.foldingRange = supported_methods.foldingRange
+				or client:supports_method("textDocument/foldingRange")
 		end
 	end
 	return supported_methods
@@ -113,7 +114,6 @@ M.lspSetup = function()
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
 		callback = function(args)
-			-- vim.lsp.completion.enable(true, args.data.client_id, args.buf)
 			local buf = args.buf
 			local supported_methods = get_supported_lsp_methods(buf)
 			set_keymaps(buf, supported_methods)

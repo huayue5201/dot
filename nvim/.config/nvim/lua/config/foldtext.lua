@@ -11,7 +11,7 @@ local function fold_virt_text(result, s, lnum, coloff)
 		coloff = 0
 	end
 	local text = ""
-	local hl
+	local hl = "Normal" -- 默认使用 Normal 高亮
 	for i = 1, #s do
 		local char = s:sub(i, i)
 		local hls = vim.treesitter.get_captures_at_pos(0, lnum, coloff + i - 1)
@@ -40,7 +40,7 @@ function M.custom_foldtext()
 	local start = replace_tabs_with_spaces(vim.fn.getline(vim.v.foldstart))
 	local end_str = vim.fn.getline(vim.v.foldend)
 	local end_ = vim.trim(end_str)
-	local fold_lines = vim.v.foldend - vim.v.foldstart + 1 -- 计算折叠的行数
+	local fold_lines = vim.v.foldend - vim.v.foldstart + 1
 
 	local result = {}
 
@@ -53,9 +53,10 @@ function M.custom_foldtext()
 	-- 添加折叠结束的虚拟高亮
 	fold_virt_text(result, end_, vim.v.foldend - 1, #(end_str:match("^(%s+)") or ""))
 
-	-- 将图标和折叠行数添加到最后
-	local fold_icon = "  " -- 你可以使用任何图标
-	table.insert(result, { " " .. fold_icon .. " " .. fold_lines .. " lines", "Delimiter" })
+	-- 添加图标和行数
+	local fold_icon = "  " -- 可自定义图标
+	local fold_info = string.format(" %s%d lines", fold_icon, fold_lines)
+	table.insert(result, { fold_info, "Delimiter" })
 
 	return result
 end

@@ -1,4 +1,3 @@
--- lua/utils/winbar.lua
 Winbar = {}
 
 -- 配置
