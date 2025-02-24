@@ -25,13 +25,12 @@ end
 -- 设置拼接的内容
 Statuscolumn.active = function()
 	return table.concat({
-		"%s",
-		"%=", -- 自动分隔（左右对齐）
-		"%l",
-		"%=", -- 自动分隔（左右对齐）
-		Statuscolumn.mark(), -- 显示标记符号
+		" %C ",
 		"%=",
-		"%C",
+		string.format("%-3s", "%l"),
+		Statuscolumn.mark(),
+		"%=",
+		"%s",
 	})
 end
 

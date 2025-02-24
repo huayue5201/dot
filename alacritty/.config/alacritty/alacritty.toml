@@ -1,7 +1,11 @@
 # https://alacritty.org/config-alacritty.html
 
 [general]
+
 live_config_reload = true # 实时重新加载配置
+
+# 加载配色文件
+import = ["~/.config/alacritty/themes/nord.yaml"]
 
 # 字体设置
 [font]
