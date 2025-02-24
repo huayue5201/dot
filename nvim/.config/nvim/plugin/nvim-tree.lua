@@ -3,7 +3,6 @@
 vim.g.later(function()
 	vim.g.add({
 		source = "nvim-tree/nvim-tree.lua",
-		depends = { "nvim-tree/nvim-web-devicons" },
 	})
 
 	require("nvim-tree").setup()
