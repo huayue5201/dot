@@ -70,7 +70,6 @@ local function setup_highlight_symbol(buf, supported_methods)
 	local group_name = "highlight_symbol"
 	local group = vim.api.nvim_create_augroup(group_name, { clear = false })
 	vim.api.nvim_clear_autocmds({ buffer = buf, group = group })
-	-- 高亮符号：光标停留时
 	vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
 		group = group,
 		buffer = buf,
@@ -83,7 +82,6 @@ local function setup_highlight_symbol(buf, supported_methods)
 			end, 50)
 		end,
 	})
-	-- 清除高亮：光标移动时
 	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
 		group = group,
 		buffer = buf,
@@ -112,14 +110,12 @@ end
 -- LSP 主设置函数
 M.lspSetup = function()
 	setup_global_diagnostics()
-	-- 创建 LspAttach 自动命令
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
 		callback = function(args)
 			-- vim.lsp.completion.enable(true, args.data.client_id, args.buf)
 			local buf = args.buf
 			local supported_methods = get_supported_lsp_methods(buf)
-			-- 设置按键映射、符号高亮和折叠功能
 			set_keymaps(buf, supported_methods)
 			setup_highlight_symbol(buf, supported_methods)
 			setup_folding(buf, supported_methods)

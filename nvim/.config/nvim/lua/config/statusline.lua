@@ -21,6 +21,7 @@ Statusline.modes = {
 	["R"] = { label = "REPLACE", hl = "ReplaceMode" },
 	["Rv"] = { label = "V-REPLACE", hl = "ReplaceMode" },
 	["c"] = { label = "COMMAND", hl = "NormalMode" },
+	["nt"] = { label = "TERMINAL", hl = "NormalMode" },
 	["t"] = { label = "TERMINAL", hl = "NormalMode" },
 }
 -- 获取当前模式并应用颜色高亮
