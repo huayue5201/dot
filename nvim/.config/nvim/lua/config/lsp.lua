@@ -42,6 +42,11 @@ local function set_keymaps(buf, _)
 		{ "<leader>od", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
 		{ "<leader>cl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭LSP客户端" },
 		{
+			"<leader>cd",
+			"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
+			"打开/关闭LSP诊断",
+		},
+		{
 			"<leader>wl",
 			"<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>",
 			"列出工作区文件夹",
