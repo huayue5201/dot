@@ -62,8 +62,8 @@ vim.g.now(function()
 		incremental_selection = {
 			enable = true,
 			keymaps = {
-				init_selection = "<leader>v",
-				node_incremental = "<leader>v",
+				init_selection = "\\",
+				node_incremental = "\\",
 				node_decremental = "<BS>",
 				scope_incremental = "<TAB>",
 			},
