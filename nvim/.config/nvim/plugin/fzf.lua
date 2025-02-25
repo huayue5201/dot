@@ -5,7 +5,7 @@ vim.g.later(function()
 		source = "junegunn/fzf.vim",
 	})
 	--
-	vim.keymap.set("n", "<leader>ff", "<cmd>Files<cr>", { desc = "查找文件" })
+	vim.keymap.set("n", "<leader>fe", "<cmd>Files<cr>", { desc = "查找文件" })
 	vim.keymap.set("n", "<leader>fb", "<cmd>Buffers<cr>", { desc = "切换缓冲区" })
 	vim.keymap.set("n", "<leader>fg", "<cmd>Rg<cr>", { desc = "使用 Ripgrep 搜索" })
 	vim.keymap.set("n", "<leader>fm", "<cmd>Marks<cr>", { desc = "查看书签" })
