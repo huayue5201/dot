@@ -13,9 +13,9 @@ vim.keymap.set("n", "<leader>yt", ':let @+ = expand("%:t")<cr>', { desc = "复�
 
 vim.keymap.set("n", "crc", "*``cgn", { desc = "修改当前选中文本" })
 
-vim.keymap.set("n", "<leader>s", "<cmd>w<cr>", { desc = "保存当前buffer" })
+vim.keymap.set("n", "<localleader>s", "<cmd>w<cr>", { desc = "保存当前buffer" })
 
-vim.keymap.set("n", "<leader>cb", "<cmd>bd<cr>", { desc = "保存当前buffer" })
+vim.keymap.set("n", "<localleader>q", "<cmd>bd<cr>", { desc = "保存当前buffer" })
 
 -- vim.keymap.set({ "n", "t" }, "<C-\\>", "<cmd>ToggleTerm<cr>", { desc = "切换终端" })
 
@@ -29,6 +29,8 @@ vim.keymap.set("n", "<leader>dm", "<cmd>DelAllMarks<cr>", { desc = "删除所有
 vim.keymap.set("n", "<leader>q", "<cmd>ToggleQuickfix<cr>", { desc = "切换 Quickfix 窗口" })
 
 vim.keymap.set("n", "<leader>l", "<cmd>ToggleLoclist<cr>", { desc = "切换 Loclist 窗口" })
+
+vim.keymap.set("n", "<leader>om", "<cmd>Messages<cr>", { desc = "查看历史消息" })
 
 -- vim.keymap.set("i", "<Tab>", function()
 --   local cursor = vim.api.nvim_win_get_cursor(0)
