@@ -13,13 +13,9 @@ vim.keymap.set("n", "<leader>yt", ':let @+ = expand("%:t")<cr>', { desc = "复�
 
 vim.keymap.set("n", "crc", "*``cgn", { desc = "修改当前选中文本" })
 
-vim.keymap.set("n", "g/", function()
-	local last_search = vim.fn.getreg("/")
-	vim.cmd("vimgrep /" .. last_search .. "/j %")
-	vim.cmd("cw")
-end, { desc = "使用 vimgrep 搜索并打开 quickfix" })
+vim.keymap.set("n", "<leader>s", "<cmd>w<cr>", { desc = "保存当前buffer" })
 
-vim.keymap.set("n", "<leader>s", "<cmd>w<cr>", { desc = "保存当前文件" })
+vim.keymap.set("n", "<leader>cb", "<cmd>bd<cr>", { desc = "保存当前buffer" })
 
 -- vim.keymap.set({ "n", "t" }, "<C-\\>", "<cmd>ToggleTerm<cr>", { desc = "切换终端" })
 
