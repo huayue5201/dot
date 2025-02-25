@@ -1,7 +1,5 @@
 -- https://github.com/MagicDuck/grug-far.nvim
 
--- https://github.com/MagicDuck/grug-far.nvim
-
 -- 先延迟加载插件
 vim.g.later(function()
 	-- 加载 grug-far 插件
