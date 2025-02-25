@@ -23,7 +23,7 @@ vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { desc = "创建新的标�
 vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<cr>", { desc = "关闭当前标签页" })
 vim.keymap.set("n", "<leader>to", "<cmd>tabonly<cr>", { desc = "仅保留当前标签页" })
 
-vim.keymap.set("n", "dm", "<cmd>DeleteMarks<cr>", { desc = "删除当前标记" })
+vim.keymap.set("n", "dm", "<cmd>DelMarks<cr>", { desc = "删除当前标记" })
 vim.keymap.set("n", "<leader>dm", "<cmd>DelAllMarks<cr>", { desc = "删除所有标记" })
 
 vim.keymap.set("n", "<leader>q", "<cmd>ToggleQuickfix<cr>", { desc = "切换 Quickfix 窗口" })

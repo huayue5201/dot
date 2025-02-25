@@ -61,13 +61,33 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 
 -- 用 q 关闭窗口
 vim.api.nvim_create_autocmd("FileType", {
-	desc = "用 q 关闭窗口",
+	desc = "用 q 关闭窗口或删除缓冲区",
 	pattern = "*",
 	callback = function()
-		local close_cmd = vim.bo.filetype == "man" and ":quit<CR>" or ":close<CR>"
-		local filetypes = { "help", "startuptime", "qf", "lspinfo", "checkhealth", "man" }
-		if vim.tbl_contains(filetypes, vim.bo.filetype) then
-			vim.api.nvim_buf_set_keymap(0, "n", "q", close_cmd, { noremap = true, silent = true })
+		local filetype_commands = {
+			["help"] = ":close<CR>",
+			["qf"] = ":close<CR>",
+			["checkhealth"] = ":close<CR>",
+			["man"] = ":quit<CR>",
+			["grug-far"] = ":bdelete<CR>",
+		}
+		local current_filetype = vim.bo.filetype -- 获取当前文件类型
+		local command = filetype_commands[current_filetype] -- 如果当前 filetype 在表中，使用对应的退出命令
+		if command then
+			vim.api.nvim_buf_set_keymap(0, "n", "q", command, { noremap = true, silent = true })
+		end
+	end,
+})
+
+vim.api.nvim_create_augroup("IrrepLaceableWindows", { clear = true })
+vim.api.nvim_create_autocmd("BufWinEnter", {
+	group = "IrrepLaceableWindows",
+	pattern = "*",
+	callback = function()
+		local filetypes = { "NvimTree", "grug-far", "toggleterm" } -- 确保文件类型拼写正确
+		local buftypes = { "nofile", "terminal" }
+		if vim.tbl_contains(buftypes, vim.bo.buftype) and vim.tbl_contains(filetypes, vim.bo.filetype) then
+			vim.cmd("set winfixbuf") -- 使用 silent! 防止警告
 		end
 	end,
 })
@@ -81,7 +101,6 @@ local function is_window_open(win_type)
 	end
 	return false
 end
-
 -- 切换 Quickfix
 vim.api.nvim_create_user_command("ToggleQuickfix", function()
 	if is_window_open("quickfix") then
@@ -90,7 +109,6 @@ vim.api.nvim_create_user_command("ToggleQuickfix", function()
 		vim.cmd("copen")
 	end
 end, { desc = "切换 Quickfix 窗口" })
-
 -- 切换 Location List
 vim.api.nvim_create_user_command("ToggleLoclist", function()
 	if is_window_open("loclist") then
@@ -120,7 +138,7 @@ vim.api.nvim_create_user_command("Messages", function()
 end, {})
 
 -- 删除标记
-vim.api.nvim_create_user_command("DeleteMarks", function()
+vim.api.nvim_create_user_command("DelMarks", function()
 	local marks_output = vim.fn.execute("marks")
 	vim.notify("当前标记:\n" .. marks_output, vim.log.levels.INFO)
 	local mark = vim.fn.input("输入要删除的标记: ")
