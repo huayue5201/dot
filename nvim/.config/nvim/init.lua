@@ -2,7 +2,7 @@
 vim.loader.enable()
 
 -- 设置配色方案
-vim.cmd("colorscheme dawn")
+-- vim.cmd("colorscheme dawn")
 
 -- 设置 Leader 键为空格
 vim.g.mapleader = vim.keycode("<space>")
@@ -15,7 +15,7 @@ require("config.statusline") -- 状态栏配置
 require("config.keymaps") -- 按键映射
 
 -- 启用 LSP 服务器
-vim.lsp.enable({ "lua_ls", "clangd", "taplo" })
+vim.lsp.enable({ "lua_ls", "clangd", "taplo", "rust-analyzer" })
 
 -- 插件管理：手动安装 mini.nvim
 local path_package = vim.fn.stdpath("data") .. "/site/"
