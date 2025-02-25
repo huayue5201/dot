@@ -63,14 +63,11 @@ local function cleanup_shada()
 	local days_old = 7
 	local current_time = os.time()
 	local shada_files = vim.fn.glob(data_dir .. "/shada/*.shada", true, true)
-
 	if #shada_files == 0 then
 		return -- 没有 shada 文件，直接返回
 	end
-
 	for _, filename in ipairs(shada_files) do
 		local file_time = vim.fn.getftime(filename)
-
 		-- 处理文件时间错误
 		if file_time == -1 then
 			vim.notify("Unable to get file time for: " .. filename, vim.log.levels.WARN)
@@ -89,7 +86,6 @@ local function cleanup_shada()
 		end
 	end
 end
-
 -- 设置定时器每隔一天清理一次 shada 文件
 vim.defer_fn(function()
 	cleanup_shada()
