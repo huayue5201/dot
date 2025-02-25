@@ -5,7 +5,6 @@
 --- License:     GPL 3.0
 
 vim.opt.background = "dark"
-vim.cmd.source("$VIMRUNTIME/colors/default.vim")
 vim.g.colors_name = "dawn"
 
 local colors = {
