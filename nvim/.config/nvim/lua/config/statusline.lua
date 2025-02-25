@@ -111,7 +111,7 @@ function Statusline.lsp_progress()
 	end
 	local spinner = spinner_frames[spinner_index]
 	spinner_index = (spinner_index % #spinner_frames) + 1
-	progress = #progress > 50 and string.sub(progress, 1, 50) .. "…" or progress
+	progress = #progress > 40 and string.sub(progress, 1, 40) .. "…" or progress
 	return " " .. spinner .. " " .. progress
 end
 
@@ -145,7 +145,7 @@ function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
 		string.format("%-28s", Statusline.mode()), -- 左对齐，13个字符
-		"  " .. "%t  ", -- 文件名
+		" 󱁺 " .. "%t  ", -- 文件名
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
 		-- 由akinsho/toggleterm.nvim提供
