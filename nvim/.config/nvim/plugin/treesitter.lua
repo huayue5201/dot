@@ -5,7 +5,6 @@ vim.g.now(function()
 		source = "nvim-treesitter/nvim-treesitter",
 		checkout = "master",
 		monitor = "main",
-		-- Perform action after every checkout
 		hooks = {
 			post_checkout = function()
 				vim.cmd("TSUpdate")

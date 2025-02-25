@@ -2,7 +2,7 @@
 vim.loader.enable()
 
 -- 设置配色方案
--- vim.cmd("colorscheme dawn")
+vim.cmd("colorscheme dawn")
 
 -- 设置 Leader 键为空格
 vim.g.mapleader = vim.keycode("<space>")
