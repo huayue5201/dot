@@ -40,10 +40,10 @@ end
 -- 设置按键映射
 local function set_keymaps(buf, _)
 	local keymaps = {
-		{ "<leader>d", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
+		{ "<leader>ld", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
 		{ "<leader>cl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭LSP客户端" },
 		{
-			"<leader>cd",
+			"<leader>d",
 			"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
 			"打开/关闭LSP诊断",
 		},
