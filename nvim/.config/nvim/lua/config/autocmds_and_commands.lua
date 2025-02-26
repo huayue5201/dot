@@ -87,7 +87,7 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 		local filetypes = { "NvimTree", "grug-far", "toggleterm" } -- 确保文件类型拼写正确
 		local buftypes = { "nofile", "terminal" }
 		if vim.tbl_contains(buftypes, vim.bo.buftype) and vim.tbl_contains(filetypes, vim.bo.filetype) then
-			vim.cmd("set winfixbuf") -- 使用 silent! 防止警告
+			vim.cmd("set winfixbuf")
 		end
 	end,
 })
