@@ -27,7 +27,8 @@ Statuscolumn.active = function()
 	return table.concat({
 		" %C ",
 		"%=",
-		string.format("%-3s", "%l"),
+		"%l",
+		"%=",
 		Statuscolumn.mark(),
 		"%=",
 		"%s",

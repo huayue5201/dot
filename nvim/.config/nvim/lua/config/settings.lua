@@ -86,7 +86,7 @@ vim.opt.fillchars = {
 	vertright = "┣", -- 向右的垂直分隔符
 	verthoriz = "╋", -- 垂直和水平重叠的分隔符
 	-- 折叠相关字符
-	fold = " ", -- 折叠文本填充字符
+	fold = "/", -- 折叠文本填充字符
 	foldopen = "-", -- 折叠打开时的标记字符
 	foldclose = "+", -- 折叠关闭时的标记字符
 	foldsep = "│", -- 打开折叠时的中间分隔符
