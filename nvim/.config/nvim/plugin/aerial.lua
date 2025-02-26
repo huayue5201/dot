@@ -46,6 +46,6 @@ vim.g.later(function()
 		},
 	})
 
-	vim.keymap.set("n", "<leader>oa", "<cmd>AerialToggle<CR>", { silent = true, noremap = true, desc = "" })
+	vim.keymap.set("n", "<leader>la", "<cmd>AerialToggle<CR>", { silent = true, noremap = true, desc = "" })
 	vim.keymap.set("n", "<leader>a", "<cmd>AerialNavToggl<CR>", { silent = true, noremap = true, desc = "" })
 end)
