@@ -59,7 +59,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
--- 用 q 关闭窗口
 vim.api.nvim_create_autocmd("FileType", {
 	desc = "用 q 关闭窗口或删除缓冲区",
 	pattern = "*",
@@ -71,6 +70,7 @@ vim.api.nvim_create_autocmd("FileType", {
 			["man"] = ":quit<CR>",
 			["grug-far"] = ":bdelete<CR>",
 			["minideps-confirm"] = ":bdelete<cr>",
+			["toggleterm"] = ":close<CR>",
 		}
 		local current_filetype = vim.bo.filetype -- 获取当前文件类型
 		local command = filetype_commands[current_filetype] -- 如果当前 filetype 在表中，使用对应的退出命令

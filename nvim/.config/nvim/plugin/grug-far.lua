@@ -24,7 +24,7 @@ vim.g.later(function()
 	end, { desc = "Open as a transient buffer" })
 
 	-- 限制搜索/替换仅限于当前文件
-	vim.keymap.set("n", "<leader>ff", function()
+	vim.keymap.set("n", "<leader>fr", function()
 		require("grug-far").open({ prefills = { paths = vim.fn.expand("%") } })
 	end, { desc = "Limit search/replace to current file" })
 

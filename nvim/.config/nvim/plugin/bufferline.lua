@@ -5,6 +5,11 @@ vim.g.now(function()
 		source = "akinsho/bufferline.nvim",
 	})
 
+	_G.__cached_neo_tree_selector = nil
+	_G.__get_selector = function()
+		return _G.__cached_neo_tree_selector
+	end
+
 	require("bufferline").setup({
 		options = {
 			separator_style = "thick", -- 分隔符样式设置为thick
@@ -45,11 +50,17 @@ vim.g.now(function()
 			},
 			offsets = { -- 侧边栏偏移设置
 				{
-					filetype = "NvimTree",
-					text = "File Explorer",
-					text_align = "center",
-					separator = true,
+					filetype = "neo-tree",
+					raw = " %{%v:lua.__get_selector()%} ",
+					highlight = { sep = { link = "WinSeparator" } },
+					separator = "┃",
 				},
+				-- {
+				-- 	filetype = "neo-tree",
+				-- 	text = "File Explorer",
+				-- 	text_align = "center",
+				-- 	separator = true,
+				-- },
 				{
 					filetype = "aerial",
 					text = "Symbol Explorer",
