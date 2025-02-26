@@ -70,6 +70,7 @@ vim.api.nvim_create_autocmd("FileType", {
 			["checkhealth"] = ":close<CR>",
 			["man"] = ":quit<CR>",
 			["grug-far"] = ":bdelete<CR>",
+			["minideps-confirm"] = ":bdelete<cr>",
 		}
 		local current_filetype = vim.bo.filetype -- 获取当前文件类型
 		local command = filetype_commands[current_filetype] -- 如果当前 filetype 在表中，使用对应的退出命令
