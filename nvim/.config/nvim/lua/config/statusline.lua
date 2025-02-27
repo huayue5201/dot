@@ -151,7 +151,7 @@ function Statusline.active()
 		-- 由akinsho/toggleterm.nvim提供
 		'%{&ft == "toggleterm" ? "terminal (".b:toggle_number.")" : ""}',
 		Statusline.vcs(), -- Git 状态
-		" 󰴍 %l%c", -- 行列号
+		" 󰴍 %l%c ", -- 行列号
 		" %p%%", -- 文件百分比
 	})
 end
