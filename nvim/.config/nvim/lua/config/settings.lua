@@ -29,6 +29,7 @@ vim.opt.modeline = false -- 禁用 modeline
 vim.opt.updatetime = 300 -- 设置更新延迟时间（毫秒）
 vim.opt.jumpoptions = "stack,view" -- 跳转选项：stack 和 view
 vim.opt.cursorline = true -- 高亮当前行
+vim.opt.cursorcolumn = true -- 启用当前列高亮
 vim.g.vimsyn_embed = "alpPrj" -- 嵌入语法高亮
 vim.opt.wrap = false -- 禁用自动换行
 vim.opt.undofile = true -- 启用持久撤销
@@ -86,7 +87,7 @@ vim.opt.fillchars = {
 	vertright = "┣", -- 向右的垂直分隔符
 	verthoriz = "╋", -- 垂直和水平重叠的分隔符
 	-- 折叠相关字符
-	fold = "/", -- 折叠文本填充字符
+	fold = "", -- 折叠文本填充字符
 	foldopen = "-", -- 折叠打开时的标记字符
 	foldclose = "+", -- 折叠关闭时的标记字符
 	foldsep = "│", -- 打开折叠时的中间分隔符
