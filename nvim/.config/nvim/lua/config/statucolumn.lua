@@ -31,13 +31,13 @@ end
 -- 设置拼接的内容
 Statuscolumn.active = function()
 	return table.concat({
-		" %C ",
+		"%s",
 		"%=",
 		"%l",
 		"%=",
 		Statuscolumn.mark(),
 		"%=",
-		"%s",
+		"%C ",
 	})
 end
 
