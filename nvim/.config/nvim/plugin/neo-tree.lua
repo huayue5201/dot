@@ -11,7 +11,7 @@ vim.g.later(function()
 	})
 
 	require("neo-tree").setup({
-		close_if_last_window = false, -- Close Neo-tree if it is the last window left in the tab
+		close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
 		popup_border_style = "rounded",
 		enable_git_status = true,
 		enable_diagnostics = true,
@@ -156,7 +156,7 @@ vim.g.later(function()
 		},
 		window = {
 			position = "left",
-			width = 40,
+			width = 55,
 			mapping_options = {
 				noremap = true,
 				nowait = true,
@@ -167,7 +167,8 @@ vim.g.later(function()
 					"toggle_preview",
 					config = {
 						use_float = true,
-						title = "Previewing: " .. vim.fn.fnamemodify(vim.fn.expand("%:p"), ":~"), -- 直接设置为相对路径
+						-- use_image_nvim = true,
+						-- title = 'Neo-tree Preview',
 					},
 				},
 				["<localleader>e"] = function()
