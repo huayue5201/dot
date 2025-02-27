@@ -166,9 +166,8 @@ vim.g.later(function()
 				["P"] = {
 					"toggle_preview",
 					config = {
-						use_float = false,
-						-- use_image_nvim = true,
-						-- title = 'Neo-tree Preview',
+						use_float = true,
+						title = "Previewing: " .. vim.fn.fnamemodify(vim.fn.expand("%:p"), ":~"), -- 直接设置为相对路径
 					},
 				},
 				["<localleader>e"] = function()
