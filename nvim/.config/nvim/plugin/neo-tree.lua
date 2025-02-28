@@ -10,20 +10,6 @@ vim.g.later(function()
 		},
 	})
 
-	-- 定义视图列表和当前视图索引
-	local views = { "filesystem", "buffers", "git_status", "document_symbols" }
-	local view_index = 1
-	-- 正向循环切换视图
-	local function next_view()
-		vim.api.nvim_exec2("Neotree focus " .. views[view_index] .. " left", { output = true })
-		view_index = (view_index % #views) + 1
-	end
-	-- 反向循环切换视图
-	local function prev_view()
-		view_index = (view_index - 2 + #views) % #views + 1
-		vim.api.nvim_exec2("Neotree focus " .. views[view_index] .. " left", { output = true })
-	end
-
 	require("neo-tree").setup({
 		close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
 		popup_border_style = "rounded",
@@ -197,8 +183,18 @@ vim.g.later(function()
 						-- title = 'Neo-tree Preview',
 					},
 				},
-				["<Tab>"] = next_view, -- 正向切换
-				["<S-Tab>"] = prev_view, -- 反向切换
+				["<tab>1"] = function()
+					vim.api.nvim_exec2("Neotree focus filesystem left", { output = false })
+				end,
+				["<tab>2"] = function()
+					vim.api.nvim_exec2("Neotree focus buffers left", { output = false })
+				end,
+				["<tab>3"] = function()
+					vim.api.nvim_exec2("Neotree focus git_status left", { output = false })
+				end,
+				["<tab>4"] = function()
+					vim.api.nvim_exec2("Neotree focus document_symbols left", { output = false })
+				end,
 				["<space>"] = {
 					"toggle_node",
 					nowait = true, -- disable `nowait` if you have existing combos starting with this char that you want to use
