@@ -7,35 +7,29 @@ vim.keymap.set("n", "dd", function()
 	return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true, desc = "删除当前行（空行使用黑洞寄存器）" })
 
--- vim.keymap.set("n", "<leader>yp", ':let @+ = expand("%:p")<cr>', { desc = "复制文件的绝对路径" })
--- vim.keymap.set("n", "<leader>yf", ':let @+ = expand("%:f")<cr>', { desc = "复制文件的相对路径" })
--- vim.keymap.set("n", "<leader>yt", ':let @+ = expand("%:t")<cr>', { desc = "复制文件名" })
-
 vim.keymap.set("n", "<leader>yp", function()
 	local path = vim.fn.expand("%:p")
 	vim.notify("绝对路径: " .. path, vim.log.levels.INFO)
-	vim.fn.setreg("+", path) -- 将路径复制到剪贴板
+	vim.fn.setreg("+", path)
 end, { desc = "复制文件的绝对路径" })
 
 vim.keymap.set("n", "<leader>yf", function()
 	local path = vim.fn.expand("%:f")
 	vim.notify("相对路径: " .. path, vim.log.levels.INFO)
-	vim.fn.setreg("+", path) -- 将路径复制到剪贴板
+	vim.fn.setreg("+", path)
 end, { desc = "复制文件的相对路径" })
 
 vim.keymap.set("n", "<leader>yt", function()
 	local path = vim.fn.expand("%:t")
 	vim.notify("文件名: " .. path, vim.log.levels.INFO)
-	vim.fn.setreg("+", path) -- 将文件名复制到剪贴板
+	vim.fn.setreg("+", path)
 end, { desc = "复制文件名" })
 
 vim.keymap.set("n", "crc", "*``cgn", { desc = "修改当前选中文本" })
 
 vim.keymap.set("n", "<leader>w", "<cmd>w<cr>", { desc = "保存当前buffer" })
 
-vim.keymap.set("n", "<leader>q", "<cmd>bdelete<cr>", { desc = "保存当前buffer" })
-
--- vim.keymap.set({ "n", "t" }, "<C-\\>", "<cmd>ToggleTerm<cr>", { desc = "切换终端" })
+vim.keymap.set("n", "<leader>q", "<cmd>DeleteBuffer<cr>", { desc = "保存当前buffer" })
 
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { desc = "创建新的标签页" })
 vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<cr>", { desc = "关闭当前标签页" })

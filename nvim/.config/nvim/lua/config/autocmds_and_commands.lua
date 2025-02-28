@@ -159,6 +159,22 @@ vim.api.nvim_create_user_command("DelAllMarks", function()
 	vim.notify("所有标记已删除!", vim.log.levels.INFO)
 end, { desc = "删除所有标记" })
 
+vim.api.nvim_create_user_command("DeleteBuffer", function()
+	local buflisted = vim.fn.getbufinfo({ buflisted = 1 })
+	local cur_winnr, cur_bufnr = vim.fn.winnr(), vim.fn.bufnr()
+	if #buflisted < 2 then
+		vim.cmd("confirm qall")
+		return
+	end
+	for _, winid in ipairs(vim.fn.getbufinfo(cur_bufnr)[1].windows) do
+		vim.cmd(string.format("%d wincmd w", vim.fn.win_id2win(winid)))
+		vim.cmd(cur_bufnr == buflisted[#buflisted].bufnr and "bp" or "bn")
+	end
+	vim.cmd(string.format("%d wincmd w", cur_winnr))
+	local is_terminal = vim.fn.getbufvar(cur_bufnr, "&buftype") == "terminal"
+	vim.cmd(is_terminal and "bd! #" or "silent! confirm bd #")
+end, {})
+
 -- vim.api.nvim_create_autocmd("LspProgress", {
 -- 	---@param ev {data: {client_id: integer, params: lsp.ProgressParams}}
 -- 	callback = function(ev)
