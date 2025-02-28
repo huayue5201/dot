@@ -10,7 +10,7 @@ font-family = FiraCode Nerd Font
 font-thicken = true
 
 # 设置字体大小为 15
-font-size = 15
+font-size = 17
 
 # ================================================
 #           窗口与主题设置
@@ -22,10 +22,10 @@ custom-shader-animation = true
 window-decoration = auto
 
 # 设置窗口高度为 40
-window-height = 46
+window-height = 40
 
 # 设置窗口宽度为 140
-window-width = 140
+window-width = 120
 
 # 设置快速终端位置为右侧
 quick-terminal-position = right
