@@ -2,7 +2,6 @@
 # ================================================
 #           字体设置
 # ================================================
-
 # 设置字体为 Victor Mono
 font-family = Victor Mono
 
@@ -15,7 +14,6 @@ font-size = 15
 # ================================================
 #           窗口与主题设置
 # ================================================
-
 # 启用自定义的着色器动画
 custom-shader-animation = true
 
@@ -28,11 +26,17 @@ window-height = 40
 # 设置窗口宽度为 140
 window-width = 140
 
+# 设置快速终端位置为右侧
+quick-terminal-position = right
+
 # 设置 macOS 上 Option 键为 Alt 键
 macos-option-as-alt = left
 
 # 设置 macOS 图标为 xray
 macos-icon = xray
+
+# 设置 macOS 图标框架颜色为米色
+macos-icon-frame = beige
 
 # 设置窗口主题为系统默认主题
 window-theme = system
@@ -40,11 +44,10 @@ window-theme = system
 # ================================================
 #           背景与颜色设置
 # ================================================
+# 设置背景不透明度为 0.8
+background-opacity = 0.8
 
-# 背景不透明度设置为 0.9
-background-opacity = 0.9
-
-# 背景模糊半径设置为 20
+# 设置背景模糊半径为 20
 background-blur = 20
 
 # 设置主题为 AtelierSulphurpool
@@ -56,10 +59,10 @@ background = #202746
 # 设置前景色为 #979db4
 foreground = #979db4
 
-# 选择区域的背景色设置为 #5e6687
+# 设置选择区域的背景色为 #5e6687
 selection-background = #5e6687
 
-# 选择区域的前景色设置为 #979db4
+# 设置选择区域的前景色为 #979db4
 selection-foreground = #979db4
 
 # 设置光标颜色为 #979db4
@@ -68,23 +71,18 @@ cursor-color = #979db4
 # 设置光标文本颜色为背景色 #202746
 cursor-text = #202746
 
-# 设置光标样式为块状空心
-cursor-style = block_hollow
-
 # 启用光标闪烁
 cursor-style-blink = true
 
 # ================================================
 #           鼠标与交互设置
 # ================================================
-
 # 启用鼠标 Shift 键捕获
 mouse-shift-capture = always
 
 # ================================================
 #           调色板设置
 # ================================================
-
 # 配置调色板的颜色
 palette = 0=#202746
 palette = 1=#c94922
@@ -106,6 +104,14 @@ palette = 15=#f5f7ff
 # ================================================
 #           剪贴板与选择设置
 # ================================================
-
 # 选择文本时自动复制到剪贴板
 copy-on-select = true
+
+# 允许从剪贴板读取数据
+clipboard-read = allow
+
+# 允许写入剪贴板
+clipboard-write = allow
+
+# 剪贴板自动修剪末尾空格
+clipboard-trim-trailing-spaces = true
