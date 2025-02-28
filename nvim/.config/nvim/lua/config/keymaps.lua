@@ -25,8 +25,6 @@ vim.keymap.set("n", "<leader>yt", function()
 	vim.fn.setreg("+", path)
 end, { desc = "复制文件名" })
 
-vim.keymap.set("n", "crc", "*``cgn", { desc = "修改当前选中文本" })
-
 vim.keymap.set("n", "<leader>w", "<cmd>w<cr>", { desc = "保存当前buffer" })
 
 vim.keymap.set("n", "<leader>q", "<cmd>DeleteBuffer<cr>", { desc = "保存当前buffer" })
@@ -35,8 +33,8 @@ vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { desc = "创建新的标�
 vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<cr>", { desc = "关闭当前标签页" })
 vim.keymap.set("n", "<leader>to", "<cmd>tabonly<cr>", { desc = "仅保留当前标签页" })
 
-vim.keymap.set("n", "dm", "<cmd>DelMarks<cr>", { desc = "删除当前标记" })
-vim.keymap.set("n", "dam", "<cmd>DelAllMarks<cr>", { desc = "删除所有标记" })
+vim.keymap.set("n", "dm", "<cmd>DelMarks<cr>", { buffer = true, desc = "删除当前标记" })
+vim.keymap.set("n", "dam", "<cmd>DelAllMarks<cr>", { buffer = true, desc = "删除所有标记" })
 
 vim.keymap.set("n", "<localleader>q", "<cmd>ToggleQuickfix<cr>", { desc = "切换 Quickfix 窗口" })
 

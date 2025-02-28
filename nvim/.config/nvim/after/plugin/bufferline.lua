@@ -55,18 +55,6 @@ vim.g.now(function()
 					highlight = { sep = { link = "WinSeparator" } },
 					separator = "┃",
 				},
-				-- {
-				-- 	filetype = "neo-tree",
-				-- 	text = "File Explorer",
-				-- 	text_align = "center",
-				-- 	separator = true,
-				-- },
-				{
-					filetype = "aerial",
-					text = "Symbol Explorer",
-					text_align = "center",
-					separator = true,
-				},
 			},
 			hover = { -- 鼠标悬停设置
 				enabled = true, -- 开启鼠标悬停
@@ -75,13 +63,6 @@ vim.g.now(function()
 			},
 		},
 	})
-
-	-- 快捷键设置
-	for n = 1, 9 do
-		vim.keymap.set("n", "g" .. n, function() -- 跳转到第n个buffer
-			require("bufferline").go_to(n, true)
-		end, { desc = "[Bufferline] 跳转到第" .. n .. "个buffer" })
-	end
 
 	vim.keymap.set("n", "<leader>tp", "<cmd>BufferLineTogglePin<cr>", { desc = "图钉📌" })
 	vim.keymap.set("n", "<leader>tb", ":BufferLinePick<CR>", { desc = "跳转到任意可见标签" })

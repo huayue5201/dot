@@ -183,18 +183,6 @@ vim.g.later(function()
 						-- title = 'Neo-tree Preview',
 					},
 				},
-				["g1"] = function()
-					vim.api.nvim_exec2("Neotree focus filesystem left", { output = false })
-				end,
-				["g2"] = function()
-					vim.api.nvim_exec2("Neotree focus buffers left", { output = false })
-				end,
-				["g3"] = function()
-					vim.api.nvim_exec2("Neotree focus git_status left", { output = false })
-				end,
-				["g4"] = function()
-					vim.api.nvim_exec2("Neotree focus document_symbols left", { output = false })
-				end,
 				["<tab>"] = function(state)
 					local node = state.tree:get_node()
 					if require("neo-tree.utils").is_expandable(node) then
@@ -206,7 +194,7 @@ vim.g.later(function()
 				end,
 				["<space>"] = {
 					"toggle_node",
-					nowait = true, -- disable `nowait` if you have existing combos starting with this char that you want to use
+					nowait = false, -- disable `nowait` if you have existing combos starting with this char that you want to use
 				},
 				["<2-LeftMouse>"] = "open",
 				["<cr>"] = "open",
@@ -416,5 +404,36 @@ vim.g.later(function()
 			},
 		},
 	})
-	vim.keymap.set("n", "<leader>e", "<cmd>Neotree toggle<cr>", { desc = "文件树" })
+
+	vim.keymap.set("n", "<leader>oe", function()
+		require("neo-tree.command").execute({
+			toggle = true,
+			source = "filesystem",
+			position = "left",
+		})
+	end, { desc = "File Explorer" })
+
+	vim.keymap.set("n", "<leader>ob", function()
+		require("neo-tree.command").execute({
+			toggle = true,
+			source = "buffers",
+			position = "left",
+		})
+	end, { desc = "Buffers (root dir)" })
+
+	vim.keymap.set("n", "<leader>og", function()
+		require("neo-tree.command").execute({
+			toggle = true,
+			source = "git_status",
+			position = "left",
+		})
+	end, { desc = "Git Status" })
+
+	vim.keymap.set("n", "<leader>os", function()
+		require("neo-tree.command").execute({
+			toggle = true,
+			source = "document_symbols",
+			position = "left",
+		})
+	end, { desc = "Symbols" })
 end)
