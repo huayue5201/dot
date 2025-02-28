@@ -183,17 +183,26 @@ vim.g.later(function()
 						-- title = 'Neo-tree Preview',
 					},
 				},
-				["<tab>1"] = function()
+				["g1"] = function()
 					vim.api.nvim_exec2("Neotree focus filesystem left", { output = false })
 				end,
-				["<tab>2"] = function()
+				["g2"] = function()
 					vim.api.nvim_exec2("Neotree focus buffers left", { output = false })
 				end,
-				["<tab>3"] = function()
+				["g3"] = function()
 					vim.api.nvim_exec2("Neotree focus git_status left", { output = false })
 				end,
-				["<tab>4"] = function()
+				["g4"] = function()
 					vim.api.nvim_exec2("Neotree focus document_symbols left", { output = false })
+				end,
+				["<tab>"] = function(state)
+					local node = state.tree:get_node()
+					if require("neo-tree.utils").is_expandable(node) then
+						state.commands["toggle_node"](state)
+					else
+						state.commands["open"](state)
+						vim.cmd("Neotree reveal")
+					end
 				end,
 				["<space>"] = {
 					"toggle_node",
