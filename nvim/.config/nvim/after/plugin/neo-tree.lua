@@ -168,7 +168,7 @@ vim.g.later(function()
 		},
 		window = {
 			position = "left",
-			width = 55,
+			width = 45,
 			mapping_options = {
 				noremap = true,
 				nowait = true,
