@@ -55,7 +55,7 @@ local function set_keymaps(buf, _)
 		{
 			"<leader>i",
 			"<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>",
-			"开启/关闭内联提示",
+			"打开/关闭内联提示",
 		},
 	}
 	for _, map in ipairs(keymaps) do
