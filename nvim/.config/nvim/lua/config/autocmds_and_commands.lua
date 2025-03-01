@@ -1,3 +1,7 @@
+-- ===========================
+-- 自动命令（Autocommands）
+-- ===========================
+
 -- 清理尾部空白字符
 vim.api.nvim_create_autocmd("BufWritePre", {
 	desc = "保存文件时移除末尾的空白字符",
@@ -29,12 +33,11 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
--- 高亮复制内容 (默认不限制字符数)
+-- 高亮复制内容（默认不限制字符数）
 vim.api.nvim_create_autocmd("TextYankPost", {
 	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
 	pattern = "*",
 	callback = function()
-		-- 高亮复制内容时不限制字符数
 		if #vim.v.event.regcontents > 0 then
 			vim.highlight.on_yank()
 		end
@@ -59,6 +62,11 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
+-- ===========================
+-- 文件类型特定的映射
+-- ===========================
+
+-- 用 q 关闭窗口或删除缓冲区
 vim.api.nvim_create_autocmd("FileType", {
 	desc = "用 q 关闭窗口或删除缓冲区",
 	pattern = "*",
@@ -72,20 +80,25 @@ vim.api.nvim_create_autocmd("FileType", {
 			["minideps-confirm"] = ":bdelete<cr>",
 			["toggleterm"] = ":close<CR>",
 		}
-		local current_filetype = vim.bo.filetype -- 获取当前文件类型
-		local command = filetype_commands[current_filetype] -- 如果当前 filetype 在表中，使用对应的退出命令
+		local current_filetype = vim.bo.filetype
+		local command = filetype_commands[current_filetype]
 		if command then
 			vim.api.nvim_buf_set_keymap(0, "n", "q", command, { noremap = true, silent = true })
 		end
 	end,
 })
 
+-- ===========================
+-- 窗口管理（自动命令和自定义命令）
+-- ===========================
+
+-- 窗口大小固定（防止不可替换窗口被调整大小）
 vim.api.nvim_create_augroup("IrrepLaceableWindows", { clear = true })
 vim.api.nvim_create_autocmd("BufWinEnter", {
 	group = "IrrepLaceableWindows",
 	pattern = "*",
 	callback = function()
-		local filetypes = { "NvimTree", "grug-far", "toggleterm" } -- 确保文件类型拼写正确
+		local filetypes = { "NvimTree", "grug-far", "toggleterm" }
 		local buftypes = { "nofile", "terminal" }
 		if vim.tbl_contains(buftypes, vim.bo.buftype) and vim.tbl_contains(filetypes, vim.bo.filetype) then
 			vim.cmd("set winfixbuf")
@@ -102,7 +115,8 @@ local function is_window_open(win_type)
 	end
 	return false
 end
--- 切换 Quickfix
+
+-- 切换 Quickfix 窗口
 vim.api.nvim_create_user_command("ToggleQuickfix", function()
 	if is_window_open("quickfix") then
 		vim.cmd("cclose")
@@ -110,7 +124,8 @@ vim.api.nvim_create_user_command("ToggleQuickfix", function()
 		vim.cmd("copen")
 	end
 end, { desc = "切换 Quickfix 窗口" })
--- 切换 Location List
+
+-- 切换 Location List 窗口
 vim.api.nvim_create_user_command("ToggleLoclist", function()
 	if is_window_open("loclist") then
 		vim.cmd("lclose")
@@ -138,7 +153,11 @@ vim.api.nvim_create_user_command("Messages", function()
 	vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = scratch_buffer })
 end, {})
 
--- 删除标记
+-- ===========================
+-- 删除标记相关命令
+-- ===========================
+
+-- 删除指定标记
 vim.api.nvim_create_user_command("DelMarks", function()
 	local marks_output = vim.fn.execute("marks")
 	vim.notify("当前标记:\n" .. marks_output, vim.log.levels.INFO)
@@ -152,13 +171,50 @@ vim.api.nvim_create_user_command("DelMarks", function()
 	end
 end, { desc = "删除指定标记" })
 
--- 删除所有标记
-vim.api.nvim_create_user_command("DelAllMarks", function()
-	vim.cmd("delmarks a-z")
-	vim.cmd("delmarks A-Z")
-	vim.notify("所有标记已删除!", vim.log.levels.INFO)
-end, { desc = "删除所有标记" })
+-- 删除所有标记或当前行标记（交互式选择）
+vim.api.nvim_create_user_command("DelMarksInteractive", function()
+	local choice = vim.fn.input("1: 删除所有标记, 2: 删除当前行标记: ")
+	-- 删除标记的辅助函数
+	local function delete_marks(is_local)
+		local marks = is_local and vim.fn.getmarklist(vim.api.nvim_get_current_buf()) or vim.fn.getmarklist()
+		local deleted_marks = {}
+		for _, mark in ipairs(marks) do
+			local mark_name = string.sub(mark.mark, 2, 2)
+			if
+				(is_local and mark.pos[2] == vim.fn.line(".") and string.match(mark.mark, "'[a-z]"))
+				or (not is_local and string.match(mark.mark, "'[A-Z]"))
+			then
+				-- 删除标记
+				if is_local then
+					vim.api.nvim_buf_del_mark(vim.api.nvim_get_current_buf(), mark_name)
+				else
+					vim.api.nvim_del_mark(mark_name)
+				end
+				table.insert(deleted_marks, mark_name)
+			end
+		end
+		if #deleted_marks > 0 then
+			vim.notify("已删除标记: " .. table.concat(deleted_marks, ", "), vim.log.levels.INFO)
+		end
+	end
+	vim.cmd("redraw!")
+	if choice == "1" then
+		vim.cmd("delmarks a-z")
+		vim.cmd("delmarks A-Z")
+		vim.notify("所有标记已删除!", vim.log.levels.INFO)
+	elseif choice == "2" then
+		delete_marks(true)
+		delete_marks(false)
+	else
+		vim.notify("无效的选择！", vim.log.levels.ERROR)
+	end
+end, { desc = "删除标记（交互选择删除方式）" })
 
+-- ===========================
+-- 删除缓冲区命令
+-- ===========================
+
+-- 删除缓冲区（关闭文件）
 vim.api.nvim_create_user_command("DeleteBuffer", function()
 	local buflisted = vim.fn.getbufinfo({ buflisted = 1 })
 	local cur_winnr, cur_bufnr = vim.fn.winnr(), vim.fn.bufnr()
