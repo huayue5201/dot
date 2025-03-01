@@ -3,7 +3,8 @@
 vim.g.later(function()
 	vim.g.add({ source = "mg979/vim-visual-multi" })
 
-	vim.g.VM_theme = "iceblue" -- 设置 Visual Multi 插件的主题
+	-- vim.g.VM_theme = "iceblue" -- 设置 Visual Multi 插件的主题
+	vim.g.VM_theme = "purplegray" -- 设置 Visual Multi 插件的主题
 
 	vim.g.VM_maps["Undo"] = "u" -- 将 'u' 键映射为撤销操作（Undo）。
 
