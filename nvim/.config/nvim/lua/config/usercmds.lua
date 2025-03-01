@@ -9,7 +9,6 @@ local function is_window_open(win_type)
 	end
 	return false -- 如果未找到指定类型窗口，返回 false
 end
-
 -- ===========================
 -- 切换 Quickfix 窗口
 -- ===========================
@@ -20,7 +19,6 @@ vim.api.nvim_create_user_command("ToggleQuickfix", function()
 		vim.cmd("copen") -- 如果 Quickfix 窗口未打开，打开该窗口
 	end
 end, { desc = "切换 Quickfix 窗口" })
-
 -- ===========================
 -- 切换 Location List 窗口
 -- ===========================
@@ -54,69 +52,59 @@ vim.api.nvim_create_user_command("Messages", function()
 end, {})
 
 -- ===========================
--- 删除标记相关命令
--- ===========================
-
--- ===========================
 -- 删除指定标记
 -- ===========================
 vim.api.nvim_create_user_command("DelMarks", function()
-	local marks_output = vim.fn.execute("marks")
-	vim.notify("当前标记:\n" .. marks_output, vim.log.levels.INFO) -- 显示当前所有标记
-	local mark = vim.fn.input("输入要删除的标记: ") -- 输入要删除的标记名称
-	vim.cmd("redraw!") -- 重新绘制界面
-	if mark ~= "" then
-		vim.cmd("delmarks " .. mark) -- 删除指定标记
-		vim.notify("已删除标记: " .. mark) -- 提示已删除标记
-	else
-		vim.api.nvim_echo({ { "未输入标记，操作已中止.", "Error" } }, true, {}) -- 如果未输入标记，提示错误信息
-	end
-end, { desc = "删除指定标记" })
-
--- ===========================
--- 删除所有标记或当前行标记（交互式选择）
--- ===========================
-vim.api.nvim_create_user_command("DelMarksInteractive", function()
-	local choice = vim.fn.input("1: 删除所有标记, 2: 删除当前行标记: ") -- 选择删除方式
-	-- 删除标记的辅助函数
-	local function delete_marks(is_local)
-		local marks = is_local and vim.fn.getmarklist(vim.api.nvim_get_current_buf()) or vim.fn.getmarklist()
-		local deleted_marks = {}
-		for _, mark in ipairs(marks) do
-			local mark_name = string.sub(mark.mark, 2, 2)
-			if
-				(is_local and mark.pos[2] == vim.fn.line(".") and string.match(mark.mark, "'[a-z]"))
-				or (not is_local and string.match(mark.mark, "'[A-Z]"))
-			then
-				-- 删除标记
-				if is_local then
-					vim.api.nvim_buf_del_mark(vim.api.nvim_get_current_buf(), mark_name)
-				else
-					vim.api.nvim_del_mark(mark_name)
+	-- 提供选择框让用户选择删除标记的方式
+	vim.ui.select({ "删除所有标记", "删除当前行标记", "删除特定标记" }, {
+		prompt = "选择删除标记的方式",
+	}, function(selected)
+		local function delete_marks(is_local)
+			local marks = is_local and vim.fn.getmarklist(vim.api.nvim_get_current_buf()) or vim.fn.getmarklist()
+			local deleted_marks = {}
+			for _, mark in ipairs(marks) do
+				local mark_name = string.sub(mark.mark, 2, 2)
+				if
+					(is_local and mark.pos[2] == vim.fn.line(".") and string.match(mark.mark, "'[a-z]"))
+					or (not is_local and string.match(mark.mark, "'[A-Z]"))
+				then
+					-- 删除标记
+					if is_local then
+						vim.api.nvim_buf_del_mark(vim.api.nvim_get_current_buf(), mark_name)
+					else
+						vim.api.nvim_del_mark(mark_name)
+					end
+					table.insert(deleted_marks, mark_name)
 				end
-				table.insert(deleted_marks, mark_name)
+			end
+			if #deleted_marks > 0 then
+				vim.notify("已删除标记: " .. table.concat(deleted_marks, ", "), vim.log.levels.INFO) -- 提示已删除标记
 			end
 		end
-		if #deleted_marks > 0 then
-			vim.notify("已删除标记: " .. table.concat(deleted_marks, ", "), vim.log.levels.INFO) -- 提示已删除标记
+		if selected == "删除所有标记" then
+			-- 删除所有标记
+			vim.cmd("delmarks a-z")
+			vim.cmd("delmarks A-Z")
+			vim.notify("所有标记已删除!", vim.log.levels.INFO) -- 提示已删除标记
+		elseif selected == "删除当前行标记" then
+			-- 删除当前行标记
+			delete_marks(true)
+			-- 删除全局标记
+			delete_marks(false)
+		elseif selected == "删除特定标记" then
+			-- 输入特定标记并删除
+			local mark = vim.fn.input("输入要删除的标记: ")
+			if mark ~= "" then
+				vim.cmd("delmarks " .. mark)
+				vim.notify("已删除标记: " .. mark, vim.log.levels.INFO) -- 提示已删除标记
+			else
+				vim.notify("未输入标记，操作已中止.", vim.log.levels.ERROR) -- 提示未输入标记
+			end
+		else
+			vim.notify("无效的选择！", vim.log.levels.ERROR) -- 提示无效选择
 		end
-	end
-	vim.cmd("redraw!") -- 重新绘制界面
-	if choice == "1" then
-		vim.cmd("delmarks a-z")
-		vim.cmd("delmarks A-Z")
-		vim.notify("所有标记已删除!", vim.log.levels.INFO) -- 删除所有标记
-	elseif choice == "2" then
-		delete_marks(true) -- 删除当前行标记
-		delete_marks(false) -- 删除全局标记
-	else
-		vim.notify("无效的选择！", vim.log.levels.ERROR) -- 提示无效选择
-	end
+	end)
 end, { desc = "删除标记（交互选择删除方式）" })
-
--- ===========================
--- 删除缓冲区命令
--- ===========================
 
 -- ===========================
 -- 删除缓冲区（关闭文件）

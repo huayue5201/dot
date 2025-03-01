@@ -88,12 +88,12 @@ vim.opt.fillchars = {
 	verthoriz = "╋", -- 垂直和水平重叠的分隔符
 	-- 折叠相关字符
 	fold = "", -- 折叠文本填充字符
-	foldopen = "-", -- 折叠打开时的标记字符
-	foldclose = "+", -- 折叠关闭时的标记字符
+	foldopen = "󰛲", -- 折叠打开时的标记字符
+	foldclose = "󰐖", -- 折叠关闭时的标记字符
 	foldsep = "│", -- 打开折叠时的中间分隔符
 	-- 其他
 	diff = "╱", -- 显示差异时，已删除的行字符
-	msgsep = "", -- 消息分隔符字符（例如用于 `display`）
+	msgsep = "▅", -- 消息分隔符字符（例如用于 `display`）
 	eob = " ", -- 空行字符（用于表示缓冲区末尾）
 	lastline = "@", -- 最后一行或截断字符
 }
@@ -104,5 +104,5 @@ vim.opt.listchars = {
 	multispace = "┊ ",
 	trail = "␣", -- 显示尾随空格
 	nbsp = "⍽", -- 显示不间断空格
-	eol = "↲", -- 换行符
+	eol = " ", -- 换行符
 }

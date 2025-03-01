@@ -55,7 +55,7 @@ function M.custom_foldtext()
 
 	-- 添加图标和行数
 	local fold_icon = "  " -- 可自定义图标
-	local fold_info = string.format(" %s%d lines", fold_icon, fold_lines)
+	local fold_info = string.format(" %s%dL  ", fold_icon, fold_lines)
 	table.insert(result, { fold_info, "Delimiter" })
 
 	return result

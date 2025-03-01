@@ -12,6 +12,13 @@ return {
 		".git",
 	},
 	filetypes = { "lua" },
+	capabilities = {
+		textDocument = {
+			semanticTokens = {
+				multilineTokenSupport = true,
+			},
+		},
+	},
 	settings = {
 		Lua = {
 			hint = {

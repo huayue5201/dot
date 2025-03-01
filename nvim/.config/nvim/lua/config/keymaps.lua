@@ -39,8 +39,7 @@ vim.keymap.set("n", "<localleader>l", "<cmd>ToggleLoclist<cr>", { desc = "切换
 
 vim.keymap.set("n", "<leader>lm", "<cmd>Messages<cr>", { desc = "查看历史消息" })
 
-vim.keymap.set("n", "<leader>dm", "<cmd>DelMarks<cr>", { desc = "删除当前标记" })
-vim.keymap.set("n", "<leader>dam", "<cmd>DelMarksInteractive<cr>", { desc = "删除所有标记" })
+vim.keymap.set("n", "<leader>dm", "<cmd>DelMarks<cr>", { desc = "删除标记" })
 
 -- vim.keymap.set("i", "<Tab>", function()
 --   local cursor = vim.api.nvim_win_get_cursor(0)
