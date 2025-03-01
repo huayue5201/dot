@@ -22,10 +22,10 @@ custom-shader-animation = true
 window-decoration = auto
 
 # 设置窗口高度为 40
-window-height = 40
+window-height = 45
 
 # 设置窗口宽度为 140
-window-width = 120
+window-width = 130
 
 # 设置快速终端位置为右侧
 quick-terminal-position = right
