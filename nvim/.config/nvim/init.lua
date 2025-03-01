@@ -12,7 +12,8 @@ vim.keymap.set({ "n", "v" }, ",", "<Nop>", { silent = true })
 
 -- 加载配置文件
 require("config.settings") -- 全局设置
-require("config.autocmds_and_commands") -- 自动命令和用户命令
+require("config.autocmds") -- 自动命令和用户命令
+require("config.usercmds") -- 自动命令和用户命令
 require("config.statusline") -- 状态栏配置
 require("config.keymaps") -- 按键映射
 
