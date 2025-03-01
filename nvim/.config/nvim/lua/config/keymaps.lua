@@ -33,14 +33,36 @@ vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { desc = "创建新的标�
 vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<cr>", { desc = "关闭当前标签页" })
 vim.keymap.set("n", "<leader>to", "<cmd>tabonly<cr>", { desc = "仅保留当前标签页" })
 
-vim.keymap.set("n", "dm", "<cmd>DelMarks<cr>", { buffer = true, desc = "删除当前标记" })
-vim.keymap.set("n", "dam", "<cmd>DelAllMarks<cr>", { buffer = true, desc = "删除所有标记" })
-
 vim.keymap.set("n", "<localleader>q", "<cmd>ToggleQuickfix<cr>", { desc = "切换 Quickfix 窗口" })
 
 vim.keymap.set("n", "<localleader>l", "<cmd>ToggleLoclist<cr>", { desc = "切换 Loclist 窗口" })
 
 vim.keymap.set("n", "<leader>lm", "<cmd>Messages<cr>", { desc = "查看历史消息" })
+
+vim.keymap.set("n", "<leader>dm", "<cmd>DelMarks<cr>", { desc = "删除当前标记" })
+vim.keymap.set("n", "<leader>dam", "<cmd>DelAllMarks<cr>", { desc = "删除所有标记" })
+vim.keymap.set({ "n" }, "<Leader>dlm", function()
+	local bufnr = vim.api.nvim_get_current_buf()
+	local cur_line = vim.fn.line(".")
+	---@type { mark: string, pos: number[] }[]
+	local all_marks_local = vim.fn.getmarklist(bufnr)
+	for _, mark in ipairs(all_marks_local) do
+		if mark.pos[2] == cur_line and string.match(mark.mark, "'[a-z]") then
+			vim.notify("Deleting mark: " .. string.sub(mark.mark, 2, 2))
+			vim.api.nvim_buf_del_mark(bufnr, string.sub(mark.mark, 2, 2))
+		end
+	end
+	local bufname = vim.api.nvim_buf_get_name(bufnr)
+	---@type { file: string, mark: string, pos: number[] }[]
+	local all_marks_global = vim.fn.getmarklist()
+	for _, mark in ipairs(all_marks_global) do
+		local expanded_file_name = vim.fn.fnamemodify(mark.file, ":p")
+		if bufname == expanded_file_name and mark.pos[2] == cur_line and string.match(mark.mark, "'[A-Z]") then
+			vim.notify("Deleting mark: " .. string.sub(mark.mark, 2, 2))
+			vim.api.nvim_del_mark(string.sub(mark.mark, 2, 2))
+		end
+	end
+end, { desc = "Delete all marks for current line" })
 
 -- vim.keymap.set("i", "<Tab>", function()
 --   local cursor = vim.api.nvim_win_get_cursor(0)
