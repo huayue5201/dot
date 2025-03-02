@@ -2,8 +2,9 @@ return {
 	cmd = {
 		"rust-analyzer",
 	},
-	root_markers = { ".git", "Cargo.toml" },
+	root_markers = { "Cargo.toml" },
 	filetypes = { "rust" },
+	single_file_support = true,
 	settings = {
 		["rust-analyzer"] = {
 			imports = {

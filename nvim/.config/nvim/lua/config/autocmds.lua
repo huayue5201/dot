@@ -42,9 +42,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
 	pattern = "*",
 	callback = function()
-		if #vim.v.event.regcontents > 0 then
-			vim.highlight.on_yank() -- 高亮复制的内容
-		end
+		vim.highlight.on_yank() -- 高亮复制的内容
 	end,
 })
 

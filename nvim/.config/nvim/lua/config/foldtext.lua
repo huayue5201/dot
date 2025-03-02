@@ -54,8 +54,8 @@ function M.custom_foldtext()
 	fold_virt_text(result, end_, vim.v.foldend - 1, #(end_str:match("^(%s+)") or ""))
 
 	-- 添加图标和行数
-	local fold_icon = "  " -- 可自定义图标
-	local fold_info = string.format(" %s%dL  ", fold_icon, fold_lines)
+	local fold_icon = "  " -- 可自定义图标
+	local fold_info = string.format(" %s%dLine ", fold_icon, fold_lines)
 	table.insert(result, { fold_info, "Delimiter" })
 
 	return result
