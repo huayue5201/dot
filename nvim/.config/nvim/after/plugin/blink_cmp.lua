@@ -1,5 +1,4 @@
 -- https://cmp.saghen.dev/configuration/keymap.html
--- OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
 
 vim.g.later(function()
 	local function build_blink(params)
