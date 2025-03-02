@@ -1,6 +1,7 @@
 -- ===========================
--- 判断窗口是否打开
+-- 切换 Quickfix 窗口
 -- ===========================
+-- 判断窗口是否打开
 local function is_window_open(win_type)
 	for _, win in ipairs(vim.fn.getwininfo()) do
 		if win[win_type] == 1 then
@@ -9,9 +10,6 @@ local function is_window_open(win_type)
 	end
 	return false -- 如果未找到指定类型窗口，返回 false
 end
--- ===========================
--- 切换 Quickfix 窗口
--- ===========================
 vim.api.nvim_create_user_command("ToggleQuickfix", function()
 	if is_window_open("quickfix") then
 		vim.cmd("cclose") -- 如果 Quickfix 窗口已打开，关闭该窗口

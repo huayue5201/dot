@@ -9,15 +9,6 @@ return {
 		"stylua.toml",
 		"selene.toml",
 		"selene.yml",
-		".git",
-	},
-	filetypes = { "lua" },
-	capabilities = {
-		textDocument = {
-			semanticTokens = {
-				multilineTokenSupport = true,
-			},
-		},
 	},
 	settings = {
 		Lua = {
