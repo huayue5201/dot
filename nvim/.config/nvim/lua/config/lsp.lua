@@ -117,7 +117,7 @@ M.lspSetup = function()
 			local buf = args.buf
 			local supported_methods = get_supported_lsp_methods(buf)
 			set_keymaps(buf, supported_methods)
-			setup_highlight_symbol(buf, supported_methods)
+			-- setup_highlight_symbol(buf, supported_methods)
 			setup_folding(buf, supported_methods)
 		end,
 	})
