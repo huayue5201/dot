@@ -1,3 +1,6 @@
+-- lsp server 配置参考
+-- https://github.com/neovim/nvim-lspconfig/tree/16666f1bc40f69ce05eb1883fd8c0d076284d8a5/lua/lspconfig/configs
+
 local M = {}
 
 -- 缓存 LSP 客户端支持的方法，减少频繁查询
@@ -34,6 +37,22 @@ local function setup_global_diagnostics()
 		},
 		underline = true,
 		update_in_insert = false,
+	})
+
+	-- 实现更新诊断信息
+	vim.api.nvim_create_autocmd("ModeChanged", {
+		pattern = { "n:i", "v:s" },
+		desc = "Disable diagnostics in insert and select mode",
+		callback = function()
+			vim.diagnostic.enable(not vim.diagnostic.is_enabled())
+		end,
+	})
+	vim.api.nvim_create_autocmd("ModeChanged", {
+		pattern = "i:n",
+		desc = "Enable diagnostics when leaving insert mode",
+		callback = function()
+			vim.diagnostic.enable(not vim.diagnostic.is_enabled())
+		end,
 	})
 end
 
