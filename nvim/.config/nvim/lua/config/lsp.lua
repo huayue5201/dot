@@ -82,39 +82,39 @@ local function set_keymaps(buf, _)
 	end
 end
 
--- 设置高亮符号功能
-local function setup_highlight_symbol(buf, supported_methods)
-	if not supported_methods.documentHighlight then
-		return
-	end
-	local group_name = "highlight_symbol"
-	local group = vim.api.nvim_create_augroup(group_name, { clear = false })
-	vim.api.nvim_clear_autocmds({ buffer = buf, group = group })
-	vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
-		group = group,
-		buffer = buf,
-		callback = function()
-			vim.defer_fn(function()
-				local success, err = pcall(vim.lsp.buf.document_highlight)
-				if not success then
-					print("LSP document_highlight error: " .. err)
-				end
-			end, 50)
-		end,
-	})
-	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-		group = group,
-		buffer = buf,
-		callback = function()
-			vim.defer_fn(function()
-				local success, err = pcall(vim.lsp.buf.clear_references)
-				if not success then
-					print("LSP clear_references error: " .. err)
-				end
-			end, 50)
-		end,
-	})
-end
+-- -- 设置高亮符号功能
+-- local function setup_highlight_symbol(buf, supported_methods)
+-- 	if not supported_methods.documentHighlight then
+-- 		return
+-- 	end
+-- 	local group_name = "highlight_symbol"
+-- 	local group = vim.api.nvim_create_augroup(group_name, { clear = false })
+-- 	vim.api.nvim_clear_autocmds({ buffer = buf, group = group })
+-- 	vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+-- 		group = group,
+-- 		buffer = buf,
+-- 		callback = function()
+-- 			vim.defer_fn(function()
+-- 				local success, err = pcall(vim.lsp.buf.document_highlight)
+-- 				if not success then
+-- 					print("LSP document_highlight error: " .. err)
+-- 				end
+-- 			end, 50)
+-- 		end,
+-- 	})
+-- 	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+-- 		group = group,
+-- 		buffer = buf,
+-- 		callback = function()
+-- 			vim.defer_fn(function()
+-- 				local success, err = pcall(vim.lsp.buf.clear_references)
+-- 				if not success then
+-- 					print("LSP clear_references error: " .. err)
+-- 				end
+-- 			end, 50)
+-- 		end,
+-- 	})
+-- end
 
 -- 设置折叠功能
 local function setup_folding(buf, supported_methods)
