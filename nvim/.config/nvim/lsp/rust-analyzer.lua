@@ -1,3 +1,5 @@
+-- https://rust-analyzer.github.io/
+
 return {
 	cmd = {
 		"rust-analyzer",

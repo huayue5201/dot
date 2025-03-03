@@ -77,13 +77,13 @@ vim.api.nvim_create_autocmd("FileType", {
 	callback = function()
 		-- 为特定文件类型设置 q 键关闭窗口或删除缓冲区
 		local filetype_commands = {
-			["help"] = ":close<CR>", -- 在 help 文件类型中，q 键关闭窗口
-			["qf"] = ":close<CR>", -- 在 Quickfix 窗口中，q 键关闭窗口
-			["checkhealth"] = ":close<CR>", -- 在 checkhealth 中，q 键关闭窗口
-			["man"] = ":quit<CR>", -- 在 man 页中，q 键退出
-			["grug-far"] = ":bdelete<CR>", -- 在 grug-far 文件类型中，q 键删除缓冲区
+			["help"] = ":close<cr>", -- 在 help 文件类型中，q 键关闭窗口
+			["qf"] = ":close<cr>", -- 在 Quickfix 窗口中，q 键关闭窗口
+			["checkhealth"] = ":close<cr>", -- 在 checkhealth 中，q 键关闭窗口
+			["man"] = ":quit<cr>", -- 在 man 页中，q 键退出
+			["grug-far"] = ":bdelete<cr>", -- 在 grug-far 文件类型中，q 键删除缓冲区
 			["minideps-confirm"] = ":bdelete<cr>", -- 在 minideps-confirm 中，q 键删除缓冲区
-			["toggleterm"] = ":close<CR>", -- 在 toggleterm 中，q 键关闭终端窗口
+			["toggleterm"] = ":close<cr>", -- 在 toggleterm 中，q 键关闭终端窗口
 		}
 
 		local current_filetype = vim.bo.filetype -- 获取当前文件类型
