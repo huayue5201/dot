@@ -10,6 +10,7 @@ return {
 		"selene.toml",
 		"selene.yml",
 	},
+	filetypes = { "lua" },
 	settings = {
 		Lua = {
 			hint = {
