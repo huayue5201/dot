@@ -20,6 +20,7 @@ require("config.shada")
 
 -- 全局lsp配置
 vim.lsp.config("*", {
+	root_markers = { ".git" },
 	capabilities = {
 		textDocument = {
 			semanticTokens = {
@@ -27,7 +28,6 @@ vim.lsp.config("*", {
 			},
 		},
 	},
-	root_markers = { ".git" },
 })
 -- 启用 LSP 服务器
 vim.lsp.enable({ "lua_ls", "clangd", "taplo", "rust-analyzer" })
