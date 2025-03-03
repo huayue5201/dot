@@ -27,7 +27,7 @@ end, { desc = "复制文件名" })
 
 vim.keymap.set("n", "<leader>w", "<cmd>w<cr>", { desc = "保存当前buffer" })
 
-vim.keymap.set("n", "<leader>q", "<cmd>DeleteBuffer<cr>", { desc = "保存当前buffer" })
+vim.keymap.set("n", "<leader>q", "<cmd>bdelete<cr>", { desc = "保存当前buffer" })
 
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { desc = "创建新的标签页" })
 vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<cr>", { desc = "关闭当前标签页" })

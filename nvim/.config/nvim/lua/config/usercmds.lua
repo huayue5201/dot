@@ -103,22 +103,3 @@ vim.api.nvim_create_user_command("DelMarks", function()
 		end
 	end)
 end, { desc = "删除标记（交互选择删除方式）" })
-
--- ===========================
--- 删除缓冲区（关闭文件）
--- ===========================
-vim.api.nvim_create_user_command("DeleteBuffer", function()
-	local buflisted = vim.fn.getbufinfo({ buflisted = 1 })
-	local cur_winnr, cur_bufnr = vim.fn.winnr(), vim.fn.bufnr()
-	if #buflisted < 2 then
-		vim.cmd("confirm qall") -- 如果只有一个缓冲区，退出所有缓冲区
-		return
-	end
-	for _, winid in ipairs(vim.fn.getbufinfo(cur_bufnr)[1].windows) do
-		vim.cmd(string.format("%d wincmd w", vim.fn.win_id2win(winid))) -- 切换到该窗口
-		vim.cmd(cur_bufnr == buflisted[#buflisted].bufnr and "bp" or "bn") -- 切换到下一个或上一个缓冲区
-	end
-	vim.cmd(string.format("%d wincmd w", cur_winnr)) -- 切换回原来的窗口
-	local is_terminal = vim.fn.getbufvar(cur_bufnr, "&buftype") == "terminal"
-	vim.cmd(is_terminal and "bd! #" or "silent! confirm bd #") -- 如果是终端缓冲区，强制删除，否则确认删除
-end, {})
