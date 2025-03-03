@@ -3,6 +3,5 @@ return {
 	filetypes = { "toml" },
 	root_markers = {
 		"*.toml",
-		".git",
 	},
 }

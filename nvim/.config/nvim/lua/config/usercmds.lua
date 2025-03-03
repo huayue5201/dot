@@ -54,8 +54,8 @@ end, {})
 -- ===========================
 vim.api.nvim_create_user_command("DelMarks", function()
 	-- 提供选择框让用户选择删除标记的方式
-	vim.ui.select({ "删除所有标记", "删除当前行标记", "删除特定标记" }, {
-		prompt = "选择删除标记的方式",
+	vim.ui.select({ "All markes", "Line markes", "Single marke" }, {
+		prompt = " Selct:  ",
 	}, function(selected)
 		local function delete_marks(is_local)
 			local marks = is_local and vim.fn.getmarklist(vim.api.nvim_get_current_buf()) or vim.fn.getmarklist()
