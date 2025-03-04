@@ -1,64 +1,29 @@
-vim.cmd("highlight NormalMode gui=bold ")
-vim.cmd("highlight InsertMode gui=bold ")
-vim.cmd("highlight VisualMode gui=bold ")
+-- 定义高亮组
+vim.cmd("highlight DefaultMode gui=bold")
+vim.cmd("highlight NormalMode gui=bold")
+vim.cmd("highlight InsertMode gui=bold")
+vim.cmd("highlight VisualMode gui=bold")
 vim.cmd("highlight ReplaceMode gui=bold")
 
 Statusline = {}
 
+-- 定义模式映射
 Statusline.modes = {
 	["n"] = { label = "NORMAL", hl = "NormalMode" },
-	["no"] = { label = "NORMAL", hl = "NormalMode" },
-	["v"] = { label = "VISUAL", hl = "VisualMode" },
-	["V"] = { label = "VISUAL LINE", hl = "VisualMode" },
-	[""] = { label = "VISUAL BLOCK", hl = "VisualMode" },
-	["s"] = { label = "SELECT (CHARACTER)", hl = "NormalMode" },
-	["S-line"] = { label = "SELECT (LINE)", hl = "NormalMode" },
-	["S-block"] = { label = "SELECT (BLOCK)", hl = "NormalMode" },
 	["i"] = { label = "INSERT", hl = "InsertMode" },
-	["ic"] = { label = "INSERT (COMPLETION)", hl = "InsertMode" },
+	["v"] = { label = "VISUAL", hl = "VisualMode" },
+	["V"] = { label = "V-LINE", hl = "VisualMode" },
+	[""] = { label = "V-BLOCK", hl = "VisualMode" },
 	["R"] = { label = "REPLACE", hl = "ReplaceMode" },
-	["c"] = { label = "COMMAND", hl = "NormalMode" },
-	["nt"] = { label = "TERMINAL", hl = "NormalMode" },
-	["t"] = { label = "TERMINAL", hl = "NormalMode" },
-	["noV"] = { label = "OPERATOR-PENDING (LINEWISE)", hl = "NormalMode" },
-	["noCTRL-V"] = { label = "OPERATOR-PENDING (BLOCKWISE)", hl = "NormalMode" },
-	["niI"] = { label = "NORMAL (INSERT Mode Ctrl-O)", hl = "InsertMode" },
-	["niR"] = { label = "NORMAL (REPLACE Mode Ctrl-O)", hl = "ReplaceMode" },
-	["niV"] = { label = "NORMAL (VIRTUAL REPLACE Ctrl-O)", hl = "ReplaceMode" },
-	["ntT"] = { label = "NORMAL (TERMINAL Mode Ctrl-O)", hl = "NormalMode" },
-	["vs"] = { label = "VISUAL (SELECT Ctrl-O)", hl = "VisualMode" },
-	["Vs"] = { label = "VISUAL LINE (SELECT Ctrl-O)", hl = "VisualMode" },
-	["CTRL-V"] = { label = "VISUAL BLOCK", hl = "VisualMode" },
-	["CTRL-Vs"] = { label = "VISUAL BLOCK (SELECT Ctrl-O)", hl = "VisualMode" },
-	["s-select"] = { label = "SELECT (CHARACTER)", hl = "NormalMode" },
-	["S-line-select"] = { label = "SELECT (LINE)", hl = "NormalMode" },
-	["CTRL-S"] = { label = "SELECT (BLOCK)", hl = "NormalMode" },
-	["Rc"] = { label = "REPLACE (COMPLETION)", hl = "ReplaceMode" },
-	["Rx"] = { label = "REPLACE (Ctrl-X COMPLETION)", hl = "ReplaceMode" },
-	["Rv"] = { label = "VIRTUAL REPLACE", hl = "ReplaceMode" },
-	["Rvc"] = { label = "VIRTUAL REPLACE (COMPLETION)", hl = "ReplaceMode" },
-	["Rvx"] = { label = "VIRTUAL REPLACE (Ctrl-X COMPLETION)", hl = "ReplaceMode" },
-	["cr"] = { label = "COMMAND (INSERT Mode)", hl = "NormalMode" },
-	["cv"] = { label = "VIM EX MODE", hl = "NormalMode" },
-	["cvr"] = { label = "VIM EX MODE (OVERSTRIKE)", hl = "NormalMode" },
-	["r"] = { label = "HIT-ENTER", hl = "NormalMode" },
-	["rm"] = { label = "-- MORE --", hl = "NormalMode" },
-	["r?"] = { label = ":CONFIRM Query", hl = "NormalMode" },
-	["!"] = { label = "SHELL / EXTERNAL COMMAND", hl = "NormalMode" },
-	["t-terminal"] = { label = "TERMINAL", hl = "NormalMode" },
+	["c"] = { label = "COMMAND", hl = "DefaultMode" },
+	["t"] = { label = "TERMINAL", hl = "DefaultMode" },
 }
 
 -- 获取当前模式并应用颜色高亮
 function Statusline.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
-	local mode_info = Statusline.modes[current_mode]
-	if mode_info then
-		-- 只为模式的标签部分应用粗体和颜色，其他部分保持不变
-		return "%#" .. mode_info.hl .. "#" .. "  " .. mode_info.label .. "%*"
-	else
-		-- 如果模式没有配置，返回空字符串
-		return ""
-	end
+	local mode_info = Statusline.modes[current_mode] or { label = current_mode, hl = "DefaultMode" }
+	return "%#" .. mode_info.hl .. "#" .. "  " .. mode_info.label .. "%*"
 end
 
 -- Git 状态
@@ -68,7 +33,6 @@ function Statusline.vcs()
 		return ""
 	end
 	local parts = { " " .. git_info.head }
-	-- 显示修改状态的图标
 	for key, icon in pairs({
 		added = "",
 		changed = "",
