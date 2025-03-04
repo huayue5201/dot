@@ -1,3 +1,4 @@
+-- 参考： https://www.reddit.com/r/neovim/comments/1j1mguy/existing_neovim_tabline_plugins_didnt_cut_it_for/
 -- this is a custom tabline component for lualinne.
 -- (vim-style "tabs", see :h tabs)
 local M = {}
