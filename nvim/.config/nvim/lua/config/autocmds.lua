@@ -38,35 +38,35 @@ vim.api.nvim_create_autocmd("FileType", {
 -- ===========================
 -- 高亮复制内容（默认不限制字符数）
 -- ===========================
-vim.api.nvim_create_autocmd("TextYankPost", {
-	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
-	pattern = "*",
-	callback = function()
-		vim.highlight.on_yank() -- 高亮复制的内容
-	end,
-})
+-- vim.api.nvim_create_autocmd("TextYankPost", {
+-- 	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
+-- 	pattern = "*",
+-- 	callback = function()
+-- 		vim.highlight.on_yank() -- 高亮复制的内容
+-- 	end,
+-- })
 
 -- ===========================
 -- 可视模式下复制时固定光标位置
 -- ===========================
-local cursorPreYank
-vim.keymap.set({ "n", "x" }, "y", function()
-	cursorPreYank = vim.api.nvim_win_get_cursor(0) -- 复制前记录光标位置
-	return "y"
-end, { expr = true })
-
-vim.keymap.set({ "x" }, "Y", function()
-	cursorPreYank = vim.api.nvim_win_get_cursor(0)
-	return "y$" -- 在可视模式下复制时固定光标位置
-end, { expr = true })
-
-vim.api.nvim_create_autocmd("TextYankPost", {
-	callback = function()
-		if vim.v.event.operator == "y" and cursorPreYank then
-			vim.api.nvim_win_set_cursor(0, cursorPreYank) -- 复制后恢复光标位置
-		end
-	end,
-})
+-- local cursorPreYank
+-- vim.keymap.set({ "n", "x" }, "y", function()
+-- 	cursorPreYank = vim.api.nvim_win_get_cursor(0) -- 复制前记录光标位置
+-- 	return "y"
+-- end, { expr = true })
+--
+-- vim.keymap.set({ "x" }, "Y", function()
+-- 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
+-- 	return "y$" -- 在可视模式下复制时固定光标位置
+-- end, { expr = true })
+--
+-- vim.api.nvim_create_autocmd("TextYankPost", {
+-- 	callback = function()
+-- 		if vim.v.event.operator == "y" and cursorPreYank then
+-- 			vim.api.nvim_win_set_cursor(0, cursorPreYank) -- 复制后恢复光标位置
+-- 		end
+-- 	end,
+-- })
 
 -- ===========================
 -- 用 q 关闭窗口或删除缓冲区
