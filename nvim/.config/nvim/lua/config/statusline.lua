@@ -4,7 +4,6 @@ vim.cmd("highlight NormalMode gui=bold")
 vim.cmd("highlight InsertMode gui=bold")
 vim.cmd("highlight VisualMode gui=bold")
 vim.cmd("highlight ReplaceMode gui=bold")
-
 Statusline = {}
 
 -- 定义模式映射
@@ -32,7 +31,7 @@ function Statusline.vcs()
 	if not git_info or not git_info.head then
 		return ""
 	end
-	local parts = { " " .. git_info.head }
+	local parts = { " " .. git_info.head }
 	for key, icon in pairs({
 		added = "",
 		changed = "",
@@ -104,6 +103,41 @@ function Statusline.lsp()
 	}, " ")
 end
 
+-- 小地图效果
+-- vim.cmd("highlight StatusPink guifg=#FF69B4 guibg=NONE")
+-- local function get_scrollbar()
+-- 	local width,progress_chars = 3,{ "░", "░", "▒", "▒", "▓", "▓", "▓", "█", "█" } -- 细腻渐变
+-- 	local cur_line, total_lines = vim.api.nvim_win_get_cursor(0)[1], vim.api.nvim_buf_line_count(0)
+-- 	if total_lines <= 1 then
+-- 		return "%#StatusPink#" .. string.rep("█", width) .. "%*" -- 只有一行时，直接填满
+-- 	end
+-- 	local max_steps = width * #progress_chars
+-- 	local filled_steps = math.ceil(((cur_line - 1) / (total_lines - 1)) * max_steps)
+-- 	local bar = {}
+-- 	for i = 1, width do
+-- 		local step = math.min(#progress_chars, math.max(1, filled_steps - (i - 1) * #progress_chars + 1))
+-- 		bar[i] = "%#StatusPink#" .. progress_chars[step] .. "%*"
+-- 	end
+-- 	return table.concat(bar)
+-- end
+
+-- 小地图效果
+vim.cmd("highlight StatusBackground guifg=NONE guibg=#282828") -- 设置背景色为深灰色（可以根据需要修改）
+local function get_scrollbar()
+	local width, progress_chars = 3, { " ", "▏", "▎", "▍", "▌", "▋", "▊", "▉", "█" }
+	local total_lines, cur_line = vim.api.nvim_buf_line_count(0), vim.api.nvim_win_get_cursor(0)[1]
+	if total_lines <= 1 then
+		return "%#StatusPink#" .. string.rep("█", width) .. "%*" -- 只有一行时，显示满格
+	end
+	local filled_steps = math.ceil(((cur_line - 1) / (total_lines - 1)) * (width * #progress_chars))
+	local bar = ""
+	for i = 1, width do
+		local char = progress_chars[math.max(1, math.min(#progress_chars, filled_steps - (i - 1) * #progress_chars))]
+		bar = bar .. "%#StatusBackground#" .. char .. "%*%#StatusPink#"
+	end
+	return bar
+end
+
 -- 创建状态栏内容
 function Statusline.active()
 	return table.concat({
@@ -116,7 +150,8 @@ function Statusline.active()
 		'%{&ft == "toggleterm" ? "terminal (".b:toggle_number.")" : ""}',
 		Statusline.vcs(), -- Git 状态
 		" 󰴍 %l%c ", -- 行列号
-		" %P", -- 文件百分比
+		" %p%%", -- 文件百分比
+		get_scrollbar(), -- 滚动条
 	})
 end
 
