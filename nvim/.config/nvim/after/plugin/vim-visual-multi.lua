@@ -5,6 +5,7 @@ vim.g.later(function()
 
 	-- vim.g.VM_theme = "iceblue" -- 设置 Visual Multi 插件的主题
 	vim.g.VM_theme = "purplegray" -- 设置 Visual Multi 插件的主题
+	vim.g.VM_mouse_mappings = 1 -- 启用鼠标支持
 	vim.g.VM_maps["Undo"] = "u" -- 将 'u' 键映射为撤销操作（Undo）。
 	vim.g.VM_maps["Redo"] = "<C-r>" -- 将 'Ctrl + r' 映射为重做操作（Redo）。
 	vim.g.VM_default_mappings = 0 -- 禁用插件的默认快捷键，以便自定义。
