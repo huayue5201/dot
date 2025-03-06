@@ -18,7 +18,7 @@ require("config.statusline")
 require("config.keymaps")
 require("config.shada")
 
--- 全局lsp配置
+-- lsp 全局配置
 vim.lsp.config("*", {
 	root_markers = { ".git" },
 	capabilities = {
