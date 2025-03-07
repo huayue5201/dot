@@ -40,6 +40,6 @@ vim.g.later(function()
 		},
 	})
 	-- You probably also want to set a keymap to toggle aerial
-	vim.keymap.set("n", "<leader>la", "<cmd>AerialToggle!<CR>")
-	vim.keymap.set("n", "<leader>a", "<cmd>AerialNavToggl<CR>")
+	vim.keymap.set("n", "<localleader>la", "<cmd>AerialToggle!<CR>")
+	vim.keymap.set("n", "<localleader>a", "<cmd>AerialNavToggl<CR>")
 end)
