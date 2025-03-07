@@ -103,10 +103,19 @@ function Statusline.lsp()
 	}, " ")
 end
 
+-- 滚动条函数
 local function get_scrollbar()
-	local sbar_chars = { "▔", "🮂", "🮃", "🮑", "🮒", "▃", "▂", "▁" }
-	local index = math.ceil(vim.api.nvim_win_get_cursor(0)[1] / vim.api.nvim_buf_line_count(0) * #sbar_chars)
-	return string.format("%%#Substitute#%s%%*", string.rep(sbar_chars[index], 2))
+	local progress_icons = { " ", "󰪞 ", "󰪟 ", "󰪠 ", "󰪡 ", "󰪢 ", "󰪣 ", "󰪤 ", "󰪥 " }
+	-- local progress_icons = { "󰋙 ", "󰫃 ", "󰫄 ", "󰫅 ", "󰫆 ", "󰫇 " }
+	local total_lines, cur_line = vim.api.nvim_buf_line_count(0), vim.api.nvim_win_get_cursor(0)[1]
+	if total_lines <= 1 then
+		return progress_icons[#progress_icons] -- 只有一行时，显示满格图标
+	end
+	-- 计算滚动条的填充进度，表示百分比
+	local progress = (cur_line - 1) / (total_lines - 1)
+	-- 根据进度选择相应的图标
+	local icon_index = math.ceil(progress * (#progress_icons - 1)) + 1 -- 索引调整，确保从 1 开始
+	return progress_icons[icon_index] -- 返回对应进度的图标
 end
 
 -- 创建状态栏内容
@@ -121,8 +130,8 @@ function Statusline.active()
 		'%{&ft == "toggleterm" ? "terminal (".b:toggle_number.")" : ""}',
 		Statusline.vcs(), -- Git 状态
 		" 󰴍 %l%c ", -- 行列号
-		" %p%%", -- 文件百分比
-		get_scrollbar(), -- 滚动条
+		"%p%%", -- 文件百分比
+		get_scrollbar(),
 	})
 end
 
