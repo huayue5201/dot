@@ -30,7 +30,7 @@ vim.g.later(function()
 			"filesystem",
 			"buffers",
 			"git_status",
-			"document_symbols",
+			-- "document_symbols",
 		},
 		source_selector = {
 			winbar = true,
@@ -39,7 +39,7 @@ vim.g.later(function()
 				{ source = "filesystem" },
 				{ source = "buffers" },
 				{ source = "git_status" },
-				{ source = "document_symbols" },
+				-- { source = "document_symbols" },
 			},
 		},
 		default_component_configs = {
@@ -429,11 +429,11 @@ vim.g.later(function()
 		})
 	end, { desc = "Git Status" })
 
-	vim.keymap.set("n", "<localleader>s", function()
-		require("neo-tree.command").execute({
-			toggle = true,
-			source = "document_symbols",
-			position = "left",
-		})
-	end, { desc = "Symbols" })
+	-- vim.keymap.set("n", "<localleader>s", function()
+	-- 	require("neo-tree.command").execute({
+	-- 		toggle = true,
+	-- 		source = "document_symbols",
+	-- 		position = "left",
+	-- 	})
+	-- end, { desc = "Symbols" })
 end)
