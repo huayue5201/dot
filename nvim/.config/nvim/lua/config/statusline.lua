@@ -103,7 +103,7 @@ function Statusline.lsp()
 	}, " ")
 end
 
--- 滚动条函数
+-- 动态图标
 local function get_scrollbar()
 	local progress_icons = { " ", "󰪞 ", "󰪟 ", "󰪠 ", "󰪡 ", "󰪢 ", "󰪣 ", "󰪤 ", "󰪥 " }
 	-- local progress_icons = { "󰋙 ", "󰫃 ", "󰫄 ", "󰫅 ", "󰫆 ", "󰫇 " }
