@@ -3,14 +3,9 @@ local Statuscolumn = {}
 -- 创建红色高亮组
 vim.cmd("highlight RedMark guifg=#FF0000 gui=bold")
 
--- 缓存标记
+-- 获取当前行的标记
 local function get_mark(buf, lnum)
 	local marks = vim.fn.getmarklist(buf)
-	-- 优化：如果没有标记，直接返回 nil
-	if #marks == 0 then
-		return nil
-	end
-
 	for _, mark in ipairs(marks) do
 		-- 只查找字母标记
 		if mark.pos[1] == buf and mark.pos[2] == lnum and mark.mark:match("[a-zA-Z]") then
@@ -19,8 +14,8 @@ local function get_mark(buf, lnum)
 	end
 end
 
--- 显示标记符号
-Statuscolumn.mark = function()
+-- 提取 mark 逻辑封装成一个函数
+function Statuscolumn.mark_display()
 	local mark_info = get_mark(vim.api.nvim_get_current_buf(), vim.v.lnum)
 	if mark_info then
 		return "%#" .. mark_info.texthl .. "#" .. mark_info.text
@@ -35,7 +30,7 @@ Statuscolumn.active = function()
 		"%=",
 		"%l",
 		"%=",
-		Statuscolumn.mark(),
+		Statuscolumn.mark_display(), -- 调用封装后的 mark 函数
 		"%=",
 		"%C ",
 	})
