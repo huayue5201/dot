@@ -67,7 +67,7 @@ vim.opt.splitkeep = "screen" -- 保持分割窗口屏幕位置
 -- -------------- 状态栏和标签页 --------------
 vim.opt.showmode = false -- 禁用模式显示
 vim.opt.laststatus = 3 -- 启用全局状态栏
-vim.opt.cmdheight = 0 -- 状态栏高度
+vim.opt.cmdheight = 1 -- 状态栏高度
 vim.opt.showtabline = 2 -- 始终显示标签页栏
 vim.opt.statuscolumn = "%!v:lua.require('config.statucolumn').active()" -- 载入 statuscolumn 配置
 vim.opt.relativenumber = true -- 启用相对行号
