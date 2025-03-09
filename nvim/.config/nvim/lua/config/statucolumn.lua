@@ -2,7 +2,6 @@ local Statuscolumn = {}
 
 -- 创建红色高亮组
 vim.cmd("highlight RedMark guifg=#FF0000 gui=bold")
-
 -- 获取当前行的标记
 local function get_mark(buf, lnum)
 	local marks = vim.fn.getmarklist(buf)
@@ -13,7 +12,6 @@ local function get_mark(buf, lnum)
 		end
 	end
 end
-
 -- 提取 mark 逻辑封装成一个函数
 function Statuscolumn.mark_display()
 	local mark_info = get_mark(vim.api.nvim_get_current_buf(), vim.v.lnum)
@@ -21,6 +19,17 @@ function Statuscolumn.mark_display()
 		return "%#" .. mark_info.texthl .. "#" .. mark_info.text
 	end
 	return ""
+end
+
+-- 折叠
+Statuscolumn.fold = function()
+	local fold_closed = vim.fn.foldclosed(vim.v.lnum)
+	if fold_closed ~= -1 then
+		return "󰛲"
+	elseif vim.fn.foldlevel(vim.v.lnum) > 0 then
+		return "│"
+	end
+	return " "
 end
 
 -- 设置拼接的内容
@@ -33,6 +42,7 @@ Statuscolumn.active = function()
 		Statuscolumn.mark_display(), -- 调用封装后的 mark 函数
 		"%=",
 		"%C ",
+		-- Statuscolumn.fold(),
 	})
 end
 

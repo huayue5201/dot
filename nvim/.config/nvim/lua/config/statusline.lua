@@ -4,6 +4,7 @@ vim.cmd("highlight NormalMode gui=bold")
 vim.cmd("highlight InsertMode gui=bold")
 vim.cmd("highlight VisualMode gui=bold")
 vim.cmd("highlight ReplaceMode gui=bold")
+vim.cmd("highlight PinkHighlight guifg=#ff79c6 gui=bold") -- 粉红色高亮
 Statusline = {}
 
 -- 定义模式映射
@@ -31,7 +32,7 @@ function Statusline.vcs()
 	if not git_info or not git_info.head then
 		return ""
 	end
-	local parts = { " " .. git_info.head }
+	local parts = { "" .. git_info.head }
 	for key, icon in pairs({
 		added = "",
 		changed = "",
@@ -109,13 +110,11 @@ local function get_scrollbar()
 	-- local progress_icons = { "󰋙 ", "󰫃 ", "󰫄 ", "󰫅 ", "󰫆 ", "󰫇 " }
 	local total_lines, cur_line = vim.api.nvim_buf_line_count(0), vim.api.nvim_win_get_cursor(0)[1]
 	if total_lines <= 1 then
-		return progress_icons[#progress_icons] -- 只有一行时，显示满格图标
+		return "%#PinkHighlight#" .. progress_icons[#progress_icons] .. "%*" -- 只有一行时，显示满格图标
 	end
-	-- 计算滚动条的填充进度，表示百分比
 	local progress = (cur_line - 1) / (total_lines - 1)
-	-- 根据进度选择相应的图标
-	local icon_index = math.ceil(progress * (#progress_icons - 1)) + 1 -- 索引调整，确保从 1 开始
-	return progress_icons[icon_index] -- 返回对应进度的图标
+	local icon_index = math.ceil(progress * (#progress_icons - 1)) + 1
+	return "%#PinkHighlight#" .. progress_icons[icon_index] .. "%*"
 end
 
 -- 创建状态栏内容
@@ -130,7 +129,7 @@ function Statusline.active()
 		'%{&ft == "toggleterm" ? "terminal (".b:toggle_number.")" : ""}',
 		Statusline.vcs(), -- Git 状态
 		" 󰴍 %l%c ", -- 行列号
-		"%p%%", -- 文件百分比
+		"%P", -- 文件百分比
 		get_scrollbar(),
 	})
 end
