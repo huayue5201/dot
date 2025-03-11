@@ -5,6 +5,7 @@ vim.cmd("highlight InsertMode gui=bold")
 vim.cmd("highlight VisualMode gui=bold")
 vim.cmd("highlight ReplaceMode gui=bold")
 vim.cmd("highlight PinkHighlight guifg=#ff79c6 gui=bold") -- 粉红色高亮
+
 Statusline = {}
 
 -- 定义模式映射
@@ -32,7 +33,7 @@ function Statusline.vcs()
 	if not git_info or not git_info.head then
 		return ""
 	end
-	local parts = { "" .. git_info.head }
+	local parts = { " " .. git_info.head }
 	for key, icon in pairs({
 		added = "",
 		changed = "",
