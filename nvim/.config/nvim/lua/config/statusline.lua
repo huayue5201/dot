@@ -4,7 +4,7 @@ vim.cmd("highlight NormalMode gui=bold")
 vim.cmd("highlight InsertMode gui=bold")
 vim.cmd("highlight VisualMode gui=bold")
 vim.cmd("highlight ReplaceMode gui=bold")
-vim.cmd("highlight PinkHighlight guifg=#ff79c6 gui=bold") -- 粉红色高亮
+vim.cmd("highlight PinkHighlight guifg=#FFD700 gui=bold") -- 粉红色高亮
 
 Statusline = {}
 
@@ -33,14 +33,14 @@ function Statusline.vcs()
 	if not git_info or not git_info.head then
 		return ""
 	end
-	local parts = { " " .. git_info.head }
+	local parts = { " " .. git_info.head }
 	for key, icon in pairs({
-		added = "",
-		changed = "",
-		removed = "",
+		added = "+",
+		changed = "󰱑",
+		removed = "-",
 	}) do
 		if git_info[key] and git_info[key] > 0 then
-			table.insert(parts, icon .. " " .. git_info[key])
+			table.insert(parts, icon .. git_info[key])
 		end
 	end
 	return " " .. table.concat(parts, " ") .. " "
@@ -107,7 +107,24 @@ end
 
 -- 动态图标
 local function get_scrollbar()
-	local progress_icons = { " ", "󰪞 ", "󰪟 ", "󰪠 ", "󰪡 ", "󰪢 ", "󰪣 ", "󰪤 ", "󰪥 " }
+	local progress_icons = {
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+		" ",
+	}
+	-- local progress_icons = { " ", "󰪞 ", "󰪟 ", "󰪠 ", "󰪡 ", "󰪢 ", "󰪣 ", "󰪤 ", "󰪥 " }
 	-- local progress_icons = { "󰋙 ", "󰫃 ", "󰫄 ", "󰫅 ", "󰫆 ", "󰫇 " }
 	local total_lines, cur_line = vim.api.nvim_buf_line_count(0), vim.api.nvim_win_get_cursor(0)[1]
 	if total_lines <= 1 then
@@ -122,7 +139,7 @@ end
 function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
-		string.format("%-28s", Statusline.mode()), -- 左对齐，13个字符
+		string.format("%-28s", Statusline.mode()) .. "", -- 左对齐，13个字符
 		" 󱁺 " .. "%t  ", -- 文件名
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
@@ -130,7 +147,7 @@ function Statusline.active()
 		'%{&ft == "toggleterm" ? "terminal (".b:toggle_number.")" : ""}',
 		Statusline.vcs(), -- Git 状态
 		" 󰴍 %l%c ", -- 行列号
-		"%P", -- 文件百分比
+		"  %P", -- 文件百分比
 		get_scrollbar(),
 	})
 end
