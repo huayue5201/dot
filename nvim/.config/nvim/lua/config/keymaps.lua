@@ -25,6 +25,8 @@ vim.keymap.set("n", "<leader>yt", function()
 	vim.fn.setreg("+", path)
 end, { desc = "复制文件名" })
 
+vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
+
 vim.keymap.set("n", "<leader>w", "<cmd>w<cr>", { desc = "保存当前buffer" })
 
 vim.keymap.set("n", "<leader>q", "<cmd>bdelete<cr>", { desc = "保存当前buffer" })
