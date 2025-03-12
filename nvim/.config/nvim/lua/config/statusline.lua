@@ -140,8 +140,6 @@ end
 
 -- 创建状态栏内容
 function Statusline.active()
-	-- 获取文件图标
-
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
 		string.format("%-28s", Statusline.mode()) .. "", -- 左对齐，13个字符
