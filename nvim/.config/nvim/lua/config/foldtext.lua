@@ -1,4 +1,4 @@
-local utils = require("config.utils")
+local lsp_icons = require("config.utils").icons.diagnostic
 
 local M = {}
 
@@ -23,7 +23,7 @@ local function get_fold_diagnostics(start_lnum, end_lnum)
 	end
 	for severity, count in ipairs(counts) do
 		if count > 0 then
-			return string.format("  %s %d ", utils.diagnostic_icons[severity_map[severity]], count),
+			return string.format("  %s %d ", lsp_icons[severity_map[severity]], count),
 				"DiagnosticSign" .. severity_map[severity]
 		end
 	end

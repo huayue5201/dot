@@ -1,4 +1,4 @@
-local utils = require("config.utils")
+local lsp_icons = require("config.utils").icons.diagnostic
 
 -- 定义高亮组
 vim.cmd("highlight DefaultMode gui=bold")
@@ -63,7 +63,7 @@ function Statusline.lsp_diagnostics()
 			return d.severity == severity
 		end, count)
 		if num > 0 then
-			table.insert(parts, utils.diagnostic_icons[key] .. " " .. num)
+			table.insert(parts, lsp_icons[key] .. " " .. num)
 		end
 	end
 	return table.concat(parts, " ")
