@@ -61,10 +61,10 @@ vim.g.now(function()
 		incremental_selection = {
 			enable = true,
 			keymaps = {
-				init_selection = "<cr>",
-				node_incremental = "<cr>",
-				node_decremental = "<BS>",
-				scope_incremental = "<TAB>",
+				init_selection = "<s-cr>",
+				node_incremental = "<s-cr>",
+				node_decremental = "<bs>",
+				scope_incremental = "<tab>",
 			},
 		},
 		-- 设置文本对象选择操作

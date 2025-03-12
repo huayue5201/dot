@@ -17,14 +17,6 @@ vim.g.later(function()
 	})
 
 	require("quicker").setup({
-		opts = {
-			buflisted = true,
-			number = true,
-			relativenumber = false,
-			signcolumn = "auto",
-			winfixheight = true,
-			wrap = true,
-		},
 		keys = {
 			{
 				">",

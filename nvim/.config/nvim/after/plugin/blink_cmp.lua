@@ -55,7 +55,7 @@ vim.g.later(function()
 		-- keymap 配置：定义补全键映射及其行为
 		keymap = {
 			preset = "default", -- 使用默认键映射方案（类似内置补全）
-			["<CR>"] = { "accept", "fallback" }, -- 将回车键设置为接受补全或执行后备操作
+			-- ["<CR>"] = { "accept", "fallback" }, -- 将回车键设置为接受补全或执行后备操作
 		},
 		-- appearance 配置：界面外观及图标显示设置
 		appearance = {

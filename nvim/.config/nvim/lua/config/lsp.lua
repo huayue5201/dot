@@ -23,7 +23,7 @@ end
 -- 设置诊断的全局配置
 local function setup_global_diagnostics()
 	vim.diagnostic.config({
-		-- virtual_text = { spacing = 4, source = "if_many", prefix = "■" },
+		-- virtual_text = { spacing = 4, source = "if_many", prefix = "■" },-- Could be '●', '▎', 'x'
 		virtual_text = false,
 		severity_sort = true,
 		-- virtual_lines = { current_line = true },
