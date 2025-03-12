@@ -7,6 +7,7 @@ vim.cmd("highlight InsertMode gui=bold")
 vim.cmd("highlight VisualMode gui=bold")
 vim.cmd("highlight ReplaceMode gui=bold")
 vim.cmd("highlight PinkHighlight guifg=#FFD700 gui=bold")
+vim.cmd("highlight StatuslineIcon guifg=#FFD700 gui=bold")
 
 Statusline = {}
 
@@ -19,14 +20,14 @@ Statusline.modes = {
 	[""] = { label = "V-BLOCK", hl = "VisualMode" },
 	["R"] = { label = "REPLACE", hl = "ReplaceMode" },
 	["c"] = { label = "COMMAND", hl = "DefaultMode" },
-	["t"] = { label = "TERMINAL", hl = "DefaultMode" },
+	["t"] = { label = "TERM", hl = "DefaultMode" },
 }
 
 -- 获取当前模式并应用颜色高亮
 function Statusline.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
 	local mode_info = Statusline.modes[current_mode] or { label = current_mode, hl = "DefaultMode" }
-	return "%#" .. mode_info.hl .. "#" .. "  " .. mode_info.label .. "%*"
+	return "%#StatuslineIcon# %* " .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
 -- Git 状态
@@ -49,6 +50,7 @@ function Statusline.vcs()
 end
 
 -- 获取 LSP 诊断信息
+-- 获取 LSP 诊断信息
 function Statusline.lsp_diagnostics()
 	local count = vim.diagnostic.get(0)
 	local parts = {}
@@ -63,10 +65,11 @@ function Statusline.lsp_diagnostics()
 			return d.severity == severity
 		end, count)
 		if num > 0 then
-			table.insert(parts, lsp_icons[key] .. " " .. num)
+			local highlight_group = "Diagnostic" .. key
+			table.insert(parts, "%#" .. highlight_group .. "#" .. lsp_icons[key] .. num .. "%*")
 		end
 	end
-	return table.concat(parts, " ")
+	return table.concat(parts, "")
 end
 
 -- LSP 进度动画
@@ -96,7 +99,7 @@ function Statusline.lsp_clients()
 			end, buf_clients),
 			", "
 		)
-		.. " 󱞩 "
+		.. " 󱞩"
 end
 
 -- LSP 状态（包含客户端名称、诊断和进度信息）
@@ -127,8 +130,6 @@ local function get_scrollbar()
 		" ",
 		" ",
 	}
-	-- local progress_icons = { " ", "󰪞 ", "󰪟 ", "󰪠 ", "󰪡 ", "󰪢 ", "󰪣 ", "󰪤 ", "󰪥 " }
-	-- local progress_icons = { "󰋙 ", "󰫃 ", "󰫄 ", "󰫅 ", "󰫆 ", "󰫇 " }
 	local total_lines, cur_line = vim.api.nvim_buf_line_count(0), vim.api.nvim_win_get_cursor(0)[1]
 	if total_lines <= 1 then
 		return "%#PinkHighlight#" .. progress_icons[#progress_icons] .. "%*" -- 只有一行时，显示满格图标
@@ -142,7 +143,7 @@ end
 function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
-		string.format("%-28s", Statusline.mode()) .. "", -- 左对齐，13个字符
+		string.format("%-46s", Statusline.mode()) .. "", -- 左对齐，13个字符
 		"  " .. "%t  ", -- 文件名
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
