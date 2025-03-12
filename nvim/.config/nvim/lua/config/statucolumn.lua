@@ -21,17 +21,6 @@ function Statuscolumn.mark_display()
 	return ""
 end
 
--- 折叠
-Statuscolumn.fold = function()
-	local fold_closed = vim.fn.foldclosed(vim.v.lnum)
-	if fold_closed ~= -1 then
-		return "󰛲"
-	elseif vim.fn.foldlevel(vim.v.lnum) > 0 then
-		return "│"
-	end
-	return " "
-end
-
 -- 设置拼接的内容
 Statuscolumn.active = function()
 	return table.concat({
@@ -42,7 +31,6 @@ Statuscolumn.active = function()
 		Statuscolumn.mark_display(), -- 调用封装后的 mark 函数
 		"%=",
 		"%C ",
-		-- Statuscolumn.fold(),
 	})
 end
 
