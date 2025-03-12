@@ -1,10 +1,12 @@
+local utils = require("config.utils")
+
 -- 定义高亮组
 vim.cmd("highlight DefaultMode gui=bold")
 vim.cmd("highlight NormalMode gui=bold")
 vim.cmd("highlight InsertMode gui=bold")
 vim.cmd("highlight VisualMode gui=bold")
 vim.cmd("highlight ReplaceMode gui=bold")
-vim.cmd("highlight PinkHighlight guifg=#FFD700 gui=bold") -- 粉红色高亮
+vim.cmd("highlight PinkHighlight guifg=#FFD700 gui=bold")
 
 Statusline = {}
 
@@ -50,17 +52,18 @@ end
 function Statusline.lsp_diagnostics()
 	local count = vim.diagnostic.get(0)
 	local parts = {}
-	for severity, icon in pairs({
-		[vim.diagnostic.severity.ERROR] = "✘",
-		[vim.diagnostic.severity.WARN] = "▲",
-		[vim.diagnostic.severity.HINT] = "⚑",
-		[vim.diagnostic.severity.INFO] = "»",
-	}) do
+	local severity_map = {
+		[vim.diagnostic.severity.ERROR] = "ERROR",
+		[vim.diagnostic.severity.WARN] = "WARN",
+		[vim.diagnostic.severity.HINT] = "HINT",
+		[vim.diagnostic.severity.INFO] = "INFO",
+	}
+	for severity, key in pairs(severity_map) do
 		local num = #vim.tbl_filter(function(d)
 			return d.severity == severity
 		end, count)
 		if num > 0 then
-			table.insert(parts, icon .. " " .. num)
+			table.insert(parts, utils.diagnostic_icons[key] .. " " .. num)
 		end
 	end
 	return table.concat(parts, " ")
@@ -137,10 +140,12 @@ end
 
 -- 创建状态栏内容
 function Statusline.active()
+	-- 获取文件图标
+
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
 		string.format("%-28s", Statusline.mode()) .. "", -- 左对齐，13个字符
-		" 󱁺 " .. "%t  ", -- 文件名
+		"  " .. "%t  ", -- 文件名
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
 		-- 由akinsho/toggleterm.nvim提供

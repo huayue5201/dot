@@ -1,3 +1,5 @@
+local utils = require("config.utils")
+
 local M = {}
 
 local function replace_tabs_with_spaces(line)
@@ -12,21 +14,19 @@ end
 local function get_fold_diagnostics(start_lnum, end_lnum)
 	local diagnostics = vim.diagnostic.get(0)
 	local counts = { 0, 0, 0, 0 } -- ERROR, WARN, HINT, INFO
-	local icons = { "✘", "▲", "⚑", "»" }
-	local hl_groups = { "DiagnosticSignError", "DiagnosticSignWarn", "DiagnosticSignHint", "DiagnosticSignInfo" }
+	local severity_map = { "ERROR", "WARN", "HINT", "INFO" }
 
 	for _, diag in ipairs(diagnostics) do
 		if diag.lnum >= start_lnum and diag.lnum <= end_lnum then
 			counts[diag.severity] = counts[diag.severity] + 1
 		end
 	end
-
-	for i, count in ipairs(counts) do
+	for severity, count in ipairs(counts) do
 		if count > 0 then
-			return string.format("  %s %d ", icons[i], count), hl_groups[i]
+			return string.format("  %s %d ", utils.diagnostic_icons[severity_map[severity]], count),
+				"DiagnosticSign" .. severity_map[severity]
 		end
 	end
-
 	return "", ""
 end
 
