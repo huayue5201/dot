@@ -13,6 +13,7 @@ vim.g.later(function()
 	end, {
 		desc = "Toggle loclist",
 	})
+
 	require("quicker").setup({
 		keys = {
 			{
@@ -29,6 +30,13 @@ vim.g.later(function()
 				end,
 				desc = "Collapse quickfix context",
 			},
+		},
+		type_icons = {
+			E = "󰅚 ",
+			W = "󰀪 ",
+			I = "󰙎",
+			N = "󰙎",
+			H = "󰙎",
 		},
 	})
 end)
