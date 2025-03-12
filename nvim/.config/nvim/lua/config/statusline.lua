@@ -26,7 +26,7 @@ Statusline.modes = {
 function Statusline.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
 	local mode_info = Statusline.modes[current_mode] or { label = current_mode, hl = "DefaultMode" }
-	return "%#" .. mode_info.hl .. "#" .. "  " .. mode_info.label .. "%*"
+	return "%#" .. mode_info.hl .. "#" .. "  " .. mode_info.label .. "%*"
 end
 
 -- Git 状态
