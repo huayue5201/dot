@@ -1,7 +1,7 @@
 -- lsp server 配置参考
 -- https://github.com/neovim/nvim-lspconfig/tree/16666f1bc40f69ce05eb1883fd8c0d076284d8a5/lua/lspconfig/configs
 
-local utils = require("config.utils")
+local lsp_icons = require("config.utils").icons.diagnostic
 
 local M = {}
 
@@ -31,10 +31,10 @@ local function setup_global_diagnostics()
 		-- signs = false,
 		signs = {
 			text = {
-				[vim.diagnostic.severity.ERROR] = utils.diagnostic_icons.ERROR,
-				[vim.diagnostic.severity.WARN] = utils.diagnostic_icons.WARN,
-				[vim.diagnostic.severity.HINT] = utils.diagnostic_icons.HINT,
-				[vim.diagnostic.severity.INFO] = utils.diagnostic_icons.INFO,
+				[vim.diagnostic.severity.ERROR] = lsp_icons.ERROR,
+				[vim.diagnostic.severity.WARN] = lsp_icons.WARN,
+				[vim.diagnostic.severity.HINT] = lsp_icons.HINT,
+				[vim.diagnostic.severity.INFO] = lsp_icons.INFO,
 			},
 			linehl = { [vim.diagnostic.severity.ERROR] = "ErrorMsg" },
 			numhl = { [vim.diagnostic.severity.WARN] = "WarningMsg" },
