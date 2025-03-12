@@ -1,5 +1,3 @@
-local lsp_icons = require("config.utils").icons.diagnostic
-
 -- 定义高亮组
 vim.cmd("highlight DefaultMode gui=bold")
 vim.cmd("highlight NormalMode gui=bold")
@@ -50,10 +48,10 @@ function Statusline.vcs()
 end
 
 -- 获取 LSP 诊断信息
--- 获取 LSP 诊断信息
 function Statusline.lsp_diagnostics()
 	local count = vim.diagnostic.get(0)
 	local parts = {}
+	local icons = require("config.utils").icons.diagnostic
 	local severity_map = {
 		[vim.diagnostic.severity.ERROR] = "ERROR",
 		[vim.diagnostic.severity.WARN] = "WARN",
@@ -66,7 +64,7 @@ function Statusline.lsp_diagnostics()
 		end, count)
 		if num > 0 then
 			local highlight_group = "Diagnostic" .. key
-			table.insert(parts, "%#" .. highlight_group .. "#" .. lsp_icons[key] .. num .. "%*")
+			table.insert(parts, "%#" .. highlight_group .. "#" .. icons[key] .. num .. "%*")
 		end
 	end
 	return table.concat(parts, "")
@@ -152,7 +150,7 @@ function Statusline.active()
 		Statusline.vcs(), -- Git 状态
 		" 󰴍 %l%c ", -- 行列号
 		"  %P", -- 文件百分比
-		get_scrollbar(),
+		get_scrollbar(), -- 动态图标
 	})
 end
 
