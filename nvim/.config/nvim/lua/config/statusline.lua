@@ -89,7 +89,7 @@ function Statusline.lsp_clients()
 	if vim.tbl_isempty(buf_clients) then
 		return ""
 	end
-	return "🔹" -- 
+	return "󰂵 " -- 
 		.. table.concat(
 			vim.tbl_map(function(client)
 				return client.name
