@@ -95,7 +95,7 @@ vim.opt.fillchars = {
 	foldsep = "│", -- 打开折叠时的中间分隔符
 	-- 其他
 	diff = "╱", -- 显示差异时，已删除的行字符
-	msgsep = "▅", -- 消息分隔符字符（例如用于 `display`）
+	msgsep = "󰖰", -- 消息分隔符字符（例如用于 `display`）
 	eob = " ", -- 空行字符（用于表示缓冲区末尾）
 	lastline = "@", -- 最后一行或截断字符
 }
