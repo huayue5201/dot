@@ -1,7 +1,5 @@
 -- https://github.com/stevearc/quicker.nvim
 
-local lsp_icons = require("config.utils").icons.diagnostic
-
 vim.g.later(function()
 	vim.g.add({ source = "stevearc/quicker.nvim" })
 
@@ -16,6 +14,7 @@ vim.g.later(function()
 		desc = "Toggle loclist",
 	})
 
+	local icons = require("config.utils").icons.diagnostic
 	require("quicker").setup({
 		keys = {
 			{
@@ -34,11 +33,11 @@ vim.g.later(function()
 			},
 		},
 		type_icons = {
-			E = lsp_icons.ERROR,
-			W = lsp_icons.WARN,
-			I = lsp_icons.INFO,
-			N = lsp_icons.INFO,
-			H = lsp_icons.INFO,
+			E = icons.ERROR,
+			W = icons.WARN,
+			I = icons.INFO,
+			N = icons.INFO,
+			H = icons.INFO,
 		},
 	})
 end)
