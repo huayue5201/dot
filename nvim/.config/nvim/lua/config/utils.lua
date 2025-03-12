@@ -1,9 +1,9 @@
 local M = {}
 
 M.diagnostic_icons = {
-	ERROR = "",
-	WARN = "󰔶",
-	HINT = "",
+	ERROR = "󰅚 ",
+	WARN = "󰀪 ",
+	HINT = "󰌶",
 	INFO = "󰙎",
 }
 
