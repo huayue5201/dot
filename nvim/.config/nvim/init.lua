@@ -12,11 +12,11 @@ vim.keymap.set({ "n", "v" }, ",", "<Nop>", { silent = true })
 
 -- 加载配置文件
 require("config.settings")
+-- require("config.lazy")
 require("config.autocmds")
 require("config.usercmds")
 require("config.statusline")
 require("config.keymaps")
-require("config.shada")
 
 -- lsp 全局配置
 vim.lsp.config("*", {
