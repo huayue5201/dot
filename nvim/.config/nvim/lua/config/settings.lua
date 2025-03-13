@@ -73,6 +73,9 @@ vim.opt.statuscolumn = "%!v:lua.require('config.statucolumn').active()" -- 载�
 vim.opt.relativenumber = true -- 启用相对行号
 vim.opt.signcolumn = "yes" -- 始终显示标志列
 
+-- 格式化设置
+vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
+
 -- -------------- 显示和符号设置 --------------
 vim.opt.list = true -- 显示不可见字符
 vim.opt.fillchars = {

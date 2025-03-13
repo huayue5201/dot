@@ -42,7 +42,7 @@ local function setup_global_diagnostics()
 		update_in_insert = false,
 	})
 
-	-- 实现更新诊断信息
+	-- 插入模式下立刻更新诊断信息
 	vim.api.nvim_create_autocmd("ModeChanged", {
 		pattern = { "n:i", "v:s" },
 		desc = "Disable diagnostics in insert and select mode",

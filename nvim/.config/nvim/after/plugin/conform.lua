@@ -6,10 +6,7 @@ vim.g.later(function()
 	local slow_format_filetypes = {}
 	require("conform").setup({
 		-- Define your formatters
-		formatters_by_ft = {
-			lua = { "stylua" },
-			toml = { "taplo" },
-		},
+		formatters_by_ft = { lua = { "stylua" }, toml = { "taplo" } },
 		-- Set up format-on-save
 		format_on_save = function(bufnr)
 			if slow_format_filetypes[vim.bo[bufnr].filetype] then
@@ -28,15 +25,11 @@ vim.g.later(function()
 			if not slow_format_filetypes[vim.bo[bufnr].filetype] then
 				return
 			end
-			return { lsp_fallback = true }
+			return {
+				lsp_fallback = true,
+			}
 		end,
 		-- Customize formatters
-		formatters = {
-			shfmt = {
-				prepend_args = { "-i", "2" },
-			},
-		},
+		formatters = { shfmt = { prepend_args = { "-i", "2" } } },
 	})
-	-- If you want the formatexpr, here is the place to set it
-	vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
 end)
