@@ -1,12 +1,12 @@
 -- ===========================
 -- 清理尾部空白字符
 -- ===========================
--- vim.api.nvim_create_autocmd("BufWritePre", {
--- 	desc = "保存文件时移除末尾的空白字符",
--- 	group = vim.api.nvim_create_augroup("cleanSpace", { clear = true }),
--- 	pattern = "*",
--- 	command = "%s/\\s\\+$//e", -- 在保存文件前，删除末尾的空白字符
--- })
+vim.api.nvim_create_autocmd("BufWritePre", {
+	desc = "保存文件时移除末尾的空白字符",
+	group = vim.api.nvim_create_augroup("cleanSpace", { clear = true }),
+	pattern = "*",
+	command = "%s/\\s\\+$//e", -- 在保存文件前，删除末尾的空白字符
+})
 
 -- ===========================
 -- 记住最后的光标位置
