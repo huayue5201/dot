@@ -41,8 +41,6 @@ vim.keymap.set("n", "<leader>to", "<cmd>tabonly<cr>", { desc = "仅保留当前�
 
 vim.keymap.set("n", "<leader>lm", "<cmd>Messages<cr>", { desc = "查看历史消息" })
 
-vim.keymap.set("n", "<leader>dm", "<cmd>DelMarks<cr>", { desc = "删除标记" })
-
 -- vim.keymap.set("i", "<Tab>", function()
 --   local cursor = vim.api.nvim_win_get_cursor(0)
 --   local line = vim.api.nvim_get_current_line()
