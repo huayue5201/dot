@@ -34,6 +34,7 @@ vim.g.vimsyn_embed = "alpPrj" -- 嵌入语法高亮
 vim.opt.wrap = false -- 禁用自动换行
 vim.opt.smoothscroll = true -- 开启平滑滚动
 vim.opt.undofile = true -- 启用持久撤销
+vim.opt.confirm = true -- 未保存退出确认
 
 -- -------------- 折叠设置 --------------
 vim.opt.foldmethod = "expr" -- 设置折叠方法为表达式
