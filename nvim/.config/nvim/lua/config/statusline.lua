@@ -18,7 +18,7 @@ Statusline.modes = {
 	[""] = { label = "V-BLOCK", hl = "VisualMode" },
 	["R"] = { label = "REPLACE", hl = "ReplaceMode" },
 	["c"] = { label = "COMMAND", hl = "DefaultMode" },
-	["t"] = { label = "TERM", hl = "DefaultMode" },
+	["t"] = { label = "TERMINL", hl = "DefaultMode" },
 }
 
 -- 获取当前模式并应用颜色高亮
@@ -141,7 +141,7 @@ end
 function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
-		string.format("%-46s", Statusline.mode()) .. "", -- 左对齐，13个字符
+		string.format("%-46s", Statusline.mode()), -- 左对齐，13个字符
 		"  " .. "%t  ", -- 文件名
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
@@ -149,7 +149,7 @@ function Statusline.active()
 		'%{&ft == "toggleterm" ? "terminal (".b:toggle_number.")" : ""}',
 		Statusline.vcs(), -- Git 状态
 		" 󰴍 %l%c ", -- 行列号
-		"  %P", -- 文件百分比
+		" %P", -- 文件百分比
 		get_scrollbar(), -- 动态图标
 	})
 end

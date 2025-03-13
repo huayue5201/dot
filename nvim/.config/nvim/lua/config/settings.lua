@@ -50,6 +50,16 @@ vim.opt.shiftwidth = 2 -- 设置自动缩进为 2 个空格
 vim.opt.scrolloff = 8 -- 保持光标上方和下方至少 8 行可见
 vim.opt.sidescrolloff = 5 -- 保持光标左右至少 5 列可见
 
+-- shada设置
+vim.opt.exrc = true -- 启用 exrc 配置
+vim.opt.secure = true -- 启用安全模式
+-- 生成唯一的 shada 文件路径
+local workspace_path = vim.fn.getcwd()
+local data_dir = vim.fn.stdpath("data")
+local unique_id = vim.fn.fnamemodify(workspace_path, ":t") .. "_" .. vim.fn.sha256(workspace_path):sub(1, 8)
+local shadafile = data_dir .. "/shada/" .. unique_id .. ".shada"
+vim.opt.shadafile = shadafile
+
 -- -------------- 补全设置 --------------
 vim.bo.omnifunc = "" -- 禁用 omnifunc 补全
 vim.opt.complete = "" -- 禁用补全
