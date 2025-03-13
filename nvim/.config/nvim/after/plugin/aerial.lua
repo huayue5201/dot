@@ -15,7 +15,7 @@ vim.g.later(function()
 		layout = {
 			max_width = { 40, 0.2 },
 			width = nil,
-			min_width = 30,
+			min_width = 40,
 			default_direction = "prefer_right",
 			placement = "window",
 		},
