@@ -3,6 +3,16 @@
 return {
 	"stevearc/conform.nvim",
 	event = "BufReadPost",
+	keys = {
+		{
+			"<s-a-f>",
+			function()
+				require("conform").format({ async = true })
+			end,
+			mode = "",
+			desc = "Format buffer",
+		},
+	},
 	config = function()
 		local slow_format_filetypes = {}
 		require("conform").setup({
