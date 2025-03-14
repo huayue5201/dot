@@ -2,7 +2,11 @@
 
 return {
 	"nvim-neo-tree/neo-tree.nvim",
-	event = "VeryLazy",
+	keys = {
+		{ "<localleader>e", desc = "File Explorer" },
+		{ "<localleader>b", desc = "Buffers (root dir)" },
+		{ "<localleader>g", desc = "Git Status" },
+	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"echasnovski/mini.icons",
