@@ -3,12 +3,7 @@
 return {
 	"junegunn/fzf.vim",
 	event = "VeryLazy",
-	dependencies = {
-		"junegunn/fzf",
-		build = function()
-			vim.fn["fzf#install"]()
-		end,
-	},
+	dependencies = "junegunn/fzf",
 	config = function()
 		vim.keymap.set("n", "<leader>ff", "<cmd>Files<cr>", { desc = "查找文件" })
 		vim.keymap.set("n", "<leader>fb", "<cmd>Buffers<cr>", { desc = "切换缓冲区" })

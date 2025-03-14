@@ -2,7 +2,7 @@
 
 return {
 	"saghen/blink.cmp",
-	event = "InsertEnter",
+	event = { "InsertEnter", "CmdlineEnter" },
 	-- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
 	build = "cargo build --release",
 	---@module 'blink.cmp'
@@ -63,6 +63,9 @@ return {
 			-- 补全源配置：定义默认启用的补全提供者
 			sources = {
 				default = { "lsp", "path", "snippets", "buffer" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
+			},
+			cmdline = {
+				enabled = true, -- 命令行补全
 			},
 		})
 	end,
