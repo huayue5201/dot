@@ -63,6 +63,7 @@ vim.api.nvim_create_autocmd("FileType", {
 			["minideps-confirm"] = ":bdelete<cr>",
 			["toggleterm"] = ":close<cr>",
 			["terminal"] = ":bdelete<cr>",
+			["fugitive"] = ":bdelete<cr>",
 		}
 		local current_filetype = vim.bo.filetype -- 获取当前文件类型
 		local current_buftype = vim.bo.buftype -- 获取当前缓冲区类型

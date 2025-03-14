@@ -2,13 +2,13 @@
 
 return {
 	"huayue5201/yode-nvim",
-	keys = { "<leader>yc" },
-	dependencies = { "nvim-lua/plenary.nvim" },
+	event = "BufReadPost",
+	dependencies = "nvim-lua/plenary.nvim",
 	config = function()
 		require("yode-nvim").setup({})
 
 		vim.keymap.set(
-			"n",
+			{ "n", "x" },
 			"<Leader>yc",
 			":YodeCreateSeditorFloating<CR>",
 			{ noremap = true, silent = true, desc = "在浮动窗口中编辑选区" }
