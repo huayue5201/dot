@@ -15,7 +15,7 @@ return {
 			desc = "Toggle loclist",
 		})
 
-		local icons = require("autoload.utils").icons.diagnostic
+		local icons = require("config.utils").icons.diagnostic
 		require("quicker").setup({
 			keys = {
 				{

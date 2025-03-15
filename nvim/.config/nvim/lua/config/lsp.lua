@@ -20,7 +20,7 @@ end
 
 -- 设置诊断的全局配置
 local function setup_global_diagnostics()
-	local icons = require("autoload.utils").icons.diagnostic
+	local icons = require("config.utils").icons.diagnostic
 	vim.diagnostic.config({
 		-- virtual_text = { spacing = 4, source = "if_many", prefix = "■" },-- Could be '●', '▎', 'x'
 		virtual_text = false,
