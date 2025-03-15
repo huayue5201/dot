@@ -1,5 +1,5 @@
 {
-  "blink.cmp": { "branch": "main", "commit": "d3607d2daa4fd4f06e8f9c22e1b2a272fdd7fc30" },
+  "blink.cmp": { "branch": "main", "commit": "cb8cc634dee35b14e359daf2e9b0c418a60f75f1" },
   "bufferline.nvim": { "branch": "main", "commit": "655133c3b4c3e5e05ec549b9f8cc2894ac6f51b3" },
   "conform.nvim": { "branch": "master", "commit": "db8a4a9edb217067b1d7a2e0362c74bfe9cc944d" },
   "crates.nvim": { "branch": "main", "commit": "85356807f3a0e9a3f7015586f3a010170d338686" },
@@ -14,7 +14,7 @@
   "mini.bufremove": { "branch": "main", "commit": "bba1d8b413d37081756f59200b8cf756181e5b9a" },
   "mini.icons": { "branch": "main", "commit": "ec61af6e606fc89ee3b1d8f2f20166a3ca917a36" },
   "namu.nvim": { "branch": "main", "commit": "fc9632d7deb81c737577ecfa5879aa3bd1fc0433" },
-  "neo-tree.nvim": { "branch": "main", "commit": "8c6349bceb1d8a863964dd25dc7944d588a56aaa" },
+  "neo-tree.nvim": { "branch": "main", "commit": "9b5d67119c46e3262ffe1508fe6d8540b79ad75d" },
   "nightfox.nvim": { "branch": "main", "commit": "ba47d4b4c5ec308718641ba7402c143836f35aa9" },
   "nui.nvim": { "branch": "main", "commit": "8d3bce9764e627b62b07424e0df77f680d47ffdb" },
   "nvim-bqf": { "branch": "main", "commit": "ebb6d2689e4427452180f17c53f29f7e460236f1" },

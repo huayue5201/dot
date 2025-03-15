@@ -41,7 +41,7 @@ vim.opt.foldmethod = "expr" -- 设置折叠方法为表达式
 vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 使用 Treesitter 表达式折叠
 vim.opt.foldcolumn = "1" -- 显示折叠列
 vim.opt.foldlevel = 99 -- 设置默认折叠级别
-vim.opt.foldtext = "v:lua.require('config.foldtext').custom_foldtext()"
+vim.opt.foldtext = "v:lua.require('autoload.foldtext').custom_foldtext()"
 
 -- -------------- 编辑行为设置 --------------
 vim.opt.expandtab = true -- 将 Tab 转为空格
@@ -80,7 +80,7 @@ vim.opt.showmode = false -- 禁用模式显示
 vim.opt.laststatus = 3 -- 启用全局状态栏
 vim.opt.cmdheight = 1 -- 状态栏高度
 vim.opt.showtabline = 2 -- 始终显示标签页栏
-vim.opt.statuscolumn = "%!v:lua.require('config.statucolumn').active()" -- 载入 statuscolumn 配置
+vim.opt.statuscolumn = "%!v:lua.require('autoload.statucolumn').active()" -- 载入 statuscolumn 配置
 vim.opt.relativenumber = true -- 启用相对行号
 vim.opt.signcolumn = "yes" -- 始终显示标志列
 

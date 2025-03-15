@@ -2,7 +2,7 @@
 
 return {
 	"gbprod/yanky.nvim",
-	event = "TextYankPost",
+	event = "BufReadPost",
 	config = function()
 		require("yanky").setup({
 			highlight = {

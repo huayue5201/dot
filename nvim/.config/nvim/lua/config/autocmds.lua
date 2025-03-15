@@ -53,27 +53,20 @@ vim.api.nvim_create_autocmd("FileType", {
 	desc = "用 q 关闭窗口或删除缓冲区",
 	pattern = "*",
 	callback = function()
-		-- 为特定文件类型和缓冲区类型设置 q 键关闭窗口或删除缓冲区
-		local close_commands_by_type = {
-			["help"] = ":close<cr>",
-			["qf"] = ":close<cr>",
-			["checkhealth"] = ":close<cr>",
-			["man"] = ":quit<cr>",
+		local close_commands = {
+			help = ":close<cr>",
+			qf = ":close<cr>",
+			checkhealth = ":close<cr>",
+			man = ":quit<cr>",
+			toggleterm = ":close<cr>",
 			["grug-far"] = ":bdelete<cr>",
 			["minideps-confirm"] = ":bdelete<cr>",
-			["toggleterm"] = ":close<cr>",
-			["terminal"] = ":bdelete<cr>",
-			["fugitive"] = ":bdelete<cr>",
+			terminal = ":bdelete<cr>",
+			fugitive = ":bdelete<cr>",
+			git = ":bdelete<cr>",
 		}
-		local current_filetype = vim.bo.filetype -- 获取当前文件类型
-		local current_buftype = vim.bo.buftype -- 获取当前缓冲区类型
-		local command = close_commands_by_type[current_filetype] -- 获取当前文件类型对应的命令
-
-		-- 如果缓冲区是帮助类型，或者文件类型是 terminal、toggleterm 等，设置 q 键行为
-		if current_buftype == "help" or current_buftype == "quickfix" or current_buftype == "nofile" then
-			command = ":close<cr>" -- 设置 q 键为关闭窗口命令
-		end
-
+		local current_type = vim.bo.filetype or vim.bo.buftype -- 优先使用 filetype，如果没有则使用 buftype
+		local command = close_commands[current_type]
 		if command then
 			vim.api.nvim_buf_set_keymap(0, "n", "q", command, { noremap = true, silent = true }) -- 设置 q 键的命令
 		end
