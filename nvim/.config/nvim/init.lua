@@ -6,9 +6,7 @@ vim.loader.enable()
 
 -- 设置 Leader 键为空格
 vim.g.mapleader = vim.keycode("<space>")
-vim.g.maplocalleader = vim.keycode(",")
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
-vim.keymap.set({ "n", "v" }, ",", "<Nop>", { silent = true })
 
 -- 加载配置文件
 require("config.settings")
