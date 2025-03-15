@@ -10,7 +10,7 @@ return {
 			return _G.__cached_neo_tree_selector
 		end
 
-		local icons = require("autoload.utils").icons.diagnostic
+		local icons = require("config.utils").icons.diagnostic
 		require("bufferline").setup({
 			options = {
 				separator_style = "thick", -- 分隔符样式设置为thick

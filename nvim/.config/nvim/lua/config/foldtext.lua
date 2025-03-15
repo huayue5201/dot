@@ -15,7 +15,7 @@ local function get_fold_diagnostics(start_lnum, end_lnum)
 	local diagnostics = vim.diagnostic.get(0)
 	local counts = { 0, 0, 0, 0 } -- { ERROR, WARN, HINT, INFO }
 	local severity_map = { "ERROR", "WARN", "HINT", "INFO" }
-	local icons = require("autoload.utils").icons.diagnostic or {}
+	local icons = require("config.utils").icons.diagnostic or {}
 	-- 统计折叠范围内的诊断数量
 	for _, diag in ipairs(diagnostics) do
 		if diag.lnum >= start_lnum and diag.lnum <= end_lnum then
