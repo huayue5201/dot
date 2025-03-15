@@ -10,11 +10,17 @@ return {
 			return _G.__cached_neo_tree_selector
 		end
 
+		local icons = require("autoload.utils").icons.diagnostic
 		require("bufferline").setup({
 			options = {
 				separator_style = "thick", -- 分隔符样式设置为thick
 				custom_filter = function(buf) -- 过滤qf缓冲区
-					return vim.bo[buf].filetype ~= "qf"
+					local excluded_filetypes = { "qf", "help", "terminal", "fugitive" }
+					local excluded_buftypes = { "terminal", "acwrite" }
+					local filetype = vim.bo[buf].filetype
+					local buftype = vim.bo[buf].buftype
+					return not vim.tbl_contains(excluded_filetypes, filetype)
+						and not vim.tbl_contains(excluded_buftypes, buftype)
 				end,
 				numbers = "ordinal", -- 显示buffer的编号
 				max_name_length = 10, -- buffer名称的最大长度
@@ -22,7 +28,7 @@ return {
 				tab_size = 10, -- tab的大小
 				diagnostics = "nvim_lsp", -- 开启诊断提示，来源为nvim_lsp
 				diagnostics_indicator = function(count, level) -- 诊断提示的图标和数量显示
-					local icon = level:match("error") and "✘ " or " "
+					local icon = level:match("error") and icons.ERROR or icons.WARN
 					return "" .. icon .. count
 				end,
 				toggle_hidden_on_enter = true, -- 重新进入隐藏的组时，自动展开

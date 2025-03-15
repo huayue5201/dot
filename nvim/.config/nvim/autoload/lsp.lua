@@ -20,7 +20,7 @@ end
 
 -- 设置诊断的全局配置
 local function setup_global_diagnostics()
-	local icons = require("config.utils").icons.diagnostic
+	local icons = require("autoload.utils").icons.diagnostic
 	vim.diagnostic.config({
 		-- virtual_text = { spacing = 4, source = "if_many", prefix = "■" },-- Could be '●', '▎', 'x'
 		virtual_text = false,
@@ -41,6 +41,14 @@ local function setup_global_diagnostics()
 		underline = true,
 		update_in_insert = false,
 	})
+
+	local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
+	---@diagnostic disable-next-line: duplicate-set-field
+	function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
+		opts = opts or {}
+		opts.border = "rounded" -- Or any other border
+		return orig_util_open_floating_preview(contents, syntax, opts, ...)
+	end
 
 	-- 插入模式下立刻更新诊断信息
 	vim.api.nvim_create_autocmd("ModeChanged", {
