@@ -26,7 +26,7 @@ local function setup_global_diagnostics()
 		virtual_text = false,
 		severity_sort = true,
 		-- virtual_lines = { current_line = true },
-		float = { source = "if_many", border = "rounded" },
+		float = { source = "if_many", border = "shadow" }, -- 诊断浮窗设置
 		-- signs = false,
 		signs = {
 			text = {
@@ -42,11 +42,12 @@ local function setup_global_diagnostics()
 		update_in_insert = false,
 	})
 
+	-- hover UI
 	local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
 	---@diagnostic disable-next-line: duplicate-set-field
 	function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
 		opts = opts or {}
-		opts.border = "rounded" -- Or any other border
+		opts.border = "shadow" -- Or any other border
 		return orig_util_open_floating_preview(contents, syntax, opts, ...)
 	end
 

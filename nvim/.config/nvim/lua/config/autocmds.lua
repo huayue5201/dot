@@ -47,9 +47,21 @@ vim.api.nvim_create_autocmd("FileType", {
 -- })
 
 -- ===========================
+-- 自动识别项目根目录
+-- ===========================
+-- vim.api.nvim_create_autocmd("BufEnter", {
+-- 	callback = function(ctx)
+-- 		local root = vim.fs.root(ctx.file, { ".git", "Makefile", "cargo.toml" }) -- 修正参数错误
+-- 		if root then
+-- 			vim.fn.chdir(root)
+-- 		end
+-- 	end,
+-- })
+
+-- ===========================
 -- 用 q 关闭窗口或删除缓冲区
 -- ===========================
-vim.api.nvim_create_autocmd("FileType", {
+vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	desc = "用 q 关闭窗口或删除缓冲区",
 	pattern = "*",
 	callback = function()
@@ -62,13 +74,16 @@ vim.api.nvim_create_autocmd("FileType", {
 			["grug-far"] = ":bdelete<cr>",
 			["minideps-confirm"] = ":bdelete<cr>",
 			terminal = ":bdelete<cr>",
-			fugitive = ":bdelete<cr>",
 			git = ":bdelete<cr>",
+			["dap-repl"] = ":close<cr>",
+			["dap-float"] = ":close<cr>",
+			nofile = ":bdelete<cr>",
+			-- fugitive = ":bdelete<cr>",
 		}
-		local current_type = vim.bo.filetype or vim.bo.buftype -- 优先使用 filetype，如果没有则使用 buftype
+		local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype -- 优先 filetype，否则 buftype
 		local command = close_commands[current_type]
 		if command then
-			vim.api.nvim_buf_set_keymap(0, "n", "q", command, { noremap = true, silent = true }) -- 设置 q 键的命令
+			vim.api.nvim_buf_set_keymap(0, "n", "q", command, { noremap = true, silent = true })
 		end
 	end,
 })

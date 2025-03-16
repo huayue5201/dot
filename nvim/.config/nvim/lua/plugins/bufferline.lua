@@ -16,7 +16,7 @@ return {
 				separator_style = "thick", -- 分隔符样式设置为thick
 				custom_filter = function(buf) -- 过滤qf缓冲区
 					local excluded_filetypes = { "qf", "help", "terminal", "fugitive" }
-					local excluded_buftypes = { "terminal", "acwrite" }
+					local excluded_buftypes = { "terminal", "acwrite", "nofile" }
 					local filetype = vim.bo[buf].filetype
 					local buftype = vim.bo[buf].buftype
 					return not vim.tbl_contains(excluded_filetypes, filetype)
@@ -72,8 +72,8 @@ return {
 		})
 
 		vim.keymap.set("n", "<leader>tp", "<cmd>BufferLineTogglePin<cr>", { desc = "图钉📌" })
-		vim.keymap.set("n", "<leader>gb", ":BufferLinePick<CR>", { desc = "跳转到任意可见标签" })
-		vim.keymap.set("n", "<leader>tx", ":BufferLinePickClose<CR>", { desc = "删除任意可见标签" })
+		vim.keymap.set("n", "<leader>gb", "<cmd>BufferLinePick<CR>", { desc = "跳转到任意可见标签" })
+		vim.keymap.set("n", "<leader>tx", "<cmd>BufferLinePickClose<CR>", { desc = "删除任意可见标签" })
 		vim.keymap.set("n", "<leader>td", "<cmd>BufferLineCloseOthers<cr>", { desc = "删除其他所有buffers" })
 	end,
 }
