@@ -1,9 +1,11 @@
 -- https://github.com/mfussenegger/nvim-dap
 -- https://github.com/igorlfs/nvim-dap-view
 
+-- 参考:https://github.com/wookayin/dotfiles/blob/master/nvim/lua/config/dap.lua
+
 return {
 	"mfussenegger/nvim-dap",
-	event = "VeryLazy",
+	lazy = "true",
 	dependencies = {
 		{ "igorlfs/nvim-dap-view", opts = {} },
 	},
