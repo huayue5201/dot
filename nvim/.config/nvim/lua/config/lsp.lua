@@ -42,12 +42,13 @@ local function setup_global_diagnostics()
 		update_in_insert = false,
 	})
 
+	-- Can be one of the pre-defined styles: `"double"`, `"none"`, `"rounded"`, `"shadow"`, `"single"` or `"solid"`.
 	-- hover UI
 	local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
 	---@diagnostic disable-next-line: duplicate-set-field
 	function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
 		opts = opts or {}
-		opts.border = "shadow" -- Or any other border
+		opts.border = "rounded" -- Or any other border
 		return orig_util_open_floating_preview(contents, syntax, opts, ...)
 	end
 
@@ -74,7 +75,7 @@ local function set_keymaps(buf, _)
 		{ "<leader>ld", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
 		{ "<leader>cl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭LSP客户端" },
 		{
-			"<leader>D",
+			"<localleader>d",
 			"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
 			"打开/关闭LSP诊断",
 		},
