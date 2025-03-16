@@ -38,13 +38,33 @@ vim.api.nvim_create_autocmd("FileType", {
 -- ===========================
 -- 高亮复制内容
 -- ===========================
--- vim.api.nvim_create_autocmd("TextYankPost", {
--- 	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
--- 	pattern = "*",
--- 	callback = function()
--- 		vim.highlight.on_yank() -- 高亮复制的内容
--- 	end,
--- })
+vim.api.nvim_create_autocmd("TextYankPost", {
+	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
+	pattern = "*",
+	callback = function()
+		vim.highlight.on_yank() -- 高亮复制的内容
+	end,
+})
+
+-- ===========================
+-- 复制时保持光标位置
+-- ===========================
+local cursorPreYank
+vim.keymap.set({ "n", "x" }, "y", function()
+	cursorPreYank = vim.api.nvim_win_get_cursor(0)
+	return "y"
+end, { expr = true })
+vim.keymap.set("n", "Y", function()
+	cursorPreYank = vim.api.nvim_win_get_cursor(0)
+	return "y$"
+end, { expr = true })
+vim.api.nvim_create_autocmd("TextYankPost", {
+	callback = function()
+		if vim.v.event.operator == "y" and cursorPreYank then
+			vim.api.nvim_win_set_cursor(0, cursorPreYank)
+		end
+	end,
+})
 
 -- ===========================
 -- 自动识别项目根目录
@@ -78,7 +98,8 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 			["dap-repl"] = ":close<cr>",
 			["dap-float"] = ":close<cr>",
 			nofile = ":bdelete<cr>",
-			-- fugitive = ":bdelete<cr>",
+			fugitive = ":bdelete<cr>",
+			floggraph = ":bdelete<cr>",
 		}
 		local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype -- 优先 filetype，否则 buftype
 		local command = close_commands[current_type]
