@@ -2,12 +2,7 @@ local Foldtext = {}
 
 -- **转换 Tab 为等量空格，保持缩进对齐**
 local function replace_tabs_with_spaces(line)
-	local col = 0
-	return line:gsub("\t", function()
-		local spaces = vim.o.tabstop - (col % vim.o.tabstop)
-		col = col + spaces
-		return (" "):rep(spaces)
-	end)
+	return line:gsub("\t", (" "):rep(vim.o.tabstop))
 end
 
 -- **获取折叠范围内的 LSP 诊断信息**
@@ -16,15 +11,17 @@ local function get_fold_diagnostics(start_lnum, end_lnum)
 	local counts = { 0, 0, 0, 0 } -- { ERROR, WARN, HINT, INFO }
 	local severity_map = { "ERROR", "WARN", "HINT", "INFO" }
 	local icons = require("config.utils").icons.diagnostic or {}
+
 	for _, diag in ipairs(diagnostics) do
+		local severity = diag.severity
 		if diag.lnum >= start_lnum and diag.lnum <= end_lnum then
-			counts[diag.severity] = counts[diag.severity] + 1
+			counts[severity] = counts[severity] + 1
 		end
 	end
+
 	for severity, count in ipairs(counts) do
 		if count > 0 then
-			return string.format("%s%d ", icons[severity_map[severity]], count),
-				"DiagnosticSign" .. severity_map[severity]
+			return icons[severity_map[severity]] .. count .. " ", "DiagnosticSign" .. severity_map[severity]
 		end
 	end
 	return "", ""
@@ -32,23 +29,27 @@ end
 
 -- **处理折叠的虚拟文本，保持语法高亮**
 local function fold_virt_text(result, s, lnum, coloff)
-	local text, hl = "", "Normal"
+	local text, hl, i = "", "Normal", 0
 	coloff = coloff or 0
-	for i = 1, #s do
+
+	while i < #s do
+		i = i + 1
 		local char = s:sub(i, i)
 		local hls = vim.treesitter.get_captures_at_pos(0, lnum, coloff + i - 1)
 		local new_hl = "@" .. (hls[1] and hls[1].capture or "Normal")
+
 		if new_hl ~= hl then
 			if #text > 0 then
-				table.insert(result, { text, hl })
+				result[#result + 1] = { text, hl }
 			end
 			text, hl = char, new_hl
 		else
 			text = text .. char
 		end
 	end
+
 	if #text > 0 then
-		table.insert(result, { text, hl })
+		result[#result + 1] = { text, hl }
 	end
 end
 
@@ -56,13 +57,16 @@ end
 function Foldtext.custom_foldtext()
 	local start_lnum, end_lnum = vim.v.foldstart - 1, vim.v.foldend - 1
 	local result = {}
+
 	fold_virt_text(result, replace_tabs_with_spaces(vim.fn.getline(vim.v.foldstart)), start_lnum)
-	table.insert(result, { "  ", "Delimiter" })
+	result[#result + 1] = { "  ", "Delimiter" }
+
 	local diag_text, diag_hl = get_fold_diagnostics(start_lnum, end_lnum)
 	if diag_text ~= "" then
-		table.insert(result, { diag_text, diag_hl })
+		result[#result + 1] = { diag_text, diag_hl }
 	end
-	table.insert(result, { string.format("  %dline", vim.v.foldend - vim.v.foldstart + 1), "Delimiter" })
+
+	result[#result + 1] = { string.format("  %dline", end_lnum - start_lnum + 1), "Delimiter" }
 	return result
 end
 
@@ -82,12 +86,14 @@ local function remember(mode)
 	if vim.tbl_contains(ignoredFts, vim.bo.filetype) or vim.bo.buftype ~= "" or not vim.bo.modifiable then
 		return
 	end
+
 	if mode == "save" then
 		vim.cmd.mkview(1)
 	else
-		pcall(function()
-			vim.cmd.loadview(1)
-		end)
+		local ok = pcall(vim.cmd.loadview, 1)
+		if not ok then
+			return
+		end
 	end
 end
 
@@ -112,18 +118,16 @@ vim.keymap.set("n", "/", "zn/", { desc = "Search & Pause Folds" })
 vim.on_key(function(char)
 	local key = vim.fn.keytrans(char)
 	local searchKeys = { "n", "N", "*", "#", "/", "?" }
-	local searchConfirmed = (key == "<CR>" and vim.fn.getcmdtype():find("[/?]") ~= nil)
-	if not (searchConfirmed or vim.fn.mode() == "n") then
+	local is_search = (key == "<CR>" and vim.fn.getcmdtype():find("[/?]")) or vim.tbl_contains(searchKeys, key)
+
+	if vim.fn.mode() ~= "n" and not is_search then
 		return
 	end
 
-	local searchKeyUsed = searchConfirmed or vim.tbl_contains(searchKeys, key)
-	local pauseFold = vim.opt.foldenable:get() and searchKeyUsed
-	local unpauseFold = not vim.opt.foldenable:get() and not searchKeyUsed
-
-	if pauseFold then
+	local fold_enabled = vim.opt.foldenable:get()
+	if is_search and fold_enabled then
 		vim.opt.foldenable = false
-	elseif unpauseFold then
+	elseif not is_search and not fold_enabled then
 		vim.opt.foldenable = true
 		vim.cmd.normal("zv")
 	end
