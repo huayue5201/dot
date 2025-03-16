@@ -16,13 +16,11 @@ local function get_fold_diagnostics(start_lnum, end_lnum)
 	local counts = { 0, 0, 0, 0 } -- { ERROR, WARN, HINT, INFO }
 	local severity_map = { "ERROR", "WARN", "HINT", "INFO" }
 	local icons = require("config.utils").icons.diagnostic or {}
-	-- 统计折叠范围内的诊断数量
 	for _, diag in ipairs(diagnostics) do
 		if diag.lnum >= start_lnum and diag.lnum <= end_lnum then
 			counts[diag.severity] = counts[diag.severity] + 1
 		end
 	end
-	-- 选择最严重的诊断信息显示
 	for severity, count in ipairs(counts) do
 		if count > 0 then
 			return string.format("%s%d ", icons[severity_map[severity]], count),
@@ -58,18 +56,77 @@ end
 function Foldtext.custom_foldtext()
 	local start_lnum, end_lnum = vim.v.foldstart - 1, vim.v.foldend - 1
 	local result = {}
-	-- 1️⃣ 处理折叠的代码行
 	fold_virt_text(result, replace_tabs_with_spaces(vim.fn.getline(vim.v.foldstart)), start_lnum)
-	-- 2️⃣ 折叠省略号
 	table.insert(result, { "  ", "Delimiter" })
-	-- 3️⃣ 获取 LSP 诊断信息
 	local diag_text, diag_hl = get_fold_diagnostics(start_lnum, end_lnum)
 	if diag_text ~= "" then
 		table.insert(result, { diag_text, diag_hl })
 	end
-	-- 4️⃣ 计算折叠的行数
 	table.insert(result, { string.format("  %dline", vim.v.foldend - vim.v.foldstart + 1), "Delimiter" })
 	return result
 end
+
+-- **记住窗口视图（view）**
+local function remember(mode)
+	local ignoredFts = {
+		"TelescopePrompt",
+		"DressingSelect",
+		"DressingInput",
+		"toggleterm",
+		"gitcommit",
+		"replacer",
+		"harpoon",
+		"help",
+		"qf",
+	}
+	if vim.tbl_contains(ignoredFts, vim.bo.filetype) or vim.bo.buftype ~= "" or not vim.bo.modifiable then
+		return
+	end
+	if mode == "save" then
+		vim.cmd.mkview(1)
+	else
+		pcall(function()
+			vim.cmd.loadview(1)
+		end)
+	end
+end
+
+vim.api.nvim_create_autocmd("BufWinLeave", {
+	pattern = "?*",
+	callback = function()
+		remember("save")
+	end,
+})
+
+vim.api.nvim_create_autocmd("BufWinEnter", {
+	pattern = "?*",
+	callback = function()
+		remember("load")
+	end,
+})
+
+-- **优化搜索折叠**
+vim.opt.foldopen:remove({ "search" })
+vim.keymap.set("n", "/", "zn/", { desc = "Search & Pause Folds" })
+
+vim.on_key(function(char)
+	local key = vim.fn.keytrans(char)
+	local searchKeys = { "n", "N", "*", "#", "/", "?" }
+	local searchConfirmed = (key == "<CR>" and vim.fn.getcmdtype():find("[/?]") ~= nil)
+	if not (searchConfirmed or vim.fn.mode() == "n") then
+		return
+	end
+
+	local searchKeyUsed = searchConfirmed or vim.tbl_contains(searchKeys, key)
+	local pauseFold = vim.opt.foldenable:get() and searchKeyUsed
+	local unpauseFold = not vim.opt.foldenable:get() and not searchKeyUsed
+
+	if pauseFold then
+		vim.opt.foldenable = false
+	elseif unpauseFold then
+		vim.opt.foldenable = true
+		vim.cmd.normal("zv")
+	end
+end, vim.api.nvim_create_namespace("auto_pause_folds"))
 
 return Foldtext
