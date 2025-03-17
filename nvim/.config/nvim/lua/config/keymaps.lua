@@ -25,12 +25,11 @@ vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<cr>", { silent = true, desc = "
 
 vim.keymap.set("n", "<leader>to", "<cmd>tabonly<cr>", { silent = true, desc = "仅保留当前标签页" })
 
-vim.keymap.set("n", "<localleader>q", "<cmd>ToggleQuickfix<cr>", { desc = "切换 Quickfix 窗口" })
-
-vim.keymap.set("n", "<localleader>l", "<cmd>ToggleLoclist<cr>", { desc = "切换 Loclist 窗口" })
-
 vim.keymap.set("n", "<leader>lm", "<cmd>Messages<cr>", { silent = true, desc = "查看历史消息" })
 
+vim.keymap.set("n", "<localleader>q", "<cmd>Toggle quickfix<cr>", { desc = "切换 Quickfix 窗口" })
+
+vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "切换 Loclist 窗口" })
 -- vim.keymap.set("i", "<Tab>", function()
 --   local cursor = vim.api.nvim_win_get_cursor(0)
 --   local line = vim.api.nvim_get_current_line()

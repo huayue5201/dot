@@ -6,11 +6,6 @@ return {
 		{ "<leader>hx" },
 	},
 	config = function()
-		vim.keymap.set(
-			"n",
-			"<localleader>hx",
-			"<cmd>lua require 'hex'.toggle() <CR>",
-			{ silent = true,   desc = "" }
-		)
+		vim.keymap.set("n", "<localleader>hx", "<cmd>lua require 'hex'.toggle() <CR>", { silent = true, desc = "" })
 	end,
 }
