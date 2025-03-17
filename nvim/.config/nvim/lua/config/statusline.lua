@@ -4,8 +4,8 @@ vim.cmd("highlight NormalMode gui=bold")
 vim.cmd("highlight InsertMode gui=bold")
 vim.cmd("highlight VisualMode gui=bold")
 vim.cmd("highlight ReplaceMode gui=bold")
-vim.cmd("highlight PinkHighlight guifg=#FFD700 gui=bold")
-vim.cmd("highlight StatuslineIcon guifg=#FFD700 gui=bold")
+vim.cmd("highlight PinkHighlight guifg=#ffde7d gui=bold")
+vim.cmd("highlight StatuslineIcon guifg=#ffde7d gui=bold")
 
 Statusline = {}
 
