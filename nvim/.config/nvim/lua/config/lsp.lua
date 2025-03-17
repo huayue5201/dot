@@ -85,7 +85,7 @@ local function set_keymaps(buf, _)
 			"列出工作区文件夹",
 		},
 		{
-			"<leader>i",
+			"<localleader>i",
 			"<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>",
 			"打开/关闭内联提示",
 		},
