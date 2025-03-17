@@ -173,7 +173,7 @@ return {
 				position = "left",
 				width = 45,
 				mapping_options = {
-					noremap = true,
+					 
 					nowait = true,
 				},
 				mappings = {

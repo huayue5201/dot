@@ -10,7 +10,7 @@ return {
 			"n",
 			"<localleader>hx",
 			"<cmd>lua require 'hex'.toggle() <CR>",
-			{ silent = true, noremap = true, desc = "" }
+			{ silent = true,   desc = "" }
 		)
 	end,
 }
