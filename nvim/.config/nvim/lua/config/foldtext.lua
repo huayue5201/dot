@@ -7,21 +7,24 @@ end
 
 -- **获取折叠范围内的 LSP 诊断信息**
 local function get_fold_diagnostics(start_lnum, end_lnum)
-	local diagnostics = vim.diagnostic.get(0)
+	local diagnostics = vim.diagnostic.get(0) or {} -- 避免 diagnostics 为空
 	local counts = { 0, 0, 0, 0 } -- { ERROR, WARN, HINT, INFO }
 	local severity_map = { "ERROR", "WARN", "HINT", "INFO" }
-	local icons = require("config.utils").icons.diagnostic or {}
+
+	-- 确保 icons 不是 nil
+	local ok, utils = pcall(require, "config.utils")
+	local icons = (ok and utils.icons and utils.icons.diagnostic) or {}
 
 	for _, diag in ipairs(diagnostics) do
-		local severity = diag.severity
-		if diag.lnum >= start_lnum and diag.lnum <= end_lnum then
-			counts[severity] = counts[severity] + 1
+		local severity = diag.severity or vim.diagnostic.severity.INFO -- 避免 nil
+		if diag.lnum and diag.lnum >= start_lnum and diag.lnum <= end_lnum then
+			counts[severity] = (counts[severity] or 0) + 1 -- 避免 nil 计算错误
 		end
 	end
 
 	for severity, count in ipairs(counts) do
 		if count > 0 then
-			return icons[severity_map[severity]] .. count .. " ", "DiagnosticSign" .. severity_map[severity]
+			return (icons[severity_map[severity]] or "") .. count .. " ", "DiagnosticSign" .. severity_map[severity]
 		end
 	end
 	return "", ""
@@ -124,7 +127,7 @@ vim.on_key(function(char)
 		return
 	end
 
-	local fold_enabled = vim.opt.foldenable:get()
+	local fold_enabled = vim.wo.foldenable
 	if is_search and fold_enabled then
 		vim.opt.foldenable = false
 	elseif not is_search and not fold_enabled then
