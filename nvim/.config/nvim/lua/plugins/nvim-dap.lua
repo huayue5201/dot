@@ -26,12 +26,7 @@ return {
 		local widgets = require("dap.ui.widgets")
 
 		-- 设置/删除断点
-		vim.keymap.set(
-			"n",
-			"<leader>b",
-			dap.toggle_breakpoint,
-			{ noremap = true, silent = true, desc = "Conditional Breakpoint" }
-		)
+		vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "Conditional Breakpoint" })
 
 		vim.keymap.set(
 			"n",
@@ -46,7 +41,7 @@ return {
 			end,
 			{ desc = "Conditional Breakpoint" } -- 快捷键描述
 		)
-		vim.keymap.set("n", "<F5>", dap.continue, { noremap = true, silent = true, desc = "DAP Continue" })
+		vim.keymap.set("n", "<F5>", dap.continue, { silent = true, desc = "DAP Continue" })
 
 		vim.keymap.set(
 			"n", -- 正常模式
@@ -57,15 +52,15 @@ return {
 			{ desc = "Run Last" } -- 快捷键描述
 		)
 
-		vim.keymap.set("n", "<F10>", dap.step_over, { noremap = true, silent = true, desc = "Step Over" })
+		vim.keymap.set("n", "<F10>", dap.step_over, { silent = true, desc = "Step Over" })
 
-		vim.keymap.set("n", "<F11>", dap.step_into, { noremap = true, silent = true, desc = "Step Into" })
+		vim.keymap.set("n", "<F11>", dap.step_into, { silent = true, desc = "Step Into" })
 
-		vim.keymap.set("n", "<F12>", dap.step_out, { noremap = true, silent = true, desc = "Step Out" })
+		vim.keymap.set("n", "<F12>", dap.step_out, { silent = true, desc = "Step Out" })
 
-		vim.keymap.set("n", "<leader>dr", dap.repl.toggle, { noremap = true, silent = true, desc = "Toggle DAP REPL" })
+		vim.keymap.set("n", "<leader>dr", dap.repl.toggle, { silent = true, desc = "Toggle DAP REPL" })
 
-		vim.keymap.set("n", "<leader>dv", dap.run_to_cursor, { noremap = true, silent = true, desc = "Run to Cursor" })
+		vim.keymap.set("n", "<leader>dv", dap.run_to_cursor, { silent = true, desc = "Run to Cursor" })
 
 		vim.keymap.set("n", "<leader>dh", function()
 			widgets.hover(nil, { border = "rounded" })

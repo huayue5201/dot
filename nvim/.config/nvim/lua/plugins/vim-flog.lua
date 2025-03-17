@@ -2,7 +2,7 @@
 
 return {
 	"rbong/vim-flog",
-	event = "BufReadPost",
+	event = "UIEnter",
 	cmd = { "Flog", "Flogsplit", "Floggit" },
 	dependencies = {
 		"tpope/vim-fugitive",
