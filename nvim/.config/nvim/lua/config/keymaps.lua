@@ -30,15 +30,16 @@ vim.keymap.set("n", "<leader>lm", "<cmd>Messages<cr>", { silent = true, desc = "
 vim.keymap.set("n", "<localleader>q", "<cmd>Toggle quickfix<cr>", { desc = "切换 Quickfix 窗口" })
 
 vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "切换 Loclist 窗口" })
--- vim.keymap.set("i", "<Tab>", function()
---   local cursor = vim.api.nvim_win_get_cursor(0)
---   local line = vim.api.nvim_get_current_line()
---   local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
---   if next_char == nil then
---     return "<Tab>"
---   end
---   if not vim.tbl_contains({ '"', "'", ")", "]", "}" }, next_char) then
---     return "<Tab>"
---   end
---   return "<Right>"
--- end, { expr = true, desc = "插入模式下跳出括号或引号" })
+
+vim.keymap.set("i", "<Tab>", function()
+	local cursor = vim.api.nvim_win_get_cursor(0)
+	local line = vim.api.nvim_get_current_line()
+	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
+	if next_char == nil then
+		return "<Tab>"
+	end
+	if not vim.tbl_contains({ '"', "'", ")", "]", "}" }, next_char) then
+		return "<Tab>"
+	end
+	return "<Right>"
+end, { expr = true, desc = "插入模式下跳出括号或引号" })

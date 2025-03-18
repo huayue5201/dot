@@ -15,6 +15,6 @@ return {
 			},
 		})
 
-		vim.keymap.set({ "t", "n" }, "<leader>\\", "<cmd>ToggleTermToggleAll<cr>", { desc = "Toggle terminal" })
+		vim.keymap.set({ "t", "n" }, "<c-w>\\", "<cmd>ToggleTermToggleAll<cr>", { desc = "Toggle terminal" })
 	end,
 }

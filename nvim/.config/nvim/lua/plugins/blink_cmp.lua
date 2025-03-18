@@ -9,7 +9,7 @@ return {
 	---@type blink.cmp.Config
 	config = function()
 		require("blink.cmp").setup({
-			-- completion 配置：定义补全功能的行为和显示
+			fuzzy = { implementation = "prefer_rust_with_warning" },
 			completion = {
 				-- 关键字匹配范围设置：
 				-- 'prefix'：仅匹配光标前的文本
@@ -62,10 +62,11 @@ return {
 			},
 			-- 补全源配置：定义默认启用的补全提供者
 			sources = {
-				default = { "lsp", "path", "snippets", "buffer" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
+				default = { "lsp", "path", "snippets", "buffer", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
 			},
 			cmdline = {
 				enabled = true, -- 命令行补全
+				completion = { menu = { auto_show = true } },
 			},
 		})
 	end,
