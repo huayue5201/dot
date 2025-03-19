@@ -93,7 +93,7 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 			toggleterm = ":close<cr>",
 			["grug-far"] = ":bdelete<cr>",
 			["minideps-confirm"] = ":bdelete<cr>",
-			terminal = ":bdelete<cr>",
+			terminal = ":close<cr>",
 			git = ":bdelete<cr>",
 			["dap-repl"] = ":close<cr>",
 			["dap-float"] = ":close<cr>",

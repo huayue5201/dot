@@ -413,7 +413,7 @@ return {
 				source = "filesystem",
 				position = "left",
 			})
-		end, { desc = "File Explorer" })
+		end, { silent = true, desc = "File Explorer" })
 
 		vim.keymap.set("n", "<localleader>b", function()
 			require("neo-tree.command").execute({
@@ -421,7 +421,7 @@ return {
 				source = "buffers",
 				position = "left",
 			})
-		end, { desc = "Buffers (root dir)" })
+		end, { silent = true, desc = "Buffers (root dir)" })
 
 		vim.keymap.set("n", "<localleader>g", function()
 			require("neo-tree.command").execute({
@@ -429,7 +429,7 @@ return {
 				source = "git_status",
 				position = "left",
 			})
-		end, { desc = "Git Status" })
+		end, { silent = true, desc = "Git Status" })
 
 		-- vim.keymap.set("n", "<localleader>s", function()
 		-- 	require("neo-tree.command").execute({
@@ -437,6 +437,6 @@ return {
 		-- 		source = "document_symbols",
 		-- 		position = "left",
 		-- 	})
-		-- end, { desc = "Symbols" })
+		-- end, { silent = true,desc = "Symbols" })
 	end,
 }

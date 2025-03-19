@@ -7,11 +7,20 @@ vim.keymap.set("n", "dd", function()
 	return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true, desc = "删除当前行（空行使用黑洞寄存器）" })
 
-vim.keymap.set("n", "<leader>ya", ':let @+ = expand("%:p")<CR>', { desc = "复制绝对路径" })
+vim.keymap.set("n", "<leader>cp", function()
+	vim.fn.setreg("+", vim.fn.expand("%:p"))
+	print("Copied: " .. vim.fn.expand("%:p"))
+end, { silent = true, desc = "复制绝对路径" })
 
-vim.keymap.set("n", "<leader>yr", ':let @+ = expand("%:f")<CR>', { desc = "复制相对路径" })
+vim.keymap.set("n", "<leader>cp", function()
+	vim.fn.setreg("+", vim.fn.expand("%:f"))
+	print("Copied: " .. vim.fn.expand("%:f"))
+end, { silent = true, desc = "复制相对路径" })
 
-vim.keymap.set("n", "<leader>yf", ':let @+ = expand("%:t")<CR>', { desc = "复制文件名" })
+vim.keymap.set("n", "<leader>cp", function()
+	vim.fn.setreg("+", vim.fn.expand("%:t"))
+	print("Copied: " .. vim.fn.expand("%:t"))
+end, { silent = true, desc = "复制文件名" })
 
 vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
 
