@@ -9,13 +9,13 @@ return {
 
 		vim.keymap.set(
 			{ "n", "x" },
-			"<Leader>yc",
+			"<Leader>oc",
 			":YodeCreateSeditorFloating<CR>",
 			{ silent = true, desc = "在浮动窗口中编辑选区" }
 		)
 		vim.keymap.set(
 			"n",
-			"<Leader>yr",
+			"<Leader>or",
 			":YodeCreateSeditorReplace<CR>",
 			{ silent = true, desc = "在分割窗口中编辑选区" }
 		)
