@@ -4,10 +4,6 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
 	event = { "BufReadPre", "BufNewFile" },
-	dependencies = {
-		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
-		"nvim-treesitter/nvim-treesitter-textobjects",
-	},
 	config = function()
 		require("nvim-treesitter.configs").setup({
 			-- 确保所需的语言解析器被安装
@@ -47,46 +43,6 @@ return {
 				end,
 				-- 关闭 vim 自带语法高亮引擎，只使用 Treesitter
 				additional_vim_regex_highlighting = false,
-			},
-			-- 启用增量选择模块
-			incremental_selection = {
-				enable = true,
-				keymaps = {
-					init_selection = "<s-cr>",
-					node_incremental = "<s-cr>",
-					node_decremental = "<bs>",
-					scope_incremental = "<tab>",
-				},
-			},
-			-- 设置文本对象选择操作
-			textobjects = {
-				select = {
-					enable = true,
-					-- 自动跳转到文本对象，类似于 targets.vim 插件
-					lookahead = true,
-					keymaps = {
-						["af"] = "@function.outer",
-						["if"] = "@function.inner",
-						["ac"] = "@class.outer",
-						["ic"] = "@class.inner",
-						["ab"] = "@block.outer",
-						["ib"] = "@block.inner",
-						["al"] = "@loop.outer",
-						["il"] = "@loop.inner",
-						["a/"] = "@comment.outer",
-						["i/"] = "@comment.outer", -- no inner for comment
-						["aa"] = "@parameter.outer", -- parameter -> argument
-						["ia"] = "@parameter.inner",
-					},
-					-- 选择模式设置
-					selection_modes = {
-						["@parameter.outer"] = "v", -- 字符模式
-						["@function.outer"] = "V", -- 行模式
-						["@class.outer"] = "<c-v>", -- 块模式
-					},
-					-- 控制是否包含周围的空白字符
-					include_surrounding_whitespace = true,
-				},
 			},
 		})
 	end,
