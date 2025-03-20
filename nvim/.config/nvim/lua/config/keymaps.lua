@@ -11,8 +11,8 @@ vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更
 
 vim.keymap.set("n", "<leader>w", "<cmd>w<cr>", { silent = true, desc = "保存buffer" })
 
-vim.keymap.set("n", "<Leader>q", ":bp|bd#<cr>", { silent = true, desc = "退出buffer" })
--- vim.keymap.set("n", "<Leader>q", "<cmd>BufRemove<cr>", { silent = true, desc = "退出buffer" })
+-- vim.keymap.set("n", "<Leader>q", ":bp|bd#<cr>", { silent = true, desc = "退出buffer" })
+vim.keymap.set("n", "<Leader>q", "<cmd>BufRemove<cr>", { silent = true, desc = "退出buffer" })
 
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { silent = true, desc = "创建新的标签页" })
 

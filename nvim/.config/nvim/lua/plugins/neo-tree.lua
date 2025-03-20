@@ -55,7 +55,7 @@ return {
 					-- indent guides
 					with_markers = true,
 					indent_marker = "│",
-					last_indent_marker = "└",
+					last_indent_marker = "╰", --└
 					highlight = "NeoTreeIndentMarker",
 					-- expander config, needed for nesting files
 					with_expanders = nil, -- if nil and file nesting is enabled, will enable expanders
