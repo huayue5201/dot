@@ -72,7 +72,7 @@ return {
 		})
 
 		vim.keymap.set("n", "<leader>tp", "<cmd>BufferLineTogglePin<cr>", { desc = "图钉📌" })
-		vim.keymap.set("n", "<leader>gb", "<cmd>BufferLinePick<CR>", { desc = "跳转到任意可见标签" })
+		vim.keymap.set("n", "<leader>tg", "<cmd>BufferLinePick<CR>", { desc = "跳转到任意可见标签" })
 		vim.keymap.set("n", "<leader>tx", "<cmd>BufferLinePickClose<CR>", { desc = "删除任意可见标签" })
 		vim.keymap.set("n", "<leader>td", "<cmd>BufferLineCloseOthers<cr>", { desc = "删除其他所有buffers" })
 	end,

@@ -53,7 +53,6 @@ end, { desc = "切换窗口", nargs = "?" })
 -- ===========================
 vim.api.nvim_create_user_command("BufRemove", function(opts)
 	local fn = vim.fn
-	local cmd = vim.cmd
 	local buf = opts.args == "" and fn.bufnr() or tonumber(opts.args)
 	buf = buf or 0
 	buf = buf == 0 and vim.api.nvim_get_current_buf() or buf
@@ -73,6 +72,12 @@ vim.api.nvim_create_user_command("BufRemove", function(opts)
 			if not vim.api.nvim_win_is_valid(win) or vim.api.nvim_win_get_buf(win) ~= buf then
 				return
 			end
+			-- 检查当前窗口是否为分屏窗口
+			local win_count = #vim.api.nvim_list_wins()
+			if win_count > 1 then
+				vim.api.nvim_win_close(win, true) -- 关闭当前窗口
+				return
+			end
 			-- 尝试使用备用缓冲区
 			local alt = fn.bufnr("#")
 			if alt ~= buf and fn.buflisted(alt) == 1 then
@@ -80,7 +85,9 @@ vim.api.nvim_create_user_command("BufRemove", function(opts)
 				return
 			end
 			-- 尝试使用上一个缓冲区
-			local has_previous = pcall(vim.cmd, "bprevious")
+			local has_previous = pcall(function()
+				vim.cmd("bprevious")
+			end)
 			if has_previous and buf ~= vim.api.nvim_win_get_buf(win) then
 				return
 			end
@@ -91,7 +98,9 @@ vim.api.nvim_create_user_command("BufRemove", function(opts)
 	end
 	-- 删除缓冲区
 	if vim.api.nvim_buf_is_valid(buf) then
-		pcall(vim.cmd, "bdelete! " .. buf)
+		pcall(function()
+			vim.cmd("bdelete!" .. tostring(buf))
+		end)
 	end
 end, {
 	-- 用户命令的参数

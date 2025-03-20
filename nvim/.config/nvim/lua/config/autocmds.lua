@@ -100,6 +100,8 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 			nofile = ":bdelete<cr>",
 			fugitive = ":bdelete<cr>",
 			floggraph = ":bdelete<cr>",
+			["dap-view"] = ":close<cr>",
+			["dap-view-term"] = ":close<cr>",
 		}
 		local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype -- 优先 filetype，否则 buftype
 		local command = close_commands[current_type]
@@ -118,8 +120,8 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 	pattern = "*",
 	callback = function()
 		-- 定义需要固定大小的窗口类型
-		local filetypes = { "floggraph", "fugitive", "NvimTree", "grug-far", "toggleterm" }
-		local buftypes = { "nofile", "terminal" }
+		local filetypes = { "dap-view", "floggraph", "fugitive", "NvimTree", "grug-far", "toggleterm" }
+		local buftypes = { "nofile", "terminal", "acwrite" }
 		-- 判断当前窗口是否为不可替换窗口类型
 		if vim.tbl_contains(buftypes, vim.bo.buftype) and vim.tbl_contains(filetypes, vim.bo.filetype) then
 			vim.wo.winfixbuf = true

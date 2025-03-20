@@ -1,27 +1,31 @@
 -- https://github.com/mfussenegger/nvim-dap
--- https://github.com/igorlfs/nvim-dap-view
 
 -- 参考:https://github.com/wookayin/dotfiles/blob/master/nvim/lua/config/dap.lua
 
 return {
 	"mfussenegger/nvim-dap",
-	event = "BufReadPost",
+	ft = { "rust", "c" },
 	dependencies = {
+		-- https://github.com/igorlfs/nvim-dap-view
 		{ "igorlfs/nvim-dap-view", opts = {} },
 	},
 	config = function()
-		vim.fn.sign_define("DapBreakpoint", { text = "🔴", texthl = "DapBreakpoint" })
-		vim.fn.sign_define("DapBreakpointCondition", { text = "🟡", texthl = "DapBreakpointCondition" })
-		vim.fn.sign_define("DapBreakpointRejected", { text = "⭕", texthl = "DapBreakpointRejected" })
-		vim.fn.sign_define("DapStopped", {
-			text = "▶",
-			texthl = "DapBreakpoint",
-			linehl = "DapCurrentLine",
-			numhl = "DiagnosticSignWarn",
-		})
+		local signs = {
+			DapBreakpoint = { text = "🔴", texthl = "DapBreakpoint" },
+			DapBreakpointCondition = { text = "🟡", texthl = "DapBreakpointCondition" },
+			DapBreakpointRejected = { text = "⭕", texthl = "DapBreakpointRejected" },
+			DapStopped = {
+				text = " ",
+				texthl = "DapBreakpoint",
+				linehl = "DapCurrentLine",
+				numhl = "DiagnosticSignWarn",
+			},
+		}
+		for name, opts in pairs(signs) do
+			vim.fn.sign_define(name, opts)
+		end
 
 		-- 加载dap调试配置
-		require("dap.openocd")
 		local dap = require("dap")
 		local widgets = require("dap.ui.widgets")
 
@@ -41,7 +45,12 @@ return {
 			end,
 			{ desc = "Conditional Breakpoint" } -- 快捷键描述
 		)
-		vim.keymap.set("n", "<F5>", dap.continue, { silent = true, desc = "DAP Continue" })
+
+		vim.keymap.set("n", "<leader>dv", function()
+			require("dap-view").toggle()
+		end, { desc = "Toggle nvim-dap-view" })
+
+		vim.keymap.set("n", "<leader>od", dap.continue, { silent = true, desc = "DAP Continue" })
 
 		vim.keymap.set(
 			"n", -- 正常模式
@@ -60,15 +69,15 @@ return {
 
 		vim.keymap.set("n", "<leader>dr", dap.repl.toggle, { silent = true, desc = "Toggle DAP REPL" })
 
-		vim.keymap.set("n", "<leader>dv", dap.run_to_cursor, { silent = true, desc = "Run to Cursor" })
+		vim.keymap.set("n", "<leader>dc", dap.run_to_cursor, { silent = true, desc = "Run to Cursor" })
 
-		vim.keymap.set("n", "<leader>dh", function()
+		vim.keymap.set("n", "<leader>dk", function()
 			widgets.hover(nil, { border = "rounded" })
 		end, { desc = "Hover variable value" })
 
 		vim.keymap.set("n", "<leader>dp", widgets.preview, { desc = "Preview variable value" })
 
-		vim.keymap.set("n", "<leader>dc", function()
+		vim.keymap.set("n", "<leader>df", function()
 			widgets.centered_float(widgets.scopes, { border = "shadow" })
 		end, { desc = "Centered float for scopes" })
 	end,
