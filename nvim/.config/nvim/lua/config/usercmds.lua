@@ -47,3 +47,54 @@ vim.api.nvim_create_user_command("Toggle", function(opts)
 		end
 	end
 end, { desc = "切换窗口", nargs = "?" })
+
+-- ===========================
+-- 关闭缓冲
+-- ===========================
+vim.api.nvim_create_user_command("BufRemove", function(opts)
+	local fn = vim.fn
+	local cmd = vim.cmd
+	local buf = opts.args == "" and fn.bufnr() or tonumber(opts.args)
+	buf = buf or 0
+	buf = buf == 0 and vim.api.nvim_get_current_buf() or buf
+	-- 检查当前缓冲区是否已修改
+	if vim.bo.modified then
+		local choice = vim.fn.confirm(("Save changes to %q?"):format(vim.fn.bufname(buf)), "&Yes\n&No\n&Cancel")
+		if choice == 0 or choice == 3 then -- 0 for <Esc>/<C-c> and 3 for Cancel
+			return
+		end
+		if choice == 1 then -- Yes
+			vim.cmd.write()
+		end
+	end
+	-- 获取当前缓冲区所在的所有窗口
+	for _, win in ipairs(fn.win_findbuf(buf)) do
+		vim.api.nvim_win_call(win, function()
+			if not vim.api.nvim_win_is_valid(win) or vim.api.nvim_win_get_buf(win) ~= buf then
+				return
+			end
+			-- 尝试使用备用缓冲区
+			local alt = fn.bufnr("#")
+			if alt ~= buf and fn.buflisted(alt) == 1 then
+				vim.api.nvim_win_set_buf(win, alt)
+				return
+			end
+			-- 尝试使用上一个缓冲区
+			local has_previous = pcall(vim.cmd, "bprevious")
+			if has_previous and buf ~= vim.api.nvim_win_get_buf(win) then
+				return
+			end
+			-- 创建新的缓冲区并设置为当前窗口缓冲区
+			local new_buf = vim.api.nvim_create_buf(true, false)
+			vim.api.nvim_win_set_buf(win, new_buf)
+		end)
+	end
+	-- 删除缓冲区
+	if vim.api.nvim_buf_is_valid(buf) then
+		pcall(vim.cmd, "bdelete! " .. buf)
+	end
+end, {
+	-- 用户命令的参数
+	nargs = "?", -- 支持一个缓冲区编号作为参数，默认为当前缓冲区
+	desc = "Remove a buffer, with checks for unsaved changes and window handling",
+})

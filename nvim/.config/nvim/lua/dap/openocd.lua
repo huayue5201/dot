@@ -17,10 +17,11 @@ dap.configurations.rust = {
 			if vim.g.debug_file and vim.fn.filereadable(vim.g.debug_file) == 1 then
 				return vim.g.debug_file
 			else
-				print("No valid debug file set! Please mark a file with <leader>mf")
+				print("No valid debug file set! Please mark a file with <A-b>")
 				return ""
 			end
 		end,
 		stopAtEntry = true,
+		timeout = 10000, -- 10 秒
 	},
 }

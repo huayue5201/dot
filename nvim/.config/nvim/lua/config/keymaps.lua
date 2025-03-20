@@ -9,9 +9,10 @@ end, { expr = true, desc = "删除当前行（空行使用黑洞寄存器）" })
 
 vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
 
-vim.keymap.set("n", "<leader>w", "<cmd>w<cr>", { silent = true, desc = "保存当前buffer" })
+vim.keymap.set("n", "<leader>w", "<cmd>w<cr>", { silent = true, desc = "保存buffer" })
 
-vim.keymap.set("n", "<leader>q", "<cmd>bdelete<cr>", { silent = true, desc = "保存当前buffer" })
+vim.keymap.set("n", "<Leader>q", ":bp|bd#<cr>", { silent = true, desc = "退出buffer" })
+-- vim.keymap.set("n", "<Leader>q", "<cmd>BufRemove<cr>", { silent = true, desc = "退出buffer" })
 
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { silent = true, desc = "创建新的标签页" })
 
@@ -24,6 +25,29 @@ vim.keymap.set("n", "<leader>lm", "<cmd>Messages<cr>", { silent = true, desc = "
 vim.keymap.set("n", "<localleader>q", "<cmd>Toggle quickfix<cr>", { desc = "切换 Quickfix 窗口" })
 
 vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "切换 Loclist 窗口" })
+
+-- 复制选中的内容到系统剪贴板
+vim.keymap.set({ "v", "n" }, "<A-c>", '"+y', { silent = true, desc = "复制<系统剪贴板>" })
+vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
+
+-- 复制当前光标下 LSP 报错信息到剪贴板
+vim.keymap.set("n", "<leader>yd", function()
+	-- 获取当前光标所在行的 LSP 报错信息并复制到剪贴板
+	local line = vim.fn.line(".") - 1 -- 获取当前光标所在的行号（Lua 索引从 0 开始）
+	local diagnostics = vim.diagnostic.get(0, { lnum = line }) -- 获取当前行的诊断信息
+	local diagnostic_msgs = {} -- 使用 local 声明此变量为局部变量
+	for _, diag in ipairs(diagnostics) do
+		table.insert(diagnostic_msgs, diag.message) -- 提取报错信息
+	end
+	if #diagnostic_msgs > 0 then
+		local message = table.concat(diagnostic_msgs, "\n") -- 将报错信息合并为字符串
+		-- 将报错信息复制到系统剪贴板
+		vim.fn.setreg("+", message)
+		print("LSP Diagnostic at cursor copied to clipboard!") -- 提示复制成功
+	else
+		print("No LSP Diagnostics at cursor!") -- 提示当前光标下没有报错信息
+	end
+end, { silent = true, desc = "Copy LSP Diagnostic at cursor" })
 
 vim.keymap.set("n", "<A-b>", function()
 	local file = vim.fn.expand("%:p") -- 获取当前文件的完整路径

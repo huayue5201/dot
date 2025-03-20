@@ -120,10 +120,9 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 		-- 定义需要固定大小的窗口类型
 		local filetypes = { "NvimTree", "grug-far", "toggleterm" }
 		local buftypes = { "nofile", "terminal" }
-
 		-- 判断当前窗口是否为不可替换窗口类型
 		if vim.tbl_contains(buftypes, vim.bo.buftype) and vim.tbl_contains(filetypes, vim.bo.filetype) then
-			vim.cmd("set winfixbuf") -- 固定窗口大小，防止被调整
+			vim.wo.winfixbuf = true
 		end
 	end,
 })
