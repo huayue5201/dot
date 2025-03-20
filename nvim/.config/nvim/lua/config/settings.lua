@@ -35,6 +35,7 @@ vim.opt.wrap = false -- 禁用自动换行
 vim.opt.smoothscroll = true -- 开启平滑滚动
 vim.opt.undofile = true -- 启用持久撤销
 vim.opt.confirm = true -- 未保存退出确认
+vim.opt.spelloptions = "camel" -- 开启驼峰拼写检查
 
 -- -------------- 折叠设置 --------------
 vim.opt.foldmethod = "expr" -- 设置折叠方法为表达式
