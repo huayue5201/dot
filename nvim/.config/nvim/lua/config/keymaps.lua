@@ -30,41 +30,10 @@ vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "切�
 vim.keymap.set({ "v", "n" }, "<A-c>", '"+y', { silent = true, desc = "复制<系统剪贴板>" })
 vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
 
--- 复制当前光标下 LSP 报错信息到剪贴板
-vim.keymap.set("n", "<leader>yd", function()
-	-- 获取当前光标所在行的 LSP 报错信息并复制到剪贴板
-	local line = vim.fn.line(".") - 1 -- 获取当前光标所在的行号（Lua 索引从 0 开始）
-	local diagnostics = vim.diagnostic.get(0, { lnum = line }) -- 获取当前行的诊断信息
-	local diagnostic_msgs = {} -- 使用 local 声明此变量为局部变量
-	for _, diag in ipairs(diagnostics) do
-		table.insert(diagnostic_msgs, diag.message) -- 提取报错信息
-	end
-	if #diagnostic_msgs > 0 then
-		local message = table.concat(diagnostic_msgs, "\n") -- 将报错信息合并为字符串
-		-- 将报错信息复制到系统剪贴板
-		vim.fn.setreg("+", message)
-		print("LSP Diagnostic at cursor copied to clipboard!") -- 提示复制成功
-	else
-		print("No LSP Diagnostics at cursor!") -- 提示当前光标下没有报错信息
-	end
-end, { silent = true, desc = "Copy LSP Diagnostic at cursor" })
-
+-- 映射调试文件切换功能
+require("autoload.debug_filemarks").load_debug_file()
 vim.keymap.set("n", "<A-b>", function()
-	local file = vim.fn.expand("%:p") -- 获取当前文件的完整路径
-	if file ~= "" then
-		if vim.g.debug_file == file then
-			-- 如果文件已经被标记，取消标记
-			vim.g.debug_file = nil
-			print("Debug file removed!")
-		else
-			-- 如果文件没有被标记，标记当前文件
-			vim.g.debug_file = file
-			print("Debug file set to: " .. file)
-			require("neo-tree.sources.manager").refresh("filesystem")
-		end
-	else
-		print("No file to mark!")
-	end
+	require("autoload.debug_filemarks").toggle_debug_file()
 end, { noremap = true, silent = true })
 
 vim.keymap.set("n", "<leader>cp", function()

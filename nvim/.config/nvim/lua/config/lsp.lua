@@ -71,9 +71,32 @@ end
 
 -- 设置按键映射
 local function set_keymaps(buf, _)
+	local copy_lsp_diagnostics = function()
+		local line = vim.fn.line(".") - 1 -- 获取当前光标所在的行号（Lua 索引从 0 开始）
+		local diagnostics = vim.diagnostic.get(0, { lnum = line }) -- 获取当前行的诊断信息
+		local diagnostic_msgs = {}
+		for _, diag in ipairs(diagnostics) do
+			table.insert(diagnostic_msgs, diag.message) -- 提取报错信息
+		end
+		if #diagnostic_msgs > 0 then
+			local message = table.concat(diagnostic_msgs, "\n") -- 将报错信息合并为字符串
+			vim.fn.setreg("+", message)
+			print("LSP Diagnostic at cursor copied to clipboard!")
+		else
+			print("No LSP Diagnostics at cursor!")
+		end
+	end
+
 	local keymaps = {
 		{ "<leader>ld", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
 		{ "<leader>cl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭LSP客户端" },
+		{
+			"<leader>yd",
+			function()
+				copy_lsp_diagnostics()
+			end,
+			"Copy LSP Diagnostic at cursor",
+		},
 		{
 			"<localleader>d",
 			"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
