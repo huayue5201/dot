@@ -21,7 +21,7 @@ return {
 		})
 
 		-- 加载dap调试配置
-		require("dap.rust-mcu")
+		require("dap.openocd")
 		local dap = require("dap")
 		local widgets = require("dap.ui.widgets")
 
