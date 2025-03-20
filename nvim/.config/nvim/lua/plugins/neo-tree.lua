@@ -68,14 +68,19 @@ return {
 					folder_open = "",
 					folder_empty = "󰜌",
 					provider = function(icon, node, state) -- default icon provider utilizes nvim-web-devicons if available
+						-- 处理文件图标
 						if node.type == "file" or node.type == "terminal" then
 							local success, web_devicons = pcall(require, "nvim-web-devicons")
 							local name = node.type == "terminal" and "terminal" or node.name
 							if success then
 								local devicon, hl = web_devicons.get_icon(name)
-								icon.text = devicon or icon.text
+								icon.text = devicon or icon.text -- 如果有图标就替换
 								icon.highlight = hl or icon.highlight
 							end
+						end
+						if node.path == vim.g.debug_file then
+							icon.text = icon.text .. " 🔹"
+							icon.highlight = icon.highlight or "NeoTreeFileNameOpened" -- 设置高亮
 						end
 					end,
 					-- The next two settings are only a fallback, if you use nvim-web-devicons and configure default icons there
@@ -176,6 +181,25 @@ return {
 					nowait = true,
 				},
 				mappings = {
+					["<A-b>"] = function(state)
+						local node = state.tree:get_node()
+						if node.type == "file" then
+							-- 切换标记状态
+							if vim.g.debug_file == node.path then
+								vim.g.debug_file = nil -- 取消标记
+								print("Debug file removed!")
+							else
+								vim.g.debug_file = node.path -- 标记当前文件
+								print("Debug file set to: " .. node.path)
+							end
+
+							-- 立即刷新 `neo-tree`，确保 UI 更新
+							require("neo-tree.sources.manager").refresh("filesystem")
+						else
+							print("Not a file!")
+						end
+					end,
+					["O"] = "system_open",
 					["<space>"] = {
 						"toggle_node",
 						nowait = true, -- disable `nowait` if you have existing combos starting with this char that you want to use
@@ -237,7 +261,6 @@ return {
 					--   --   modified_format = function(seconds) return require('neo-tree.utils').relative_date(seconds) end
 					--   -- }
 					-- },
-					["O"] = "system_open",
 					["P"] = {
 						"toggle_preview",
 						config = {
