@@ -5,7 +5,7 @@
 
 return {
 	"mfussenegger/nvim-dap",
-	lazy = "true",
+	event = "BufReadPost",
 	dependencies = {
 		{ "igorlfs/nvim-dap-view", opts = {} },
 	},
@@ -30,7 +30,7 @@ return {
 
 		vim.keymap.set(
 			"n",
-			"<leader>dib",
+			"<leader>ib",
 			function()
 				vim.ui.input(
 					{ prompt = "Breakpoint condition: " }, -- 弹出框提示语

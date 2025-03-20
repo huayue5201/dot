@@ -192,7 +192,6 @@ return {
 								vim.g.debug_file = node.path -- 标记当前文件
 								print("Debug file set to: " .. node.path)
 							end
-
 							-- 立即刷新 `neo-tree`，确保 UI 更新
 							require("neo-tree.sources.manager").refresh("filesystem")
 						else
@@ -412,20 +411,29 @@ return {
 						},
 					},
 				},
-				event_handlers = {
-					{
-						event = "after_render",
-						handler = function(state)
-							if state.current_position == "left" or state.current_position == "right" then
-								vim.api.nvim_win_call(state.winid, function()
-									local str = require("neo-tree.ui.selector").get()
-									if str then
-										_G.__cached_neo_tree_selector = str
-									end
-								end)
-							end
-						end,
-					},
+			},
+			event_handlers = {
+				{
+					event = "file_open_requested",
+					handler = function()
+						-- auto close
+						-- vim.cmd("Neotree close")
+						-- OR
+						require("neo-tree.command").execute({ action = "close" })
+					end,
+				},
+				{
+					event = "after_render",
+					handler = function(state)
+						if state.current_position == "left" or state.current_position == "right" then
+							vim.api.nvim_win_call(state.winid, function()
+								local str = require("neo-tree.ui.selector").get()
+								if str then
+									_G.__cached_neo_tree_selector = str
+								end
+							end)
+						end
+					end,
 				},
 			},
 		})
