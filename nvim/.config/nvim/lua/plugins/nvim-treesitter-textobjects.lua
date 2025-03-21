@@ -7,20 +7,30 @@ return {
 	config = function()
 		require("nvim-treesitter.configs").setup({
 			textobjects = {
+				move = {
+					enable = true,
+					set_jumps = true, -- whether to set jumps in the jumplist
+					goto_next_start = {
+						["]f"] = { query = "@function.outer", desc = "Next function start" },
+						["]s"] = { query = "@local.scope", query_group = "locals", desc = "Next scope" },
+						["]z"] = { query = "@fold", query_group = "folds", desc = "Next fold" },
+					},
+					goto_previous_start = {
+						["[f"] = { query = "@function.outer", desc = "Previous function start" },
+						["[s"] = { query = "@local.scope", query_group = "locals", desc = "Previous scope" },
+						["[z"] = { query = "@fold", query_group = "folds", desc = "Previous fold" },
+					},
+				},
 				select = {
 					enable = true,
-
 					-- Automatically jump forward to textobj, similar to targets.vim
 					lookahead = true,
-
 					keymaps = {
 						-- You can use the capture groups defined in textobjects.scm
-						["af"] = "@function.outer",
-						["if"] = "@function.inner",
-						["ac"] = "@class.outer",
+						["af"] = { query = "@function.outer", desc = "选择函数内部" },
+						["if"] = { query = "@function.inner", desc = "选择整个函数" },
 						-- You can optionally set descriptions to the mappings (used in the desc parameter of
 						-- nvim_buf_set_keymap) which plugins like which-key display
-						["ic"] = { query = "@class.inner", desc = "Select inner part of a class region" },
 						-- You can also use captures from other query groups like `locals.scm`
 						["as"] = { query = "@local.scope", query_group = "locals", desc = "Select language scope" },
 					},

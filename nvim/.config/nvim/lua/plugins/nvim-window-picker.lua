@@ -9,7 +9,7 @@ return {
 		require("window-picker").setup({
 			hint = "statusline-winbar",
 			filter_rules = {
-				include_current_win = true,
+				include_current_win = false,
 				autoselect_one = true,
 				-- 过滤规则：按文件类型和缓冲区类型过滤
 				bo = {
@@ -30,8 +30,7 @@ return {
 			if picked_window_id then
 				-- 获取缓冲区 ID
 				local buf_id = vim.api.nvim_win_get_buf(picked_window_id)
-				-- 执行 :bd 命令来删除缓冲区
-				vim.cmd("BufRemove" .. buf_id)
+				vim.cmd(string.format("bd %d", buf_id)) -- 正确传递缓冲区 ID
 				print("Buffer deleted!")
 			else
 				print("No window picked!")

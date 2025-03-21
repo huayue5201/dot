@@ -1,18 +1,26 @@
 local dap = require("dap")
-dap.adapters["openocd"] = {
-	type = "server",
-	host = "127.0.0.1",
-	port = 3333,
+
+-- Configure OpenOCD as the debug adapter
+dap.adapters.openocd = {
+	type = "executable",
+	command = "openocd",
+	args = {
+		-- "-f",
+		-- "board/ti_ek-tm4c123gxl.cfg",
+		"-f",
+		"interface/stlink.cfg",
+		"-f",
+		"target/stm32h7x.cfg",
+		-- "-c", "program target/thumbv7em-none-eabihf/debug/lets-try-again verify exit"
+	},
+	gdb_path = "arm-none-eabi-gdb",
 }
 
 dap.configurations.rust = {
 	{
-		name = "Debug with OpenOCD",
 		type = "openocd",
-		request = "attach",
-		cwd = "${workspaceFolder}",
-		gdbPath = "arm-none-eabi-gdb",
-		gdbTarget = "localhost:3333",
+		request = "launch",
+		name = "Debug with OpenOCD",
 		executable = function()
 			if vim.g.debug_file and vim.fn.filereadable(vim.g.debug_file) == 1 then
 				return vim.g.debug_file
@@ -21,7 +29,9 @@ dap.configurations.rust = {
 				return ""
 			end
 		end,
-		stopAtEntry = true,
-		timeout = 10000, -- 10 秒
+		target = ":3333",
+		cwd = "${workspaceFolder}",
+		stopAtBeginningOfMainSubprogram = true,
+		command = "continue",
 	},
 }
