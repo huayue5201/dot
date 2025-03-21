@@ -11,6 +11,7 @@ return {
 		"nvim-lua/plenary.nvim",
 		"echasnovski/mini.icons",
 		"MunifTanjim/nui.nvim",
+		"s1n7ax/nvim-window-picker",
 	},
 	config = function()
 		require("neo-tree").setup({
