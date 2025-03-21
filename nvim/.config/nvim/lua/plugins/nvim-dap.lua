@@ -8,14 +8,20 @@ return {
 	dependencies = {
 		-- https://github.com/igorlfs/nvim-dap-view
 		{ "igorlfs/nvim-dap-view", opts = {} },
+		-- https://github.com/theHamsta/nvim-dap-virtual-text
+		"theHamsta/nvim-dap-virtual-text",
 	},
 	config = function()
+		-- repl 自动补全支持
+		vim.cmd([[  au FileType dap-repl lua require('dap.ext.autocompl').attach()]])
+
 		local signs = {
-			DapBreakpoint = { text = "🔴", texthl = "DapBreakpoint" },
-			DapBreakpointCondition = { text = "🟡", texthl = "DapBreakpointCondition" },
-			DapBreakpointRejected = { text = "⭕", texthl = "DapBreakpointRejected" },
-			DapStopped = {
-				text = " ",
+			DapBreakpoint = { text = "🔴", texthl = "DapBreakpoint" }, -- 断点
+			DapBreakpointCondition = { text = "🟡", texthl = "DapBreakpointCondition" }, -- 条件断点
+			DapBreakpointRejected = { text = "⭕", texthl = "DapBreakpointRejected" }, -- 拒绝断点
+			DapLogPoint = { text = "⚪", texthl = "DapLogPoint" }, -- 日志点
+			DapStopped = { -- 停止位置
+				text = "🔶",
 				texthl = "DapBreakpoint",
 				linehl = "DapCurrentLine",
 				numhl = "DiagnosticSignWarn",
@@ -26,61 +32,99 @@ return {
 		end
 
 		-- 加载dap调试配置
-		-- require("dap.probe-rs")
 		local dap = require("dap")
+		-- require("dap.probe-rs")
+		require("nvim-dap-virtual-text").setup()
 		-- require("dap.ext.vscode").load_launchjs()
 		local widgets = require("dap.ui.widgets")
 
-		-- 设置/删除断点
-		vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "Conditional Breakpoint" })
+		dap.defaults.fallback = {
+			terminal_win_cmd = "50vsplit new", -- 使用集成终端
+			focus_terminal = true, -- 自动聚焦终端
+			-- force_external_terminal = true, -- 强制使用外部终端
+			-- external_terminal = {
+			-- 	command = "/usr/bin/alacritty", -- 外部终端的命令
+			-- 	args = { "-e" }, -- 传递的参数
+			-- },
+		}
 
-		vim.keymap.set(
-			"n",
-			"<leader>ib",
-			function()
-				vim.ui.input(
-					{ prompt = "Breakpoint condition: " }, -- 弹出框提示语
-					function(input)
-						require("dap").set_breakpoint(input) -- 设置条件断点
-					end
-				)
-			end,
-			{ desc = "Conditional Breakpoint" } -- 快捷键描述
-		)
+		vim.keymap.set("n", "<A-b>", dap.toggle_breakpoint, { silent = true, desc = "断点" })
 
-		vim.keymap.set("n", "<leader>od", dap.continue, { silent = true, desc = "DAP Continue" })
+		vim.keymap.set("n", "<leader>bp", function()
+			vim.ui.input({ prompt = "断点条件: " }, function(input)
+				require("dap").set_breakpoint(input)
+			end)
+		end, { desc = "条件断点" })
 
-		vim.keymap.set(
-			"n", -- 正常模式
-			"<leader>dl", -- 按键设置为 F17
-			function()
-				require("dap").run_last() -- 运行上次的调试会话
-			end,
-			{ desc = "Run Last" } -- 快捷键描述
-		)
+		vim.keymap.set("n", "<Leader>bl", function()
+			dap.set_breakpoint(nil, nil, vim.fn.input("日志点消息: "))
+		end, { silent = true, desc = "日志点" })
 
-		vim.keymap.set("n", "<leader>do", dap.step_over, { silent = true, desc = "Step Over" })
+		vim.keymap.set("n", "<A-b>", dap.set_exception_breakpoints, { silent = true, desc = "异常断点" })
 
-		vim.keymap.set("n", "<leader>di", dap.step_into, { silent = true, desc = "Step Into" })
+		vim.keymap.set("n", "<leader>be", dap.set_exception_breakpoints, { silent = true, desc = "异常断点" })
 
-		vim.keymap.set("n", "<leader>dt", dap.step_out, { silent = true, desc = "Step Out" })
+		vim.keymap.set("n", "<leader>rb", dap.clear_breakpoints, { silent = true, desc = "移除所有断点" })
 
-		vim.keymap.set("n", "<leader>dr", dap.repl.toggle, { silent = true, desc = "Toggle DAP REPL" })
+		vim.keymap.set("n", "<leader>rd", dap.terminate, { silent = true, desc = "终止会话" })
 
-		vim.keymap.set("n", "<leader>dc", dap.run_to_cursor, { silent = true, desc = "Run to Cursor" })
+		vim.keymap.set("n", "<leader>od", dap.continue, { silent = true, desc = "继续调试" })
+
+		vim.keymap.set("n", "<leader>dl", dap.run_last, { desc = "运行上次调试会话" })
+
+		vim.keymap.set("n", "<leader>do", dap.step_over, { silent = true, desc = "单步跳过" })
+
+		vim.keymap.set("n", "<leader>di", dap.step_into, { silent = true, desc = "单步进入" })
+
+		vim.keymap.set("n", "<leader>du", dap.step_out, { silent = true, desc = "单步跳出" })
+
+		-- vim.keymap.set("n", "<leader>du", dap.step_back, { silent = true, desc = "逆向调试" })
+		-- vim.keymap.set("n", "<leader>du", dap.reverse_continue, { silent = true, desc = "逆向到最后一个断点" })
+		-- vim.keymap.set("n", "<leader>", dap.restart_frame, { silent = true, desc = "重新执行堆栈帧" })
+		-- vim.keymap.set("n", "[", dap.up, { silent = true, desc = "跳到上一个断点" })
+		-- vim.keymap.set("n", "]", dap.down, { silent = true, desc = "跳到一个断点" })
+		-- vim.keymap.set("n", "]", dap.goto_, { silent = true, desc = "跳到指定行" })
+		-- vim.keymap.set("n", "]", dap.pause, { silent = true, desc = "暂停线程" })
+
+		vim.keymap.set("n", "<leader>dc", dap.run_to_cursor, { silent = true, desc = "运行到光标处" })
+
+		vim.keymap.set("n", "<leader>dr", dap.repl.toggle, { silent = true, desc = "切换 DAP REPL" })
+
+		vim.keymap.set("n", "<leader>dq", dap.list_breakpoints, { silent = true, desc = "列出所有断点" })
 
 		vim.keymap.set("n", "<leader>dk", function()
 			widgets.hover(nil, { border = "rounded" })
-		end, { desc = "Hover variable value" })
+		end, { desc = "查看变量值" })
 
-		vim.keymap.set("n", "<leader>dp", widgets.preview, { desc = "Preview variable value" })
+		vim.keymap.set("n", "<leader>ds", function()
+			widgets.cursor_float(widgets.scopes, { border = "shadow" })
+		end, { desc = "显示作用域的浮动窗口" })
+
+		vim.keymap.set("n", "<leader>dt", function()
+			widgets.cursor_float(widgets.threads, { border = "shadow" })
+		end, { desc = "显示作用域的浮动窗口" })
 
 		vim.keymap.set("n", "<leader>df", function()
-			widgets.centered_float(widgets.scopes, { border = "shadow" })
-		end, { desc = "Centered float for scopes" })
+			widgets.cursor_float(widgets.frames, { border = "shadow" })
+		end, { desc = "显示堆栈" })
 
 		vim.keymap.set("n", "<leader>dv", function()
 			require("dap-view").toggle()
 		end, { desc = "Toggle nvim-dap-view" })
+
+		-- 退出neovim自动终止调试进程
+		vim.api.nvim_create_autocmd("VimLeave", {
+			callback = function()
+				-- 通过系统命令关闭 OpenOCD
+				vim.fn.system("pkill openocd")
+			end,
+		})
+
+		-- TODO:
+		-- session() dap.session()
+		-- 返回当前的调试会话，如果没有会话则返回 nil。
+		-- status()
+		-- 返回当前调试会话的状态文本。
+		-- 如果没有活动的调试会话，结果将为空。
 	end,
 }

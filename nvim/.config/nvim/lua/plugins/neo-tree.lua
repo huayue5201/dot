@@ -197,7 +197,7 @@ return {
 							vim.cmd("edit " .. vim.fn.fnameescape(node.path))
 						end
 					end,
-					["<A-b>"] = function(state)
+					["<A-a>"] = function(state)
 						local node = state.tree:get_node()
 						if node.type == "file" then
 							-- 切换标记状态

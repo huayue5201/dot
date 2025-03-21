@@ -67,6 +67,6 @@ end
 load_debug_file()
 
 -- 映射调试文件切换功能
-vim.keymap.set("n", "<A-b>", function()
+vim.keymap.set("n", "<A-a>", function()
 	toggle_debug_file()
 end, { noremap = true, silent = true })
