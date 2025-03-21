@@ -58,11 +58,22 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 	local buflisted = fn.getbufinfo({ buflisted = 1 })
 	-- 获取当前窗口和缓冲区的编号
 	local cur_winnr, cur_bufnr = fn.winnr(), fn.bufnr()
+
+	-- 获取当前窗口的布局信息
+	local layout = fn.winlayout()
+
+	-- 如果是分屏，直接退出缓冲
+	if layout[1] ~= "leaf" then
+		cmd("bd")
+		return
+	end
+
 	-- 如果缓冲区数目少于 2，使用 confirm 来确认退出
 	if #buflisted < 2 then
 		cmd("confirm qall")
 		return
 	end
+
 	-- 遍历当前缓冲区在所有窗口的显示情况
 	for _, winid in ipairs(fn.getbufinfo(cur_bufnr)[1].windows) do
 		-- 切换到当前缓冲区所在的窗口
@@ -70,6 +81,7 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 		-- 如果是最后一个缓冲区，切换到前一个缓冲区，否则切换到下一个缓冲区
 		cmd(cur_bufnr == buflisted[#buflisted].bufnr and "bp" or "bn")
 	end
+
 	-- 切换回原始窗口
 	cmd(string.format("%d wincmd w", cur_winnr))
 	-- 判断当前缓冲区是否是一个终端缓冲区
