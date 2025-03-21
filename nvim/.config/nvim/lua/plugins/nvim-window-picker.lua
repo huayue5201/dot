@@ -2,20 +2,18 @@
 
 return {
 	"s1n7ax/nvim-window-picker", -- for open_with_window_picker keymaps
-	event = "VeryLazy",
+	event = "WinNew",
 	version = "2.*",
 	config = function()
 		-- 配置 window-picker 插件
 		require("window-picker").setup({
 			hint = "statusline-winbar",
 			filter_rules = {
-				include_current_win = false, -- 不包括当前窗口
-				autoselect_one = true, -- 自动选择一个窗口
+				include_current_win = true,
+				autoselect_one = true,
 				-- 过滤规则：按文件类型和缓冲区类型过滤
 				bo = {
-					-- 如果文件类型是以下之一，窗口将被忽略
 					filetype = { "neo-tree", "neo-tree-popup", "notify" },
-					-- 如果缓冲区类型是以下之一，窗口将被忽略
 					buftype = { "terminal", "quickfix" },
 				},
 			},

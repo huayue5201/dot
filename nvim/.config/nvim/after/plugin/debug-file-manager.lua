@@ -1,4 +1,4 @@
-local M = {}
+-- ~/.config/nvim/lua/plugins/debug_file_manager.lua
 
 local filepath = vim.fn.stdpath("cache") .. "/debug_file.txt"
 
@@ -11,7 +11,7 @@ local ensure_directory_exists = function(path)
 end
 
 -- 创建并写入文件，直接覆盖之前的记录
-M.save_debug_file = function()
+local save_debug_file = function()
 	-- 检查 vim.g.debug_file 是否为 nil 或空字符串
 	if not vim.g.debug_file or vim.g.debug_file == "" then
 		print("No debug file to save!")
@@ -33,7 +33,7 @@ M.save_debug_file = function()
 end
 
 -- 加载已保存的 debug 文件路径
-M.load_debug_file = function()
+local load_debug_file = function()
 	local file = io.open(filepath, "r")
 	if file then
 		local line = file:read("*line")
@@ -45,17 +45,17 @@ M.load_debug_file = function()
 end
 
 -- 设置 debug 文件路径
-M.set_debug_file = function(file)
+local set_debug_file = function(file)
 	vim.g.debug_file = file
 	print("Debug file set to: " .. file)
 end
 
 -- 切换 debug 文件标记
-M.toggle_debug_file = function()
+local toggle_debug_file = function()
 	local file = vim.fn.expand("%:p") -- 获取当前文件的完整路径
 	if file ~= "" then
-		M.set_debug_file(file) -- 设置或覆盖 debug 文件标记
-		M.save_debug_file() -- 保存 debug 文件路径
+		set_debug_file(file) -- 设置或覆盖 debug 文件标记
+		save_debug_file() -- 保存 debug 文件路径
 		-- 刷新 UI
 		require("neo-tree.sources.manager").refresh("filesystem")
 	else
@@ -63,4 +63,10 @@ M.toggle_debug_file = function()
 	end
 end
 
-return M
+-- 自动加载已保存的 debug 文件路径
+load_debug_file()
+
+-- 映射调试文件切换功能
+vim.keymap.set("n", "<A-b>", function()
+	toggle_debug_file()
+end, { noremap = true, silent = true })

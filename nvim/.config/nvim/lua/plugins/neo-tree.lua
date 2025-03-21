@@ -182,6 +182,21 @@ return {
 					nowait = true,
 				},
 				mappings = {
+					["w"] = function(state)
+						local node = state.tree:get_node()
+						local success, picker = pcall(require, "window-picker")
+						if not success then
+							print(
+								"You'll need to install window-picker to use this command: https://github.com/s1n7ax/nvim-window-picker"
+							)
+							return
+						end
+						local picked_window_id = picker.pick_window()
+						if picked_window_id then
+							vim.api.nvim_set_current_win(picked_window_id)
+							vim.cmd("edit " .. vim.fn.fnameescape(node.path))
+						end
+					end,
 					["<A-b>"] = function(state)
 						local node = state.tree:get_node()
 						if node.type == "file" then
@@ -216,7 +231,7 @@ return {
 					["t"] = "open_tabnew",
 					-- ["<cr>"] = "open_drop",
 					-- ["t"] = "open_tab_drop",
-					["w"] = "open_with_window_picker",
+					-- ["w"] = "open_with_window_picker",
 					--["P"] = "toggle_preview", -- enter preview mode, which shows the current node without focusing
 					["C"] = "close_node",
 					-- ['C'] = 'close_all_subnodes',

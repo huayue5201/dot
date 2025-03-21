@@ -30,12 +30,6 @@ vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "切�
 vim.keymap.set({ "v", "n" }, "<A-c>", '"+y', { silent = true, desc = "复制<系统剪贴板>" })
 vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
 
--- 映射调试文件切换功能
-require("config.dap").load_debug_file()
-vim.keymap.set("n", "<A-b>", function()
-	require("config.dap").toggle_debug_file()
-end, { noremap = true, silent = true })
-
 vim.keymap.set("n", "<leader>cp", function()
 	vim.fn.setreg("+", vim.fn.expand("%:p"))
 	print("Copied: " .. vim.fn.expand("%:p"))
