@@ -79,59 +79,8 @@ return {
 			widgets.centered_float(widgets.scopes, { border = "shadow" })
 		end, { desc = "Centered float for scopes" })
 
-		-- 在会话处于活动状态时，将K映射到悬停
-		local api = vim.api
-		local keymap_restore = {}
-		dap.listeners.after["event_initialized"]["me"] = function()
-			for _, buf in pairs(api.nvim_list_bufs()) do
-				local keymaps = api.nvim_buf_get_keymap(buf, "n")
-				for _, keymap in pairs(keymaps) do
-					if keymap.lhs == "K" then
-						table.insert(keymap_restore, keymap)
-						api.nvim_buf_del_keymap(buf, "n", "K")
-					end
-				end
-			end
-			api.nvim_set_keymap("n", "K", '<Cmd>lua require("dap.ui.widgets").hover()<CR>', { silent = true })
-		end
-		dap.listeners.after["event_terminated"]["me"] = function()
-			for _, keymap in pairs(keymap_restore) do
-				if keymap.rhs then
-					api.nvim_buf_set_keymap(
-						keymap.buffer,
-						keymap.mode,
-						keymap.lhs,
-						keymap.rhs,
-						{ silent = keymap.silent == 1 }
-					)
-				elseif keymap.callback then
-					vim.keymap.set(
-						keymap.mode,
-						keymap.lhs,
-						keymap.callback,
-						{ buffer = keymap.buffer, silent = keymap.silent == 1 }
-					)
-				end
-			end
-			keymap_restore = {}
-		end
-
 		vim.keymap.set("n", "<leader>dv", function()
 			require("dap-view").toggle()
 		end, { desc = "Toggle nvim-dap-view" })
-
-		local dap, dv = require("dap"), require("dap-view")
-		dap.listeners.before.attach["dap-view-config"] = function()
-			dv.open()
-		end
-		dap.listeners.before.launch["dap-view-config"] = function()
-			dv.open()
-		end
-		dap.listeners.before.event_terminated["dap-view-config"] = function()
-			dv.close()
-		end
-		dap.listeners.before.event_exited["dap-view-config"] = function()
-			dv.close()
-		end
 	end,
 }
