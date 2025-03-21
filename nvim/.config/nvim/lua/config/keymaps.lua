@@ -9,7 +9,7 @@ end, { expr = true, desc = "删除当前行（空行使用黑洞寄存器）" })
 
 vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
 
-vim.keymap.set("n", "<leader>w", "<cmd>w<cr>", { silent = true, desc = "保存buffer" })
+vim.keymap.set("n", "<leader>a", "<cmd>w<cr>", { silent = true, desc = "保存buffer" })
 
 -- vim.keymap.set("n", "<Leader>q", ":bp|bd#<cr>", { silent = true, desc = "退出buffer" })
 vim.keymap.set("n", "<Leader>q", "<cmd>BufRemove<cr>", { silent = true, desc = "退出buffer" })
@@ -31,9 +31,9 @@ vim.keymap.set({ "v", "n" }, "<A-c>", '"+y', { silent = true, desc = "复制<系
 vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
 
 -- 映射调试文件切换功能
-require("autoload.debug_filemarks").load_debug_file()
+require("config.dap").load_debug_file()
 vim.keymap.set("n", "<A-b>", function()
-	require("autoload.debug_filemarks").toggle_debug_file()
+	require("config.dap").toggle_debug_file()
 end, { noremap = true, silent = true })
 
 vim.keymap.set("n", "<leader>cp", function()
