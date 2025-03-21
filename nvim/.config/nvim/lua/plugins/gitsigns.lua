@@ -21,14 +21,14 @@ return {
 					else
 						gitsigns.nav_hunk("next")
 					end
-				end)
+				end, { desc = "跳转到上一处更改" })
 				map("n", "[h", function()
 					if vim.wo.diff then
 						vim.cmd.normal({ "[h", bang = true })
 					else
 						gitsigns.nav_hunk("prev")
 					end
-				end)
+				end, { desc = "跳转到下一处更改" })
 
 				map("n", "<leader>hs", gitsigns.stage_buffer, { desc = "暂存更改" })
 				map("v", "<leader>hs", function()

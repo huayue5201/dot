@@ -12,7 +12,7 @@ vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更
 vim.keymap.set("n", "<leader>a", "<cmd>w<cr>", { silent = true, desc = "保存buffer" })
 
 -- vim.keymap.set("n", "<Leader>q", ":bp|bd#<cr>", { silent = true, desc = "退出buffer" })
-vim.keymap.set("n", "<Leader>q", "<cmd>BufRemove<cr>", { silent = true, desc = "退出buffer" })
+vim.keymap.set("n", "<Leader>q", "<cmd>DeleteBuffer<cr>", { silent = true, desc = "退出buffer" })
 
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { silent = true, desc = "创建新的标签页" })
 
@@ -30,17 +30,17 @@ vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "切�
 vim.keymap.set({ "v", "n" }, "<A-c>", '"+y', { silent = true, desc = "复制<系统剪贴板>" })
 vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
 
-vim.keymap.set("n", "<leader>cp", function()
+vim.keymap.set("n", "<leader>yp", function()
 	vim.fn.setreg("+", vim.fn.expand("%:p"))
 	print("Copied: " .. vim.fn.expand("%:p"))
 end, { silent = true, desc = "复制绝对路径" })
 
-vim.keymap.set("n", "<leader>cf", function()
+vim.keymap.set("n", "<leader>yf", function()
 	vim.fn.setreg("+", vim.fn.expand("%:f"))
 	print("Copied: " .. vim.fn.expand("%:f"))
 end, { silent = true, desc = "复制相对路径" })
 
-vim.keymap.set("n", "<leader>ct", function()
+vim.keymap.set("n", "<leader>yt", function()
 	vim.fn.setreg("+", vim.fn.expand("%:t"))
 	print("Copied: " .. vim.fn.expand("%:t"))
 end, { silent = true, desc = "复制文件名" })

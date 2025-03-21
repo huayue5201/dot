@@ -26,7 +26,9 @@ return {
 		end
 
 		-- 加载dap调试配置
+		-- require("dap.probe-rs")
 		local dap = require("dap")
+		-- require("dap.ext.vscode").load_launchjs()
 		local widgets = require("dap.ui.widgets")
 
 		-- 设置/删除断点
@@ -46,26 +48,22 @@ return {
 			{ desc = "Conditional Breakpoint" } -- 快捷键描述
 		)
 
-		vim.keymap.set("n", "<leader>dv", function()
-			require("dap-view").toggle()
-		end, { desc = "Toggle nvim-dap-view" })
-
 		vim.keymap.set("n", "<leader>od", dap.continue, { silent = true, desc = "DAP Continue" })
 
 		vim.keymap.set(
 			"n", -- 正常模式
-			"<F7>", -- 按键设置为 F17
+			"<leader>dl", -- 按键设置为 F17
 			function()
 				require("dap").run_last() -- 运行上次的调试会话
 			end,
 			{ desc = "Run Last" } -- 快捷键描述
 		)
 
-		vim.keymap.set("n", "<F10>", dap.step_over, { silent = true, desc = "Step Over" })
+		vim.keymap.set("n", "<leader>do", dap.step_over, { silent = true, desc = "Step Over" })
 
-		vim.keymap.set("n", "<F11>", dap.step_into, { silent = true, desc = "Step Into" })
+		vim.keymap.set("n", "<leader>di", dap.step_into, { silent = true, desc = "Step Into" })
 
-		vim.keymap.set("n", "<F12>", dap.step_out, { silent = true, desc = "Step Out" })
+		vim.keymap.set("n", "<leader>dt", dap.step_out, { silent = true, desc = "Step Out" })
 
 		vim.keymap.set("n", "<leader>dr", dap.repl.toggle, { silent = true, desc = "Toggle DAP REPL" })
 
@@ -80,5 +78,60 @@ return {
 		vim.keymap.set("n", "<leader>df", function()
 			widgets.centered_float(widgets.scopes, { border = "shadow" })
 		end, { desc = "Centered float for scopes" })
+
+		-- 在会话处于活动状态时，将K映射到悬停
+		local api = vim.api
+		local keymap_restore = {}
+		dap.listeners.after["event_initialized"]["me"] = function()
+			for _, buf in pairs(api.nvim_list_bufs()) do
+				local keymaps = api.nvim_buf_get_keymap(buf, "n")
+				for _, keymap in pairs(keymaps) do
+					if keymap.lhs == "K" then
+						table.insert(keymap_restore, keymap)
+						api.nvim_buf_del_keymap(buf, "n", "K")
+					end
+				end
+			end
+			api.nvim_set_keymap("n", "K", '<Cmd>lua require("dap.ui.widgets").hover()<CR>', { silent = true })
+		end
+		dap.listeners.after["event_terminated"]["me"] = function()
+			for _, keymap in pairs(keymap_restore) do
+				if keymap.rhs then
+					api.nvim_buf_set_keymap(
+						keymap.buffer,
+						keymap.mode,
+						keymap.lhs,
+						keymap.rhs,
+						{ silent = keymap.silent == 1 }
+					)
+				elseif keymap.callback then
+					vim.keymap.set(
+						keymap.mode,
+						keymap.lhs,
+						keymap.callback,
+						{ buffer = keymap.buffer, silent = keymap.silent == 1 }
+					)
+				end
+			end
+			keymap_restore = {}
+		end
+
+		vim.keymap.set("n", "<leader>dv", function()
+			require("dap-view").toggle()
+		end, { desc = "Toggle nvim-dap-view" })
+
+		local dap, dv = require("dap"), require("dap-view")
+		dap.listeners.before.attach["dap-view-config"] = function()
+			dv.open()
+		end
+		dap.listeners.before.launch["dap-view-config"] = function()
+			dv.open()
+		end
+		dap.listeners.before.event_terminated["dap-view-config"] = function()
+			dv.close()
+		end
+		dap.listeners.before.event_exited["dap-view-config"] = function()
+			dv.close()
+		end
 	end,
 }

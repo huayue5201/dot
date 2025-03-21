@@ -14,7 +14,7 @@ return {
 			node_path = "node", -- path to node.js executable
 			dapui_rtt = false, -- register nvim-dap-ui RTT element
 			-- make :DapLoadLaunchJSON register cortex-debug for C/C++, set false to disable
-			dap_vscode_filetypes = { "c", "cpp" },
+			dap_vscode_filetypes = { "c", "cpp", "rust" },
 			-- rtt = {
 			-- 	buftype = "Terminal", -- 'Terminal' or 'BufTerminal' for terminal buffer vs normal buffer
 			-- },
@@ -24,15 +24,15 @@ return {
 			{
 				name = "Example debugging with OpenOCD",
 				type = "cortex-debug",
-				request = "launch",
+				request = "attach",
 				servertype = "openocd",
 				serverpath = "openocd",
-				gdbPath = "arm-none-eabi-gdb",
-				toolchainPath = "/usr/bin",
+				gdbPath = "/opt/homebrew/bin/arm-none-eabi-gdb",
+				toolchainPath = "/opt/homebrew/bin",
 				toolchainPrefix = "arm-none-eabi",
 				runToEntryPoint = "main",
-				swoConfig = { enabled = false },
-				showDevDebugOutput = false,
+				swoConfig = { enabled = true },
+				showDevDebugOutput = true,
 				gdbTarget = "localhost:3333",
 				cwd = "${workspaceFolder}",
 				-- executable = "${workspaceFolder}target/thumbv7em-none-eabihf/debug/stm32h750v",
@@ -44,7 +44,7 @@ return {
 						return ""
 					end
 				end,
-				configFiles = { "/Users/lijia/stm32_project/stm32h750v/openocd.cfg" },
+				configFiles = { "interface/stlink.cfg", "target/stm32h7x.cfg" },
 				rttConfig = {
 					address = "auto",
 					decoders = {

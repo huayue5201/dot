@@ -51,59 +51,32 @@ end, { desc = "切换窗口", nargs = "?" })
 -- ===========================
 -- 关闭缓冲
 -- ===========================
-vim.api.nvim_create_user_command("BufRemove", function(opts)
+vim.api.nvim_create_user_command("DeleteBuffer", function()
 	local fn = vim.fn
-	local buf = opts.args == "" and fn.bufnr() or tonumber(opts.args)
-	buf = buf or 0
-	buf = buf == 0 and vim.api.nvim_get_current_buf() or buf
-	-- 检查当前缓冲区是否已修改
-	if vim.bo.modified then
-		local choice = vim.fn.confirm(("Save changes to %q?"):format(vim.fn.bufname(buf)), "&Yes\n&No\n&Cancel")
-		if choice == 0 or choice == 3 then -- 0 for <Esc>/<C-c> and 3 for Cancel
-			return
-		end
-		if choice == 1 then -- Yes
-			vim.cmd.write()
-		end
+	local cmd = vim.cmd
+	-- 获取所有列出的缓冲区
+	local buflisted = fn.getbufinfo({ buflisted = 1 })
+	-- 获取当前窗口和缓冲区的编号
+	local cur_winnr, cur_bufnr = fn.winnr(), fn.bufnr()
+	-- 如果缓冲区数目少于 2，使用 confirm 来确认退出
+	if #buflisted < 2 then
+		cmd("confirm qall")
+		return
 	end
-	-- 获取当前缓冲区所在的所有窗口
-	for _, win in ipairs(fn.win_findbuf(buf)) do
-		vim.api.nvim_win_call(win, function()
-			if not vim.api.nvim_win_is_valid(win) or vim.api.nvim_win_get_buf(win) ~= buf then
-				return
-			end
-			-- 检查当前窗口是否为分屏窗口
-			local win_count = #vim.api.nvim_list_wins()
-			if win_count > 1 then
-				vim.api.nvim_win_close(win, true) -- 关闭当前窗口
-				return
-			end
-			-- 尝试使用备用缓冲区
-			local alt = fn.bufnr("#")
-			if alt ~= buf and fn.buflisted(alt) == 1 then
-				vim.api.nvim_win_set_buf(win, alt)
-				return
-			end
-			-- 尝试使用上一个缓冲区
-			local has_previous = pcall(function()
-				vim.cmd("bprevious")
-			end)
-			if has_previous and buf ~= vim.api.nvim_win_get_buf(win) then
-				return
-			end
-			-- 创建新的缓冲区并设置为当前窗口缓冲区
-			local new_buf = vim.api.nvim_create_buf(true, false)
-			vim.api.nvim_win_set_buf(win, new_buf)
-		end)
+	-- 遍历当前缓冲区在所有窗口的显示情况
+	for _, winid in ipairs(fn.getbufinfo(cur_bufnr)[1].windows) do
+		-- 切换到当前缓冲区所在的窗口
+		cmd(string.format("%d wincmd w", fn.win_id2win(winid)))
+		-- 如果是最后一个缓冲区，切换到前一个缓冲区，否则切换到下一个缓冲区
+		cmd(cur_bufnr == buflisted[#buflisted].bufnr and "bp" or "bn")
 	end
-	-- 删除缓冲区
-	if vim.api.nvim_buf_is_valid(buf) then
-		pcall(function()
-			vim.cmd("bdelete!" .. tostring(buf))
-		end)
-	end
+	-- 切换回原始窗口
+	cmd(string.format("%d wincmd w", cur_winnr))
+	-- 判断当前缓冲区是否是一个终端缓冲区
+	local is_terminal = fn.getbufvar(cur_bufnr, "&buftype") == "terminal"
+	-- 如果是终端缓冲区，强制删除；否则，使用 confirm 进行确认删除
+	cmd(is_terminal and "bd! #" or "silent! confirm bd #")
 end, {
-	-- 用户命令的参数
-	nargs = "?", -- 支持一个缓冲区编号作为参数，默认为当前缓冲区
-	desc = "Remove a buffer, with checks for unsaved changes and window handling",
+	desc = "Delete the current buffer with additional checks for unsaved changes and window management",
+	nargs = 0, -- 不需要参数
 })
