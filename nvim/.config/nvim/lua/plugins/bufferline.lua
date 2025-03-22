@@ -3,7 +3,7 @@
 return {
 	"akinsho/bufferline.nvim",
 	event = "VeryLazy",
-	dependencies = "echasnovski/mini.icons",
+	dependencies = "nvim-tree/nvim-web-devicons",
 	config = function()
 		_G.__cached_neo_tree_selector = nil
 		_G.__get_selector = function()

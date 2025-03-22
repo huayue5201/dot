@@ -31,13 +31,13 @@ return {
 			vim.fn.sign_define(name, opts)
 		end
 
+		-- require("dap.ext.vscode").load_launchjs() -- 和vscode公用配置
+		-- require("dap.probe-rs")
 		-- 加载dap调试配置
 		local dap = require("dap")
-		-- require("dap.probe-rs")
 		require("nvim-dap-virtual-text").setup()
 		local widgets = require("dap.ui.widgets")
 		local dv = require("dap-view")
-		-- require("dap.ext.vscode").load_launchjs() -- 和vscode公用配置
 
 		dv.windows = {
 			terminal = {
@@ -88,7 +88,7 @@ return {
 
 		vim.keymap.set("n", "<leader>rb", dap.clear_breakpoints, { silent = true, desc = "移除所有断点" })
 
-		vim.keymap.set("n", "<leader>rd", dap.terminate, { silent = true, desc = "终止会话" })
+		vim.keymap.set("n", "<leader>rd", dap.terminate, { silent = true, desc = "终止dap会话" })
 
 		vim.keymap.set("n", "<leader>od", dap.continue, { silent = true, desc = "继续调试" })
 
@@ -120,15 +120,15 @@ return {
 
 		vim.keymap.set("n", "<leader>ds", function()
 			widgets.cursor_float(widgets.scopes, { border = "shadow" })
-		end, { desc = "显示作用域的浮动窗口" })
+		end, { desc = "查看作用域" })
 
 		vim.keymap.set("n", "<leader>dt", function()
 			widgets.cursor_float(widgets.threads, { border = "shadow" })
-		end, { desc = "显示作用域的浮动窗口" })
+		end, { desc = "查看调试线程" })
 
 		vim.keymap.set("n", "<leader>df", function()
 			widgets.cursor_float(widgets.frames, { border = "shadow" })
-		end, { desc = "显示堆栈" })
+		end, { desc = "查看堆栈" })
 
 		vim.keymap.set("n", "<leader>dv", function()
 			require("dap-view").toggle()
