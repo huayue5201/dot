@@ -35,12 +35,36 @@ return {
 		local dap = require("dap")
 		-- require("dap.probe-rs")
 		require("nvim-dap-virtual-text").setup()
-		-- require("dap.ext.vscode").load_launchjs()
 		local widgets = require("dap.ui.widgets")
+		local dv = require("dap-view")
+		-- require("dap.ext.vscode").load_launchjs() -- 和vscode公用配置
+
+		dv.windows = {
+			terminal = {
+				-- NOTE Don't copy paste this snippet
+				-- Use the actual names for the adapters you want to hide
+				-- `go` is known to not use the terminal.
+				hide = { "rust", "some-other-adapter" },
+			},
+		}
+
+		dap.listeners.before.attach["dap-view-config"] = function()
+			dv.open()
+		end
+		dap.listeners.before.launch["dap-view-config"] = function()
+			dv.open()
+		end
+		dap.listeners.before.event_terminated["dap-view-config"] = function()
+			dv.close()
+		end
+		dap.listeners.before.event_exited["dap-view-config"] = function()
+			dv.close()
+		end
 
 		dap.defaults.fallback = {
 			terminal_win_cmd = "50vsplit new", -- 使用集成终端
 			focus_terminal = true, -- 自动聚焦终端
+			switchbuf = "useopen",
 			-- force_external_terminal = true, -- 强制使用外部终端
 			-- external_terminal = {
 			-- 	command = "/usr/bin/alacritty", -- 外部终端的命令
@@ -59,8 +83,6 @@ return {
 		vim.keymap.set("n", "<Leader>bl", function()
 			dap.set_breakpoint(nil, nil, vim.fn.input("日志点消息: "))
 		end, { silent = true, desc = "日志点" })
-
-		vim.keymap.set("n", "<A-b>", dap.set_exception_breakpoints, { silent = true, desc = "异常断点" })
 
 		vim.keymap.set("n", "<leader>be", dap.set_exception_breakpoints, { silent = true, desc = "异常断点" })
 
@@ -88,9 +110,9 @@ return {
 
 		vim.keymap.set("n", "<leader>dc", dap.run_to_cursor, { silent = true, desc = "运行到光标处" })
 
-		vim.keymap.set("n", "<leader>dr", dap.repl.toggle, { silent = true, desc = "切换 DAP REPL" })
-
 		vim.keymap.set("n", "<leader>dq", dap.list_breakpoints, { silent = true, desc = "列出所有断点" })
+
+		vim.keymap.set("n", "<leader>dr", dap.repl.toggle, { silent = true, desc = "DAP REPL" })
 
 		vim.keymap.set("n", "<leader>dk", function()
 			widgets.hover(nil, { border = "rounded" })
@@ -111,6 +133,42 @@ return {
 		vim.keymap.set("n", "<leader>dv", function()
 			require("dap-view").toggle()
 		end, { desc = "Toggle nvim-dap-view" })
+
+		local api = vim.api
+		local keymap_restore = {}
+		dap.listeners.after["event_initialized"]["me"] = function()
+			for _, buf in pairs(api.nvim_list_bufs()) do
+				local keymaps = api.nvim_buf_get_keymap(buf, "n")
+				for _, keymap in pairs(keymaps) do
+					if keymap.lhs == "K" then
+						table.insert(keymap_restore, keymap)
+						api.nvim_buf_del_keymap(buf, "n", "K")
+					end
+				end
+			end
+			api.nvim_set_keymap("n", "K", '<Cmd>lua require("dap.ui.widgets").hover()<CR>', { silent = true })
+		end
+		dap.listeners.after["event_terminated"]["me"] = function()
+			for _, keymap in pairs(keymap_restore) do
+				if keymap.rhs then
+					api.nvim_buf_set_keymap(
+						keymap.buffer,
+						keymap.mode,
+						keymap.lhs,
+						keymap.rhs,
+						{ silent = keymap.silent == 1 }
+					)
+				elseif keymap.callback then
+					vim.keymap.set(
+						keymap.mode,
+						keymap.lhs,
+						keymap.callback,
+						{ buffer = keymap.buffer, silent = keymap.silent == 1 }
+					)
+				end
+			end
+			keymap_restore = {}
+		end
 
 		-- 退出neovim自动终止调试进程
 		vim.api.nvim_create_autocmd("VimLeave", {
