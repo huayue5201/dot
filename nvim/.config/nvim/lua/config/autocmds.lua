@@ -120,7 +120,7 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 	pattern = "*",
 	callback = function()
 		-- 定义需要固定大小的窗口类型
-		local filetypes = { "floggraph", "fugitive", "NvimTree", "grug-far", "toggleterm" }
+		local filetypes = { "dap-float", "floggraph", "fugitive", "NvimTree", "grug-far", "toggleterm" }
 		local buftypes = { "nofile", "terminal", "acwrite" }
 		-- 判断当前窗口是否为不可替换窗口类型
 		if vim.tbl_contains(buftypes, vim.bo.buftype) and vim.tbl_contains(filetypes, vim.bo.filetype) then
