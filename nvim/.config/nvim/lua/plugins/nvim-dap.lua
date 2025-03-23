@@ -129,7 +129,7 @@ return {
 		end, { desc = "查看调试线程" })
 
 		vim.keymap.set("n", "<leader>df", function()
-			widgets.cursor_float(widgets.frames, { border = "shadow" })
+			widgets.cursor_float(widgets.frames, { border = "rounded" })
 		end, { desc = "查看堆栈" })
 
 		local api = vim.api

@@ -85,24 +85,7 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	desc = "用 q 关闭窗口或删除缓冲区",
 	pattern = "*",
 	callback = function()
-		local close_commands = {
-			help = ":close<cr>",
-			qf = ":close<cr>",
-			checkhealth = ":close<cr>",
-			man = ":quit<cr>",
-			toggleterm = ":close<cr>",
-			["grug-far"] = ":bdelete<cr>",
-			["minideps-confirm"] = ":bdelete<cr>",
-			terminal = ":close<cr>",
-			git = ":bdelete<cr>",
-			["dap-repl"] = ":close<cr>",
-			["dap-float"] = ":close<cr>",
-			nofile = ":bdelete<cr>",
-			fugitive = ":bdelete<cr>",
-			floggraph = ":bdelete<cr>",
-			["dap-view"] = ":close<cr>",
-			["dap-view-term"] = ":close<cr>",
-		}
+		local close_commands = require("config.utils").close_commands
 		local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype -- 优先 filetype，否则 buftype
 		local command = close_commands[current_type]
 		if command then

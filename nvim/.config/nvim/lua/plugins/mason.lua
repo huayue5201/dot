@@ -2,7 +2,7 @@
 
 return {
 	"williamboman/mason.nvim",
-	ft = { "lua", "tmol", "rust" },
+	ft = { "lua", "tmol", "rust", "c" },
 	cmd = "Mason",
 	config = function()
 		require("mason").setup({
