@@ -1,7 +1,5 @@
 -- https://github.com/mfussenegger/nvim-dap
 
--- 参考:https://github.com/wookayin/dotfiles/blob/master/nvim/lua/config/dap.lua
-
 return {
 	"mfussenegger/nvim-dap",
 	ft = { "rust", "c" },
@@ -72,6 +70,10 @@ return {
 			-- },
 		}
 
+		vim.keymap.set("n", "<leader>dv", function()
+			require("dap-view").toggle()
+		end, { desc = "Toggle nvim-dap-view" })
+
 		vim.keymap.set("n", "<A-b>", dap.toggle_breakpoint, { silent = true, desc = "断点" })
 
 		vim.keymap.set("n", "<leader>bp", function()
@@ -102,7 +104,7 @@ return {
 
 		-- vim.keymap.set("n", "<leader>du", dap.step_back, { silent = true, desc = "逆向调试" })
 		-- vim.keymap.set("n", "<leader>du", dap.reverse_continue, { silent = true, desc = "逆向到最后一个断点" })
-		-- vim.keymap.set("n", "<leader>", dap.restart_frame, { silent = true, desc = "重新执行堆栈帧" })
+		-- vim.keymap.set("n", "<leader>drf", dap.restart_frame, { silent = true, desc = "重新执行堆栈帧" })
 		-- vim.keymap.set("n", "[", dap.up, { silent = true, desc = "跳到上一个断点" })
 		-- vim.keymap.set("n", "]", dap.down, { silent = true, desc = "跳到一个断点" })
 		-- vim.keymap.set("n", "]", dap.goto_, { silent = true, desc = "跳到指定行" })
@@ -129,10 +131,6 @@ return {
 		vim.keymap.set("n", "<leader>df", function()
 			widgets.cursor_float(widgets.frames, { border = "shadow" })
 		end, { desc = "查看堆栈" })
-
-		vim.keymap.set("n", "<leader>dv", function()
-			require("dap-view").toggle()
-		end, { desc = "Toggle nvim-dap-view" })
 
 		local api = vim.api
 		local keymap_restore = {}

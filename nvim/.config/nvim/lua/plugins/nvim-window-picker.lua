@@ -3,7 +3,6 @@
 return {
 	"s1n7ax/nvim-window-picker", -- for open_with_window_picker keymaps
 	event = "WinNew",
-	version = "2.*",
 	config = function()
 		-- 配置 window-picker 插件
 		require("window-picker").setup({
@@ -35,7 +34,7 @@ return {
 			else
 				print("No window picked!")
 			end
-		end, { silent = true, desc = "删除选中的窗口的缓冲区" })
+		end, { silent = true, desc = "删除选中的窗口" })
 
 		vim.keymap.set("n", "<Leader>w", function()
 			local success, picker = pcall(require, "window-picker")

@@ -67,6 +67,6 @@ return {
 				copy_clipboard = true, -- Whether to copy to clipboard
 			},
 		})
-		vim.keymap.set("n", "<localleader>a", "<cmd>CtxIngest<cr>", { desc = "AI上下文复制" })
+		vim.keymap.set("n", "<localleader>a", "<cmd>CtxIngest<cr>", { desc = "LLMs上下文复制" })
 	end,
 }

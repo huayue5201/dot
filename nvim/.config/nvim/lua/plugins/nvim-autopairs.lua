@@ -6,7 +6,7 @@ return {
 	config = function()
 		local npairs = require("nvim-autopairs")
 		local Rule = require("nvim-autopairs.rule")
-		local ts_conds = require("nvim-autopairs.ts-conds")
+		-- local ts_conds = require("nvim-autopairs.ts-conds")
 		local cond = require("nvim-autopairs.conds")
 
 		-- change default fast_wrap
@@ -36,8 +36,8 @@ return {
 		local brackets = { { "(", ")" }, { "[", "]" }, { "{", "}" } }
 		-- press % => %% only while inside a comment or string
 		npairs.add_rules({
-			Rule("%", "%", "lua"):with_pair(ts_conds.is_ts_node({ "string", "comment" })),
-			Rule("$", "$", "lua"):with_pair(ts_conds.is_not_ts_node({ "function" })),
+			-- Rule("%", "%", "lua"):with_pair(ts_conds.is_ts_node({ "string", "comment" })),
+			-- Rule("$", "$", "lua"):with_pair(ts_conds.is_not_ts_node({ "function" })),
 			-- Rule for a pair with left-side ' ' and right side ' '
 			Rule(" ", " ")
 				-- Pair will only occur if the conditional function returns true
