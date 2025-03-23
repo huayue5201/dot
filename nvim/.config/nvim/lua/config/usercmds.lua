@@ -52,37 +52,52 @@ end, { desc = "切换窗口", nargs = "?" })
 -- 关闭缓冲
 -- ===========================
 vim.api.nvim_create_user_command("DeleteBuffer", function()
-	local fn = vim.fn
-	local cmd = vim.cmd
+	-- 引入 utils 模块，获取 close_commands 配置
+	local close_commands = require("config.utils").close_commands
 	-- 获取所有列出的缓冲区
-	local buflisted = fn.getbufinfo({ buflisted = 1 })
+	local buflisted = vim.fn.getbufinfo({ buflisted = 1 })
 	-- 获取当前窗口和缓冲区的编号
-	local cur_winnr, cur_bufnr = fn.winnr(), fn.bufnr()
+	local cur_winnr, cur_bufnr = vim.fn.winnr(), vim.fn.bufnr()
 	-- 获取当前窗口的布局信息
-	local layout = fn.winlayout()
-	-- 如果是分屏，直接退出缓冲
-	if layout[1] ~= "leaf" then
-		cmd("bd")
+	local layout = vim.fn.winlayout()
+	-- 获取当前缓冲区的类型（优先 filetype，否则 buftype）
+	local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
+	local command = close_commands[current_type]
+
+	-- 如果找到匹配的关闭命令，执行该命令并返回
+	if command then
+		command = command:gsub("<cr>", "")
+		vim.cmd(command)
 		return
 	end
+
+	-- 如果是分屏窗口，先检查 close_commands，再执行 `bd`
+	if layout[1] ~= "leaf" then
+		vim.cmd("bd")
+		return
+	end
+
 	-- 如果缓冲区数目少于 2，使用 confirm 来确认退出
 	if #buflisted < 2 then
-		cmd("confirm qall")
+		vim.cmd("confirm qall")
 		return
 	end
+
 	-- 遍历当前缓冲区在所有窗口的显示情况
-	for _, winid in ipairs(fn.getbufinfo(cur_bufnr)[1].windows) do
+	for _, winid in ipairs(vim.fn.getbufinfo(cur_bufnr)[1].windows) do
 		-- 切换到当前缓冲区所在的窗口
-		cmd(string.format("%d wincmd w", fn.win_id2win(winid)))
+		vim.cmd(string.format("%d wincmd w", vim.fn.win_id2win(winid)))
 		-- 如果是最后一个缓冲区，切换到前一个缓冲区，否则切换到下一个缓冲区
-		cmd(cur_bufnr == buflisted[#buflisted].bufnr and "bp" or "bn")
+		vim.cmd(cur_bufnr == buflisted[#buflisted].bufnr and "bp" or "bn")
 	end
+
 	-- 切换回原始窗口
-	cmd(string.format("%d wincmd w", cur_winnr))
+	vim.cmd(string.format("%d wincmd w", cur_winnr))
+
 	-- 判断当前缓冲区是否是一个终端缓冲区
-	local is_terminal = fn.getbufvar(cur_bufnr, "&buftype") == "terminal"
+	local is_terminal = vim.fn.getbufvar(cur_bufnr, "&buftype") == "terminal"
 	-- 如果是终端缓冲区，强制删除；否则，使用 confirm 进行确认删除
-	cmd(is_terminal and "bd! #" or "silent! confirm bd #")
+	vim.cmd(is_terminal and "bd! #" or "silent! confirm bd #")
 end, {
 	desc = "Delete the current buffer with additional checks for unsaved changes and window management",
 	nargs = 0, -- 不需要参数

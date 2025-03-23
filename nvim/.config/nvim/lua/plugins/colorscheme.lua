@@ -3,14 +3,16 @@
 
 return {
 	-- "oxfist/night-owl.nvim",
-	"EdenEast/nightfox.nvim",
+	-- "EdenEast/nightfox.nvim",
 	-- "RRethy/base16-nvim",
+	"tomasiser/vim-code-dark",
 	lazy = false, -- make sure we load this during startup if it is your main colorscheme
 	priority = 1000,
 	config = function()
 		-- require("night-owl").setup()
 		-- vim.cmd.colorscheme("night-owl")
-		vim.cmd("colorscheme nordfox")
+		-- vim.cmd("colorscheme nordfox")
+		vim.cmd.colorscheme("codedark")
 		-- vim.cmd("colorscheme base16-gruvbox-dark-soft")
 		-- require("base16-colorscheme").setup({
 		-- 	base00 = "#16161D",

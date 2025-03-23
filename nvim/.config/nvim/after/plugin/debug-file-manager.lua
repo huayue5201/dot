@@ -1,4 +1,5 @@
 -- ~/.config/nvim/lua/plugins/debug_file_manager.lua
+local M = {}
 
 local filepath = vim.fn.stdpath("cache") .. "/debug_file.txt"
 
@@ -51,7 +52,7 @@ local set_debug_file = function(file)
 end
 
 -- 切换 debug 文件标记
-local toggle_debug_file = function()
+M.toggle_debug_file = function()
 	local file = vim.fn.expand("%:p") -- 获取当前文件的完整路径
 	if file ~= "" then
 		set_debug_file(file) -- 设置或覆盖 debug 文件标记
@@ -68,5 +69,7 @@ load_debug_file()
 
 -- 映射调试文件切换功能
 vim.keymap.set("n", "<A-a>", function()
-	toggle_debug_file()
+	M.toggle_debug_file()
 end, { noremap = true, silent = true })
+
+return M
