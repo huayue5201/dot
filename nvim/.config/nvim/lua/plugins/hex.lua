@@ -3,9 +3,9 @@
 return {
 	"RaafatTurki/hex.nvim",
 	keys = {
-		{ "<localleader>hx" },
+		{ "<localleader>h" },
 	},
 	config = function()
-		vim.keymap.set("n", "<localleader>hx", "<cmd>lua require 'hex'.toggle() <CR>", { silent = true, desc = "" })
+		vim.keymap.set("n", "<localleader>h", "<cmd>lua require 'hex'.toggle() <CR>", { silent = true, desc = "" })
 	end,
 }

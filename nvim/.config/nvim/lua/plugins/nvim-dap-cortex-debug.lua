@@ -24,13 +24,14 @@ return {
 			{
 				name = "Example debugging with OpenOCD",
 				type = "cortex-debug",
-				request = "attach",
+				-- request = "attach",
+				request = "launch",
 				repl_lang = "rust",
 				-- pid = require("dap.utils").pick_process,
 				servertype = "openocd",
 				serverpath = "openocd",
-				gdbPath = "/opt/homebrew/bin/arm-none-eabi-gdb",
-				toolchainPath = "/opt/homebrew/bin",
+				gdbPath = "arm-none-eabi-gdb",
+				-- toolchainPath = "/opt/homebrew/bin",-- 工具链如果在当前系统环境变量中，可以省略
 				toolchainPrefix = "arm-none-eabi",
 				args = {}, -- 传递给调试会话的额外参数，当前为空
 				runToEntryPoint = "main",
@@ -38,7 +39,6 @@ return {
 				showDevDebugOutput = false,
 				gdbTarget = "localhost:3333",
 				cwd = "${workspaceFolder}",
-				-- executable = "${workspaceFolder}target/thumbv7em-none-eabihf/debug/stm32h750v",
 				executable = function()
 					if vim.g.debug_file and vim.fn.filereadable(vim.g.debug_file) == 1 then
 						return vim.g.debug_file
@@ -47,7 +47,8 @@ return {
 						return ""
 					end
 				end,
-				configFiles = { "interface/stlink.cfg", "target/stm32h7x.cfg" },
+				configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
+				svdFile = "",
 				rttConfig = {
 					address = "auto",
 					decoders = {

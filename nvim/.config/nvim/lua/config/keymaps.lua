@@ -22,9 +22,9 @@ vim.keymap.set("n", "<leader>to", "<cmd>tabonly<cr>", { silent = true, desc = "�
 
 vim.keymap.set("n", "<leader>lm", "<cmd>Messages<cr>", { silent = true, desc = "查看历史消息" })
 
-vim.keymap.set("n", "<localleader>q", "<cmd>Toggle quickfix<cr>", { desc = "切换 Quickfix 窗口" })
+vim.keymap.set("n", "<localleader>q", "<cmd>Toggle quickfix<cr>", { desc = "Toggle Quickfix" })
 
-vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "切换 Loclist 窗口" })
+vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
 -- 复制选中的内容到系统剪贴板
 vim.keymap.set({ "v", "n" }, "<A-c>", '"+y', { silent = true, desc = "复制<系统剪贴板>" })
@@ -52,8 +52,26 @@ vim.keymap.set("i", "<Tab>", function()
 	if next_char == nil then
 		return "<Tab>"
 	end
-	if not vim.tbl_contains({ '"', "'", ")", "]", "}" }, next_char) then
+	if not vim.tbl_contains({ '"', "'", ")", "]", "}", ">" }, next_char) then
 		return "<Tab>"
 	end
 	return "<Right>"
 end, { expr = true, desc = "插入模式下跳出括号或引号" })
+
+vim.keymap.set("n", "<Leader>raw", function()
+	local current_win = vim.api.nvim_get_current_win()
+	local current_buf = vim.api.nvim_win_get_buf(current_win)
+	local current_dir = vim.fn.fnamemodify(vim.fn.bufname(current_buf), ":p:h") -- 获取当前缓冲区的目录
+	-- 遍历所有窗口
+	for _, win_id in ipairs(vim.api.nvim_list_wins()) do
+		if win_id ~= current_win then
+			local buf_id = vim.api.nvim_win_get_buf(win_id)
+			local buf_dir = vim.fn.fnamemodify(vim.fn.bufname(buf_id), ":p:h") -- 获取窗口缓冲区的目录
+			-- 如果缓冲区不在当前目录，则删除该窗口
+			if buf_dir ~= current_dir then
+				vim.api.nvim_win_close(win_id, true) -- 关闭该窗口
+			end
+		end
+	end
+	print("Deleted windows outside the current directory!")
+end, { silent = true, desc = "删除当前窗口外的所有窗口" })

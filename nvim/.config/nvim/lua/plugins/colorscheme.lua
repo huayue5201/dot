@@ -10,7 +10,7 @@ return {
 	config = function()
 		-- require("night-owl").setup()
 		-- vim.cmd.colorscheme("night-owl")
-		vim.cmd("colorscheme Duskfox")
+		vim.cmd("colorscheme nordfox")
 		-- vim.cmd("colorscheme base16-gruvbox-dark-soft")
 		-- require("base16-colorscheme").setup({
 		-- 	base00 = "#16161D",

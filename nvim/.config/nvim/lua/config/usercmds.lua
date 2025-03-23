@@ -70,21 +70,6 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 		cmd("confirm qall")
 		return
 	end
-	-- 获取当前窗口的信息
-	local wininfo = fn.getwininfo(cur_winnr)
-	-- 如果 wininfo 为空，说明当前窗口无效或不可访问
-	if not wininfo or not wininfo[1] then
-		print("Invalid window information.")
-		return
-	end
-	-- 判断当前缓冲区是否是浮动窗口
-	local win_config = vim.api.nvim_win_get_config(cur_winnr)
-	local is_floating = win_config.relative ~= ""
-	-- 如果是浮动窗口，关闭该窗口
-	if is_floating then
-		cmd("quit") -- `quit` 命令会关闭浮动窗口
-		return
-	end
 	-- 遍历当前缓冲区在所有窗口的显示情况
 	for _, winid in ipairs(fn.getbufinfo(cur_bufnr)[1].windows) do
 		-- 切换到当前缓冲区所在的窗口
