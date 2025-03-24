@@ -83,6 +83,7 @@ vim.opt.laststatus = 3 -- 启用全局状态栏
 vim.opt.cmdheight = 1 -- 状态栏高度
 vim.opt.showtabline = 2 -- 始终显示标签页栏
 vim.opt.statuscolumn = "%!v:lua.require('config.statucolumn').active()" -- 载入 statuscolumn 配置
+vim.opt.number = true --显示行号
 vim.opt.relativenumber = true -- 启用相对行号
 vim.opt.signcolumn = "yes" -- 始终显示标志列
 
@@ -117,10 +118,10 @@ vim.opt.fillchars = {
 }
 
 vim.opt.listchars = {
-	-- tab = "┊ ", -- 显示 Tab 字符
-	-- leadmultispace = "┊ ", -- 显示多余空格
-	-- multispace = "┊ ",
+	tab = "│ ", -- 显示 Tab 字符
+	leadmultispace = "│ ", -- 显示多余空格
+	multispace = " ",
 	trail = "␣", -- 显示尾随空格
-	nbsp = "⍽", -- 显示不间断空格
+	nbsp = " ", -- 显示不间断空格
 	eol = " ", -- 换行符
 }
