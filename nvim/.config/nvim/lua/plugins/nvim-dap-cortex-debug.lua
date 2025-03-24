@@ -40,14 +40,7 @@ return {
 			showDevDebugOutput = false,
 			gdbTarget = "localhost:3333",
 			cwd = "${workspaceFolder}",
-			executable = function()
-				if vim.g.debug_file and vim.fn.filereadable(vim.g.debug_file) == 1 then
-					return vim.g.debug_file
-				else
-					print("No valid debug file set! Please mark a file with <A-b>")
-					return ""
-				end
-			end,
+			executable = require("config.utils").executable_path,
 			configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
 			svdFile = "",
 			rttConfig = {
