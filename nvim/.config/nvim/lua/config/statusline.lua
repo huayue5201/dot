@@ -145,6 +145,7 @@ function Statusline.active()
 		"  " .. "%t  ", -- 文件名
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
+		require("dap").status(), -- 由dap插件提供
 		-- 由akinsho/toggleterm.nvim提供
 		'%{&ft == "toggleterm" ? "terminal (".b:toggle_number.")" : ""}',
 		Statusline.vcs(), -- Git 状态
