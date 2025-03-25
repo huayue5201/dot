@@ -5,7 +5,7 @@ return {
 	ft = { "rust", "c" },
 	dependencies = {
 		-- https://github.com/igorlfs/nvim-dap-view
-		{ "igorlfs/nvim-dap-view" },
+		"igorlfs/nvim-dap-view",
 		-- https://github.com/theHamsta/nvim-dap-virtual-text
 		"theHamsta/nvim-dap-virtual-text",
 	},
@@ -30,7 +30,7 @@ return {
 			vim.fn.sign_define(name, opts)
 		end
 
-		require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
+		-- require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
 		require("dap.probe-rs")
 		-- 加载dap调试配置
 		local dap = require("dap")

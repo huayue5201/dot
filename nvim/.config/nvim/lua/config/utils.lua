@@ -26,6 +26,7 @@ M.close_commands = {
 	floggraph = ":close<cr>",
 	["dap-view"] = ":close<cr>",
 	["dap-view-term"] = ":close<cr>",
+	acwrite = ":bdelete<cr>",
 }
 
 M.executable_path = function()

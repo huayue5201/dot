@@ -5,6 +5,7 @@ return {
 	-- "oxfist/night-owl.nvim",
 	-- "EdenEast/nightfox.nvim",
 	"tomasiser/vim-code-dark",
+	-- "loctvl842/monokai-pro.nvim",
 	lazy = false,
 	priority = 1000,
 	config = function()
@@ -12,5 +13,11 @@ return {
 		-- vim.cmd.colorscheme("night-owl")
 		-- vim.cmd("colorscheme nordfox")
 		vim.cmd.colorscheme("codedark")
+		-- require("monokai-pro").setup({
+		-- ... your config
+		-- background_clear = { "float_win" },
+		-- })
+		-- lua
+		-- vim.cmd([[colorscheme monokai-pro]])
 	end,
 }

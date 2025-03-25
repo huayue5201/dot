@@ -1,13 +1,23 @@
+-- 备份 Neovim 原始的 vim.ui.select
+local default_select = vim.ui.select
+
+-- 自定义 vim.ui.select
 vim.ui.select = function(items, opts, on_choice)
+	opts = opts or {}
+
+	-- 如果选项数量小于等于 20，使用 Neovim 默认的 select
+	if #items <= 20 then
+		return default_select(items, opts, on_choice)
+	end
+
+	-- 否则使用 fzf 进行选择
 	local choices = {}
 	local format_item = opts.format_item or tostring
 
-	-- Format the items into choices
 	for i, item in ipairs(items) do
 		table.insert(choices, i .. ". " .. format_item(item))
 	end
 
-	-- Ensure fzf is available and run with options
 	if vim.fn.exists("*fzf#run") == 1 then
 		vim.fn["fzf#run"]({
 			source = choices,
