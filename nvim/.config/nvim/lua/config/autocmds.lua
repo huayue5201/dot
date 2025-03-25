@@ -50,18 +50,22 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 -- 复制时保持光标位置
 -- ===========================
 local cursorPreYank
+-- 保存普通模式（Normal）和可视模式（Visual）下的复制前光标位置
 vim.keymap.set({ "n", "x" }, "y", function()
 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
 	return "y"
 end, { expr = true })
+-- 保存 `Y` 按键的光标位置并复制当前行到行尾
 vim.keymap.set("n", "Y", function()
 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
 	return "y$"
 end, { expr = true })
+-- 复制后恢复光标位置
 vim.api.nvim_create_autocmd("TextYankPost", {
 	callback = function()
 		if vim.v.event.operator == "y" and cursorPreYank then
 			vim.api.nvim_win_set_cursor(0, cursorPreYank)
+			cursorPreYank = nil -- 重置，避免下次错误
 		end
 	end,
 })
@@ -110,6 +114,63 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
 			vim.wo.winfixbuf = true
 		end
 	end,
+})
+
+local function delete_qf_items()
+	local is_qf = vim.fn.getwininfo(vim.fn.win_getid())[1].quickfix == 1
+	local qflist = is_qf and vim.fn.getqflist() or vim.fn.getloclist(0)
+	local mode = vim.api.nvim_get_mode().mode
+	local start_idx, count
+	if mode == "n" then
+		-- Normal 模式：删除当前行
+		start_idx = vim.fn.line(".")
+		count = vim.v.count > 0 and vim.v.count or 1
+	else
+		-- Visual 模式：获取选区起点和终点
+		local v_start_idx = vim.fn.line("v")
+		local v_end_idx = vim.fn.line(".")
+		start_idx = math.min(v_start_idx, v_end_idx)
+		count = math.abs(v_end_idx - v_start_idx) + 1
+		-- 退出 Visual 模式
+		vim.cmd("normal! <esc>")
+	end
+	-- 🛠 避免超出范围的删除
+	if start_idx < 1 or start_idx > #qflist then
+		return
+	end
+	-- 🛠 批量删除
+	for _ = 1, count do
+		if start_idx <= #qflist then
+			table.remove(qflist, start_idx)
+		end
+	end
+	-- 更新 Quickfix 或 Location List
+	if is_qf then
+		vim.fn.setqflist(qflist, "r")
+	else
+		vim.fn.setloclist(0, qflist, "r")
+	end
+	-- 🛠 删除最后一个条目时，调整光标位置
+	local new_pos = math.min(start_idx, #qflist)
+	if new_pos > 0 then
+		vim.fn.cursor(new_pos, 1)
+	end
+end
+-- 🔹 Quickfix 窗口的快捷键绑定
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("QuickfixTweaks", { clear = true }),
+	pattern = "qf",
+	callback = function()
+		-- 让 Quickfix 不显示在 `:buffers` 列表中
+		vim.api.nvim_buf_set_option(0, "buflisted", false)
+		-- 按 `<ESC>` 关闭 Quickfix 窗口
+		vim.keymap.set("n", "<ESC>", "<CMD>cclose<CR>", { buffer = true, silent = true })
+		-- `dd` 删除单个 Quickfix 条目
+		vim.keymap.set("n", "dd", delete_qf_items, { buffer = true })
+		-- `d` 删除选中的 Quickfix 条目（可视模式）
+		vim.keymap.set("x", "d", delete_qf_items, { buffer = true })
+	end,
+	desc = "Quickfix tweaks",
 })
 
 -- ===========================
