@@ -27,7 +27,6 @@ vim.keymap.set("n", "<localleader>q", "<cmd>Toggle quickfix<cr>", { desc = "Togg
 vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
 -- 复制选中的内容到系统剪贴板
-vim.keymap.set({ "v", "n" }, "<A-c>", '"+y', { silent = true, desc = "复制<系统剪贴板>" })
 vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
 
 vim.keymap.set("n", "<leader>yp", function()

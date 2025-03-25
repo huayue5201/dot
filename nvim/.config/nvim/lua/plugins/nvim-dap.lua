@@ -18,9 +18,9 @@ return {
 			DapBreakpointCondition = { text = "🟡", texthl = "DapBreakpointCondition" }, -- 条件断点
 			DapBreakpointRejected = { text = "⭕", texthl = "DapBreakpointRejected" }, -- 拒绝断点
 			DapLogPoint = { text = "⚪", texthl = "DapLogPoint" }, -- 日志点
-			DapExceptionBreakpoint = { text = "🛑", texthl = "DapExceptionBreakpoint" }, -- 异常断点
+			DapExceptionBreakpoint = { text = "🛑", texthl = "DapExceptionBreakpoint" }, -- 异常断点🔻
 			DapStopped = { -- 停止位置
-				text = "🔶",
+				text = "🟨", --🔶
 				texthl = "DapBreakpoint",
 				linehl = "DapCurrentLine",
 				numhl = "DiagnosticSignWarn",
@@ -34,41 +34,36 @@ return {
 		require("dap.probe-rs")
 		-- 加载dap调试配置
 		local dap = require("dap")
-
-		dap.defaults.fallback.terminal_win_cmd = "belowright new" -- 设置终端窗口命令
-		dap.defaults.fallback.focus_terminal = true -- 打开终端时将焦点放在终端窗口
-
-		-- 设置默认终端为外部终端（例如使用 alacritty）
+		dap.defaults.fallback.switchbuf = "useopen" -- 在调试时使用打开的缓冲区
+		dap.defaults.fallback.terminal_win_cmd = "belowright new" -- 设置终端窗口在底部打开
+		dap.defaults.fallback.focus_terminal = true -- 打开终端时将焦点切换到终端
+		dap.defaults.fallback.autostart = "nluarepl" -- 自动启动 Lua REPL
 		dap.defaults.fallback.external_terminal = {
-			command = "/usr/bin/alacritty",
-			args = { "-e" },
+			command = "/usr/bin/alacritty", -- 外部终端的命令路径
+			args = { "-e" }, -- 外部终端的参数
 		}
-
-		-- 自动启动 REPL
-		dap.defaults.fallback.autostart = "nluarepl"
-
 		require("nvim-dap-virtual-text").setup()
 		local dv = require("dap-view")
 
-		dv.setup = {
+		dv.setup({
 			winbar = {
 				show = true,
 				sections = { "watches", "exceptions", "breakpoints", "threads", "repl" },
 				-- Must be one of the sections declared above
-				default_section = "watches",
+				default_section = "repl",
 			},
 			windows = {
 				height = 12,
 				terminal = {
 					-- 'left'|'right'|'above'|'below': Terminal position in layout
-					position = "left",
+					position = "right",
 					-- List of debug adapters for which the terminal should be ALWAYS hidden
-					hide = {},
+					hide = { "OpenOCD" },
 					-- Hide the terminal when starting a new session
 					start_hidden = true,
 				},
 			},
-		}
+		})
 
 		dap.listeners.before.attach["dap-view-config"] = function()
 			dv.open()
@@ -97,24 +92,33 @@ return {
 		vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "断点" })
 
 		vim.keymap.set("n", "<leader>ob", function()
-			vim.ui.select({ "condition", "log", "exception" }, {
+			vim.ui.select({ "条件断点", "命中次数", "日志点", "异常断点" }, {
 				prompt = "选择断点类型:",
 			}, function(choice)
-				if choice == "condition" then
-					vim.ui.input({ prompt = "断点条件: " }, function(condition)
+				if choice == "条件断点" then
+					vim.ui.input({ prompt = "请输入断点条件: " }, function(condition)
 						dap.set_breakpoint(condition)
 					end)
-				elseif choice == "log" then
-					vim.ui.input({ prompt = "日志点消息: " }, function(message)
-						dap.set_breakpoint(nil, nil, message)
+				elseif choice == "命中次数" then
+					vim.ui.input({ prompt = "请输入命中次数: " }, function(hit_count)
+						if hit_count and tonumber(hit_count) then
+							-- 设置命中次数
+							dap.set_breakpoint(nil, tonumber(hit_count), nil)
+						else
+							vim.notify("无效的命中次数!", vim.log.levels.ERROR)
+						end
 					end)
-				elseif choice == "exception" then
+				elseif choice == "日志点" then
+					vim.ui.input({ prompt = "请输入日志点消息: " }, function(message)
+						dap.set_breakpoint(nil, nil, message) -- 设置日志点
+					end)
+				elseif choice == "异常断点" then
 					dap.set_exception_breakpoints()
 				else
 					vim.notify("无效的选择！", vim.log.levels.ERROR)
 				end
 			end)
-		end, { desc = "设置断点（条件、日志、异常）" })
+		end, { desc = "设置断点（条件、命中次数、日志点、异常）" })
 
 		-- vim.keymap.set("n", "<leader>bp", function()
 		-- 	vim.ui.input({ prompt = "断点条件: " }, function(input)
@@ -130,7 +134,15 @@ return {
 
 		vim.keymap.set("n", "<leader>rb", dap.clear_breakpoints, { silent = true, desc = "移除所有断点" })
 
-		vim.keymap.set("n", "<leader>rd", dap.terminate, { silent = true, desc = "终止dap会话" })
+		vim.keymap.set("n", "<leader>rd", function()
+			dap.terminate({
+				on_done = function()
+					-- 终止调试会话后关闭 REPL 面板
+					require("dap").repl.close()
+					require("dap-view").close(true)
+				end,
+			})
+		end, { silent = true, desc = "终止dap会话" })
 
 		vim.keymap.set("n", "<leader>dl", dap.run_last, { desc = "运行上次调试会话" })
 
@@ -218,11 +230,11 @@ return {
 			keymap_restore = {}
 		end
 
-		dap.listeners.after["event_terminated"]["terminate"] = function()
-			require("dap-view").close(true)
-			require("dap").repl.close()
-			print("调试已终止，关闭 REPL")
-		end
+		-- dap.listeners.after["event_terminated"]["terminate"] = function()
+		-- 	require("dap-view").close(true)
+		-- 	require("dap").repl.close()
+		-- 	print("调试已终止，关闭 REPL")
+		-- end
 
 		-- 退出neovim自动终止调试进程
 		vim.api.nvim_create_autocmd("VimLeave", {
@@ -231,12 +243,5 @@ return {
 				vim.fn.system("pkill openocd")
 			end,
 		})
-
-		-- TODO:
-		-- session() dap.session()
-		-- 返回当前的调试会话，如果没有会话则返回 nil。
-		-- status()
-		-- 返回当前调试会话的状态文本。
-		-- 如果没有活动的调试会话，结果将为空。
 	end,
 }

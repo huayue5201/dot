@@ -62,7 +62,12 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 	local layout = vim.fn.winlayout()
 	-- 获取当前缓冲区的类型（优先 filetype，否则 buftype）
 	local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
+	-- 获取关闭命令，如果没有命令则使用默认的 "bd"
 	local command = close_commands[current_type]
+	if not command then
+		print("Warning: No close command found for filetype: " .. current_type)
+		command = "bd"
+	end
 
 	-- 如果找到匹配的关闭命令，执行该命令并返回
 	if command then
@@ -71,7 +76,7 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 		return
 	end
 
-	-- 如果是分屏窗口，先检查 close_commands，再执行 `bd`
+	-- 处理分屏窗口
 	if layout[1] ~= "leaf" then
 		vim.cmd("bd")
 		return
@@ -83,12 +88,22 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 		return
 	end
 
-	-- 遍历当前缓冲区在所有窗口的显示情况
-	for _, winid in ipairs(vim.fn.getbufinfo(cur_bufnr)[1].windows) do
-		-- 切换到当前缓冲区所在的窗口
-		vim.cmd(string.format("%d wincmd w", vim.fn.win_id2win(winid)))
-		-- 如果是最后一个缓冲区，切换到前一个缓冲区，否则切换到下一个缓冲区
-		vim.cmd(cur_bufnr == buflisted[#buflisted].bufnr and "bp" or "bn")
+	-- 获取当前缓冲区的索引位置
+	local current_index = 0
+	for i, buf in ipairs(buflisted) do
+		if buf.bufnr == cur_bufnr then
+			current_index = i
+			break
+		end
+	end
+
+	-- 切换到前一个或下一个缓冲区
+	if current_index > 1 then
+		vim.cmd("bp")
+	elseif current_index < #buflisted then
+		vim.cmd("bn")
+	else
+		vim.cmd("bp")
 	end
 
 	-- 切换回原始窗口
