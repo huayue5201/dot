@@ -87,6 +87,21 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
+-- -- 错误捕捉模块
+-- vim.api.nvim_create_autocmd("VimLeave", {
+-- 	callback = function()
+-- 		local log_file = vim.fn.stdpath("config") .. "/logfile.txt"
+-- 		local file = io.open(log_file, "a")
+-- 		if file then
+-- 			local err = vim.fn.execute("messages") -- 获取错误信息
+-- 			file:write("Neovim closed with the following errors:\n")
+-- 			file:write(err)
+-- 			file:write("\n\n")
+-- 			file:close()
+-- 		end
+-- 	end,
+-- })
+
 -- ===========================
 -- 自动识别项目根目录
 -- ===========================

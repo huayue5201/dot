@@ -30,17 +30,17 @@ vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "Toggl
 vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
 
 vim.keymap.set("n", "<leader>yp", function()
-	vim.fn.setreg("+", vim.fn.expand("%:p"))
+	vim.fn.setreg('"', vim.fn.expand("%:p"))
 	print("Copied: " .. vim.fn.expand("%:p"))
 end, { silent = true, desc = "复制绝对路径" })
 
 vim.keymap.set("n", "<leader>yf", function()
-	vim.fn.setreg("+", vim.fn.expand("%:f"))
+	vim.fn.setreg('"', vim.fn.expand("%:f"))
 	print("Copied: " .. vim.fn.expand("%:f"))
 end, { silent = true, desc = "复制相对路径" })
 
 vim.keymap.set("n", "<leader>yt", function()
-	vim.fn.setreg("+", vim.fn.expand("%:t"))
+	vim.fn.setreg('"', vim.fn.expand("%:t"))
 	print("Copied: " .. vim.fn.expand("%:t"))
 end, { silent = true, desc = "复制文件名" })
 
