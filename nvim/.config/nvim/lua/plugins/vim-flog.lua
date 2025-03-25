@@ -8,6 +8,7 @@ return {
 	},
 	cmd = { "Flog", "Flogsplit", "Floggit" },
 	dependencies = {
+		-- https://github.com/tpope/vim-fugitive
 		"tpope/vim-fugitive",
 	},
 	config = function()

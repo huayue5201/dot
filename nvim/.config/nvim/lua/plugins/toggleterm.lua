@@ -5,7 +5,7 @@ return {
 	keys = { "<c-\\>" },
 	config = function()
 		require("toggleterm").setup({
-			size = 25,
+			size = 15,
 			open_mapping = [[<c-\>]],
 			winbar = {
 				enabled = true,

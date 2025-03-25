@@ -1,4 +1,3 @@
--- ~/.config/nvim/lua/plugins/debug_file_manager.lua
 local M = {}
 
 local debug_file_storage = vim.fn.stdpath("cache") .. "/debug_files.json"
@@ -24,6 +23,11 @@ local function is_valid_debug_file(file)
 	return false
 end
 
+-- 获取文件的最后修改时间（用于比较文件是否修改）
+local function get_file_mtime(file)
+	return vim.fn.getftime(file)
+end
+
 -- 读取调试文件数据
 local function read_debug_file_data()
 	local file = io.open(debug_file_storage, "r")
@@ -44,7 +48,7 @@ local function write_debug_file_data(data)
 		file:write(formatted_json)
 		file:close()
 	else
-		vim.notify("❌ Failed to save debug file data!", vim.log.levels.ERROR)
+		vim.notify("❌ 保存调试文件数据失败！", vim.log.levels.ERROR)
 	end
 end
 
@@ -52,11 +56,11 @@ end
 local function load_debug_file()
 	local data = read_debug_file_data()
 	local project_root = get_project_root()
-	local debug_file = data[project_root]
+	local debug_file = data[project_root] and data[project_root].file
 
 	if debug_file and vim.fn.filereadable(debug_file) == 1 then
 		vim.g.debug_file = debug_file
-		-- vim.notify("✅ Loaded debug file: " .. debug_file, vim.log.levels.INFO)
+		-- vim.notify("✅ 加载调试文件: " .. debug_file, vim.log.levels.INFO)
 	else
 		vim.g.debug_file = nil
 	end
@@ -67,25 +71,55 @@ M.toggle_debug_file = function()
 	local project_root = get_project_root()
 	local data = read_debug_file_data()
 
-	if data[project_root] then
-		-- 取消标记
-		data[project_root] = nil
-		vim.g.debug_file = nil
-		vim.notify("🚫 Debug file unmarked for project: " .. project_root, vim.log.levels.WARN)
-	else
-		-- 获取当前文件路径
-		local file = vim.fn.expand("%:p")
-		if not is_valid_debug_file(file) then
-			vim.notify("⚠️ Invalid debug file! Only ELF or BIN files are allowed.", vim.log.levels.ERROR)
-			return
-		end
+	-- 获取当前文件路径
+	local file = vim.fn.expand("%:p")
 
-		-- 标记调试文件
-		data[project_root] = file
-		vim.g.debug_file = file
-		vim.notify("✅ Debug file set to: " .. file, vim.log.levels.INFO)
+	-- 判断文件是否是有效的调试文件
+	if not is_valid_debug_file(file) then
+		-- 无效的调试文件，显示警告
+		vim.notify(
+			"⚠️ 该文件不是有效的调试文件！仅支持 ELF 或 BIN 文件。",
+			vim.log.levels.ERROR
+		)
+		return
 	end
 
+	-- 先判断当前项目是否已经标记了调试文件
+	if data[project_root] then
+		local current_debug_file = data[project_root].file
+
+		-- 如果当前标记文件有效，判断其是否与 JSON 中的数据匹配
+		if vim.fn.filereadable(current_debug_file) == 1 then
+			local current_mtime = get_file_mtime(current_debug_file)
+			local json_mtime = data[project_root].mtime
+
+			-- 文件修改时间对比
+			if current_mtime == json_mtime then
+				vim.notify("⚠️ 此项目已设置调试文件！", vim.log.levels.INFO)
+				return
+			else
+				-- 如果文件修改过，进行覆盖更新
+				data[project_root] = { file = current_debug_file, mtime = current_mtime }
+				vim.g.debug_file = current_debug_file
+				write_debug_file_data(data)
+				require("neo-tree.sources.manager").refresh("filesystem")
+				vim.notify("✅ 调试文件已更新: " .. current_debug_file, vim.log.levels.INFO)
+				return
+			end
+		else
+			-- 如果当前标记的文件无效
+			vim.notify("⚠️ 当前调试文件无效！", vim.log.levels.ERROR)
+			return
+		end
+	end
+
+	-- 如果当前文件是有效的调试文件，进行标记
+	local mtime = get_file_mtime(file)
+
+	-- 标记调试文件
+	data[project_root] = { file = file, mtime = mtime }
+	vim.g.debug_file = file
+	vim.notify("✅ 调试文件已设置: " .. file, vim.log.levels.INFO)
 	write_debug_file_data(data)
 	require("neo-tree.sources.manager").refresh("filesystem")
 end

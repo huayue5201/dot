@@ -70,6 +70,23 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
+-- 自动延迟同步到系统剪贴板，避免vim.opt.clipboard = "unnamedplus"带来的性能问题
+vim.api.nvim_create_autocmd("TextYankPost", {
+	pattern = "*",
+	callback = function()
+		local reg_type = vim.fn.getregtype('"')
+		-- 如果是普通复制操作（不是通过系统剪贴板触发）
+		if reg_type ~= "+" then
+			local clipboard_content = vim.fn.getreg('"')
+			if clipboard_content ~= "" then
+				vim.defer_fn(function()
+					vim.fn.setreg("+", clipboard_content)
+				end, 20)
+			end
+		end
+	end,
+})
+
 -- ===========================
 -- 自动识别项目根目录
 -- ===========================

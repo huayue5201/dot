@@ -1,3 +1,5 @@
+-- 参考文档:help quickfix-context / h quickfixtextfunc
+
 local Qftf = {}
 
 function Qftf.GetQuickfixText(entry)

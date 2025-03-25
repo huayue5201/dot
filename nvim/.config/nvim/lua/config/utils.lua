@@ -16,7 +16,6 @@ M.close_commands = {
 	man = ":quit<cr>",
 	toggleterm = ":close<cr>",
 	["grug-far"] = ":bdelete<cr>",
-	["minideps-confirm"] = ":bdelete<cr>",
 	terminal = ":close<cr>",
 	git = ":bdelete<cr>",
 	["dap-repl"] = ":close<cr>",
@@ -24,8 +23,8 @@ M.close_commands = {
 	nofile = ":bdelete<cr>",
 	fugitive = ":bdelete<cr>",
 	floggraph = ":close<cr>",
-	["dap-view"] = ":close<cr>",
-	["dap-view-term"] = ":close<cr>",
+	["dap-view"] = ":DapViewClose!<cr>",
+	["dap-view-term"] = ":DapViewClose<cr>",
 	acwrite = ":bdelete<cr>",
 }
 

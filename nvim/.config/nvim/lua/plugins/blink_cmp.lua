@@ -65,7 +65,7 @@ return {
 				default = { "lsp", "path", "snippets", "buffer", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
 			},
 			cmdline = {
-				enabled = true, -- 命令行补全
+				enabled = false, -- 命令行补全
 				completion = { menu = { auto_show = true } },
 			},
 		})
