@@ -51,6 +51,9 @@ end, { desc = "切换窗口", nargs = "?" })
 -- ===========================
 -- 关闭缓冲
 -- ===========================
+-- ===========================
+-- 关闭缓冲
+-- ===========================
 vim.api.nvim_create_user_command("DeleteBuffer", function()
 	-- 引入 utils 模块，获取 close_commands 配置
 	local close_commands = require("config.utils").close_commands
@@ -65,7 +68,7 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 	-- 获取关闭命令，如果没有命令则使用默认的 "bd"
 	local command = close_commands[current_type]
 	if not command then
-		print("Warning: No close command found for filetype: " .. current_type)
+		print("警告: 未找到该文件类型的关闭命令: " .. current_type)
 		command = "bd"
 	end
 
@@ -82,12 +85,6 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 		return
 	end
 
-	-- 如果缓冲区数目少于 2，使用 confirm 来确认退出
-	if #buflisted < 2 then
-		vim.cmd("confirm qall")
-		return
-	end
-
 	-- 获取当前缓冲区的索引位置
 	local current_index = 0
 	for i, buf in ipairs(buflisted) do
@@ -95,6 +92,13 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 			current_index = i
 			break
 		end
+	end
+
+	-- 如果当前窗口是唯一窗口，不执行关闭操作
+	local windows = vim.api.nvim_list_wins()
+	if #windows == 1 then
+		print("无法关闭最后一个窗口！")
+		return
 	end
 
 	-- 切换到前一个或下一个缓冲区
@@ -114,6 +118,6 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 	-- 如果是终端缓冲区，强制删除；否则，使用 confirm 进行确认删除
 	vim.cmd(is_terminal and "bd! #" or "silent! confirm bd #")
 end, {
-	desc = "Delete the current buffer with additional checks for unsaved changes and window management",
+	desc = "删除当前缓冲区，并进行未保存更改和窗口管理的额外检查",
 	nargs = 0, -- 不需要参数
 })

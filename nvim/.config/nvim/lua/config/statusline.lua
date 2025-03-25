@@ -109,6 +109,15 @@ function Statusline.lsp()
 	}, " ")
 end
 
+-- 获取调试状态
+function Statusline.dap_status()
+	local dap_status = require("dap").status()
+	if dap_status == "" then
+		return "" -- 如果没有调试会话，返回空字符串
+	end
+	return " " .. dap_status .. " " -- 有调试会话时，返回图标和状态
+end
+
 -- 动态图标
 local function get_scrollbar()
 	local progress_icons = {
@@ -145,7 +154,7 @@ function Statusline.active()
 		"  " .. "%t  ", -- 文件名
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
-		require("dap").status(), -- 由dap插件提供
+		Statusline.dap_status(), -- dap调试信息
 		-- 由akinsho/toggleterm.nvim提供
 		'%{&ft == "toggleterm" ? "terminal (".b:toggle_number.")" : ""}',
 		Statusline.vcs(), -- Git 状态

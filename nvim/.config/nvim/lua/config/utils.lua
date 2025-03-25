@@ -24,7 +24,7 @@ M.close_commands = {
 	fugitive = ":bdelete<cr>",
 	floggraph = ":close<cr>",
 	["dap-view"] = ":DapViewClose!<cr>",
-	["dap-view-term"] = ":DapViewClose<cr>",
+	["dap-view-term"] = ":close<cr>",
 	acwrite = ":bdelete<cr>",
 }
 
