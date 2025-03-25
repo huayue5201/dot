@@ -40,7 +40,8 @@ return {
 					showDevDebugOutput = false,
 					gdbTarget = "localhost:3333",
 					cwd = "${workspaceFolder}",
-					executable = require("config.utils").executable_path,
+					-- executable = require("config.utils").executable_path,
+					executable = vim.g.debug_file,
 					configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
 					svdFile = "",
 					rttConfig = {

@@ -2,7 +2,7 @@
 
 return {
 	"mfussenegger/nvim-dap",
-	ft = { "rust", "c" },
+	ft = { "rust", "c", "lua" },
 	dependencies = {
 		-- https://github.com/igorlfs/nvim-dap-view
 		"igorlfs/nvim-dap-view",
@@ -32,16 +32,26 @@ return {
 
 		-- require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
 		require("dap.probe-rs")
-		-- 加载dap调试配置
+		require("dap.debug-file-manager") -- 调试文件标记模块
+		require("dap.breakpoint_manager") -- 引入断点管理模块
 		local dap = require("dap")
-		dap.defaults.fallback.switchbuf = "useopen" -- 在调试时使用打开的缓冲区
-		dap.defaults.fallback.terminal_win_cmd = "belowright new" -- 设置终端窗口在底部打开
-		dap.defaults.fallback.focus_terminal = true -- 打开终端时将焦点切换到终端
-		dap.defaults.fallback.autostart = "nluarepl" -- 自动启动 Lua REPL
-		dap.defaults.fallback.external_terminal = {
-			command = "/usr/bin/alacritty", -- 外部终端的命令路径
-			args = { "-e" }, -- 外部终端的参数
+
+		local dap_defaults = {
+			switchbuf = "useopen", -- 在调试时使用打开的缓冲区
+			terminal_win_cmd = "belowright new", -- 设置终端窗口在底部打开
+			focus_terminal = true, -- 打开终端时将焦点切换到终端
+			autostart = "nluarepl", -- 自动启动 Lua REPL
+			console = "integratedTerminal", -- 控制台设置
+			external_terminal = {
+				command = "/usr/bin/alacritty", -- 外部终端的命令路径
+				args = { "-e" }, -- 外部终端的参数
+			},
 		}
+		-- 将配置应用到 dap.defaults.fallback
+		for key, value in pairs(dap_defaults) do
+			dap.defaults.fallback[key] = value
+		end
+
 		require("nvim-dap-virtual-text").setup()
 		local dv = require("dap-view")
 
@@ -82,8 +92,19 @@ return {
 			require("dap-view").toggle()
 		end, { desc = "Toggle nvim-dap-view" })
 
-		vim.keymap.set("n", "<leader>od", dap.continue, { silent = true, desc = "启动调试" })
-		-- vim.keymap.set("n", "<leader>od", dap.run, { silent = true, desc = "启动新的调试" })
+		vim.keymap.set("n", "<leader>dc", dap.continue, { silent = true, desc = "启动调试" })
+
+		vim.keymap.set("n", "<leader>du", dap.run, { silent = true, desc = "启动新的调试" })
+
+		vim.keymap.set("n", "<leader>rd", function()
+			dap.terminate({
+				on_done = function()
+					-- 终止调试会话后关闭 REPL 面板
+					require("dap").repl.close()
+					require("dap-view").close(true)
+				end,
+			})
+		end, { silent = true, desc = "终止dap会话" })
 
 		-- vim.keymap.set("n", "<leader>da", function()
 		-- 	print(vim.inspect(require("dap").session())) -- 或者使用浮动窗口显示
@@ -91,7 +112,7 @@ return {
 
 		vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "断点" })
 
-		vim.keymap.set("n", "<leader>ob", function()
+		vim.keymap.set("n", "<leader>B", function()
 			vim.ui.select({ "条件断点", "命中次数", "日志点", "异常断点" }, {
 				prompt = "选择断点类型:",
 			}, function(choice)
@@ -120,52 +141,40 @@ return {
 			end)
 		end, { desc = "设置断点（条件、命中次数、日志点、异常）" })
 
-		-- vim.keymap.set("n", "<leader>bp", function()
-		-- 	vim.ui.input({ prompt = "断点条件: " }, function(input)
-		-- 		require("dap").set_breakpoint(input)
-		-- 	end)
-		-- end, { desc = "条件断点" })
-		--
-		-- vim.keymap.set("n", "<Leader>bl", function()
-		-- 	dap.set_breakpoint(nil, nil, vim.fn.input("日志点消息: "))
-		-- end, { silent = true, desc = "日志点" })
-		--
-		-- vim.keymap.set("n", "<leader>be", dap.set_exception_breakpoints, { silent = true, desc = "异常断点" })
-
 		vim.keymap.set("n", "<leader>rb", dap.clear_breakpoints, { silent = true, desc = "移除所有断点" })
 
-		vim.keymap.set("n", "<leader>rd", function()
-			dap.terminate({
-				on_done = function()
-					-- 终止调试会话后关闭 REPL 面板
-					require("dap").repl.close()
-					require("dap-view").close(true)
-				end,
-			})
-		end, { silent = true, desc = "终止dap会话" })
+		vim.keymap.set("n", "<leader>drl", dap.run_last, { desc = "运行上次调试会话" })
 
-		vim.keymap.set("n", "<leader>dl", dap.run_last, { desc = "运行上次调试会话" })
+		vim.keymap.set("n", "<leader>dro", dap.step_over, { silent = true, desc = "单步跳过" })
 
-		vim.keymap.set("n", "<leader>do", dap.step_over, { silent = true, desc = "单步跳过" })
+		vim.keymap.set("n", "<leader>dri", dap.step_into, { silent = true, desc = "单步进入" })
 
-		vim.keymap.set("n", "<leader>di", dap.step_into, { silent = true, desc = "单步进入" })
+		vim.keymap.set("n", "<leader>dru", dap.step_out, { silent = true, desc = "单步跳出" })
 
-		vim.keymap.set("n", "<leader>du", dap.step_out, { silent = true, desc = "单步跳出" })
+		vim.keymap.set("n", "<leader>drb", dap.step_back, { silent = true, desc = "逆向调试" })
+
+		vim.keymap.set("n", "<leader>drc", dap.run_to_cursor, { silent = true, desc = "运行到光标处" })
+
+		vim.keymap.set(
+			"n",
+			"<leader>drc",
+			dap.reverse_continue,
+			{ silent = true, desc = "逆向到最后一个断点" }
+		)
+
+		vim.keymap.set("n", "<leader>drf", dap.restart_frame, { silent = true, desc = "重新执行堆栈帧" })
 
 		vim.keymap.set("n", "<leader>dd", dap.pause, { silent = true, desc = "暂停调试线程" })
 
-		-- vim.keymap.set("n", "<leader>du", dap.step_back, { silent = true, desc = "逆向调试" })
-		-- vim.keymap.set("n", "<leader>du", dap.reverse_continue, { silent = true, desc = "逆向到最后一个断点" })
-		-- vim.keymap.set("n", "<leader>drf", dap.restart_frame, { silent = true, desc = "重新执行堆栈帧" })
-		-- vim.keymap.set("n", "[", dap.up, { silent = true, desc = "跳到上一个断点" })
-		-- vim.keymap.set("n", "]", dap.down, { silent = true, desc = "跳到一个断点" })
-		-- vim.keymap.set("n", "]", dap.goto_, { silent = true, desc = "跳到指定行" })
+		vim.keymap.set("n", "<leader>dgk", dap.up, { silent = true, desc = "跳到上一个断点" })
 
-		vim.keymap.set("n", "<leader>dc", dap.run_to_cursor, { silent = true, desc = "运行到光标处" })
+		vim.keymap.set("n", "<leader>dgj", dap.down, { silent = true, desc = "跳到一个断点" })
+
+		vim.keymap.set("n", "<leader>dgn", dap.goto_, { silent = true, desc = "跳到指定行" })
 
 		vim.keymap.set("n", "<leader>dq", dap.list_breakpoints, { silent = true, desc = "列出所有断点" })
 
-		vim.keymap.set("n", "<leader>dr", dap.repl.toggle, { silent = true, desc = "DAP REPL" })
+		vim.keymap.set("n", "<leader>dR", dap.repl.toggle, { silent = true, desc = "DAP REPL" })
 		-- vim.keymap.set("n", "<leader>da", dap.repl.exetuce(命令或者表达式，可以直接在repl中执行), { silent = true, desc = "在 REPL 中运行代码" })
 
 		local widgets = require("dap.ui.widgets")
