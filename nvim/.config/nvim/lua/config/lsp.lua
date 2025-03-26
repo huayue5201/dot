@@ -89,7 +89,8 @@ local function set_keymaps(buf, _)
 
 	local keymaps = {
 		{ "<leader>ld", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
-		{ "<leader>cl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭LSP客户端" },
+		{ "<leader>rl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭LSP客户端" },
+		{ "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
 		{
 			"<leader>yd",
 			function()

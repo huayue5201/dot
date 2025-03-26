@@ -29,7 +29,6 @@ return {
 					request = "launch",
 					servertype = "openocd",
 					serverpath = "openocd",
-					repl_lang = "rust",
 					-- pid = require("dap.utils").pick_process,
 					gdbPath = "arm-none-eabi-gdb",
 					-- toolchainPath = "/opt/homebrew/bin",-- 工具链如果在当前系统环境变量中，可以省略

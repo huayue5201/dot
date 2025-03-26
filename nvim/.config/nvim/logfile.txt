@@ -1,0 +1,14 @@
+Neovim closed with the following errors:
+
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap-cortex-debug.lua`
+vim.tbl_islist is deprecated. Run ":checkhealth vim.deprecated" for more information
+断点已保存
+

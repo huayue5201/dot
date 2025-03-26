@@ -20,7 +20,7 @@ return {
 			DapLogPoint = { text = "⚪", texthl = "DapLogPoint" }, -- 日志点
 			DapExceptionBreakpoint = { text = "🛑", texthl = "DapExceptionBreakpoint" }, -- 异常断点🔻
 			DapStopped = { -- 停止位置
-				text = "🟨", --🔶
+				text = "🔶", --🟨
 				texthl = "DapBreakpoint",
 				linehl = "DapCurrentLine",
 				numhl = "DiagnosticSignWarn",
