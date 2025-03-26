@@ -4,7 +4,7 @@ return {
 	"rbong/vim-flog",
 	keys = {
 		{ "<leader>gl", desc = "Flog" },
-		{ "<leader>og", desc = "Floggit" },
+		{ "<leader>gg", desc = "Floggit" },
 	},
 	cmd = { "Flog", "Flogsplit", "Floggit" },
 	dependencies = {
