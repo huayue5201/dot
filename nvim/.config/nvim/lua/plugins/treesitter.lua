@@ -4,10 +4,7 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
 	event = { "BufReadPre", "BufNewFile" },
-	-- https://github.com/LiadOz/nvim-dap-repl-highlights
-	dependencies = "LiadOz/nvim-dap-repl-highlights",
 	config = function()
-		require("nvim-dap-repl-highlights").setup()
 		require("nvim-treesitter.configs").setup({
 			-- 确保所需的语言解析器被安装
 			ensure_installed = {
@@ -22,7 +19,6 @@ return {
 				"cmake",
 				"json",
 				"rust",
-				"dap_repl",
 			},
 			-- 是否同步安装解析器
 			sync_install = true,

@@ -14,6 +14,6 @@ return {
 	config = function()
 		vim.g.flog_enable_extended_chars = 1
 		vim.keymap.set("n", "<leader>gl", "<cmd>Flog<cr>", { silent = true, desc = "Flog" })
-		vim.keymap.set("n", "<leader>og", "<cmd>Floggit<cr>", { silent = true, desc = "Floggit" })
+		vim.keymap.set("n", "<leader>gg", "<cmd>Floggit<cr>", { silent = true, desc = "Floggit" })
 	end,
 }

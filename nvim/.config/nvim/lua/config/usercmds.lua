@@ -68,7 +68,6 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 	-- 获取关闭命令，如果没有命令则使用默认的 "bd"
 	local command = close_commands[current_type]
 	if not command then
-		print("警告: 未找到该文件类型的关闭命令: " .. current_type)
 		command = "bd"
 	end
 
