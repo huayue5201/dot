@@ -9,7 +9,7 @@ end, { expr = true, desc = "删除当前行（空行使用黑洞寄存器）" })
 
 vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
 
-vim.keymap.set("n", "<leader>a", "<cmd>w<cr>", { silent = true, desc = "保存buffer" })
+vim.keymap.set("n", "<c-s>", "<cmd>w<cr>", { silent = true, desc = "保存buffer" })
 
 -- vim.keymap.set("n", "<Leader>q", ":bp|bd#<cr>", { silent = true, desc = "退出buffer" })
 vim.keymap.set("n", "<Leader>q", "<cmd>DeleteBuffer<cr>", { silent = true, desc = "退出buffer" })
