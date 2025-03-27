@@ -1,7 +1,10 @@
 {
+  "CopilotChat.nvim": { "branch": "main", "commit": "df550ff3f9f2d028160946d674db08dad432fdd3" },
+  "blink-copilot": { "branch": "main", "commit": "100691cd842ff0bd957683424ad0e829f71ce262" },
   "blink.cmp": { "branch": "main", "commit": "fd0eb0e297395d99bb7043c52283624b9b42b482" },
   "bufferline.nvim": { "branch": "main", "commit": "655133c3b4c3e5e05ec549b9f8cc2894ac6f51b3" },
   "conform.nvim": { "branch": "master", "commit": "f9ef25a7ef00267b7d13bfc00b0dea22d78702d5" },
+  "copilot.vim": { "branch": "release", "commit": "a9228e015528c9307890c48083c925eb98a64a79" },
   "crates.nvim": { "branch": "main", "commit": "85356807f3a0e9a3f7015586f3a010170d338686" },
   "dropbar.nvim": { "branch": "master", "commit": "873ba43f83398fd0e28880cf98fd89e6ce667c51" },
   "fzf": { "branch": "master", "commit": "4a0ab6c9267ef9e07723c3c19f9007d7ed3ea9b4" },
@@ -11,6 +14,7 @@
   "hex.nvim": { "branch": "master", "commit": "fcff75fcf43b5a6c5b471eed65b3a06c412d6020" },
   "lazy.nvim": { "branch": "main", "commit": "6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a" },
   "marks.nvim": { "branch": "master", "commit": "bb25ae3f65f504379e3d08c8a02560b76eaf91e8" },
+  "markview.nvim": { "branch": "main", "commit": "556cac8bb8eeb461013ebe0d015e2c48d3527c36" },
   "mason.nvim": { "branch": "main", "commit": "fc98833b6da5de5a9c5b1446ac541577059555be" },
   "namu.nvim": { "branch": "main", "commit": "fc9632d7deb81c737577ecfa5879aa3bd1fc0433" },
   "neo-tree.nvim": { "branch": "main", "commit": "a2f0245a509f1fc70c7af2c3e156305c55fd52cd" },
@@ -36,6 +40,7 @@
   "vim-flog": { "branch": "master", "commit": "665b16ac8915f746bc43c9572b4581a5e9047216" },
   "vim-fugitive": { "branch": "master", "commit": "4a745ea72fa93bb15dd077109afbb3d1809383f2" },
   "vim-illuminate": { "branch": "master", "commit": "19cb21f513fc2b02f0c66be70107741e837516a1" },
+  "vim-repeat": { "branch": "master", "commit": "65846025c15494983dafe5e3b46c8f88ab2e9635" },
   "vim-visual-multi": { "branch": "master", "commit": "a6975e7c1ee157615bbc80fc25e4392f71c344d4" },
   "which-key.nvim": { "branch": "main", "commit": "370ec46f710e058c9c1646273e6b225acf47cbed" },
   "yode-nvim": { "branch": "develop", "commit": "eaf3141b919c143ebf174d7ad180abd9c032b38c" }
