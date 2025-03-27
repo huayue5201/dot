@@ -1,0 +1,6 @@
+	-- 监听窗口关闭事件，确保最终同步
+	vim.api.nvim_create_autocmd("BufWipeout", {
+		buffer = buf,
+		callback = sync_to_original,
+	})
+end

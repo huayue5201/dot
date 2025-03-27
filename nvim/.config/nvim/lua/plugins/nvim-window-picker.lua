@@ -6,6 +6,7 @@ return {
 	config = function()
 		-- 配置 window-picker 插件
 		require("window-picker").setup({
+			-- hint = "floating-letter",
 			hint = "statusline-winbar",
 			filter_rules = {
 				include_current_win = false,

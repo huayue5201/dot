@@ -12,5 +12,6 @@ return {
 		require("CopilotChat").setup({
 			-- See Configuration section for options
 		})
+		vim.keymap.set("n", "<leader>ai", "<cmd>CopilotChat<CR>", { silent = true, desc = "Copilot" })
 	end,
 }
