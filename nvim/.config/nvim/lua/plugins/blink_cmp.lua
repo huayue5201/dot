@@ -3,6 +3,7 @@
 return {
 	"saghen/blink.cmp",
 	event = { "InsertEnter", "CmdlineEnter" },
+	dependencies = { "fang2hou/blink-copilot" },
 	-- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
 	build = "cargo build --release",
 	---@module 'blink.cmp'
@@ -62,7 +63,15 @@ return {
 			},
 			-- 补全源配置：定义默认启用的补全提供者
 			sources = {
-				default = { "lsp", "path", "snippets", "buffer", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
+				default = { "lsp", "path", "snippets", "buffer", "cmdline", "copilot" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
+				providers = {
+					copilot = {
+						name = "copilot",
+						module = "blink-copilot",
+						score_offset = 100,
+						async = true,
+					},
+				},
 			},
 			cmdline = {
 				enabled = false, -- 命令行补全
