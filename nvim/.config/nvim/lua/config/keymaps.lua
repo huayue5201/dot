@@ -26,7 +26,6 @@ vim.keymap.set("n", "<localleader>q", "<cmd>Toggle quickfix<cr>", { desc = "Togg
 
 vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
--- 复制选中的内容到系统剪贴板
 vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
 
 vim.keymap.set("n", "<leader>yp", function()
@@ -43,19 +42,6 @@ vim.keymap.set("n", "<leader>yt", function()
 	vim.fn.setreg('"', vim.fn.expand("%:t"))
 	print("Copied: " .. vim.fn.expand("%:t"))
 end, { silent = true, desc = "复制文件名" })
-
-vim.keymap.set("i", "<Tab>", function()
-	local cursor = vim.api.nvim_win_get_cursor(0)
-	local line = vim.api.nvim_get_current_line()
-	local next_char = line:sub(cursor[2] + 1, cursor[2] + 1)
-	if next_char == nil then
-		return "<Tab>"
-	end
-	if not vim.tbl_contains({ '"', "'", ")", "]", "}", ">" }, next_char) then
-		return "<Tab>"
-	end
-	return "<Right>"
-end, { expr = true, desc = "插入模式下跳出括号或引号" })
 
 vim.keymap.set("n", "<Leader>raw", function()
 	local current_win = vim.api.nvim_get_current_win()
