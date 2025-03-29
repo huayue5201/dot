@@ -204,26 +204,3 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 	desc = "Quickfix tweaks",
 })
-
--- ===========================
--- LSP 进度通知
--- ===========================
--- vim.api.nvim_create_autocmd("LspProgress", {
---   ---@param ev {data: {client_id: integer, params: lsp.ProgressParams}}
---   callback = function(ev)
---     -- 定义用于展示进度的旋转符号
---     local spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
---
---     -- 使用 vim.notify 显示 LSP 进度
---     vim.notify(vim.lsp.status(), "info", {
---       id = "lsp_progress",  -- 设置通知 ID，方便更新和清除
---       title = "LSP Progress",  -- 设置通知的标题
---       opts = function(notif)
---         -- 设置通知图标，如果 LSP 进度已完成则显示勾号，否则显示旋转符号
---         notif.icon = ev.data.params.value.kind == "end" and " "  -- 进度结束时显示勾号
---           or spinner[math.floor(vim.uv.hrtime() / (1e6 * 80)) % #spinner + 1]  -- 否则显示旋转符号
---       end,
---     })
---   end,
--- })
---

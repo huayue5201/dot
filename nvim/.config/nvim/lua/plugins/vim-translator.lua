@@ -7,16 +7,16 @@ return {
 		vim.cmd([[
     """ Configuration example
     " Echo translation in the cmdline
-    nmap <silent> <Leader>tm <Plug>Translate
-    vmap <silent> <Leader>tm <Plug>TranslateV
+    nmap <silent> <Leader>tle <Plug>Translate
+    vmap <silent> <Leader>tle <Plug>TranslateV
     " Display translation in a window
-    nmap <silent> <Leader>tw <Plug>TranslateW
-    vmap <silent> <Leader>tw <Plug>TranslateWV
+    nmap <silent> <Leader>tlw <Plug>TranslateW
+    vmap <silent> <Leader>tlw <Plug>TranslateWV
     " Replace the text with translation
     nmap <silent> <Leader>tlr <Plug>TranslateR
     vmap <silent> <Leader>tlr <Plug>TranslateRV
     " Translate the text in clipboard
-    nmap <silent> <Leader>tx <Plug>TranslateX
+    nmap <silent> <Leader>tlx <Plug>TranslateX
         nnoremap <silent><expr> <M-f> translator#window#float#has_scroll() ?
                                 \ translator#window#float#scroll(1) : "\<M-f>"
     nnoremap <silent><expr> <M-b> translator#window#float#has_scroll() ?
