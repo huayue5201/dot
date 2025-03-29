@@ -10,10 +10,17 @@ return {
 			return _G.__cached_neo_tree_selector
 		end
 
+		local highlights = require("nord").bufferline.highlights({
+			italic = true,
+			bold = true,
+		})
+
 		local icons = require("config.utils").icons.diagnostic
 		require("bufferline").setup({
+			highlights = highlights,
 			options = {
-				separator_style = "thick", -- 分隔符样式设置为thick
+				separator_style = "thin",
+				-- separator_style = "thick", -- 分隔符样式设置为thick
 				custom_filter = function(buf) -- 过滤qf缓冲区
 					local excluded_filetypes = { "qf", "help", "terminal", "fugitive" }
 					local excluded_buftypes = { "terminal", "acwrite", "nofile" }
@@ -73,7 +80,7 @@ return {
 
 		vim.keymap.set("n", "<leader>tp", "<cmd>BufferLineTogglePin<cr>", { desc = "图钉📌" })
 		vim.keymap.set("n", "<leader>tg", "<cmd>BufferLinePick<CR>", { desc = "跳转到任意可见标签" })
-		vim.keymap.set("n", "<leader>tx", "<cmd>BufferLinePickClose<CR>", { desc = "删除任意可见标签" })
+		vim.keymap.set("n", "<leader>tr", "<cmd>BufferLinePickClose<CR>", { desc = "删除任意可见标签" })
 		vim.keymap.set("n", "<leader>td", "<cmd>BufferLineCloseOthers<cr>", { desc = "删除其他所有buffers" })
 	end,
 }
