@@ -23,6 +23,8 @@ brew install btop # 系统监测
 brew install tmux # 终端复用
 brew install aria2 # 下载工具
 brew install --HEAD neovim
+brew tap laishulu/homebrew # neovim输入法切换依赖
+brew install macism
 brew install libgit2 # neovim SuperBo/fugit2.nvim插件依赖
 brew install superfile # 文件资源管理器
 brew install pipx # python虚拟环境管理工具

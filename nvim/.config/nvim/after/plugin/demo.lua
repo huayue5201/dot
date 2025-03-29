@@ -1,0 +1,54 @@
+local M = {}
+
+-- 获取选中文本或光标下的单词
+local function get_text()
+	local mode = vim.fn.mode()
+	if mode == "v" or mode == "V" or mode == "\22" then
+		return vim.fn.getreg('"') -- 获取选中文本
+	else
+		return vim.fn.expand("<cword>") -- 获取光标下的单词
+	end
+end
+
+-- 发送 HTTP 请求到翻译 API
+local function translate(text)
+	local api_url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh&dt=t&q="
+		.. vim.fn.escape(text, " ")
+	local result = vim.fn.system({ "curl", "-s", api_url })
+	local translated_text = result:match('%[%[%"(.-)"') or "翻译失败"
+	return translated_text
+end
+
+-- 显示翻译结果（浮动窗口）
+local function show_result(result)
+	local buf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "翻译结果: ", result })
+	local width = math.ceil(vim.o.columns * 0.5)
+	local height = 3
+	local opts = {
+		relative = "editor",
+		width = width,
+		height = height,
+		row = math.ceil((vim.o.lines - height) / 2),
+		col = math.ceil((vim.o.columns - width) / 2),
+		style = "minimal",
+		border = "rounded",
+	}
+	vim.api.nvim_open_win(buf, true, opts)
+end
+
+-- 主函数
+function M.translate()
+	local text = get_text()
+	if text == "" then
+		vim.api.nvim_err_writeln("没有可翻译的文本")
+		return
+	end
+	local result = translate(text)
+	show_result(result)
+end
+
+-- 设置命令
+vim.api.nvim_create_user_command("Translate", M.translate, {})
+
+return M

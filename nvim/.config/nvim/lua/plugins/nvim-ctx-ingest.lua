@@ -2,7 +2,7 @@
 
 return {
 	"0xrusowsky/nvim-ctx-ingest",
-	keys = "<localleader>a",
+	keys = { { "<leader>ac", desc = "LLMs上下文复制" } },
 	cmd = "CtxIngest",
 	dependencies = "nvim-tree/nvim-web-devicons", -- required for file icons
 	config = function()
@@ -67,6 +67,6 @@ return {
 				copy_clipboard = true, -- Whether to copy to clipboard
 			},
 		})
-		vim.keymap.set("n", "<localleader>a", "<cmd>CtxIngest<cr>", { desc = "LLMs上下文复制" })
+		vim.keymap.set("n", "<leader>ac", "<cmd>CtxIngest<cr>", { desc = "LLMs上下文复制" })
 	end,
 }
