@@ -20,7 +20,7 @@ Statuscolumn.folds = function()
 	end
 	-- 2️⃣ 该行是折叠的起点（关闭状态）
 	if foldclosed == lnum then
-		return "╶" -- ▶ 代表折叠行
+		return "+" -- ▶ 代表折叠行
 	end
 	-- 3️⃣ 该行是新折叠的开始
 	if foldlevel > foldlevel_before then

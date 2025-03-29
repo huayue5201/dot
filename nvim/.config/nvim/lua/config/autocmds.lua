@@ -42,7 +42,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
 	pattern = "*",
 	callback = function()
-		vim.highlight.on_yank() -- 高亮复制的内容
+		vim.highlight.on_yank({ timeout = 330 }) -- 高亮复制的内容
 	end,
 })
 
@@ -194,7 +194,7 @@ vim.api.nvim_create_autocmd("FileType", {
 	pattern = "qf",
 	callback = function()
 		-- 让 Quickfix 不显示在 `:buffers` 列表中
-		vim.api.nvim_buf_set_option(0, "buflisted", false)
+		vim.api.nvim_set_option_value("buflisted", false, { buf = 0 })
 		-- 按 `<ESC>` 关闭 Quickfix 窗口
 		vim.keymap.set("n", "<ESC>", "<CMD>cclose<CR>", { buffer = true, silent = true })
 		-- `dd` 删除单个 Quickfix 条目

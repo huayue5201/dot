@@ -3,7 +3,8 @@
 return {
 	"bassamsdata/namu.nvim",
 	keys = {
-		{ "<leader>s" },
+		{ "<leader>s", desc = "Jump to LSP symbol" },
+		{ "<leader>th", desc = "Colorscheme Picker" },
 	},
 	config = function()
 		require("namu").setup({

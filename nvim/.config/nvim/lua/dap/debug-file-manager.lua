@@ -128,6 +128,6 @@ end
 load_debug_file()
 
 -- 映射快捷键
-vim.keymap.set("n", "<A-a>", M.toggle_debug_file, { noremap = true, silent = true })
+vim.keymap.set("n", "<localleader>a", M.toggle_debug_file, { noremap = true, silent = true })
 
 return M

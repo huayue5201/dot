@@ -175,15 +175,3 @@ vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
 		)
 	end,
 })
-
--- -------------------- LSP 进度更新定时器 --------------------
--- LSP 进度更新的定时器处理
-local timer = vim.loop.new_timer()
-vim.api.nvim_create_autocmd("LspProgress", {
-	group = vim.api.nvim_create_augroup("LSPProgress", { clear = true }),
-	callback = function()
-		vim.cmd.redrawstatus()
-		timer:stop() -- 停止之前的定时器
-		timer:start(150, 0, vim.schedule_wrap(vim.cmd.redrawstatus)) -- 延迟执行重绘
-	end,
-})

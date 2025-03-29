@@ -21,7 +21,7 @@ return {
 		})
 
 		local dap = require("dap")
-		dap.providers.configs["shared_config_provider"] = function(bufnr)
+		dap.providers.configs["OpenOCD"] = function(bufnr)
 			return {
 				{
 					name = "OpenOCD",
@@ -39,7 +39,6 @@ return {
 					showDevDebugOutput = false,
 					gdbTarget = "localhost:3333",
 					cwd = "${workspaceFolder}",
-					-- executable = require("config.utils").executable_path,
 					executable = vim.g.debug_file,
 					configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
 					svdFile = "",

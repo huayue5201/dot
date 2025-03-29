@@ -31,7 +31,9 @@ return {
 		end
 
 		-- require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
-		require("dap.probe-rs")
+		-- require("dap.probe-rs")
+		require("dap.gdb")
+		-- require("dap.codelldb")
 		require("dap.debug-file-manager") -- 调试文件标记模块
 		require("dap.breakpoint_manager") -- 引入断点管理模块
 		local dap = require("dap")

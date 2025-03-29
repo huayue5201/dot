@@ -7,8 +7,8 @@ return {
 		vim.cmd([[
     """ Configuration example
     " Echo translation in the cmdline
-    nmap <silent> <Leader>tle <Plug>Translate
-    vmap <silent> <Leader>tle <Plug>TranslateV
+    nmap <silent> <Leader>tlc <Plug>Translate
+    vmap <silent> <Leader>tlc <Plug>TranslateV
     " Display translation in a window
     nmap <silent> <Leader>tlw <Plug>TranslateW
     vmap <silent> <Leader>tlw <Plug>TranslateWV
