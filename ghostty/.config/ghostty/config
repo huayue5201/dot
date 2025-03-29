@@ -3,14 +3,14 @@
 #           字体设置
 # ================================================
 # 设置字体
-font-family = Victor Mono
-# font-family = FiraCode Nerd Font
+# font-family = Victor Mono
+font-family = FiraCode Nerd Font
 # font-family = GohuFont uni14 Nerd Font
 # 启用加粗字体
 # font-thicken = true
 
 # 设置字体大小为 15
-font-size = 15
+font-size = 16
 
 # ================================================
 #           窗口与主题设置
