@@ -10,14 +10,14 @@ return {
 			return _G.__cached_neo_tree_selector
 		end
 
-		local highlights = require("nord").bufferline.highlights({
-			italic = true,
-			bold = true,
-		})
+		-- local highlights = require("nord").bufferline.highlights({
+		-- 	italic = true,
+		-- 	bold = true,
+		-- })
 
 		local icons = require("config.utils").icons.diagnostic
 		require("bufferline").setup({
-			highlights = highlights,
+			-- highlights = highlights,
 			options = {
 				separator_style = "thin",
 				-- separator_style = "thick", -- 分隔符样式设置为thick
