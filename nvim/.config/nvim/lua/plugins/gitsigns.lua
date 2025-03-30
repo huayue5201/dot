@@ -69,6 +69,7 @@ return {
 					else
 						gitsigns.nav_hunk("next")
 					end
+					vim.call("repeat#set", "]h")
 				end, { desc = "跳转到下一个差异区块" })
 
 				map("n", "[h", function()
@@ -77,6 +78,7 @@ return {
 					else
 						gitsigns.nav_hunk("prev")
 					end
+					vim.call("repeat#set", "[h")
 				end, { desc = "跳转到上一个差异区块" })
 
 				-- Actions (操作)
@@ -100,11 +102,11 @@ return {
 					gitsigns.blame_line({ full = true })
 				end, { desc = "显示当前行的 Git blame" })
 
-				map("n", "<leader>gd", gitsigns.diffthis, { desc = "显示当前文件的差异" })
-
-				map("n", "<leader>gD", function()
-					gitsigns.diffthis("~")
-				end, { desc = "显示与最后提交的差异" })
+				-- map("n", "<leader>gd", gitsigns.diffthis, { desc = "显示当前文件的差异" })
+				--
+				-- map("n", "<leader>gD", function()
+				-- 	gitsigns.diffthis("~")
+				-- end, { desc = "显示与最后提交的差异" })
 
 				map("n", "<leader>gQ", function()
 					gitsigns.setqflist("all")
