@@ -38,10 +38,40 @@ vim.opt.confirm = true -- 未保存退出确认
 vim.opt.spelloptions = "camel" -- 开启驼峰拼写检查
 
 -- -------------- 折叠设置 --------------
-vim.opt.foldmethod = "expr" -- 设置折叠方法为表达式
-vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- 使用 Treesitter 表达式折叠
+-- folding
+function Foldexpr()
+	local buf = vim.api.nvim_get_current_buf()
+	-- 如果没有文件类型，跳过
+	if vim.bo[buf].filetype == "" then
+		return "0"
+	end
+	-- 如果是 dashboard 文件类型，禁用折叠
+	if vim.bo[buf].filetype:find("dashboard") then
+		return "0"
+	end
+	-- 获取 LSP 客户端列表
+	local clients = vim.lsp.get_clients()
+	-- 尝试获取 LSP 客户端支持的折叠范围
+	for _, client in ipairs(clients) do
+		if client.server_capabilities and client.server_capabilities.textDocument then
+			if client.server_capabilities.textDocument.foldingRange then
+				-- 如果 LSP 客户端支持折叠范围，使用 LSP 的 foldexpr
+				return vim.lsp.foldexpr(0)
+			end
+		end
+	end
+	-- 如果没有 LSP 支持，则使用 Tree-sitter
+	if vim.treesitter.get_parser(buf) then
+		return vim.treesitter.foldexpr() or "0"
+	end
+	-- 最后使用语法折叠
+	return "syntax"
+end
+-- 设置折叠表达式
+vim.o.foldmethod = "expr"
+vim.o.foldexpr = "v:lua.Foldexpr()"
+vim.opt.foldlevelstart = 99 -- 默认展开所有内容
 vim.opt.foldcolumn = "1" -- 显示折叠列
-vim.opt.foldlevel = 99 -- 设置默认折叠级别
 vim.opt.foldtext = "v:lua.require('config.foldtext').custom_foldtext()"
 
 -- -------------- 编辑行为设置 --------------

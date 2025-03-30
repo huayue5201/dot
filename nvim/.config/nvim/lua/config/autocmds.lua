@@ -36,17 +36,6 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- ===========================
--- 高亮复制内容
--- ===========================
-vim.api.nvim_create_autocmd("TextYankPost", {
-	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
-	pattern = "*",
-	callback = function()
-		vim.highlight.on_yank({ timeout = 330 }) -- 高亮复制的内容
-	end,
-})
-
--- ===========================
 -- 复制时保持光标位置
 -- ===========================
 local cursorPreYank
@@ -63,6 +52,7 @@ end, { expr = true })
 -- 复制后恢复光标位置
 vim.api.nvim_create_autocmd("TextYankPost", {
 	callback = function()
+		vim.highlight.on_yank({ timeout = 330 }) -- 高亮复制的内容
 		if vim.v.event.operator == "y" and cursorPreYank then
 			vim.api.nvim_win_set_cursor(0, cursorPreYank)
 			cursorPreYank = nil -- 重置，避免下次错误

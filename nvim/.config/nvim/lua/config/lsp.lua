@@ -3,21 +3,6 @@
 
 local M = {}
 
--- 缓存 LSP 客户端支持的方法，减少频繁查询
-local function get_supported_lsp_methods(buf)
-	local supported_methods = {}
-	local clients = vim.lsp.get_clients({ bufnr = buf })
-	if #clients > 0 then
-		for _, client in ipairs(clients) do
-			supported_methods.documentHighlight = supported_methods.documentHighlight
-				or client:supports_method("textDocument/documentHighlight")
-			supported_methods.foldingRange = supported_methods.foldingRange
-				or client:supports_method("textDocument/foldingRange")
-		end
-	end
-	return supported_methods
-end
-
 -- 设置诊断的全局配置
 local function setup_global_diagnostics()
 	local icons = require("config.utils").icons.diagnostic
@@ -119,51 +104,6 @@ local function set_keymaps(buf, _)
 	end
 end
 
--- -- 设置高亮符号功能
--- local function setup_highlight_symbol(buf, supported_methods)
--- 	if not supported_methods.documentHighlight then
--- 		return
--- 	end
--- 	local group_name = "highlight_symbol"
--- 	local group = vim.api.nvim_create_augroup(group_name, { clear = false })
--- 	vim.api.nvim_clear_autocmds({ buffer = buf, group = group })
--- 	vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
--- 		group = group,
--- 		buffer = buf,
--- 		callback = function()
--- 			vim.defer_fn(function()
--- 				local success, err = pcall(vim.lsp.buf.document_highlight)
--- 				if not success then
--- 					print("LSP document_highlight error: " .. err)
--- 				end
--- 			end, 50)
--- 		end,
--- 	})
--- 	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
--- 		group = group,
--- 		buffer = buf,
--- 		callback = function()
--- 			vim.defer_fn(function()
--- 				local success, err = pcall(vim.lsp.buf.clear_references)
--- 				if not success then
--- 					print("LSP clear_references error: " .. err)
--- 				end
--- 			end, 50)
--- 		end,
--- 	})
--- end
-
--- 设置折叠功能
-local function setup_folding(buf, supported_methods)
-	if supported_methods.foldingRange then
-		local win_id = vim.fn.bufwinid(buf)
-		if win_id ~= -1 then
-			vim.api.nvim_set_option_value("foldmethod", "expr", { win = win_id })
-			vim.api.nvim_set_option_value("foldexpr", "v:lua.vim.lsp.foldexpr()", { win = win_id })
-		end
-	end
-end
-
 -- LSP 主设置函数
 M.lspSetup = function()
 	setup_global_diagnostics()
@@ -171,10 +111,7 @@ M.lspSetup = function()
 		group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
 		callback = function(args)
 			local buf = args.buf
-			local supported_methods = get_supported_lsp_methods(buf)
-			set_keymaps(buf, supported_methods)
-			-- setup_highlight_symbol(buf, supported_methods)
-			setup_folding(buf, supported_methods)
+			set_keymaps(buf)
 		end,
 	})
 end

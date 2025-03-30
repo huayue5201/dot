@@ -1,7 +1,7 @@
 -- https://github.com/voldikss/vim-translator?tab=readme-ov-file#gtranslator_default_engines
 
 return {
-	"voldikss/vim-translator",
+	"huayue5201/vim-translator",
 	event = "BufReadPost",
 	config = function()
 		vim.cmd([[
