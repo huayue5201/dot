@@ -3,9 +3,10 @@
 return {
 	"NeogitOrg/neogit",
 	cmd = "Neogit",
-	keys = { "<leader>go", desc = "Neogit" },
+	keys = { { "<leader>go", desc = "Neogit" } },
 	dependencies = {
 		"nvim-lua/plenary.nvim", -- required
+		-- https://github.com/sindrets/diffview.nvim
 		"sindrets/diffview.nvim", -- optional - Diff integration
 	},
 	config = function()

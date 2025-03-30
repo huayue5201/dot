@@ -45,20 +45,18 @@ function Foldexpr()
 	if vim.bo[buf].filetype == "" then
 		return "0"
 	end
-	-- 如果是 dashboard 文件类型，禁用折叠
-	if vim.bo[buf].filetype:find("dashboard") then
+	-- 定义不需要折叠的文件类型列表
+	local no_fold_filetypes = { "dashboard", "log", "txt", "md" } -- 可以在此添加更多文件类型
+	-- 如果当前文件类型在列表中，禁用折叠
+	if vim.tbl_contains(no_fold_filetypes, vim.bo[buf].filetype) then
 		return "0"
 	end
-	-- 获取 LSP 客户端列表
-	local clients = vim.lsp.get_clients()
-	-- 尝试获取 LSP 客户端支持的折叠范围
-	for _, client in ipairs(clients) do
-		if client.server_capabilities and client.server_capabilities.textDocument then
-			if client.server_capabilities.textDocument.foldingRange then
-				-- 如果 LSP 客户端支持折叠范围，使用 LSP 的 foldexpr
-				return vim.lsp.foldexpr(0)
-			end
-		end
+	-- 查询 LSP 是否支持折叠范围
+	local lsp_utils = require("lsp_utils")
+	local supported_methods = lsp_utils.get_supported_lsp_methods(buf, { "textDocument/foldingRange" })
+	-- 如果支持折叠范围，使用 LSP 折叠
+	if supported_methods["textDocument/foldingRange"] then
+		return vim.lsp.foldexpr(0)
 	end
 	-- 如果没有 LSP 支持，则使用 Tree-sitter
 	if vim.treesitter.get_parser(buf) then
