@@ -52,7 +52,6 @@ vim.opt.tabstop = 2 -- 设置 Tab 为 2 个空格宽度
 vim.opt.shiftwidth = 2 -- 设置自动缩进为 2 个空格
 vim.opt.scrolloff = 8 -- 保持光标上方和下方至少 8 行可见
 vim.opt.sidescrolloff = 5 -- 保持光标左右至少 5 列可见
-vim.opt.formatoptions:remove({ "o", "r" }) -- 移除 'o' 和 'r' 格式选项，防止换行时继续注释符号
 
 -- shada设置
 vim.opt.exrc = true -- 启用 exrc 配置

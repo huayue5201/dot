@@ -1,0 +1,35 @@
+{
+  "OpenOCD Configuration": {
+    "prefix": "openocd",
+    "body": [
+      "# OpenOCD configuration for ${1:target}",
+      "interface ${2:interface}",
+      "transport select ${3:transport}",
+      "",
+      "set CHIPNAME ${4:chipname}",
+      "source [find target/${5:chip}.cfg]",
+      "",
+      "adapter_khz ${6:frequency}",
+      "",
+      "reset_config ${7:reset_config}",
+      "",
+      "init",
+      "reset init"
+    ],
+    "description": "Basic OpenOCD configuration"
+  },
+  "memory_layout": {
+    "prefix": "memory",
+    "body": [
+      "MEMORY",
+      "{",
+      "  /* NOTE 1 K = 1 KiBi = 1024 bytes */",
+      "  /* TODO Adjust these memory regions to match your device memory layout */",
+      "  /* These values correspond to the LM3S6965, one of the few devices QEMU can emulate */",
+      "  FLASH : ORIGIN = 0x08000000, LENGTH = ${1:128K}",
+      "  RAM : ORIGIN = 0x20000000, LENGTH = ${2:1024K}",
+      "}"
+    ],
+    "description": "Define memory layout for embedded systems"
+  }
+}

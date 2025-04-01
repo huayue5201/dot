@@ -80,6 +80,27 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 -- 	end,
 -- })
 
+-- local paths = {
+-- 	vim.fn.stdpath("data") .. "/lazy/friendly-snippets/package.json",
+-- 	vim.fn.expand("$MYVIMRC"):match("(.*[/\\])") .. "snippets/package.json",
+-- }
+-- local descs = { "FR", "USR" }
+-- local sn_group = vim.api.nvim_create_augroup("SnippetServer", { clear = true })
+-- vim.api.nvim_create_autocmd({ "InsertEnter" }, {
+-- 	group = sn_group,
+-- 	once = true,
+-- 	callback = function()
+-- 		require("config.snippet").snippet_handler(paths, vim.bo.filetype, descs)
+-- 		vim.api.nvim_create_autocmd({ "BufEnter" }, {
+-- 			group = sn_group,
+-- 			callback = function()
+-- 				require("config.snippet").snippet_handler(paths, vim.bo.filetype, descs)
+-- 			end,
+-- 			desc = "Handle LSP for buffer changes",
+-- 		})
+-- 	end,
+-- })
+
 vim.api.nvim_create_autocmd("FileType", {
 	group = vim.api.nvim_create_augroup("TreesitterFolds", { clear = true }),
 	desc = "load treesitter folds later to copensate for async loading",
