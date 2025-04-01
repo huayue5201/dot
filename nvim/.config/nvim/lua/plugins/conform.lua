@@ -17,7 +17,12 @@ return {
 		local slow_format_filetypes = {}
 		require("conform").setup({
 			-- Define your formatters
-			formatters_by_ft = { lua = { "stylua" }, toml = { "taplo" } },
+			formatters_by_ft = {
+				lua = { "stylua" },
+				toml = { "taplo" },
+				-- https://github.com/jqlang/jq
+				json = { "jq" },
+			},
 			-- Set up format-on-save
 			format_on_save = function(bufnr)
 				if slow_format_filetypes[vim.bo[bufnr].filetype] then
