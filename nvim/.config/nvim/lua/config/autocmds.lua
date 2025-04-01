@@ -1,14 +1,4 @@
 -- ===========================
--- 清理尾部空白字符
--- ===========================
-vim.api.nvim_create_autocmd("BufWritePre", {
-	desc = "保存文件时移除末尾的空白字符",
-	group = vim.api.nvim_create_augroup("cleanSpace", { clear = true }),
-	pattern = "*",
-	command = "%s/\\s\\+$//e", -- 在保存文件前，删除末尾的空白字符
-})
-
--- ===========================
 -- 记住最后的光标位置
 -- ===========================
 vim.api.nvim_create_autocmd("BufReadPost", {
@@ -24,48 +14,34 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	end,
 })
 
--- ===========================
--- 禁止换行时延续注释符号
--- ===========================
-vim.api.nvim_create_autocmd("FileType", {
-	desc = "换行时不要延续注释符号",
-	pattern = "*",
-	callback = function()
-		vim.opt.formatoptions:remove({ "o", "r" }) -- 移除 'o' 和 'r' 格式选项，防止换行时继续注释符号
-	end,
-})
-
--- ===========================
--- 复制时保持光标位置
--- ===========================
 local cursorPreYank
 -- 保存普通模式（Normal）和可视模式（Visual）下的复制前光标位置
 vim.keymap.set({ "n", "x" }, "y", function()
 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
 	return "y"
 end, { expr = true })
+
 -- 保存 `Y` 按键的光标位置并复制当前行到行尾
 vim.keymap.set("n", "Y", function()
 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
 	return "y$"
 end, { expr = true })
--- 复制后恢复光标位置
-vim.api.nvim_create_autocmd("TextYankPost", {
-	callback = function()
-		vim.highlight.on_yank({ timeout = 330 }) -- 高亮复制的内容
-		if vim.v.event.operator == "y" and cursorPreYank then
-			vim.api.nvim_win_set_cursor(0, cursorPreYank)
-			cursorPreYank = nil -- 重置，避免下次错误
-		end
-	end,
-})
 
--- 自动延迟同步到系统剪贴板，避免vim.opt.clipboard = "unnamedplus"带来的性能问题
+-- 合并高亮复制 & 光标恢复 & 剪贴板同步
 vim.api.nvim_create_autocmd("TextYankPost", {
 	pattern = "*",
 	callback = function()
+		-- ① 高亮复制的内容
+		vim.highlight.on_yank({ timeout = 330 })
+
+		-- ② 恢复光标位置（仅限 `yank` 操作）
+		if vim.v.event.operator == "y" and cursorPreYank then
+			vim.api.nvim_win_set_cursor(0, cursorPreYank)
+			cursorPreYank = nil
+		end
+
+		-- ③ 延迟同步到系统剪贴板，优化 `unnamedplus` 的性能
 		local reg_type = vim.fn.getregtype('"')
-		-- 如果是普通复制操作（不是通过系统剪贴板触发）
 		if reg_type ~= "+" then
 			local clipboard_content = vim.fn.getreg('"')
 			if clipboard_content ~= "" then
@@ -104,6 +80,21 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 -- 	end,
 -- })
 
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("TreesitterFolds", { clear = true }),
+	desc = "load treesitter folds later to copensate for async loading",
+	callback = function(args)
+		local bufnr = args.buf
+		-- check if treesitter is available
+		if pcall(vim.treesitter.start, bufnr) then
+			vim.wo[0][0].foldmethod = "expr"
+			vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+		else
+			vim.wo[0][0].foldmethod = "manual"
+		end
+	end,
+})
+
 -- ===========================
 -- 用 q 关闭窗口或删除缓冲区
 -- ===========================
@@ -116,24 +107,6 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 		local command = close_commands[current_type]
 		if command then
 			vim.api.nvim_buf_set_keymap(0, "n", "q", command, { noremap = true, silent = true })
-		end
-	end,
-})
-
--- ===========================
--- 窗口固定类容
--- ===========================
-vim.api.nvim_create_augroup("IrrepLaceableWindows", { clear = true })
-vim.api.nvim_create_autocmd("BufWinEnter", {
-	group = "IrrepLaceableWindows",
-	pattern = "*",
-	callback = function()
-		-- 定义需要固定大小的窗口类型
-		local filetypes = { "dap-float", "floggraph", "fugitive", "NvimTree", "grug-far", "toggleterm" }
-		local buftypes = { "nofile", "terminal", "acwrite" }
-		-- 判断当前窗口是否为不可替换窗口类型
-		if vim.tbl_contains(buftypes, vim.bo.buftype) and vim.tbl_contains(filetypes, vim.bo.filetype) then
-			vim.wo.winfixbuf = true
 		end
 	end,
 })

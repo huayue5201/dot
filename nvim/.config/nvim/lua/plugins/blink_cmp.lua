@@ -63,6 +63,13 @@ return {
 			-- 补全源配置：定义默认启用的补全提供者
 			sources = {
 				default = { "lsp", "path", "snippets", "buffer", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
+				providers = {
+					snippets = {
+						opts = {
+							search_paths = { vim.fn.stdpath("data") .. "/lazy/friendly-snippets/package.json" }, -- 指定代码片段的搜索路径
+						},
+					},
+				},
 			},
 			cmdline = {
 				enabled = false, -- 命令行补全

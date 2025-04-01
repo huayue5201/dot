@@ -1,11 +1,12 @@
 -- 定义高亮组
-vim.cmd("highlight DefaultMode gui=bold")
-vim.cmd("highlight NormalMode gui=bold")
-vim.cmd("highlight InsertMode gui=bold")
-vim.cmd("highlight VisualMode gui=bold")
-vim.cmd("highlight ReplaceMode gui=bold")
-vim.cmd("highlight PinkHighlight guifg=#ffde7d gui=bold")
-vim.cmd("highlight StatuslineIcon guifg=#ffde7d gui=bold")
+-- 定义高亮组
+vim.api.nvim_set_hl(0, "DefaultMode", { bold = true })
+vim.api.nvim_set_hl(0, "NormalMode", { bold = true })
+vim.api.nvim_set_hl(0, "InsertMode", { bold = true })
+vim.api.nvim_set_hl(0, "VisualMode", { bold = true })
+vim.api.nvim_set_hl(0, "ReplaceMode", { bold = true })
+vim.api.nvim_set_hl(0, "PinkHighlight", { fg = "#ffde7d", bold = true })
+vim.api.nvim_set_hl(0, "StatuslineIcon", { fg = "#ffde7d", bold = true })
 
 Statusline = {}
 
@@ -26,7 +27,7 @@ Statusline.modes = {
 function Statusline.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
 	local mode_info = Statusline.modes[current_mode] or { label = current_mode, hl = "DefaultMode" }
-	return "%#StatuslineIcon# %* " .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
+	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
 -- -------------------- 文件名和图标 --------------------

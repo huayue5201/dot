@@ -40,8 +40,8 @@ vim.opt.spelloptions = "camel" -- 开启驼峰拼写检查
 
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式
-vim.o.foldmethod = "expr"
-vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+-- vim.o.foldmethod = "expr"
+-- vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 vim.opt.foldlevelstart = 99 -- 默认展开所有内容
 vim.opt.foldcolumn = "1" -- 显示折叠列
 vim.opt.foldtext = "v:lua.require('config.foldtext').custom_foldtext()"
@@ -52,6 +52,7 @@ vim.opt.tabstop = 2 -- 设置 Tab 为 2 个空格宽度
 vim.opt.shiftwidth = 2 -- 设置自动缩进为 2 个空格
 vim.opt.scrolloff = 8 -- 保持光标上方和下方至少 8 行可见
 vim.opt.sidescrolloff = 5 -- 保持光标左右至少 5 列可见
+vim.opt.formatoptions:remove({ "o", "r" }) -- 移除 'o' 和 'r' 格式选项，防止换行时继续注释符号
 
 -- shada设置
 vim.opt.exrc = true -- 启用 exrc 配置
@@ -111,12 +112,12 @@ vim.opt.fillchars = {
 	vertright = "┣", -- 向右的垂直分隔符
 	verthoriz = "╋", -- 垂直和水平重叠的分隔符
 	-- 折叠相关字符
-	fold = "", -- 折叠文本填充字符
+	fold = " ", -- 折叠文本填充字符
 	-- foldopen = "󰛲", -- 折叠打开时的标记字符
 	-- foldclose = "󰐖", -- 折叠关闭时的标记字符
 	-- foldsep = "│", -- 打开折叠时的中间分隔符
 	-- 其他
-	diff = "╱", -- 显示差异时，已删除的行字符
+	-- diff = "╱", -- 显示差异时，已删除的行字符
 	msgsep = "󰖰", -- 消息分隔符字符（例如用于 `display`）
 	eob = " ", -- 空行字符（用于表示缓冲区末尾）
 	lastline = "@", -- 最后一行或截断字符
