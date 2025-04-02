@@ -32,7 +32,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	pattern = "*",
 	callback = function()
 		-- ① 高亮复制的内容
-		vim.highlight.on_yank({ timeout = 330 })
+		vim.hl.on_yank({ timeout = 330 })
 
 		-- ② 恢复光标位置（仅限 `yank` 操作）
 		if vim.v.event.operator == "y" and cursorPreYank then

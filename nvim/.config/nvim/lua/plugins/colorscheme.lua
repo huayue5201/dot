@@ -1,5 +1,6 @@
 -- https://github.com/oxfist/night-owl.nvim
 -- https://github.com/EdenEast/nightfox.nvim
+-- https://github.com/folke/tokyonight.nvim
 
 return {
 	-- "oxfist/night-owl.nvim",
@@ -16,7 +17,7 @@ return {
 		-- vim.cmd("colorscheme nordfox")
 		-- vim.cmd.colorscheme("codedark")
 		-- vim.cmd([[colorscheme nord]])
-		vim.cmd([[colorscheme tokyonight]])
+		vim.cmd([[colorscheme tokyonight-night]])
 		-- require("monokai-pro").setup({
 		-- ... your config
 		-- background_clear = { "float_win" },
