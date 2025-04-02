@@ -18,7 +18,9 @@ return {
 				-- 设置导入的前缀
 				prefix = "self", -- 导入时使用 `self` 前缀
 			},
-
+			lens = {
+				enable = true, -- 启用 CodeLens
+			},
 			-- cargo 设置
 			cargo = {
 				-- 从 cargo check 加载输出目录，以加速 Rust 项目分析
@@ -32,7 +34,6 @@ return {
 					enable = true, -- 启用 Rust 构建脚本
 				},
 			},
-
 			-- 宏支持设置
 			procMacro = {
 				-- 启用过程宏支持（如 `#[derive(...)]` 语法支持）

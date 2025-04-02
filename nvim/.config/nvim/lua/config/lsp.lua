@@ -7,7 +7,7 @@ local M = {}
 local function setup_global_diagnostics()
 	local icons = require("config.utils").icons.diagnostic
 	vim.diagnostic.config({
-		-- virtual_text = { spacing = 4, source = "if_many", prefix = "■" },-- Could be '●', '▎', 'x'
+		-- virtual_text = { spacing = 4, source = "if_many", prefix = "■" }, -- 可选: '●', '▎', 'x'
 		virtual_text = false,
 		severity_sort = true,
 		-- virtual_lines = { current_line = true },
@@ -27,27 +27,27 @@ local function setup_global_diagnostics()
 		update_in_insert = false,
 	})
 
-	-- Can be one of the pre-defined styles: `"double"`, `"none"`, `"rounded"`, `"shadow"`, `"single"` or `"solid"`.
+	-- 可以选择以下几种边框样式: `"double"`, `"none"`, `"rounded"`, `"shadow"`, `"single"`, `"solid"`
 	-- hover UI
 	local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
 	---@diagnostic disable-next-line: duplicate-set-field
 	function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
 		opts = opts or {}
-		opts.border = "rounded" -- Or any other border
+		opts.border = "rounded" -- 设置边框样式
 		return orig_util_open_floating_preview(contents, syntax, opts, ...)
 	end
 
 	-- 插入模式下立刻更新诊断信息
 	vim.api.nvim_create_autocmd("ModeChanged", {
 		pattern = { "n:i", "v:s" },
-		desc = "Disable diagnostics in insert and select mode",
+		desc = "插入/选择模式禁用诊断",
 		callback = function()
 			vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 		end,
 	})
 	vim.api.nvim_create_autocmd("ModeChanged", {
 		pattern = "i:n",
-		desc = "Enable diagnostics when leaving insert mode",
+		desc = "离开插入模式时启用诊断",
 		callback = function()
 			vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 		end,
@@ -55,38 +55,34 @@ local function setup_global_diagnostics()
 end
 
 -- 设置按键映射
-local function set_keymaps(buf, _)
-	local copy_lsp_diagnostics = function()
-		local line = vim.fn.line(".") - 1 -- 获取当前光标所在的行号（Lua 索引从 0 开始）
-		local diagnostics = vim.diagnostic.get(0, { lnum = line }) -- 获取当前行的诊断信息
-		local diagnostic_msgs = {}
-		for _, diag in ipairs(diagnostics) do
-			table.insert(diagnostic_msgs, diag.message) -- 提取报错信息
-		end
-		if #diagnostic_msgs > 0 then
-			local message = table.concat(diagnostic_msgs, "\n") -- 将报错信息合并为字符串
-			vim.fn.setreg("+", message)
-			print("LSP Diagnostic at cursor copied to clipboard!")
-		else
-			print("No LSP Diagnostics at cursor!")
-		end
-	end
-
+local function set_keymaps(buf, client)
 	local keymaps = {
 		{ "<leader>ld", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
-		{ "<leader>rl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭LSP客户端" },
+		{ "<leader>rl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭 LSP 客户端" },
 		{ "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
 		{
 			"<leader>yd",
 			function()
-				copy_lsp_diagnostics()
+				local line = vim.fn.line(".") - 1 -- 获取当前光标所在行号（Lua 索引从 0 开始）
+				local diagnostics = vim.diagnostic.get(0, { lnum = line }) -- 获取当前行的诊断信息
+				local diagnostic_msgs = {}
+				for _, diag in ipairs(diagnostics) do
+					table.insert(diagnostic_msgs, diag.message) -- 提取报错信息
+				end
+				if #diagnostic_msgs > 0 then
+					local message = table.concat(diagnostic_msgs, "\n") -- 合并报错信息
+					vim.fn.setreg("+", message)
+					print("LSP 诊断信息已复制到剪贴板!")
+				else
+					print("当前行无 LSP 诊断信息!")
+				end
 			end,
-			"Copy LSP Diagnostic at cursor",
+			"复制当前光标处的 LSP 诊断",
 		},
 		{
 			"<localleader>d",
 			"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
-			"打开/关闭LSP诊断",
+			"打开/关闭 LSP 诊断",
 		},
 		{
 			"<leader>lw",
@@ -99,8 +95,27 @@ local function set_keymaps(buf, _)
 			"打开/关闭内联提示",
 		},
 	}
+
+	-- CodeLens 相关按键
+	if client.supports_method("textDocument/codeLens") then
+		table.insert(keymaps, { "<leader>cl", "<cmd>lua vim.lsp.codelens.run()<CR>", "运行 CodeLens" })
+	end
+
 	for _, map in ipairs(keymaps) do
 		vim.keymap.set("n", map[1], map[2], { buffer = buf, noremap = true, silent = true, desc = map[3] })
+	end
+end
+
+-- 自动刷新 CodeLens
+local function setup_codelens_autocmd(bufnr, client)
+	if client.supports_method("textDocument/codeLens") then
+		-- 触发 CodeLens 刷新
+		vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
+			buffer = bufnr,
+			callback = function()
+				vim.lsp.codelens.refresh()
+			end,
+		})
 	end
 end
 
@@ -110,9 +125,14 @@ M.lspSetup = function()
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
 		callback = function(args)
-			set_keymaps()
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
-			if client:supports_method("textDocument/foldingRange") then
+			local bufnr = args.buf
+
+			set_keymaps(bufnr, client)
+			setup_codelens_autocmd(bufnr, client) -- 启用 CodeLens 自动刷新
+
+			-- 启用 LSP 折叠功能（仅在服务器支持的情况下）
+			if client.supports_method("textDocument/foldingRange") then
 				local win = vim.api.nvim_get_current_win()
 				vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
 			end

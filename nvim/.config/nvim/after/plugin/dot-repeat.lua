@@ -27,8 +27,8 @@ function _G.repeat_last_action()
 	end
 end
 
--- 绑定 `.` 号，使其调用 repeat_last_action
-vim.keymap.set("n", ".", "<cmd>lua _G.repeat_last_action()<CR>", { noremap = true, silent = true })
+-- 保留默认的 `.` 键功能，并将 `repeat_last_action` 映射到 `<leader>.`
+vim.keymap.set("n", "<c-.>", "<cmd>lua _G.repeat_last_action()<CR>", { noremap = true, silent = true })
 
 --- 创建可重复的映射（支持 Lua 函数）
 ---@param mode string 模式，如 "n"、"x" 等

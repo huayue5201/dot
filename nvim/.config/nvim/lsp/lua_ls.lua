@@ -14,10 +14,10 @@ return {
 	settings = {
 		Lua = {
 			hint = {
-				enable = true, -- 启用代码提示
+				enable = true, -- 启用内联提示
 			},
-			codelens = {
-				enable = true, -- 启用 CodeLens 功能
+			telemetry = {
+				enable = false,
 			},
 			runtime = {
 				version = "LuaJIT", -- 指定 Lua 版本
