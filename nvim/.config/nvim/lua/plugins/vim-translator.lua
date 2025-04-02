@@ -4,13 +4,10 @@
 return {
 	"huayue5201/vim-translator",
 	keys = {
-		{ "<Leader>tle", desc = "翻译并在命令行回显" },
-		{ "<Leader>tle", desc = "翻译选中的文本并在命令行回显" },
-		{ "<Leader>tlw", desc = "翻译并在窗口中显示" },
-		{ "<Leader>tlw", desc = "翻译选中的文本并在窗口中显示" },
-		{ "<Leader>tlr", desc = "用翻译替换文本" },
-		{ "<Leader>tlr", desc = "用翻译替换选中的文本" },
-		{ "<Leader>tlx", desc = "翻译剪贴板中的文本" },
+		{ mode = { "v", "n" }, "<Leader>tle", desc = "翻译并在命令行回显" },
+		{ mode = { "v", "n" }, "<Leader>tlw", desc = "翻译并在窗口中显示" },
+		{ mode = { "v", "n" }, "<Leader>tlr", desc = "用翻译替换选中的文本" },
+		{ mode = { "v", "n" }, "<Leader>tlx", desc = "翻译剪贴板中的文本" },
 	},
 	config = function()
 		vim.keymap.set("n", "<Leader>tle", "<Plug>Translate", { silent = true, desc = "在命令行回显翻译" })

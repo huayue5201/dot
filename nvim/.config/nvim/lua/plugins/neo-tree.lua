@@ -14,6 +14,17 @@ return {
 		"s1n7ax/nvim-window-picker",
 	},
 	config = function()
+		local debug_file = require("dap.debug-file-manager")
+		local function toggle_debug_from_neotree(state)
+			local node = state.tree:get_node()
+			if node and node.type == "file" then
+				-- vim.cmd("e " .. node.path) -- 先打开文件
+				debug_file.toggle_debug_file() -- 使用正确的 `debug_file` 调用
+			else
+				vim.notify("⚠️ 请选择一个文件！", vim.log.levels.ERROR)
+			end
+		end
+
 		require("neo-tree").setup({
 			close_if_last_window = false, -- Close Neo-tree if it is the last window left in the tab
 			popup_border_style = "rounded",
@@ -80,7 +91,7 @@ return {
 							end
 						end
 						if node.path == vim.g.debug_file then
-							icon.text = icon.text .. " 🔹"
+							icon.text = icon.text .. " 🐞"
 							icon.highlight = icon.highlight or "NeoTreeFileNameOpened" -- 设置高亮
 						end
 					end,
@@ -142,6 +153,7 @@ return {
 			-- that will be available in all sources (if not overridden in `opts[source_name].commands`)
 			-- see `:h neo-tree-custom-commands-global`
 			commands = {
+				toggle_debug = toggle_debug_from_neotree,
 				system_open = function(state)
 					local node = state.tree:get_node()
 					local path = node:get_id()
@@ -197,23 +209,7 @@ return {
 							vim.cmd("edit " .. vim.fn.fnameescape(node.path))
 						end
 					end,
-					["<localleader>a"] = function(state)
-						local node = state.tree:get_node()
-						if node.type == "file" then
-							-- 切换标记状态
-							if vim.g.debug_file == node.path then
-								vim.g.debug_file = nil -- 取消标记
-								print("Debug file removed!")
-							else
-								vim.g.debug_file = node.path -- 标记当前文件
-								print("Debug file set to: " .. node.path)
-							end
-							-- 立即刷新 `neo-tree`，确保 UI 更新
-							require("neo-tree.sources.manager").refresh("filesystem")
-						else
-							print("Not a file!")
-						end
-					end,
+					["<localleader>d"] = toggle_debug_from_neotree, -- 绑定快捷键
 					["O"] = "system_open",
 					["<space>"] = {
 						"toggle_node",

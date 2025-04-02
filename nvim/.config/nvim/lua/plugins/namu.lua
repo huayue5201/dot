@@ -3,7 +3,7 @@
 return {
 	"bassamsdata/namu.nvim",
 	keys = {
-		{ "<leader>s", desc = "Jump to LSP symbol" },
+		{ "<leader>ls", desc = "Jump to LSP symbol" },
 		{ "<leader>th", desc = "Colorscheme Picker" },
 	},
 	config = function()
@@ -25,7 +25,7 @@ return {
 			},
 		})
 		-- === Suggested Keymaps: ===
-		vim.keymap.set("n", "<leader>s", ":Namu symbols<cr>", {
+		vim.keymap.set("n", "<leader>ls", ":Namu symbols<cr>", {
 			desc = "Jump to LSP symbol",
 			silent = true,
 		})

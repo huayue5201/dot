@@ -1,0 +1,331 @@
+--- Startup times for process: Primary (or UI client) ---
+
+times in msec
+ clock   self+sourced   self:  sourced script
+ clock   elapsed:              other lines
+
+000.003  000.003: --- NVIM STARTING ---
+000.169  000.165: event init
+000.415  000.246: early init
+000.973  000.558: locale set
+001.060  000.087: init first window
+001.776  000.716: inits 1
+001.795  000.019: window checked
+001.798  000.003: parsing arguments
+002.323  000.033  000.033: require('vim.shared')
+002.391  000.026  000.026: require('vim.inspect')
+002.426  000.027  000.027: require('vim._options')
+002.428  000.101  000.048: require('vim._editor')
+002.429  000.172  000.038: require('vim._init_packages')
+002.431  000.461: init lua interpreter
+005.012  002.581: nvim_ui_attach
+005.254  000.242: nvim_set_client_info
+005.255  000.001: --- NVIM STARTED ---
+
+--- Startup times for process: Embedded ---
+
+times in msec
+ clock   self+sourced   self:  sourced script
+ clock   elapsed:              other lines
+
+000.000  000.000: --- NVIM STARTING ---
+000.096  000.096: event init
+000.198  000.102: early init
+000.450  000.252: locale set
+000.497  000.048: init first window
+000.773  000.276: inits 1
+000.789  000.015: window checked
+000.791  000.002: parsing arguments
+001.130  000.028  000.028: require('vim.shared')
+001.189  000.023  000.023: require('vim.inspect')
+001.219  000.024  000.024: require('vim._options')
+001.221  000.089  000.042: require('vim._editor')
+001.222  000.137  000.020: require('vim._init_packages')
+001.223  000.295: init lua interpreter
+003.404  002.181: expanding arguments
+003.427  000.023: inits 2
+003.644  000.217: init highlight
+003.645  000.001: waiting for UI
+003.784  000.139: done waiting for UI
+003.786  000.002: clear screen
+003.908  000.023  000.023: require('vim.keymap')
+004.745  000.109  000.109: sourcing nvim_exec2()
+004.866  001.076  000.944: require('vim._defaults')
+004.868  000.006: init default mappings & autocommands
+005.665  000.074  000.074: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/ftplugin.vim
+005.777  000.022  000.022: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/indent.vim
+006.153  000.113  000.113: require('vim.fs')
+006.444  000.288  000.288: require('vim.uri')
+006.459  000.456  000.054: require('vim.loader')
+011.449  004.953  004.953: require('config.settings')
+012.526  000.931  000.931: require('lazy')
+012.545  000.011  000.011: require('ffi')
+012.704  000.155  000.155: require('lazy.stats')
+012.978  000.244  000.244: require('lazy.core.util')
+013.143  000.164  000.164: require('lazy.core.config')
+013.369  000.110  000.110: require('lazy.core.handler')
+013.742  000.106  000.106: require('lazy.pkg')
+013.745  000.232  000.126: require('lazy.core.meta')
+013.750  000.380  000.148: require('lazy.core.plugin')
+013.756  000.611  000.122: require('lazy.core.loader')
+014.320  000.101  000.101: require('lazy.core.fragments')
+020.750  000.193  000.193: require('lazy.core.handler.event')
+020.752  000.351  000.158: require('lazy.core.handler.ft')
+020.971  000.212  000.212: require('lazy.core.handler.keys')
+021.084  000.109  000.109: require('lazy.core.handler.cmd')
+022.612  000.004  000.004: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+022.624  000.001  000.001: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+022.762  000.002  000.002: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+022.771  000.001  000.001: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+022.879  000.001  000.001: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+022.929  000.001  000.001: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+023.148  000.001  000.001: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+023.156  000.001  000.001: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+023.498  000.001  000.001: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+023.508  000.001  000.001: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+023.837  000.182  000.182: sourcing nvim_exec2() called at /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:0
+023.839  000.252  000.070: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua
+023.842  000.322  000.071: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+023.907  000.001  000.001: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+023.913  000.001  000.001: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+025.240  000.202  000.202: require('tokyonight.config')
+025.243  000.348  000.146: require('tokyonight')
+025.482  000.122  000.122: require('tokyonight.util')
+025.483  000.229  000.106: require('tokyonight.theme')
+025.744  000.132  000.132: require('tokyonight.colors')
+026.141  000.089  000.089: require('tokyonight.colors.storm')
+026.339  000.111  000.111: require('tokyonight.hsluv')
+026.870  000.120  000.120: require('tokyonight.groups')
+027.572  002.720  001.692: sourcing /Users/lijia/.local/share/nvim/lazy/tokyonight.nvim/colors/tokyonight-night.lua
+027.576  003.661  000.941: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+027.791  000.053  000.053: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/editorconfig.lua
+027.794  000.125  000.073: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+027.870  000.011  000.011: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/gzip.vim
+027.873  000.076  000.065: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+027.997  000.065  000.065: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/man.lua
+028.002  000.126  000.060: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+028.734  000.175  000.175: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/pack/dist/opt/matchit/plugin/matchit.vim
+028.752  000.695  000.519: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/matchit.vim
+028.755  000.750  000.055: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+028.923  000.099  000.099: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/matchparen.vim
+028.927  000.164  000.065: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+028.994  000.007  000.007: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/netrwPlugin.vim
+028.997  000.066  000.059: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+029.120  000.062  000.062: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/osc52.lua
+029.123  000.119  000.057: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+029.299  000.123  000.123: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/rplugin.vim
+029.301  000.176  000.053: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+029.401  000.045  000.045: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/shada.vim
+029.403  000.099  000.054: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+029.481  000.014  000.014: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/spellfile.vim
+029.483  000.077  000.063: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+029.552  000.009  000.009: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/tarPlugin.vim
+029.555  000.069  000.060: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+029.664  000.051  000.051: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/tohtml.lua
+029.666  000.109  000.058: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+029.735  000.011  000.011: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/tutor.vim
+029.737  000.068  000.057: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+029.799  000.009  000.009: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/plugin/zipPlugin.vim
+029.804  000.065  000.056: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+030.025  000.047  000.047: sourcing /Users/lijia/.config/nvim/after/plugin/demo.lua
+030.027  000.119  000.072: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+030.168  000.076  000.076: sourcing /Users/lijia/.config/nvim/after/plugin/dot-repeat.lua
+030.212  000.177  000.101: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+030.326  000.048  000.048: sourcing /Users/lijia/.config/nvim/after/plugin/input_select.lua
+030.328  000.113  000.065: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+030.441  000.045  000.045: sourcing /Users/lijia/.config/nvim/after/plugin/smart-incdec.lua
+030.446  000.115  000.070: sourcing nvim_exec2() called at /Users/lijia/dotfile/nvim/.config/nvim/init.lua:0
+030.476  019.025  009.526: require('config.lazy')
+030.631  000.150  000.150: require('config.autocmds')
+030.838  000.206  000.206: require('config.usercmds')
+030.959  000.120  000.120: require('config.statusline')
+031.240  000.278  000.278: require('config.keymaps')
+031.641  000.232  000.232: require('vim.lsp.log')
+032.107  000.464  000.464: require('vim.lsp.protocol')
+032.376  000.267  000.267: require('vim.lsp.util')
+032.663  000.128  000.128: require('vim.lsp.sync')
+032.669  000.291  000.163: require('vim.lsp._changetracking')
+033.245  000.380  000.380: require('vim.lsp._transport')
+033.261  000.591  000.210: require('vim.lsp.rpc')
+033.328  002.086  000.241: require('vim.lsp')
+033.432  027.502  000.228: sourcing /Users/lijia/.config/nvim/init.lua
+033.451  000.986: sourcing vimrc file(s)
+033.744  000.044  000.044: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua
+033.994  000.053  000.053: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/syntax/synload.vim
+034.054  000.208  000.154: sourcing /Users/lijia/Downloads/nvim-macos-arm64/share/nvim/runtime/syntax/syntax.vim
+034.064  000.361: inits 3
+036.642  002.578: reading ShaDa
+037.116  000.196  000.196: sourcing /Users/lijia/.local/share/nvim/lazy/copilot.vim/plugin/copilot.vim
+037.119  000.273  000.076: sourcing nvim_exec2() called at BufWinEnter Autocommands for "*":0
+037.125  000.001  000.001: sourcing nvim_exec2() called at BufWinEnter Autocommands for "*":0
+037.135  000.001  000.001: sourcing nvim_exec2() called at BufWinEnter Autocommands for "*":0
+037.241  000.324: opening buffers
+037.427  000.177  000.177: require('config.utils')
+037.894  000.120  000.120: require('vim.version')
+038.990  001.279  001.159: sourcing /Users/lijia/.local/share/nvim/lazy/copilot.vim/autoload/copilot.vim
+039.112  000.030  000.030: sourcing /Users/lijia/.local/share/nvim/lazy/copilot.vim/autoload/copilot/util.vim
+039.129  000.402: BufEnter autocommands
+039.135  000.006: editing files in windows
+039.224  000.090: VimEnter autocommands
+039.464  000.053  000.053: sourcing /Users/lijia/.local/share/nvim/lazy/grug-far.nvim/plugin/grug-far.lua
+039.467  000.110  000.057: sourcing nvim_exec2() called at UIEnter Autocommands for "*":0
+039.476  000.002  000.002: sourcing nvim_exec2() called at UIEnter Autocommands for "*":0
+039.484  000.001  000.001: sourcing nvim_exec2() called at UIEnter Autocommands for "*":0
+040.106  000.169  000.169: require('grug-far.opts')
+040.208  000.101  000.101: require('grug-far.highlights')
+040.595  000.104  000.104: require('grug-far.utils')
+040.596  000.190  000.086: require('grug-far.render.help')
+041.500  000.120  000.120: require('vim.treesitter.language')
+041.615  000.112  000.112: require('vim.func')
+041.732  000.115  000.115: require('vim.func._memoize')
+041.781  000.647  000.299: require('vim.treesitter.query')
+041.881  000.099  000.099: require('vim.treesitter._range')
+041.895  000.898  000.152: require('vim.treesitter.languagetree')
+041.899  001.138  000.240: require('vim.treesitter')
+042.005  000.105  000.105: require('vim.treesitter.highlighter')
+042.008  001.328  000.085: require('grug-far.render.treesitter')
+042.009  001.412  000.084: require('grug-far.render.input')
+042.332  000.077  000.077: require('grug-far.engine')
+042.418  000.085  000.085: require('grug-far.inputs')
+042.423  000.261  000.099: require('grug-far.render.resultsList')
+042.426  000.343  000.082: require('grug-far.render.resultsHeader')
+042.427  000.417  000.074: require('grug-far.render.results')
+042.429  002.107  000.088: require('grug-far.render')
+042.585  000.074  000.074: require('grug-far.fold')
+042.662  000.076  000.076: require('grug-far.tasks')
+042.664  000.234  000.085: require('grug-far.actions.search')
+042.908  000.082  000.082: require('grug-far.replacementInterpreter')
+042.910  000.165  000.084: require('grug-far.history')
+042.912  000.247  000.082: require('grug-far.actions.replace')
+042.984  000.071  000.071: require('grug-far.actions.qflist')
+043.096  000.111  000.111: require('grug-far.actions.gotoLocation')
+043.196  000.099  000.099: require('grug-far.actions.openLocation')
+043.366  000.080  000.080: require('grug-far.actions.sync')
+043.368  000.170  000.091: require('grug-far.actions.syncLocations')
+043.441  000.073  000.073: require('grug-far.actions.syncLine')
+043.515  000.073  000.073: require('grug-far.actions.close')
+043.591  000.075  000.075: require('grug-far.actions.help')
+043.667  000.075  000.075: require('grug-far.actions.abort')
+043.788  000.121  000.121: require('grug-far.actions.historyOpen')
+043.857  000.068  000.068: require('grug-far.actions.historyAdd')
+043.934  000.076  000.076: require('grug-far.actions.toggleShowCommand')
+044.009  000.074  000.074: require('grug-far.actions.swapEngine')
+044.099  000.090  000.090: require('grug-far.actions.previewLocation')
+044.199  000.098  000.098: require('grug-far.actions.applyChange')
+044.289  000.089  000.089: require('grug-far.actions.swapReplacementInterpreter')
+044.297  004.088  000.138: require('grug-far.farBuffer')
+044.387  000.088  000.088: require('grug-far.fileIconsProvider')
+044.452  004.962  000.516: require('grug-far')
+044.843  000.018  000.018: sourcing /Users/lijia/.local/share/nvim/lazy/plenary.nvim/plugin/plenary.vim
+044.845  000.075  000.057: sourcing nvim_exec2() called at UIEnter Autocommands for "*":0
+044.849  000.001  000.001: sourcing nvim_exec2() called at UIEnter Autocommands for "*":0
+044.857  000.001  000.001: sourcing nvim_exec2() called at UIEnter Autocommands for "*":0
+046.380  000.090  000.090: require('plenary.tbl')
+046.383  000.333  000.243: require('plenary.vararg.rotate')
+046.384  000.421  000.088: require('plenary.vararg')
+046.465  000.080  000.080: require('plenary.errors')
+046.554  000.088  000.088: require('plenary.functional')
+046.558  000.711  000.122: require('plenary.async.async')
+046.931  000.099  000.099: require('plenary.async.structs')
+046.937  000.199  000.100: require('plenary.async.control')
+046.941  000.287  000.088: require('plenary.async.util')
+046.943  000.384  000.097: require('plenary.async.tests')
+046.944  001.248  000.153: require('plenary.async')
+047.361  000.139  000.139: require('plenary.bit')
+047.392  000.303  000.164: require('plenary.path')
+047.480  000.006  000.006: require('vim.F')
+047.535  000.590  000.281: require('plenary.log')
+048.306  000.159  000.159: require('CopilotChat.notify')
+048.776  000.079  000.079: require('plenary.compat')
+048.782  000.177  000.098: require('plenary.job')
+048.787  000.321  000.144: require('plenary.curl')
+049.936  001.148  001.148: require('plenary.scandir')
+050.910  000.972  000.972: require('plenary.filetype')
+050.920  002.613  000.172: require('CopilotChat.utils')
+052.960  005.071  002.299: require('CopilotChat.tiktoken')
+052.967  005.327  000.256: require('CopilotChat.client')
+052.974  005.438  000.111: require('CopilotChat.context')
+052.981  007.969  000.694: require('CopilotChat')
+053.032  008.082  000.113: sourcing /Users/lijia/.local/share/nvim/lazy/CopilotChat.nvim/plugin/CopilotChat.lua
+053.036  008.141  000.059: sourcing nvim_exec2() called at UIEnter Autocommands for "*":0
+053.048  000.006  000.006: sourcing nvim_exec2() called at UIEnter Autocommands for "*":0
+053.057  000.001  000.001: sourcing nvim_exec2() called at UIEnter Autocommands for "*":0
+053.275  000.093  000.093: require('CopilotChat.select')
+054.937  001.652  001.652: require('CopilotChat.config.providers')
+055.162  000.222  000.222: require('CopilotChat.config.contexts')
+055.270  000.107  000.107: require('CopilotChat.config.prompts')
+055.406  000.135  000.135: require('CopilotChat.config.mappings')
+055.409  002.344  000.136: require('CopilotChat.config')
+055.849  000.101  000.101: require('CopilotChat.ui.overlay')
+055.935  000.084  000.084: require('CopilotChat.ui.spinner')
+055.939  000.322  000.138: require('CopilotChat.ui.chat')
+056.163  000.088  000.088: require('vim.termcap')
+056.239  000.010  000.010: require('vim.text')
+056.310  001.021: UIEnter autocommands
+056.312  000.002: before starting main loop
+056.623  000.146  000.146: require('config.statucolumn')
+057.087  000.019  000.019: sourcing /Users/lijia/.local/share/nvim/lazy/nvim-web-devicons/plugin/nvim-web-devicons.vim
+057.089  000.099  000.080: sourcing nvim_exec2()
+057.098  000.005  000.005: sourcing nvim_exec2()
+057.145  000.001  000.001: sourcing nvim_exec2()
+057.892  000.680  000.680: require('nvim-web-devicons.filetypes')
+058.170  000.181  000.181: require('nvim-web-devicons.default.icons_by_filename')
+058.483  000.312  000.312: require('nvim-web-devicons.default.icons_by_file_extension')
+058.629  000.144  000.144: require('nvim-web-devicons.default.icons_by_operating_system')
+058.724  000.094  000.094: require('nvim-web-devicons.default.icons_by_desktop_environment')
+058.826  000.101  000.101: require('nvim-web-devicons.default.icons_by_window_manager')
+058.827  000.928  000.095: require('nvim-web-devicons.icons-default')
+059.001  002.327  000.614: require('nvim-web-devicons')
+061.508  000.377  000.377: require('vim.diagnostic')
+062.531  000.111  000.111: require('dap-view.highlight')
+063.016  000.184  000.184: require('dap.utils')
+063.064  000.426  000.242: require('dap')
+063.152  000.087  000.087: require('dap-view.state')
+063.659  000.106  000.106: require('dap-view.config')
+063.660  000.269  000.162: require('dap-view.setup')
+063.670  000.430  000.161: require('dap-view.options.winbar')
+063.801  000.129  000.129: require('dap-view.breakpoints.vendor')
+064.042  000.126  000.126: require('dap-view.globals')
+064.043  000.242  000.116: require('dap-view.breakpoints.util.extmarks')
+064.171  000.126  000.126: require('dap-view.breakpoints.util.treesitter')
+064.467  000.128  000.128: require('dap-view.util.hl')
+064.468  000.296  000.168: require('dap-view.views')
+064.470  001.316  000.093: require('dap-view.breakpoints.view')
+064.825  000.177  000.177: require('dap-view.util.string')
+064.827  000.356  000.178: require('dap-view.watches.view')
+064.971  000.144  000.144: require('dap-view.threads.view')
+065.083  000.110  000.110: require('dap-view.exceptions.view')
+065.282  000.100  000.100: require('dap-view.options.autocmd')
+065.285  000.201  000.101: require('dap-view.term.init')
+065.427  000.142  000.142: require('dap-view.watches.eval')
+065.434  002.902  000.120: require('dap-view.events')
+065.560  000.121  000.121: require('dap-view.actions')
+065.562  003.440  000.307: require('dap-view')
+065.570  003.500  000.060: sourcing /Users/lijia/.local/share/nvim/lazy/nvim-dap-view/plugin/dap-view.lua
+065.575  003.566  000.066: sourcing nvim_exec2()
+065.583  000.003  000.003: sourcing nvim_exec2()
+065.594  000.001  000.001: sourcing nvim_exec2()
+065.655  000.001  000.001: sourcing nvim_exec2()
+065.661  000.001  000.001: sourcing nvim_exec2()
+065.888  000.079  000.079: sourcing /Users/lijia/.local/share/nvim/lazy/nvim-dap/plugin/dap.lua
+065.891  000.169  000.089: sourcing nvim_exec2()
+065.907  000.004  000.004: sourcing nvim_exec2()
+066.035  000.103  000.103: require('dap.gdb')
+066.199  000.163  000.163: require('dap.debug-file-manager')
+066.452  000.166  000.166: require('dap.breakpoints')
+066.460  000.260  000.094: require('dap.breakpoint_manager')
+066.897  000.434  000.434: require('nvim-dap-virtual-text')
+066.913  000.008  000.008: sourcing nvim_exec2()
+066.925  000.009  000.009: sourcing nvim_exec2()
+067.054  000.095  000.095: require('dap-view.setup.validate')
+067.144  000.085  000.085: require('dap-view.setup.validate.util')
+067.250  000.103  000.103: require('dap-view.setup.validate.winbar')
+067.405  000.083  000.083: require('dap-view.setup.validate.windows')
+067.862  000.125  000.125: require('dap.ui')
+067.871  000.284  000.160: require('dap.repl')
+068.010  000.132  000.132: require('dap.ui.widgets')
+068.030  006.499  000.996: require('dap')
+068.125  000.093  000.093: require('dap.progress')
+068.219  002.464: first screen update
+068.220  000.001: --- NVIM STARTED ---
+

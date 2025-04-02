@@ -63,22 +63,20 @@ return {
 				end
 
 				-- Navigation (导航)
-				map("n", "]h", function()
+				vim.g.repeatable_map("n", "]h", function()
 					if vim.wo.diff then
 						vim.cmd.normal({ "]h", bang = true })
 					else
 						gitsigns.nav_hunk("next")
 					end
-					vim.call("repeat#set", "]h")
 				end, { desc = "跳转到下一个差异区块" })
 
-				map("n", "[h", function()
+				vim.g.repeatable_map("n", "[h", function()
 					if vim.wo.diff then
 						vim.cmd.normal({ "[h", bang = true })
 					else
 						gitsigns.nav_hunk("prev")
 					end
-					vim.call("repeat#set", "[h")
 				end, { desc = "跳转到上一个差异区块" })
 
 				-- Actions (操作)
@@ -115,7 +113,7 @@ return {
 
 				-- Toggles (切换)
 				map("n", "<leader>gtb", gitsigns.toggle_current_line_blame, { desc = "切换当前行的 Git blame" })
-				map("n", "<leader>gtd", gitsigns.toggle_deleted, { desc = "切换显示删除的行" })
+				map("n", "<leader>gtr", gitsigns.toggle_deleted, { desc = "切换显示删除的行" })
 				map("n", "<leader>gtw", gitsigns.toggle_word_diff, { desc = "切换显示单词级别的差异" })
 
 				map("n", "<leader>glb", "<cmd>Gitsigns blame<cr>", { desc = "显示 Git blame" })

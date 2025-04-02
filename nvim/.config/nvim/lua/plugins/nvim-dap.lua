@@ -18,7 +18,7 @@ return {
 			DapBreakpointCondition = { text = "🟡", texthl = "DapBreakpointCondition" }, -- 条件断点
 			DapBreakpointRejected = { text = "⭕", texthl = "DapBreakpointRejected" }, -- 拒绝断点
 			DapLogPoint = { text = "⚪", texthl = "DapLogPoint" }, -- 日志点
-			DapExceptionBreakpoint = { text = "🛑", texthl = "DapExceptionBreakpoint" }, -- 异常断点🔻
+			-- DapExceptionBreakpoint = { text = "🛑", texthl = "DapExceptionBreakpoint" }, -- 异常断点🔻
 			DapStopped = { -- 停止位置
 				text = "🔶", --🟨
 				texthl = "DapBreakpoint",
@@ -92,116 +92,105 @@ return {
 
 		vim.keymap.set("n", "<leader>dv", function()
 			require("dap-view").toggle()
-		end, { desc = "Toggle nvim-dap-view" })
+		end, { desc = "切换 nvim-dap-view" })
 
-		vim.keymap.set("n", "<leader>dc", dap.continue, { silent = true, desc = "启动调试" })
+		vim.keymap.set("n", "<leader>dc", dap.continue, { silent = true, desc = "继续/启动调试" })
 
-		vim.keymap.set("n", "<leader>du", dap.run, { silent = true, desc = "启动新的调试" })
+		vim.keymap.set("n", "<leader>du", dap.run, { silent = true, desc = "启动新调试会话" })
 
 		vim.keymap.set("n", "<leader>rd", function()
 			dap.terminate({
 				on_done = function()
-					-- 终止调试会话后关闭 REPL 面板
 					require("dap").repl.close()
 					require("dap-view").close(true)
 				end,
 			})
-		end, { silent = true, desc = "终止dap会话" })
+		end, { silent = true, desc = "终止调试" })
 
-		-- vim.keymap.set("n", "<leader>da", function()
-		-- 	print(vim.inspect(require("dap").session())) -- 或者使用浮动窗口显示
-		-- end, { silent = true, desc = "显示调试会话" })
-
-		vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "断点" })
+		-- vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "切换断点" })
+		vim.g.repeatable_map("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "切换断点" })
 
 		vim.keymap.set("n", "<leader>B", function()
 			vim.ui.select({ "条件断点", "命中次数", "日志点", "异常断点" }, {
 				prompt = "选择断点类型:",
 			}, function(choice)
 				if choice == "条件断点" then
-					vim.ui.input({ prompt = "请输入断点条件: " }, function(condition)
+					vim.ui.input({ prompt = "输入条件: " }, function(condition)
 						dap.set_breakpoint(condition)
 					end)
 				elseif choice == "命中次数" then
-					vim.ui.input({ prompt = "请输入命中次数: " }, function(hit_count)
+					vim.ui.input({ prompt = "输入次数: " }, function(hit_count)
 						if hit_count and tonumber(hit_count) then
-							-- 设置命中次数
 							dap.set_breakpoint(nil, tonumber(hit_count), nil)
 						else
-							vim.notify("无效的命中次数!", vim.log.levels.ERROR)
+							vim.notify("无效输入!", vim.log.levels.ERROR)
 						end
 					end)
 				elseif choice == "日志点" then
-					vim.ui.input({ prompt = "请输入日志点消息: " }, function(message)
-						dap.set_breakpoint(nil, nil, message) -- 设置日志点
+					vim.ui.input({ prompt = "输入日志内容: " }, function(message)
+						dap.set_breakpoint(nil, nil, message)
 					end)
 				elseif choice == "异常断点" then
 					dap.set_exception_breakpoints()
 				else
-					vim.notify("无效的选择！", vim.log.levels.ERROR)
+					vim.notify("无效选择！", vim.log.levels.ERROR)
 				end
 			end)
-		end, { desc = "设置断点（条件、命中次数、日志点、异常）" })
+		end, { desc = "设置断点" })
 
-		vim.keymap.set("n", "<leader>rb", dap.clear_breakpoints, { silent = true, desc = "移除所有断点" })
+		vim.keymap.set("n", "<leader>rb", dap.clear_breakpoints, { silent = true, desc = "清除所有断点" })
 
-		vim.keymap.set("n", "<leader>drl", dap.run_last, { desc = "运行上次调试会话" })
+		vim.keymap.set("n", "<leader>drl", dap.run_last, { desc = "运行上次会话" })
 
-		vim.keymap.set("n", "<leader>dro", dap.step_over, { silent = true, desc = "单步跳过" })
+		vim.g.repeatable_map("n", "<leader>dro", dap.step_over, { silent = true, desc = "单步跳过" })
 
-		vim.keymap.set("n", "<leader>dri", dap.step_into, { silent = true, desc = "单步进入" })
+		vim.g.repeatable_map("n", "<leader>dri", dap.step_into, { silent = true, desc = "单步进入" })
 
-		vim.keymap.set("n", "<leader>dru", dap.step_out, { silent = true, desc = "单步跳出" })
+		vim.g.repeatable_map("n", "<leader>dru", dap.step_out, { silent = true, desc = "单步跳出" })
 
-		vim.keymap.set("n", "<leader>drb", dap.step_back, { silent = true, desc = "逆向调试" })
+		vim.g.repeatable_map("n", "<leader>drb", dap.step_back, { silent = true, desc = "逆向单步" })
 
-		vim.keymap.set("n", "<leader>drc", dap.run_to_cursor, { silent = true, desc = "运行到光标处" })
+		vim.keymap.set("n", "<leader>drc", dap.run_to_cursor, { silent = true, desc = "运行到光标" })
 
-		vim.keymap.set(
-			"n",
-			"<leader>drc",
-			dap.reverse_continue,
-			{ silent = true, desc = "逆向到最后一个断点" }
-		)
+		vim.keymap.set("n", "<leader>drc", dap.reverse_continue, { silent = true, desc = "逆向继续" })
 
-		vim.keymap.set("n", "<leader>drf", dap.restart_frame, { silent = true, desc = "重新执行堆栈帧" })
+		vim.keymap.set("n", "<leader>drf", dap.restart_frame, { silent = true, desc = "重启当前帧" })
 
-		vim.keymap.set("n", "<leader>dd", dap.pause, { silent = true, desc = "暂停调试线程" })
+		vim.keymap.set("n", "<leader>dd", dap.pause, { silent = true, desc = "暂停线程" })
 
-		vim.keymap.set("n", "<leader>dgk", dap.up, { silent = true, desc = "跳到上一个断点" })
+		vim.g.repeatable_map("n", "<leader>dgk", dap.up, { silent = true, desc = "上一个断点" })
 
-		vim.keymap.set("n", "<leader>dgj", dap.down, { silent = true, desc = "跳到一个断点" })
+		vim.g.repeatable_map("n", "<leader>dgj", dap.down, { silent = true, desc = "下一个断点" })
 
-		vim.keymap.set("n", "<leader>dgn", dap.goto_, { silent = true, desc = "跳到指定行" })
+		vim.keymap.set("n", "<leader>dgn", dap.goto_, { silent = true, desc = "跳转到行" })
 
-		vim.keymap.set("n", "<leader>dq", dap.list_breakpoints, { silent = true, desc = "列出所有断点" })
+		vim.keymap.set("n", "<leader>dR", dap.repl.toggle, { silent = true, desc = "切换 REPL" })
 
-		vim.keymap.set("n", "<leader>dR", dap.repl.toggle, { silent = true, desc = "DAP REPL" })
-		-- vim.keymap.set("n", "<leader>da", dap.repl.exetuce(命令或者表达式，可以直接在repl中执行), { silent = true, desc = "在 REPL 中运行代码" })
+		vim.keymap.set("n", "<leader>dlq", dap.list_breakpoints, { silent = true, desc = "查看所有断点" })
 
 		local widgets = require("dap.ui.widgets")
 
-		vim.keymap.set("n", "<leader>dk", function()
+		vim.keymap.set("n", "<leader>dlk", function()
 			widgets.hover(nil, { border = "rounded" })
-		end, { desc = "查看变量值" })
+		end, { desc = "查看变量" })
 
-		vim.keymap.set("n", "<leader>ds", function()
+		vim.keymap.set("n", "<leader>dlc", function()
 			widgets.cursor_float(widgets.scopes, { border = "shadow" })
-		end, { desc = "显示当前调试会话中的所有作用域" })
+		end, { desc = "查看作用域" })
 
-		vim.keymap.set("n", "<leader>de", function()
+		vim.keymap.set("n", "<leader>dls", function()
 			widgets.cursor_float(widgets.sessions, { border = "shadow" })
-		end, { desc = "显示所有当前调试会话" })
+		end, { desc = "查看调试会话" })
 
-		vim.keymap.set("n", "<leader>dx", function()
+		vim.keymap.set("n", "<leader>dle", function()
 			widgets.cursor_float(widgets.expression, { border = "shadow" })
-		end, { desc = "显示光标下表达式的值" })
+		end, { desc = "查看表达式值" })
 
-		vim.keymap.set("n", "<leader>dt", function()
+		vim.keymap.set("n", "<leader>dlt", function()
 			widgets.cursor_float(widgets.threads, { border = "shadow" })
-		end, { desc = "显示当前会话中的所有线程" })
+		end, { desc = "查看线程" })
 
-		vim.keymap.set("n", "<leader>df", function()
+		vim.keymap.set("n", "<leader>dlf", function()
 			widgets.cursor_float(widgets.frames, { border = "rounded" })
 		end, { desc = "查看堆栈" })
 
