@@ -5,6 +5,7 @@ if not dap.adapters then
 	dap.adapters = {}
 end
 dap.adapters["probe-rs-debug"] = {
+	name = "probe-rs-debug",
 	type = "server",
 	port = "${port}",
 	executable = {
