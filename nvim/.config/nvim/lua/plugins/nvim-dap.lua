@@ -31,7 +31,7 @@ return {
 		end
 
 		-- require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
-		-- require("dap.probe-rs")
+		require("dap.probe-rs")
 		require("dap.gdb")
 		-- require("dap.codelldb")
 		require("dap.debug-file-manager") -- 调试文件标记模块
@@ -107,8 +107,7 @@ return {
 			})
 		end, { silent = true, desc = "终止调试" })
 
-		-- vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "切换断点" })
-		vim.g.repeatable_map("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "切换断点" })
+		vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "切换断点" })
 
 		vim.keymap.set("n", "<leader>B", function()
 			vim.ui.select({ "条件断点", "命中次数", "日志点", "异常断点" }, {
