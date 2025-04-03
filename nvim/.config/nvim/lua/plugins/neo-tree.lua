@@ -3,9 +3,11 @@
 return {
 	"nvim-neo-tree/neo-tree.nvim",
 	keys = {
-		{ "<localleader>e", desc = "File Explorer" },
-		{ "<localleader>b", desc = "Buffers (root dir)" },
-		{ "<localleader>g", desc = "Git Status" },
+		{ "<leader>ef", desc = "File Explorer" },
+		{ "<leader>eb", desc = "Buffers (root dir)" },
+		{ "<leader>eg", desc = "Git Status" },
+		{ "<leader>es", desc = "Symbols" },
+		{ "<leader>ed", desc = "打开当前文件根目录" },
 	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
@@ -45,7 +47,7 @@ return {
 				"filesystem",
 				"buffers",
 				"git_status",
-				-- "document_symbols",
+				"document_symbols",
 			},
 			source_selector = {
 				winbar = true,
@@ -54,7 +56,7 @@ return {
 					{ source = "filesystem" },
 					{ source = "buffers" },
 					{ source = "git_status" },
-					-- { source = "document_symbols" },
+					{ source = "document_symbols" },
 				},
 			},
 			default_component_configs = {
@@ -209,12 +211,8 @@ return {
 							vim.cmd("edit " .. vim.fn.fnameescape(node.path))
 						end
 					end,
-					["<localleader>d"] = toggle_debug_from_neotree, -- 绑定快捷键
+					["<leader>d"] = toggle_debug_from_neotree, -- 绑定快捷键
 					["O"] = "system_open",
-					["<space>"] = {
-						"toggle_node",
-						nowait = true, -- disable `nowait` if you have existing combos starting with this char that you want to use
-					},
 					["<2-LeftMouse>"] = "open",
 					["<cr>"] = "open",
 					["<esc>"] = "cancel", -- close preview or floating neo-tree window
@@ -450,7 +448,7 @@ return {
 			},
 		})
 
-		vim.keymap.set("n", "<localleader>e", function()
+		vim.keymap.set("n", "<leader>ef", function()
 			require("neo-tree.command").execute({
 				toggle = true,
 				source = "filesystem",
@@ -458,7 +456,7 @@ return {
 			})
 		end, { silent = true, desc = "File Explorer" })
 
-		vim.keymap.set("n", "<localleader>b", function()
+		vim.keymap.set("n", "<leader>eb", function()
 			require("neo-tree.command").execute({
 				toggle = true,
 				source = "buffers",
@@ -466,7 +464,7 @@ return {
 			})
 		end, { silent = true, desc = "Buffers (root dir)" })
 
-		vim.keymap.set("n", "<localleader>g", function()
+		vim.keymap.set("n", "<leader>eg", function()
 			require("neo-tree.command").execute({
 				toggle = true,
 				source = "git_status",
@@ -474,12 +472,19 @@ return {
 			})
 		end, { silent = true, desc = "Git Status" })
 
-		-- vim.keymap.set("n", "<localleader>s", function()
-		-- 	require("neo-tree.command").execute({
-		-- 		toggle = true,
-		-- 		source = "document_symbols",
-		-- 		position = "left",
-		-- 	})
-		-- end, { silent = true,desc = "Symbols" })
+		vim.keymap.set("n", "<leader>es", function()
+			require("neo-tree.command").execute({
+				toggle = true,
+				source = "document_symbols",
+				position = "left",
+			})
+		end, { silent = true, desc = "Symbols" })
+
+		vim.keymap.set(
+			"n",
+			"<leader>ed",
+			"<cmd>Neotree filesystem reveal left<cr>",
+			{ silent = true, desc = "打开当前文件根目录" }
+		)
 	end,
 }
