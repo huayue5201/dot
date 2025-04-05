@@ -122,6 +122,7 @@ end
 -- LSP 主设置函数
 M.lspSetup = function()
 	setup_global_diagnostics()
+
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
 		callback = function(args)
@@ -130,12 +131,6 @@ M.lspSetup = function()
 
 			set_keymaps(bufnr, client)
 			setup_codelens_autocmd(bufnr, client) -- 启用 CodeLens 自动刷新
-
-			-- 启用 LSP 折叠功能（仅在服务器支持的情况下）
-			if client.supports_method("textDocument/foldingRange") then
-				local win = vim.api.nvim_get_current_win()
-				vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
-			end
 		end,
 	})
 end

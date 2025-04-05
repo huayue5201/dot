@@ -3,6 +3,8 @@ local replace_map = {
 	["false"] = "true",
 	["True"] = "False",
 	["False"] = "True",
+	["set_low"] = "set_high",
+	["set_high"] = "set_low",
 }
 
 local function toggle_or_default(default_key)

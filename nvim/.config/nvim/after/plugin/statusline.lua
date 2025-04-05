@@ -7,6 +7,8 @@ vim.api.nvim_set_hl(0, "VisualMode", { bold = true })
 vim.api.nvim_set_hl(0, "ReplaceMode", { bold = true })
 vim.api.nvim_set_hl(0, "PinkHighlight", { fg = "#ffde7d", bold = true })
 vim.api.nvim_set_hl(0, "StatuslineIcon", { fg = "#ffde7d", bold = true })
+vim.api.nvim_set_hl(0, "LspIcon", { fg = "#4876FF", bold = true })
+vim.api.nvim_set_hl(0, "DapIcon", { fg = "#FF0000", bold = true })
 
 Statusline = {}
 
@@ -75,7 +77,7 @@ function Statusline.lsp_clients()
 		table.insert(client_names, string.format("%d.%s", idx, client.name))
 	end
 	-- 拼接客户端名称，并返回
-	return "󰂵 " .. table.concat(client_names, " ") .. " 󱞩"
+	return "%#LspIcon#" .. "󰂵 " .. "%*" .. table.concat(client_names, " ") .. " 󱞩"
 end
 
 -- LSP 状态（包含客户端名称、诊断和进度信息）
@@ -93,7 +95,7 @@ function Statusline.dap_status()
 	if dap_status == "" then
 		return "" -- 如果没有调试会话，返回空字符串
 	end
-	return " " .. dap_status .. " " -- 有调试会话时，返回图标和状态
+	return "%#DapIcon" .. " " .. "%*" .. dap_status .. " " -- 有调试会话时，返回图标和状态
 end
 
 -- -------------------- Git 状态 --------------------
@@ -146,7 +148,6 @@ local function get_scrollbar()
 end
 
 -- -------------------- 状态栏内容 --------------------
--- 创建状态栏内容
 function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组

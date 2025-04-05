@@ -8,7 +8,7 @@ local function get_project_root()
 end
 
 -- 允许 ELF/BIN 文件或者 Rust 生成的可执行 ELF 文件
-local function is_valid_debug_file(file)
+function M.is_valid_debug_file(file) -- 将其添加到 M 表中
 	-- 先检查后缀名
 	if file:match("%.elf$") or file:match("%.bin$") then
 		return true
@@ -60,7 +60,7 @@ local function load_debug_file()
 
 	if debug_file and vim.fn.filereadable(debug_file) == 1 then
 		vim.g.debug_file = debug_file
-		-- vim.notify("✅ 加载调试文件: " .. debug_file, vim.log.levels.INFO)
+	-- vim.notify("✅ 加载调试文件: " .. debug_file, vim.log.levels.INFO)
 	else
 		vim.g.debug_file = nil
 	end
@@ -75,7 +75,7 @@ M.toggle_debug_file = function()
 	local file = vim.fn.expand("%:p")
 
 	-- 判断文件是否是有效的调试文件
-	if not is_valid_debug_file(file) then
+	if not M.is_valid_debug_file(file) then -- 使用 M 表中的函数
 		-- 无效的调试文件，显示警告
 		vim.notify(
 			"⚠️ 该文件不是有效的调试文件！仅支持 ELF 或 BIN 文件。",
@@ -128,6 +128,6 @@ end
 load_debug_file()
 
 -- 映射快捷键
-vim.keymap.set("n", "<localleader>a", M.toggle_debug_file, { noremap = true, silent = true })
+vim.keymap.set("n", "<localleader>b", M.toggle_debug_file, { silent = true, desc = "标记调试文件" })
 
 return M

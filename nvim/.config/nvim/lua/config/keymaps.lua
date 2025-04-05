@@ -14,11 +14,11 @@ vim.keymap.set("n", "<c-s>", "<cmd>w<cr>", { silent = true, desc = "保存buffer
 -- vim.keymap.set("n", "<Leader>q", ":bp|bd#<cr>", { silent = true, desc = "退出buffer" })
 vim.keymap.set("n", "<Leader>q", "<cmd>DeleteBuffer<cr>", { silent = true, desc = "退出buffer" })
 
-vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { silent = true, desc = "创建新的标签页" })
+vim.keymap.set("n", "<leader>ttn", "<cmd>$tabnew<cr>", { silent = true, desc = "创建新的标签页" })
 
-vim.keymap.set("n", "<leader>tc", "<cmd>tabclose<cr>", { silent = true, desc = "关闭当前标签页" })
+vim.keymap.set("n", "<leader>ttr", "<cmd>tabclose<cr>", { silent = true, desc = "关闭当前标签页" })
 
-vim.keymap.set("n", "<leader>to", "<cmd>tabonly<cr>", { silent = true, desc = "仅保留当前标签页" })
+vim.keymap.set("n", "<leader>ttR", "<cmd>tabonly<cr>", { silent = true, desc = "仅保留当前标签页" })
 
 vim.keymap.set("n", "<leader>lm", "<cmd>Messages<cr>", { silent = true, desc = "查看历史消息" })
 

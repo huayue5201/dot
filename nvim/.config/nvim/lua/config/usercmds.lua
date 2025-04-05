@@ -1,17 +1,46 @@
--- ===========================
--- 查看 vim 信息
--- ===========================
 vim.api.nvim_create_user_command("Messages", function()
 	local scratch_buffer = vim.api.nvim_create_buf(false, true)
-	vim.bo[scratch_buffer].filetype = "vim" -- 设置缓冲区为 vim 文件类型
-	local messages = vim.split(vim.fn.execute("messages", "silent"), "\n")
-	vim.api.nvim_buf_set_text(scratch_buffer, 0, 0, 0, 0, messages) -- 将 Vim 消息填充到缓冲区
-	vim.cmd("belowright split") -- 在下方打开一个新的窗口
-	vim.api.nvim_win_set_buf(0, scratch_buffer) -- 将新窗口的缓冲区设置为刚才创建的缓冲区
-	vim.opt_local.wrap = true -- 启用行自动换行
+	vim.bo[scratch_buffer].filetype = "vim"
+	local raw_messages = vim.fn.execute("messages", "silent")
+	local messages = {}
+	-- 添加时间戳到每个消息块的顶部
+	local function add_message(msg_block)
+		if #msg_block > 0 then
+			local timestamp = os.date("%Y-%m-%d %H:%M:%S")
+			-- 在消息块的开头添加时间戳
+			table.insert(messages, "=== [" .. timestamp .. "] ===")
+			for _, line in ipairs(msg_block) do
+				table.insert(messages, line)
+			end
+			table.insert(messages, "") -- 添加空行分隔
+		end
+	end
+	local current_message = {}
+	for line in raw_messages:gmatch("[^\r\n]+") do
+		if line:match("^%s*$") then
+			goto continue -- 忽略空行
+		end
+		-- 遇到典型的 "文件写入" 或 "函数调用堆栈" 需要分隔消息
+		if #current_message > 0 and (line:match(":%d+: in function <") or line:match(" written$")) then
+			add_message(current_message)
+			current_message = {}
+		end
+		table.insert(current_message, line)
+		::continue::
+	end
+	-- 处理最后一条消息
+	add_message(current_message)
+	-- 确保所有消息被完整添加
+	vim.api.nvim_buf_set_text(scratch_buffer, 0, 0, 0, 0, messages)
+	-- 打开窗口
+	vim.cmd("belowright split")
+	vim.api.nvim_win_set_buf(0, scratch_buffer)
+	-- 确保自动换行
+	vim.opt_local.wrap = true
 	vim.bo.buflisted = false
-	vim.bo.bufhidden = "wipe" -- 关闭缓冲区时自动删除该缓冲区
-	vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = scratch_buffer }) -- 设置快捷键 q 来关闭窗口
+	vim.bo.bufhidden = "wipe"
+	-- 退出快捷键
+	vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = scratch_buffer })
 end, {})
 
 -- ===========================
@@ -48,9 +77,6 @@ vim.api.nvim_create_user_command("Toggle", function(opts)
 	end
 end, { desc = "切换窗口", nargs = "?" })
 
--- ===========================
--- 关闭缓冲
--- ===========================
 -- ===========================
 -- 关闭缓冲
 -- ===========================
@@ -111,9 +137,8 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 
 	-- 切换回原始窗口
 	vim.cmd(string.format("%d wincmd w", cur_winnr))
-
 	-- 判断当前缓冲区是否是一个终端缓冲区
-	local is_terminal = vim.fn.getbufvar(cur_bufnr, "&buftype") == "terminal"
+	local is_terminal = vim.fn.getbufvar(cur_bufnr, "&buftype") == "terminal" or "toggleterm"
 	-- 如果是终端缓冲区，强制删除；否则，使用 confirm 进行确认删除
 	vim.cmd(is_terminal and "bd! #" or "silent! confirm bd #")
 end, {

@@ -40,7 +40,11 @@ return {
 					gdbTarget = "localhost:3333",
 					cwd = "${workspaceFolder}",
 					executable = vim.g.debug_file,
-					configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
+					-- configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
+					configFiles = {
+						"interface/cmsis-dap.cfg",
+						"target/nrf52.cfg",
+					},
 					svdFile = "",
 					rttConfig = {
 						address = "auto",

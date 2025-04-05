@@ -9,7 +9,7 @@ dap.adapters["probe-rs-debug"] = {
 	type = "server",
 	port = "${port}",
 	executable = {
-		command = vim.fn.expand("$HOME/.cargo/bin/probe-rs"),
+		command = "probe-rs",
 		args = { "dap-server", "--port", "${port}" },
 	},
 }

@@ -11,9 +11,7 @@ dap.configurations.rust = {
 		name = "gdb Launch",
 		type = "gdb",
 		request = "launch",
-		program = function()
-			return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
-		end,
+		program = vim.g.debug_file,
 		cwd = "${workspaceFolder}",
 		stopAtBeginningOfMainSubprogram = false,
 	},
@@ -29,13 +27,11 @@ dap.configurations.rust = {
 		cwd = "${workspaceFolder}",
 	},
 	{
-		name = "Attach to gdbserver :1234",
+		name = "Attach to gdbserver :1337",
 		type = "gdb",
 		request = "attach",
-		target = "localhost:1234",
-		program = function()
-			return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
-		end,
+		target = "localhost:1337",
+		program = vim.g.debug_file,
 		cwd = "${workspaceFolder}",
 	},
 }
