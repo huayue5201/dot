@@ -16,12 +16,21 @@ return {
 		"s1n7ax/nvim-window-picker",
 	},
 	config = function()
-		local debug_file = require("dap.debug-file-manager")
-		local function toggle_debug_from_neotree(state)
+		-- 获取当前文件路径
+		local function get_current_file_path(state)
 			local node = state.tree:get_node()
-			if node and node.type == "file" then
-				-- vim.cmd("e " .. node.path) -- 先打开文件
-				debug_file.toggle_debug_file() -- 使用正确的 `debug_file` 调用
+			return node and node.type == "file" and node.path or nil
+		end
+
+		-- 在 neotree 中标记调试文件
+		local function toggle_debug_from_neotree(state)
+			local file = get_current_file_path(state)
+
+			if file then
+				-- 直接将文件路径写入 vim.g.debug_file
+				vim.g.debug_file = file
+				require("neo-tree.sources.manager").refresh("filesystem")
+				vim.notify("✅ 文件已标记为调试文件: " .. file, vim.log.levels.INFO)
 			else
 				vim.notify("⚠️ 请选择一个文件！", vim.log.levels.ERROR)
 			end
@@ -47,7 +56,7 @@ return {
 				"filesystem",
 				"buffers",
 				"git_status",
-				"document_symbols",
+				-- "document_symbols",
 			},
 			source_selector = {
 				winbar = true,
@@ -56,7 +65,7 @@ return {
 					{ source = "filesystem" },
 					{ source = "buffers" },
 					{ source = "git_status" },
-					{ source = "document_symbols" },
+					-- { source = "document_symbols" },
 				},
 			},
 			default_component_configs = {
@@ -211,7 +220,7 @@ return {
 							vim.cmd("edit " .. vim.fn.fnameescape(node.path))
 						end
 					end,
-					["<leader>d"] = toggle_debug_from_neotree, -- 绑定快捷键
+					["<localleader>b"] = toggle_debug_from_neotree, -- 绑定快捷键
 					["O"] = "system_open",
 					["<2-LeftMouse>"] = "open",
 					["<cr>"] = "open",
@@ -472,13 +481,13 @@ return {
 			})
 		end, { silent = true, desc = "Git Status" })
 
-		vim.keymap.set("n", "<leader>es", function()
-			require("neo-tree.command").execute({
-				toggle = true,
-				source = "document_symbols",
-				position = "left",
-			})
-		end, { silent = true, desc = "Symbols" })
+		-- vim.keymap.set("n", "<leader>es", function()
+		-- 	require("neo-tree.command").execute({
+		-- 		toggle = true,
+		-- 		source = "document_symbols",
+		-- 		position = "left",
+		-- 	})
+		-- end, { silent = true, desc = "Symbols" })
 
 		vim.keymap.set(
 			"n",

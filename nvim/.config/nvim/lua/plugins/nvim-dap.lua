@@ -94,7 +94,7 @@ return {
 			require("dap-view").toggle()
 		end, { desc = "切换 nvim-dap-view" })
 
-		vim.keymap.set("n", "<leader>dc", dap.continue, { silent = true, desc = "继续/启动调试" })
+		vim.g.repeatable_map("n", "<leader>dc", dap.continue, { silent = true, desc = "继续/启动调试" })
 
 		vim.keymap.set("n", "<leader>du", dap.run, { silent = true, desc = "启动新调试会话" })
 
@@ -114,7 +114,7 @@ return {
 				prompt = "选择断点类型:",
 			}, function(choice)
 				if choice == "条件断点" then
-					vim.ui.input({ prompt = "输入条件: " }, function(condition)
+					vim.ui.input({ prompt = "󰙎 输入条件: " }, function(condition)
 						dap.set_breakpoint(condition)
 					end)
 				elseif choice == "命中次数" then
@@ -161,7 +161,19 @@ return {
 
 		vim.g.repeatable_map("n", "<leader>dgj", dap.down, { silent = true, desc = "下一个断点" })
 
-		vim.keymap.set("n", "<leader>dgn", dap.goto_, { silent = true, desc = "跳转到行" })
+		vim.keymap.set("n", "<leader>dgn", function()
+			vim.ui.input({ prompt = "󰙎 输入行号: " }, function(input)
+				if input then
+					-- 将用户输入的行号传递给 dap.goto_
+					local line = tonumber(input)
+					if line then
+						dap.goto_(line)
+					else
+						print("无效的行号")
+					end
+				end
+			end)
+		end, { silent = true, desc = "跳转到行" })
 
 		vim.keymap.set("n", "<leader>dR", dap.repl.toggle, { silent = true, desc = "切换 REPL" })
 

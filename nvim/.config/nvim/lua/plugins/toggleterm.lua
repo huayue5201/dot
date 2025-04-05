@@ -4,19 +4,46 @@ return {
 	"akinsho/toggleterm.nvim",
 	keys = { "<c-\\>" },
 	config = function()
+		-- 设置高亮
+		vim.api.nvim_set_hl(0, "WinbarIcon", { fg = "#FF6347" }) -- 后续图标的颜色
+
+		if not vim.g.term_counter then
+			vim.g.term_counter = 1 -- 初始化计数器
+		end
 		require("toggleterm").setup({
 			size = 25,
 			open_mapping = [[<c-\>]],
+			persist_mode = true, -- 默认为 true，记住上次终端模式（普通/插入）
+			autochdir = true, -- 若为 true，当 Neovim 更改当前目录时，下次打开终端会自动同步目录
+			close_on_exit = true, -- 当进程退出时自动关闭终端窗口
 			winbar = {
 				enabled = true,
-				name_formatter = function(term) --  term: Terminal
-					return term.name
+				name_formatter = function(term)
+					-- 如果没有设置 `term.id`，我们需要为每个终端设置唯一标识符
+					if not term.id then
+						term.id = vim.g.term_counter -- 设置终端的 id 为当前计数器
+						vim.g.term_counter = vim.g.term_counter + 1 -- 递增计数器
+					end
+
+					-- 使用 `term.id` 作为终端编号
+					local terminal_name = "term" .. term.id
+					local winbaricon = " " -- 图标部分
+					-- 使用高亮组渲染图标部分，确保图标部分的颜色正确
+					local highlighted_icon = "%#WinbarIcon#" .. winbaricon .. "%*"
+					-- 组合高亮的图标与终端名称
+					return highlighted_icon .. terminal_name .. "󱦷 "
 				end,
+			},
+			responsiveness = {
+				-- 控制窗口宽度在小于该值时自动从左右并排变为上下堆叠
+				-- 默认值为 0（关闭该特性）
+				horizontal_breakpoint = 135,
 			},
 		})
 
-		vim.keymap.set({ "t", "n" }, "<leader>oat", "<cmd>ToggleTermToggleAll<cr>", { desc = "Toggle terminal" })
-		vim.keymap.set({ "t", "n" }, "<leader>st", "<cmd>TermSelect<cr>", { desc = " select a terminal" })
+		vim.keymap.set({ "t", "n" }, "<c-w>\\", "<cmd>ToggleTermToggleAll<cr>", { desc = "Toggle terminal" })
+		vim.keymap.set({ "t", "n" }, "<a-t>", "<cmd>TermSelect<cr>", { desc = " select a terminal" })
+		vim.keymap.set({ "t", "n" }, "<a-\\>", "<cmd>TermNew<cr>", { desc = " select a terminal" })
 
 		function _G.set_terminal_keymaps()
 			local opts = { buffer = 0 }

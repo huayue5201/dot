@@ -1,43 +1,43 @@
--- https://rust-analyzer.github.io/
+-- https://rust-analyzer.github.io/book/index.html
 
 return {
 	cmd = {
-		"rust-analyzer",
+		"rust-analyzer", -- 启动 rust-analyzer 的命令
 	},
-	root_markers = { "Cargo.toml" },
-	filetypes = { "rust" },
-	single_file_support = true, -- 启用单文件支持
+	root_markers = { "Cargo.toml" }, -- 根目录标识文件，通常是 `Cargo.toml`
+	filetypes = { "rust" }, -- 支持的文件类型，这里只支持 `rust`
+	single_file_support = true, -- 启用单文件支持，允许在没有 Cargo.toml 文件的情况下分析 Rust 文件
 	settings = {
 		["rust-analyzer"] = {
-			-- 导入设置
 			imports = {
 				granularity = {
-					-- 设置为 module 表示按模块粒度进行导入（而不是按函数粒度）
 					group = "module",
 				},
-				-- 设置导入的前缀
-				prefix = "self", -- 导入时使用 `self` 前缀
+				prefix = "self",
 			},
 			lens = {
-				enable = true, -- 启用 CodeLens
-			},
-			-- cargo 设置
-			cargo = {
-				-- 从 cargo check 加载输出目录，以加速 Rust 项目分析
-				loadOutDirsFromCheck = true,
-
-				-- 禁用自动运行构建脚本
-				runBuildScripts = false,
-
-				-- 启用构建脚本的支持
-				buildScripts = {
-					enable = true, -- 启用 Rust 构建脚本
+				enable = true, -- 启用 CodeLens 功能，显示代码信息如函数调用等
+				references = {
+					adt = {
+						enable = true,
+					},
+					enumVariant = {
+						enable = true,
+					},
+					method = {
+						enable = true,
+					},
+					trait = {
+						enable = true,
+					},
 				},
 			},
-			-- 宏支持设置
-			procMacro = {
-				-- 启用过程宏支持（如 `#[derive(...)]` 语法支持）
-				enable = true,
+			cargo = {
+				buildScripts = {
+					enable = true, -- 启用构建脚本支持
+				},
+				features = "all", -- 启用所有 Cargo 特性
+				-- extraArgs = {"--target","thumbv7em-none-eabi"}, -- 添加额外的命令行参数
 			},
 		},
 	},
