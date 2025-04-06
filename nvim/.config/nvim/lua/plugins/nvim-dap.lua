@@ -1,4 +1,5 @@
 -- https://github.com/mfussenegger/nvim-dap
+-- TODO: https://github.com/mfussenegger/nvim-dap/issues/1388
 
 return {
 	"mfussenegger/nvim-dap",
@@ -202,6 +203,46 @@ return {
 		vim.keymap.set("n", "<leader>dlf", function()
 			widgets.cursor_float(widgets.frames, { border = "rounded" })
 		end, { desc = "查看堆栈" })
+
+		vim.api.nvim_create_autocmd("FileType", {
+			pattern = "dap-repl",
+			group = vim.api.nvim_create_augroup("dapui_keymaps", { clear = true }),
+			desc = "Fix and add insert-mode keymaps for dap-repl",
+			callback = function()
+				-- TODO ctrl-x
+				vim.keymap.set("i", "<c-h>", "<C-g>u<C-w>h", { buffer = true, desc = "Move to the left window" })
+				vim.keymap.set("i", "<c-j>", "<C-g>u<C-w>j", { buffer = true, desc = "Move to the above window" })
+				vim.keymap.set("i", "<c-k>", "<C-g>u<C-w>k", { buffer = true, desc = "Move to the below window" })
+				vim.keymap.set("i", "<c-l>", "<c-u><c-\\><c-o>zt", { buffer = true, remap = true, desc = "Clear REPL" })
+				vim.keymap.set("i", "<c-p>", "<Up>", { buffer = true, remap = true, desc = "Previous Command" })
+				vim.keymap.set("i", "<c-n>", "<Down>", { buffer = true, remap = true, desc = "Next Command" })
+				-- Override <Tab> to trigger completion if popup menu is visible, otherwise behave as normal
+				-- 向下浏览补全项
+				vim.keymap.set("i", "<tab>", function()
+					if vim.fn.pumvisible() == 1 then
+						return "<C-n>" -- Trigger completion
+					else
+						return "<Tab>" -- Default tab behavior
+					end
+				end, { buffer = true, expr = true, desc = "Tab Completion in dap-repl" })
+				-- 向上浏览补全项
+				vim.keymap.set("i", "<S-Tab>", function()
+					if vim.fn.pumvisible() == 1 then
+						return "<C-p>" -- 反向选择补全菜单中的前一个项
+					else
+						return "<Tab>" -- 默认 Tab 行为
+					end
+				end, { buffer = true, expr = true, desc = "Reverse Tab Completion in dap-repl" })
+				-- 选择补全项
+				vim.keymap.set("i", "<CR>", function()
+					if vim.fn.pumvisible() == 1 then
+						return "<C-y>" -- 选择当前补全项（确认补全）
+					else
+						return "<CR>" -- 默认行为：插入换行符
+					end
+				end, { buffer = true, expr = true, desc = "Confirm completion or Insert newline in dap-repl" })
+			end,
+		})
 
 		local api = vim.api
 		local keymap_restore = {}

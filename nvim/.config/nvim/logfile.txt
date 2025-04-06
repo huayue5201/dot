@@ -1,17 +1,159 @@
 Neovim closed with the following errors:
 
 vim.region is deprecated. Run ":checkhealth vim.deprecated" for more information
-"logfile.txt" 0L, 0B written
+"~/dotfile/nvim/.config/nvim/logfile.txt" 0L, 0B written
+"lua/config/autocmds.lua" 194L, 6223B written
 
 Neovim closed with the following errors:
 
+client.supports_method is deprecated. Run ":checkhealth vim.deprecated" for more information
+Source missing, cannot jump to frame: cortex-debug-dummy
+Pick window: 
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
 
 Neovim closed with the following errors:
 
-vim.region is deprecated. Run ":checkhealth vim.deprecated" for more information
+# Config Change Detected. Reloading...
 
-Neovim closed with the following errors:
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
 
-vim.region is deprecated. Run ":checkhealth vim.deprecated" for more information
-"lua/config/autocmds.lua" 190L, 6209B written
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
+# Config Change Detected. Reloading...
+
+- **changed**: `~/.config/nvim/lua/plugins/blink_cmp.lua`
 
