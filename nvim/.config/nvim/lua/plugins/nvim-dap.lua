@@ -31,9 +31,7 @@ return {
 		end
 
 		-- require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
-		require("dap.probe-rs")
-		require("dap.gdb")
-		-- require("dap.codelldb")
+		require("dap.dap-config")
 		require("dap.debug-file-manager") -- 调试文件标记模块
 		require("dap.breakpoint_manager") -- 引入断点管理模块
 		local dap = require("dap")
@@ -114,11 +112,11 @@ return {
 				prompt = "选择断点类型:",
 			}, function(choice)
 				if choice == "条件断点" then
-					vim.ui.input({ prompt = "󰙎 输入条件: " }, function(condition)
+					vim.ui.input({ prompt = "󰌓 输入条件: " }, function(condition)
 						dap.set_breakpoint(condition)
 					end)
 				elseif choice == "命中次数" then
-					vim.ui.input({ prompt = "输入次数: " }, function(hit_count)
+					vim.ui.input({ prompt = "󰌓 输入次数: " }, function(hit_count)
 						if hit_count and tonumber(hit_count) then
 							dap.set_breakpoint(nil, tonumber(hit_count), nil)
 						else
@@ -126,7 +124,7 @@ return {
 						end
 					end)
 				elseif choice == "日志点" then
-					vim.ui.input({ prompt = "输入日志内容: " }, function(message)
+					vim.ui.input({ prompt = "󰌓 输入日志内容: " }, function(message)
 						dap.set_breakpoint(nil, nil, message)
 					end)
 				elseif choice == "异常断点" then
@@ -157,9 +155,9 @@ return {
 
 		vim.keymap.set("n", "<leader>dd", dap.pause, { silent = true, desc = "暂停线程" })
 
-		vim.g.repeatable_map("n", "<leader>dgk", dap.up, { silent = true, desc = "上一个断点" })
+		vim.g.repeatable_map("n", "[.", dap.up, { silent = true, desc = "上一个断点" })
 
-		vim.g.repeatable_map("n", "<leader>dgj", dap.down, { silent = true, desc = "下一个断点" })
+		vim.g.repeatable_map("n", "].", dap.down, { silent = true, desc = "下一个断点" })
 
 		vim.keymap.set("n", "<leader>dgn", function()
 			vim.ui.input({ prompt = "󰙎 输入行号: " }, function(input)
@@ -240,12 +238,6 @@ return {
 			end
 			keymap_restore = {}
 		end
-
-		-- dap.listeners.after["event_terminated"]["terminate"] = function()
-		-- 	require("dap-view").close(true)
-		-- 	require("dap").repl.close()
-		-- 	print("调试已终止，关闭 REPL")
-		-- end
 
 		-- 退出neovim自动终止调试进程
 		vim.api.nvim_create_autocmd("VimLeave", {
