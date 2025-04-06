@@ -116,18 +116,22 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
--- ===========================
--- 用 q 关闭窗口或删除缓冲区
--- ===========================
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	desc = "用 q 关闭窗口或删除缓冲区",
 	pattern = "*",
 	callback = function()
 		local close_commands = require("config.utils").close_commands
-		local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype -- 优先 filetype，否则 buftype
+		local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
 		local command = close_commands[current_type]
 		if command then
-			vim.api.nvim_buf_set_keymap(0, "n", "q", command, { noremap = true, silent = true })
+			local opts = { buffer = true, noremap = true, silent = true }
+			if type(command) == "function" then
+				vim.keymap.set("n", "q", command, opts)
+			else
+				vim.keymap.set("n", "q", function()
+					vim.cmd(command)
+				end, opts)
+			end
 		end
 	end,
 })

@@ -22,18 +22,24 @@ local function save_session()
 		vim.fn.mkdir(session_dir, "p")
 	end
 
+	-- 检查是否已经存在会话文件，如果存在则覆盖
+	if vim.fn.filereadable(session_file) == 1 then
+		print("覆盖现有会话文件： " .. session_file)
+		-- 删除已存在的会话文件
+		vim.fn.delete(session_file)
+	end
+
 	-- 获取当前会话文件的修改时间
 	local current_time = vim.fn.getftime(session_file)
 	local current_content = vim.fn.execute("mksession! " .. session_file)
 	if current_time > 0 and current_content == vim.fn.readfile(session_file) then
-		print("No changes detected. Session not saved.")
+		print("没有更改，未保存会话。")
 		return
 	end
 
 	-- 直接保存会话，确保会话数据保存在正确的路径下
 	vim.cmd("mksession! " .. session_file)
-	-- print("Session saved for project: " .. project_name)
-	-- print("Session file path: " .. session_file) -- 输出 session_file 路径，确保路径正确
+	print("会话已保存： " .. session_file)
 end
 
 -- 加载会话
@@ -114,12 +120,12 @@ end
 -- 设置会话选项（可根据需求调整）
 vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
 
--- 自动保存会话（退出时保存会话）
-vim.api.nvim_create_autocmd("VimLeave", {
-	callback = function()
-		save_session()
-	end,
-})
+-- -- 自动保存会话（退出时保存会话）
+-- vim.api.nvim_create_autocmd("VimLeave", {
+-- 	callback = function()
+-- 		save_session()
+-- 	end,
+-- })
 
 -- 清理无用会话文件的命令映射
 vim.keymap.set("n", "<leader>sc", function()

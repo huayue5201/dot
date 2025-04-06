@@ -77,40 +77,27 @@ vim.api.nvim_create_user_command("Toggle", function(opts)
 	end
 end, { desc = "切换窗口", nargs = "?" })
 
--- ===========================
--- 关闭缓冲
--- ===========================
 vim.api.nvim_create_user_command("DeleteBuffer", function()
-	-- 引入 utils 模块，获取 close_commands 配置
 	local close_commands = require("config.utils").close_commands
-	-- 获取所有列出的缓冲区
 	local buflisted = vim.fn.getbufinfo({ buflisted = 1 })
-	-- 获取当前窗口和缓冲区的编号
 	local cur_winnr, cur_bufnr = vim.fn.winnr(), vim.fn.bufnr()
-	-- 获取当前窗口的布局信息
 	local layout = vim.fn.winlayout()
-	-- 获取当前缓冲区的类型（优先 filetype，否则 buftype）
 	local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
-	-- 获取关闭命令，如果没有命令则使用默认的 "bd"
-	local command = close_commands[current_type]
-	if not command then
-		command = "bd"
-	end
+	local command = close_commands[current_type] or "bd"
 
-	-- 如果找到匹配的关闭命令，执行该命令并返回
-	if command then
-		command = command:gsub("<cr>", "")
-		vim.cmd(command)
+	-- 执行关闭命令
+	if type(command) == "function" then
+		command()
 		return
 	end
 
-	-- 处理分屏窗口
+	-- 处理分屏窗口，避免冗余判断
 	if layout[1] ~= "leaf" then
 		vim.cmd("bd")
 		return
 	end
 
-	-- 获取当前缓冲区的索引位置
+	-- 直接检查当前缓冲区位置
 	local current_index = 0
 	for i, buf in ipairs(buflisted) do
 		if buf.bufnr == cur_bufnr then
@@ -120,26 +107,19 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 	end
 
 	-- 如果当前窗口是唯一窗口，不执行关闭操作
-	local windows = vim.api.nvim_list_wins()
-	if #windows == 1 then
+	if #vim.api.nvim_list_wins() == 1 then
 		print("无法关闭最后一个窗口！")
 		return
 	end
 
 	-- 切换到前一个或下一个缓冲区
-	if current_index > 1 then
-		vim.cmd("bp")
-	elseif current_index < #buflisted then
-		vim.cmd("bn")
-	else
-		vim.cmd("bp")
-	end
+	vim.cmd(current_index > 1 and "bp" or (current_index < #buflisted and "bn" or "bp"))
 
 	-- 切换回原始窗口
 	vim.cmd(string.format("%d wincmd w", cur_winnr))
-	-- 判断当前缓冲区是否是一个终端缓冲区
+
+	-- 处理终端缓冲区的关闭
 	local is_terminal = vim.fn.getbufvar(cur_bufnr, "&buftype") == "terminal" or "toggleterm"
-	-- 如果是终端缓冲区，强制删除；否则，使用 confirm 进行确认删除
 	vim.cmd(is_terminal and "bd! #" or "silent! confirm bd #")
 end, {
 	desc = "删除当前缓冲区，并进行未保存更改和窗口管理的额外检查",

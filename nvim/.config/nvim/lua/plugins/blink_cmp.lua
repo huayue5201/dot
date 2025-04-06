@@ -43,8 +43,27 @@ return {
 			},
 			-- keymap 配置：定义补全键映射及其行为
 			keymap = {
-				preset = "default", -- 使用默认键映射方案（类似内置补全）
-				-- ["<CR>"] = { "accept", "fallback" }, -- 将回车键设置为接受补全或执行后备操作
+				preset = "enter",
+				["<Tab>"] = {
+					function(cmp)
+						if cmp.is_menu_visible() then
+							return require("blink.cmp").select_next()
+						elseif cmp.snippet_active() then
+							return cmp.snippet_forward()
+						end
+					end,
+					"fallback",
+				},
+				["<S-Tab>"] = {
+					function(cmp)
+						if cmp.is_menu_visible() then
+							return require("blink.cmp").select_prev()
+						elseif cmp.snippet_active() then
+							return cmp.snippet_backward()
+						end
+					end,
+					"fallback",
+				},
 			},
 			-- appearance 配置：界面外观及图标显示设置
 			appearance = {

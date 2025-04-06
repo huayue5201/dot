@@ -10,20 +10,24 @@ M.icons = {
 }
 
 M.close_commands = {
-	help = ":close<cr>",
-	qf = ":close<cr>",
-	checkhealth = ":close<cr>",
-	man = ":quit<cr>",
-	toggleterm = ":close<cr>",
-	["grug-far"] = ":bdelete<cr>",
-	terminal = ":close<cr>",
-	git = ":bdelete<cr>",
-	["dap-repl"] = ":close<cr>",
-	["dap-float"] = ":close<cr>",
-	nofile = ":bdelete<cr>",
-	["dap-view"] = ":DapViewClose!<cr>",
-	["dap-view-term"] = ":close<cr>",
-	acwrite = ":bdelete<cr>",
+	help = "close",
+	qf = "close",
+	checkhealth = "close",
+	man = "quit",
+	toggleterm = "close",
+	["grug-far"] = "bdelete",
+	terminal = "close",
+	git = "bdelete",
+	["dap-repl"] = "close",
+	["dap-float"] = "close",
+	nofile = "bdelete",
+	DiffviewFileHistory = function()
+		vim.cmd("DiffviewClose")
+	end,
+	["dap-view"] = function()
+		vim.cmd("DapViewClose!")
+	end,
+	["dap-view-term"] = "close",
 }
 
 return M
