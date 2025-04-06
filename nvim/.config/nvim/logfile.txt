@@ -1,14 +1,17 @@
 Neovim closed with the following errors:
 
-# Config Change Detected. Reloading...
+vim.region is deprecated. Run ":checkhealth vim.deprecated" for more information
+"logfile.txt" 0L, 0B written
 
-- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
-# Config Change Detected. Reloading...
+Neovim closed with the following errors:
 
-- **changed**: `~/.config/nvim/lua/plugins/nvim-dap.lua`
-# Config Change Detected. Reloading...
 
-- **changed**: `~/.config/nvim/lua/plugins/nvim-dap-cortex-debug.lua`
-vim.tbl_islist is deprecated. Run ":checkhealth vim.deprecated" for more information
-断点已保存
+Neovim closed with the following errors:
+
+vim.region is deprecated. Run ":checkhealth vim.deprecated" for more information
+
+Neovim closed with the following errors:
+
+vim.region is deprecated. Run ":checkhealth vim.deprecated" for more information
+"lua/config/autocmds.lua" 190L, 6209B written
 

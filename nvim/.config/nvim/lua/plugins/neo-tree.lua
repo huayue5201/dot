@@ -16,21 +16,14 @@ return {
 		"s1n7ax/nvim-window-picker",
 	},
 	config = function()
-		-- 获取当前文件路径
-		local function get_current_file_path(state)
-			local node = state.tree:get_node()
-			return node and node.type == "file" and node.path or nil
-		end
-
-		-- 在 neotree 中标记调试文件
+		local debug_file = require("dap.debug-file-manager")
+		-- toggle_debug_from_neotree 函数
 		local function toggle_debug_from_neotree(state)
-			local file = get_current_file_path(state)
-
-			if file then
-				-- 直接将文件路径写入 vim.g.debug_file
-				vim.g.debug_file = file
+			local node = state.tree:get_node()
+			if node and node.type == "file" then
+				local file = node.path
+				debug_file.toggle_debug_file(file)
 				require("neo-tree.sources.manager").refresh("filesystem")
-				vim.notify("✅ 文件已标记为调试文件: " .. file, vim.log.levels.INFO)
 			else
 				vim.notify("⚠️ 请选择一个文件！", vim.log.levels.ERROR)
 			end

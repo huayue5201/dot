@@ -43,6 +43,11 @@ vim.keymap.set("n", "<leader>yt", function()
 	print("Copied: " .. vim.fn.expand("%:t"))
 end, { silent = true, desc = "复制文件名" })
 
+vim.keymap.set("n", "<leader>ram", function()
+	vim.cmd("delmarks a-z")
+	vim.cmd("delmarks A-Z")
+end, { desc = "Delete all marks (lowercase and uppercase)" })
+
 vim.keymap.set("n", "<Leader>raw", function()
 	local current_win = vim.api.nvim_get_current_win()
 	local current_buf = vim.api.nvim_win_get_buf(current_win)

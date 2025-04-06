@@ -90,6 +90,17 @@ local function remember(mode)
 		return
 	end
 
+  local function is_real_file()
+	local name = vim.fn.bufname()
+	local buftype = vim.bo.buftype
+	return name ~= "" and buftype == ""
+end
+
+return function(mode)
+	if not is_real_file() then
+		return
+	end
+
 	if mode == "save" then
 		vim.cmd.mkview(1)
 	else
