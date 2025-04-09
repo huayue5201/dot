@@ -6,6 +6,8 @@ return {
 	config = function()
 		-- 配置 window-picker 插件
 		require("window-picker").setup({
+			-- prompt message to show to get the user input
+			prompt_message = "  Pick window: ",
 			-- hint = "floating-letter",
 			hint = "statusline-winbar",
 			filter_rules = {

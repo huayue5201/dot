@@ -6,20 +6,6 @@ return {
 	event = { "BufReadPre", "BufNewFile" },
 	config = function()
 		require("nvim-treesitter.configs").setup({
-			-- 确保所需的语言解析器被安装
-			ensure_installed = {
-				"lua",
-				"vim",
-				"vimdoc",
-				"markdown",
-				"markdown_inline",
-				"regex",
-				"bash",
-				"c",
-				"cmake",
-				"json",
-				"rust",
-			},
 			-- 是否同步安装解析器
 			sync_install = true,
 			-- 是否自动安装解析器
@@ -43,6 +29,20 @@ return {
 				end,
 				-- 关闭 vim 自带语法高亮引擎，只使用 Treesitter
 				additional_vim_regex_highlighting = false,
+			},
+			-- 确保所需的语言解析器被安装
+			ensure_installed = {
+				"lua",
+				"vim",
+				"vimdoc",
+				"markdown",
+				"markdown_inline",
+				"regex",
+				"bash",
+				"c",
+				"cmake",
+				"json",
+				"rust",
 			},
 		})
 	end,

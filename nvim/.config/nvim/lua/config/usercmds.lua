@@ -97,6 +97,15 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 		return
 	end
 
+	-- 如果当前 buffer 是最后一个 listed buffer，提示并返回
+	if #buflisted <= 1 then
+		print("无法关闭最后一个 buffer！")
+		return
+	end
+
+	-- 记录当前光标位置，确保关闭 buffer 后光标位置不变
+	local cur_pos = vim.api.nvim_win_get_cursor(0)
+
 	-- 直接检查当前缓冲区位置
 	local current_index = 0
 	for i, buf in ipairs(buflisted) do
@@ -106,23 +115,24 @@ vim.api.nvim_create_user_command("DeleteBuffer", function()
 		end
 	end
 
-	-- 如果当前窗口是唯一窗口，不执行关闭操作
-	if #vim.api.nvim_list_wins() == 1 then
-		print("无法关闭最后一个窗口！")
-		return
-	end
-
 	-- 切换到前一个或下一个缓冲区
-	vim.cmd(current_index > 1 and "bp" or (current_index < #buflisted and "bn" or "bp"))
+	vim.cmd(current_index > 1 and "bp" or "bn")
 
 	-- 切换回原始窗口
 	vim.cmd(string.format("%d wincmd w", cur_winnr))
 
-	-- 处理终端缓冲区的关闭
-	local is_terminal = vim.fn.getbufvar(cur_bufnr, "&buftype") == "terminal" or "toggleterm"
-	vim.cmd(is_terminal and "bd! #" or "silent! confirm bd #")
+	-- 强制处理终端缓冲区的关闭
+	local is_terminal = vim.bo.buftype == "terminal" or vim.bo.filetype == "toggleterm"
+	if is_terminal then
+		vim.cmd("bd! #") -- 强制删除 terminal 类型的缓冲区
+	else
+		vim.cmd("silent! confirm bd #") -- 处理其他类型的缓冲区，避免两次提示
+	end
+
+	-- 关闭后恢复光标位置
+	vim.api.nvim_win_set_cursor(0, cur_pos)
 end, {
-	desc = "删除当前缓冲区，并进行未保存更改和窗口管理的额外检查",
+	desc = "删除当前缓冲区，并进行窗口管理的额外检查",
 	nargs = 0, -- 不需要参数
 })
 
