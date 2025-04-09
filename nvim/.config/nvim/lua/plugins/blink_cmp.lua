@@ -20,7 +20,7 @@ return {
 				-- 启用自动插入括号（注意：某些 LSP 可能会自行添加括号）
 				accept = { auto_brackets = { enabled = true } },
 				-- 默认不预选补全项，只有在用户选择时才自动插入
-				list = { selection = { preselect = true, auto_insert = true } },
+				list = { selection = { preselect = false, auto_insert = true } },
 				-- 补全菜单设置：
 				menu = {
 					border = "shadow",

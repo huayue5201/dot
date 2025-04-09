@@ -79,7 +79,7 @@ vim.opt.smartcase = true -- 智能区分大小写
 vim.opt.splitbelow = true -- 新分割窗口默认在下方
 vim.opt.splitright = true -- 新分割窗口默认在右边
 vim.opt.splitkeep = "screen" -- 保持分割窗口屏幕位置
--- vim.opt.winborder = "rounded" -- 浮动窗口边框
+-- vim.opt.winborder = "bold" -- 浮动窗口边框
 
 -- -------------- 状态栏和标签页 --------------
 vim.opt.showmode = false -- 禁用模式显示
@@ -114,9 +114,9 @@ vim.opt.fillchars = {
 	verthoriz = "╋", -- 垂直和水平重叠的分隔符
 	-- 折叠相关字符
 	fold = " ", -- 折叠文本填充字符
-	-- foldopen = "󰛲", -- 折叠打开时的标记字符
-	-- foldclose = "󰐖", -- 折叠关闭时的标记字符
-	-- foldsep = "│", -- 打开折叠时的中间分隔符
+	foldopen = "󰛲", -- 折叠打开时的标记字符
+	foldclose = "󰐖", -- 折叠关闭时的标记字符
+	foldsep = "│", -- 打开折叠时的中间分隔符
 	-- 其他
 	diff = "╱", -- 显示差异时，已删除的行字符
 	msgsep = "󰖰", -- 消息分隔符字符（例如用于 `display`）

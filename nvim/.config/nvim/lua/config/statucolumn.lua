@@ -1,11 +1,11 @@
 local Statuscolumn = {}
 
-vim.api.nvim_set_hl(0, "LineNr", { fg = "#6c7086" })
-vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#cdd6f4" })
-vim.api.nvim_set_hl(0, "LineNrAbove", { fg = "#eba0ac" })
-vim.api.nvim_set_hl(0, "LineNrBelow", { fg = "#94e2d5" })
-vim.api.nvim_set_hl(0, "Status_LineNr", { fg = "#6c7086" })
-vim.api.nvim_set_hl(0, "Status_DivLine", { bg = "#1e1e2e", fg = "#313244" })
+-- vim.api.nvim_set_hl(0, "LineNr", { fg = "#6c7086" })
+-- vim.api.nvim_set_hl(0, "CursorLineNr", { fg = "#cdd6f4" })
+-- vim.api.nvim_set_hl(0, "LineNrAbove", { fg = "#eba0ac" })
+-- vim.api.nvim_set_hl(0, "LineNrBelow", { fg = "#94e2d5" })
+-- vim.api.nvim_set_hl(0, "Status_LineNr", { fg = "#6c7086" })
+-- vim.api.nvim_set_hl(0, "Status_DivLine", { bg = "#1e1e2e", fg = "#313244" })
 
 Statuscolumn.folds = function()
 	local lnum = vim.v.lnum

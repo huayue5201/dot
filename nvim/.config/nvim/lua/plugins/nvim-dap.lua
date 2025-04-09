@@ -32,9 +32,8 @@ return {
 		end
 
 		-- require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
-		require("dap.dap-config")
-		require("dap.debug-file-manager") -- 调试文件标记模块
-		require("dap.breakpoint_manager") -- 引入断点管理模块
+		require("dap.probe-rs")
+		-- require("dap.debug-file-manager") -- 调试文件标记模块
 		local dap = require("dap")
 
 		local dap_defaults = {
@@ -61,7 +60,7 @@ return {
 				show = true,
 				sections = { "watches", "exceptions", "breakpoints", "threads", "repl" },
 				-- Must be one of the sections declared above
-				default_section = "repl",
+				default_section = "watches",
 			},
 			windows = {
 				height = 12,
@@ -113,11 +112,11 @@ return {
 				prompt = "选择断点类型:",
 			}, function(choice)
 				if choice == "条件断点" then
-					vim.ui.input({ prompt = "󰌓 输入条件: " }, function(condition)
+					vim.ui.input({ prompt = " 󰌓 输入条件: " }, function(condition)
 						dap.set_breakpoint(condition)
 					end)
 				elseif choice == "命中次数" then
-					vim.ui.input({ prompt = "󰌓 输入次数: " }, function(hit_count)
+					vim.ui.input({ prompt = " 󰌓 输入次数: " }, function(hit_count)
 						if hit_count and tonumber(hit_count) then
 							dap.set_breakpoint(nil, tonumber(hit_count), nil)
 						else
@@ -125,7 +124,7 @@ return {
 						end
 					end)
 				elseif choice == "日志点" then
-					vim.ui.input({ prompt = "󰌓 输入日志内容: " }, function(message)
+					vim.ui.input({ prompt = " 󰌓 输入日志内容: " }, function(message)
 						dap.set_breakpoint(nil, nil, message)
 					end)
 				elseif choice == "异常断点" then
@@ -161,7 +160,7 @@ return {
 		vim.g.repeatable_map("n", "].", dap.down, { silent = true, desc = "下一个断点" })
 
 		vim.keymap.set("n", "<leader>dgn", function()
-			vim.ui.input({ prompt = "󰙎 输入行号: " }, function(input)
+			vim.ui.input({ prompt = " 󰙎输入行号: " }, function(input)
 				if input then
 					-- 将用户输入的行号传递给 dap.goto_
 					local line = tonumber(input)
@@ -209,14 +208,6 @@ return {
 			group = vim.api.nvim_create_augroup("dapui_keymaps", { clear = true }),
 			desc = "Fix and add insert-mode keymaps for dap-repl",
 			callback = function()
-				-- TODO ctrl-x
-				vim.keymap.set("i", "<c-h>", "<C-g>u<C-w>h", { buffer = true, desc = "Move to the left window" })
-				vim.keymap.set("i", "<c-j>", "<C-g>u<C-w>j", { buffer = true, desc = "Move to the above window" })
-				vim.keymap.set("i", "<c-k>", "<C-g>u<C-w>k", { buffer = true, desc = "Move to the below window" })
-				vim.keymap.set("i", "<c-l>", "<c-u><c-\\><c-o>zt", { buffer = true, remap = true, desc = "Clear REPL" })
-				vim.keymap.set("i", "<c-p>", "<Up>", { buffer = true, remap = true, desc = "Previous Command" })
-				vim.keymap.set("i", "<c-n>", "<Down>", { buffer = true, remap = true, desc = "Next Command" })
-				-- Override <Tab> to trigger completion if popup menu is visible, otherwise behave as normal
 				-- 向下浏览补全项
 				vim.keymap.set("i", "<tab>", function()
 					if vim.fn.pumvisible() == 1 then

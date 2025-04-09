@@ -127,22 +127,22 @@ vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,
 -- 	end,
 -- })
 
--- 清理无用会话文件的命令映射
+-- 按键映射：清理无效会话
 vim.keymap.set("n", "<leader>sc", function()
 	clean_unused_sessions()
-end, { silent = true })
+end, { silent = true, desc = "清理无效会话" })
 
 -- 按键映射：手动保存会话
 vim.keymap.set("n", "<leader>ss", function()
 	save_session()
-end, { silent = true })
+end, { silent = true, desc = "手动保存会话" })
 
 -- 按键映射：手动选择并加载会话
 vim.keymap.set("n", "<leader>sl", function()
 	select_session()
-end, { silent = true })
+end, { silent = true, desc = "手动选择并加载会话" })
 
 -- 按键映射：恢复当前项目的会话
 vim.keymap.set("n", "<leader>sr", function()
 	restore_current_session()
-end, { silent = true })
+end, { silent = true, desc = "恢复当前项目的会话" })
