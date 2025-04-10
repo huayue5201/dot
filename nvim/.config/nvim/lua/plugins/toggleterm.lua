@@ -5,8 +5,11 @@ return {
 	keys = { "<c-\\>" },
 	config = function()
 		-- 设置高亮
-		vim.api.nvim_set_hl(0, "WinbarIcon", { fg = "#FF6347" }) -- 后续图标的颜色
-
+		vim.api.nvim_set_hl(0, "ToggletermWinBar", {
+			fg = "#ffffff",
+			bg = "#8B658B", -- 整个 winbar 背景色
+		})
+		vim.api.nvim_set_hl(0, "ToggletermIcon", { fg = "#8B658B" }) -- 后续图标的颜色
 		if not vim.g.term_counter then
 			vim.g.term_counter = 1 -- 初始化计数器
 		end
@@ -26,12 +29,18 @@ return {
 					end
 
 					-- 使用 `term.id` 作为终端编号
-					local terminal_name = "term" .. term.id
-					local winbaricon = " " -- 图标部分
-					-- 使用高亮组渲染图标部分，确保图标部分的颜色正确
-					local highlighted_icon = "%#WinbarIcon#" .. winbaricon .. "%*"
+					local terminal_name = "term." .. term.id
 					-- 组合高亮的图标与终端名称
-					return highlighted_icon .. terminal_name .. "󱦷 "
+					return "%#ToggletermIcon#"
+						.. "" -- 
+						.. "%*"
+						.. "%#ToggletermWinBar#"
+						.. " "
+						.. terminal_name
+						.. "%*"
+						.. "%#ToggletermIcon#"
+						.. ""
+						.. "%*"
 				end,
 			},
 			responsiveness = {

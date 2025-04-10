@@ -75,18 +75,18 @@ return {
 			},
 		})
 
-		dap.listeners.before.attach["dap-view-config"] = function()
-			dv.open()
-		end
-		dap.listeners.before.launch["dap-view-config"] = function()
-			dv.open()
-		end
-		dap.listeners.before.event_terminated["dap-view-config"] = function()
-			dv.close()
-		end
-		dap.listeners.before.event_exited["dap-view-config"] = function()
-			dv.close()
-		end
+		-- dap.listeners.before.attach["dap-view-config"] = function()
+		-- 	dv.open()
+		-- end
+		-- dap.listeners.before.launch["dap-view-config"] = function()
+		-- 	dv.open()
+		-- end
+		-- dap.listeners.before.event_terminated["dap-view-config"] = function()
+		-- 	dv.close()
+		-- end
+		-- dap.listeners.before.event_exited["dap-view-config"] = function()
+		-- 	dv.close()
+		-- end
 
 		vim.keymap.set("n", "<leader>dv", function()
 			require("dap-view").toggle()
@@ -208,6 +208,8 @@ return {
 			group = vim.api.nvim_create_augroup("dapui_keymaps", { clear = true }),
 			desc = "Fix and add insert-mode keymaps for dap-repl",
 			callback = function()
+				vim.cmd("syntax on") -- 启用语法高亮（保险）
+				vim.cmd("runtime! syntax/rust.vim") -- 手动加载 Rust 的语法文件
 				-- 向下浏览补全项
 				vim.keymap.set("i", "<tab>", function()
 					if vim.fn.pumvisible() == 1 then
