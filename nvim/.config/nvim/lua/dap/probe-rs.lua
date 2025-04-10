@@ -60,8 +60,6 @@ local function write_log(message)
 	end
 end
 
-local dap = require("dap")
-
 -- 监听 RTT 初始化事件，确认窗口开启，否则不会收到数据
 dap.listeners.before["event_probe-rs-rtt-channel-config"]["plugins.nvim-dap-probe-rs"] = function(session, body)
 	local msg = string.format(

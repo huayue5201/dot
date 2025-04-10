@@ -39,7 +39,7 @@ return {
 					args = {},
 					runToEntryPoint = "main",
 					swoConfig = { enabled = false },
-					showDevDebugOutput = true,
+					showDevDebugOutput = false,
 					gdbTarget = "localhost:3333",
 					-- overrideLaunchCommands = {
 					-- 	"cd Output/build", -- 切换到指定目录
