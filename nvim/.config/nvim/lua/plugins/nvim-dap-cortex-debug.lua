@@ -39,8 +39,15 @@ return {
 					args = {},
 					runToEntryPoint = "main",
 					swoConfig = { enabled = false },
-					showDevDebugOutput = false,
+					showDevDebugOutput = true,
 					gdbTarget = "localhost:3333",
+					-- overrideLaunchCommands = {
+					-- 	"cd Output/build", -- 切换到指定目录
+					-- 	"file firmware.hex", -- 加载固件文件
+					-- 	"target extended-remote localhost:50000", -- 连接到 GDB 服务器
+					-- 	"monitor reset halt", -- 发送监控命令（复位并挂起目标）
+					-- 	"load firmware.hex", -- 加载固件
+					-- },
 					cwd = "${workspaceFolder}",
 					-- executable = vim.g.debug_file,
 					executable = binary,
@@ -51,6 +58,7 @@ return {
 					},
 					svdFile = "",
 					rttConfig = {
+						enabled = true,
 						address = "auto",
 						decoders = {
 							{
