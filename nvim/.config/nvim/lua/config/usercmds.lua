@@ -77,52 +77,6 @@ vim.api.nvim_create_user_command("Toggle", function(opts)
 	end
 end, { desc = "切换窗口", nargs = "?" })
 
--- vim.api.nvim_create_user_command("DeleteBuffer", function()
--- 	local close_commands = require("config.utils").close_commands
--- 	local buflisted = vim.fn.getbufinfo({ buflisted = 1 })
--- 	local cur_winnr, cur_bufnr = vim.fn.winnr(), vim.fn.bufnr()
--- 	local layout = vim.fn.winlayout()
--- 	local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
--- 	local command = close_commands[current_type] or "bd"
--- 	-- 执行关闭命令
--- 	if type(command) == "function" then
--- 		command()
--- 		return
--- 	end
--- 	-- 处理分屏窗口，避免冗余判断
--- 	if layout[1] ~= "leaf" then
--- 		vim.cmd("bd")
--- 		return
--- 	end
--- 	-- 如果当前 buffer 是最后一个 listed buffer，提示并返回
--- 	if #buflisted <= 1 then
--- 		print("无法关闭最后一个 buffer！")
--- 		return
--- 	end
--- 	-- 直接检查当前缓冲区位置
--- 	local current_index = 0
--- 	for i, buf in ipairs(buflisted) do
--- 		if buf.bufnr == cur_bufnr then
--- 			current_index = i
--- 			break
--- 		end
--- 	end
--- 	-- 切换到前一个或下一个缓冲区
--- 	vim.cmd(current_index > 1 and "bp" or "bn")
--- 	-- 切换回原始窗口
--- 	vim.cmd(string.format("%d wincmd w", cur_winnr))
--- 	-- 强制处理终端缓冲区的关闭
--- 	local is_terminal = vim.bo.buftype == "terminal" or vim.bo.filetype == "toggleterm"
--- 	if is_terminal then
--- 		vim.cmd("bd! #") -- 强制删除 terminal 类型的缓冲区
--- 	else
--- 		vim.cmd("silent! confirm bd #") -- 处理其他类型的缓冲区，避免两次提示
--- 	end
--- end, {
--- 	desc = "删除当前缓冲区，并进行窗口管理的额外检查",
--- 	nargs = 0, -- 不需要参数
--- })
-
 if vim.fn.executable("rg") == 1 then
 	vim.api.nvim_create_user_command("RgFiles", function(opts)
 		local pattern = opts.args

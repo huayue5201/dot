@@ -21,7 +21,7 @@ return {
 			DapLogPoint = { text = "⚪", texthl = "DapLogPoint" }, -- 日志点
 			-- DapExceptionBreakpoint = { text = "🛑", texthl = "DapExceptionBreakpoint" }, -- 异常断点🔻
 			DapStopped = { -- 停止位置
-				text = "🔶", --🟨
+				text = "🎯", --🟨🔶
 				texthl = "DapBreakpoint",
 				linehl = "DapCurrentLine",
 				numhl = "DiagnosticSignWarn",
@@ -184,19 +184,19 @@ return {
 		end, { desc = "查看变量" })
 
 		vim.keymap.set("n", "<leader>dlc", function()
-			widgets.cursor_float(widgets.scopes, { border = "shadow" })
+			widgets.cursor_float(widgets.scopes, { border = "rounded" })
 		end, { desc = "查看作用域" })
 
 		vim.keymap.set("n", "<leader>dls", function()
-			widgets.cursor_float(widgets.sessions, { border = "shadow" })
+			widgets.cursor_float(widgets.sessions, { border = "rounded" })
 		end, { desc = "查看调试会话" })
 
 		vim.keymap.set("n", "<leader>dle", function()
-			widgets.cursor_float(widgets.expression, { border = "shadow" })
+			widgets.cursor_float(widgets.expression, { border = "rounded" })
 		end, { desc = "查看表达式值" })
 
 		vim.keymap.set("n", "<leader>dlt", function()
-			widgets.cursor_float(widgets.threads, { border = "shadow" })
+			widgets.cursor_float(widgets.threads, { border = "rounded" })
 		end, { desc = "查看线程" })
 
 		vim.keymap.set("n", "<leader>dlf", function()
@@ -272,6 +272,18 @@ return {
 			end
 			keymap_restore = {}
 		end
+
+		-- Setup
+
+		-- Decides when and how to jump when stopping at a breakpoint
+		-- The order matters!
+		--
+		-- (1) If the line with the breakpoint is visible, don't jump at all
+		-- (2) If the buffer is opened in a tab, jump to it instead
+		-- (3) Else, create a new tab with the buffer
+		--
+		-- This avoid unnecessary jumps
+		require("dap").defaults.fallback.switchbuf = "usevisible,usetab,newtab"
 
 		-- 退出neovim自动终止调试进程
 		vim.api.nvim_create_autocmd("VimLeave", {

@@ -24,6 +24,9 @@ M.close_commands = {
 	DiffviewFileHistory = function()
 		vim.cmd("DiffviewClose")
 	end,
+	DiffviewFiles = function()
+		vim.cmd("DiffviewClose")
+	end,
 	["dap-view"] = function()
 		vim.cmd("DapViewClose!")
 	end,
