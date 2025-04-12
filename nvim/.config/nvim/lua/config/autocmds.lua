@@ -46,65 +46,47 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
--- 错误捕捉模块
-vim.api.nvim_create_autocmd("VimLeave", {
-	callback = function()
-		local log_file = vim.fn.stdpath("config") .. "/logfile.txt"
-		local file = io.open(log_file, "a")
-		if file then
-			local err = vim.fn.execute("messages") -- 获取错误信息
-			file:write("Neovim closed with the following errors:\n")
-			file:write(err)
-			file:write("\n\n")
-			file:close()
-		end
-	end,
-})
-
--- ===========================
--- 自动识别项目根目录
--- ===========================
--- vim.api.nvim_create_autocmd("BufEnter", {
--- 	callback = function(ctx)
--- 		local root = vim.fs.root(ctx.file, { ".git", "Makefile", "cargo.toml" }) -- 修正参数错误
--- 		if root then
--- 			vim.fn.chdir(root)
+-- -- 错误捕捉模块
+-- vim.api.nvim_create_autocmd("VimLeave", {
+-- 	callback = function()
+-- 		local log_file = vim.fn.stdpath("config") .. "/logfile.txt"
+-- 		local file = io.open(log_file, "a")
+-- 		if file then
+-- 			local err = vim.fn.execute("messages") -- 获取错误信息
+-- 			file:write("Neovim closed with the following errors:\n")
+-- 			file:write(err)
+-- 			file:write("\n\n")
+-- 			file:close()
 -- 		end
 -- 	end,
 -- })
 
--- local paths = {
--- 	vim.fn.stdpath("data") .. "/lazy/friendly-snippets/package.json",
--- 	vim.fn.expand("$MYVIMRC"):match("(.*[/\\])") .. "snippets/package.json",
--- }
--- local descs = { "FR", "USR" }
--- local sn_group = vim.api.nvim_create_augroup("SnippetServer", { clear = true })
--- vim.api.nvim_create_autocmd({ "InsertEnter" }, {
--- 	group = sn_group,
--- 	once = true,
--- 	callback = function()
--- 		require("config.snippet").snippet_handler(paths, vim.bo.filetype, descs)
--- 		vim.api.nvim_create_autocmd({ "BufEnter" }, {
--- 			group = sn_group,
--- 			callback = function()
--- 				require("config.snippet").snippet_handler(paths, vim.bo.filetype, descs)
--- 			end,
--- 			desc = "Handle LSP for buffer changes",
--- 		})
--- 	end,
--- })
-
-vim.api.nvim_create_autocmd("FileType", {
-	group = vim.api.nvim_create_augroup("TreesitterFolds", { clear = true }),
-	desc = "load treesitter folds later to copensate for async loading",
+vim.api.nvim_create_autocmd({ "FileType", "LspAttach" }, {
+	group = vim.api.nvim_create_augroup("AutoFoldMethod", { clear = true }),
+	desc = "优先启用 LSP 折叠，否则 fallback 到 Treesitter 或 manual",
 	callback = function(args)
-		local bufnr = args.buf
-		-- check if treesitter is available
+		local bufnr = args.buf or vim.api.nvim_get_current_buf()
+		local win = vim.fn.bufwinid(bufnr)
+		if not vim.api.nvim_win_is_valid(win) then
+			return
+		end
+		local set_folds = function(method, expr)
+			vim.wo[win].foldmethod = method
+			vim.wo[win].foldexpr = expr or ""
+		end
+		-- check LSP client supports folding
+		if args.event == "LspAttach" then
+			local client = vim.lsp.get_client_by_id(args.data.client_id)
+			if client and client.supports_method("textDocument/foldingRange") then
+				set_folds("expr", "v:lua.vim.lsp.foldexpr()")
+				return
+			end
+		end
+		-- fallback: try treesitter if available
 		if pcall(vim.treesitter.start, bufnr) then
-			vim.wo[0][0].foldmethod = "expr"
-			vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+			set_folds("expr", "v:lua.vim.treesitter.foldexpr()")
 		else
-			vim.wo[0][0].foldmethod = "manual"
+			set_folds("manual")
 		end
 	end,
 })

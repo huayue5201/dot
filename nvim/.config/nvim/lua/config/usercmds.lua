@@ -1,26 +1,19 @@
 vim.api.nvim_create_user_command("Messages", function()
-	local scratch_buffer = vim.api.nvim_create_buf(false, true)
-	vim.bo[scratch_buffer].filetype = "vim"
 	local raw_messages = vim.fn.execute("messages", "silent")
 	local messages = {}
-	-- 添加时间戳到每个消息块的顶部
 	local function add_message(msg_block)
 		if #msg_block > 0 then
 			local timestamp = os.date("%Y-%m-%d %H:%M:%S")
-			-- 在消息块的开头添加时间戳
 			table.insert(messages, "=== [" .. timestamp .. "] ===")
-			for _, line in ipairs(msg_block) do
-				table.insert(messages, line)
-			end
-			table.insert(messages, "") -- 添加空行分隔
+			vim.list_extend(messages, msg_block)
+			table.insert(messages, "")
 		end
 	end
 	local current_message = {}
 	for line in raw_messages:gmatch("[^\r\n]+") do
 		if line:match("^%s*$") then
-			goto continue -- 忽略空行
+			goto continue
 		end
-		-- 遇到典型的 "文件写入" 或 "函数调用堆栈" 需要分隔消息
 		if #current_message > 0 and (line:match(":%d+: in function <") or line:match(" written$")) then
 			add_message(current_message)
 			current_message = {}
@@ -28,19 +21,49 @@ vim.api.nvim_create_user_command("Messages", function()
 		table.insert(current_message, line)
 		::continue::
 	end
-	-- 处理最后一条消息
 	add_message(current_message)
-	-- 确保所有消息被完整添加
-	vim.api.nvim_buf_set_text(scratch_buffer, 0, 0, 0, 0, messages)
-	-- 打开窗口
-	vim.cmd("belowright split")
-	vim.api.nvim_win_set_buf(0, scratch_buffer)
-	-- 确保自动换行
-	vim.opt_local.wrap = true
-	vim.bo.buflisted = false
-	vim.bo.bufhidden = "wipe"
+	local buf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, messages)
+	local width = math.floor(vim.o.columns * 0.8)
+	local height = math.min(#messages + 2, math.floor(vim.o.lines * 0.4))
+	local opts = {
+		relative = "editor",
+		width = width,
+		height = height,
+		col = math.floor((vim.o.columns - width) / 2),
+		row = vim.o.lines - height - 2, -- 固定到底部，避免遮挡 command line
+		style = "minimal",
+		border = "rounded",
+		title = "Messages",
+		title_pos = "center",
+	}
+	local win = vim.api.nvim_open_win(buf, true, opts)
+	vim.bo[buf].buftype = "nofile"
+	vim.bo[buf].bufhidden = "wipe"
+	vim.bo[buf].swapfile = false
+	vim.bo[buf].filetype = "vim"
+	vim.bo[buf].modifiable = false
+	vim.api.nvim_set_option_value("wrap", true, { win = win })
 	-- 退出快捷键
-	vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = scratch_buffer })
+	vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = buf, silent = true })
+	vim.keymap.set("n", "<Esc>", "<cmd>close<CR>", { buffer = buf, silent = true })
+	-- 高亮错误
+	vim.api.nvim_buf_call(buf, function()
+		vim.cmd([[
+      syntax match ErrorMsg /^E\d\+:.\+$/
+      highlight link ErrorMsg Error
+    ]])
+	end)
+	-- 自动清除
+	vim.api.nvim_create_autocmd("WinClosed", {
+		pattern = tostring(win),
+		once = true,
+		callback = function()
+			if vim.api.nvim_buf_is_valid(buf) then
+				vim.api.nvim_buf_delete(buf, { force = true })
+			end
+		end,
+	})
 end, {})
 
 -- ===========================
@@ -76,105 +99,3 @@ vim.api.nvim_create_user_command("Toggle", function(opts)
 		end
 	end
 end, { desc = "切换窗口", nargs = "?" })
-
-if vim.fn.executable("rg") == 1 then
-	vim.api.nvim_create_user_command("RgFiles", function(opts)
-		local pattern = opts.args
-		if pattern == "" then
-			return vim.notify("No search pattern provided", vim.log.levels.WARN)
-		end
-		-- Construct the original piped command
-		local cmd = string.format(
-			"rg --files --color=never --hidden --glob '!*.git' | rg --smart-case --color=never '%s'",
-			pattern
-		)
-		-- Initialize pipes and result storage
-		local stdout = vim.uv.new_pipe(false)
-		local stderr = vim.uv.new_pipe(false)
-		local results = {}
-		-- Callback function when the process exits
-		local function on_exit(code, signal)
-			-- Nil checks before calling methods
-			if stdout then
-				stdout:read_stop()
-				stdout:close()
-			end
-			if stderr then
-				stderr:read_stop()
-				stderr:close()
-			end
-			vim.schedule(function()
-				if code > 1 then
-					vim.notify("Error running rg: exit code " .. code, vim.log.levels.WARN)
-					return
-				end
-				if #results == 0 then
-					if code == 1 then
-						vim.notify("No matches found", vim.log.levels.INFO)
-					else
-						vim.notify("No matches found or an error occurred", vim.log.levels.WARN)
-					end
-					return
-				end
-				-- Prepare the quickfix list
-				local qf_list = {}
-				for _, line in ipairs(results) do
-					table.insert(qf_list, { filename = line })
-				end
-				-- Set the quickfix list with the results
-				vim.fn.setqflist(qf_list, "r")
-				-- Set additional options like the title
-				vim.fn.setqflist({}, "a", { title = string.format("Results for pattern: '%s'", pattern) })
-				-- Open the quickfix window
-				vim.cmd("copen")
-				-- Resize the quickfix window if there are fewer than 10 results
-				if #results < 10 then
-					vim.cmd("resize " .. #results)
-				end
-			end)
-			if code > 1 then
-				vim.schedule(function()
-					vim.notify("Error running rg: exit code " .. code, vim.log.levels.WARN)
-				end)
-			end
-		end
-		-- Spawn a shell to run the piped command
-		local handle
-		handle = vim.uv.spawn(tostring(vim.opt.shell._value), {
-			args = { "-c", cmd },
-			stdio = { nil, stdout, stderr },
-		}, function(code, signal)
-			handle:close()
-			on_exit(code, signal)
-		end)
-		-- Read stdout and nil check before calling methods
-		if not stdout then
-			return
-		end
-		stdout:read_start(function(err, data)
-			assert(not err, err)
-			if data then
-				for line in data:gmatch("[^\r\n]+") do
-					table.insert(results, line)
-				end
-			end
-		end)
-		-- Read stderr and nil check before calling methods
-		if not stderr then
-			return
-		end
-		stderr:read_start(function(err, data)
-			assert(not err, err)
-			if data then
-				vim.schedule(function()
-					vim.notify("rg error: " .. data, vim.log.levels.WARN)
-				end)
-			end
-		end)
-	end, {
-		nargs = 1,
-		desc = "Search for files containing the specified pattern using ripgrep",
-	})
-else
-	vim.notify("'rg' is not executable on this system", vim.log.levels.ERROR)
-end
