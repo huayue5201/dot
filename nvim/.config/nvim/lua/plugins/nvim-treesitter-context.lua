@@ -4,9 +4,17 @@ return {
 	"nvim-treesitter/nvim-treesitter-context",
 	event = "BufReadPost",
 	config = function()
+		-- 生成一个更亮一点的颜色（你可以用调色函数）
+		vim.api.nvim_set_hl(0, "TreesitterContext", { bg = "#2a2a38", fg = "#c0c0c0" })
+		vim.api.nvim_set_hl(0, "TreesitterContextLineNumber", { bg = "#2a2a38", fg = "#c0c0c0" })
+		-- vim.cmd([[
+		-- hi TreesitterContext guibg=#3e4452 guifg=#abb2bf
+		--     hi TreesitterContextBottom gui=underline guisp=Grey
+		--     "hi TreesitterContextLineNumberBottom gui=underline guisp=Grey
+		--   ]])
 		require("treesitter-context").setup({
 			enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
-			multiwindow = false, -- Enable multiwindow support.
+			multiwindow = true, -- Enable multiwindow support.
 			max_lines = 0, -- How many lines the window should span. Values <= 0 mean no limit.
 			min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
 			line_numbers = true,

@@ -25,7 +25,6 @@ dap.providers.configs["probe-rs"] = function(bufnr)
 			runtimeExecutable = "probe-rs",
 			runtimeArgs = { "dap-server" },
 			chip = "nrf52833_xxAA",
-			repl_lang = "javascript",
 			flashingConfig = {
 				flashingEnabled = true,
 				haltAfterReset = true,
@@ -33,18 +32,15 @@ dap.providers.configs["probe-rs"] = function(bufnr)
 					binaryFormat = "elf",
 				},
 			},
-
 			coreConfigs = {
 				{
 					coreIndex = 0,
 					programBinary = binary, -- ✅ 这里就动态传入
 				},
 			},
-
 			env = {
 				RUST_LOG = "info",
 			},
-
 			consoleLogLevel = "Console",
 		},
 	}

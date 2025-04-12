@@ -1,6 +1,3 @@
--- ===========================
--- 记住最后的光标位置
--- ===========================
 vim.api.nvim_create_autocmd("BufReadPost", {
 	desc = "记住最后的光标位置",
 	group = vim.api.nvim_create_augroup("LastPlace", { clear = true }),
@@ -20,26 +17,22 @@ vim.keymap.set({ "n", "x" }, "y", function()
 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
 	return "y"
 end, { expr = true })
-
 -- 保存 `Y` 按键的光标位置并复制当前行到行尾
 vim.keymap.set("n", "Y", function()
 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
 	return "y$"
 end, { expr = true })
-
 -- 合并高亮复制 & 光标恢复 & 剪贴板同步
 vim.api.nvim_create_autocmd("TextYankPost", {
 	pattern = "*",
 	callback = function()
 		-- ① 高亮复制的内容
 		vim.hl.on_yank({ timeout = 330 })
-
 		-- ② 恢复光标位置（仅限 `yank` 操作）
 		if vim.v.event.operator == "y" and cursorPreYank then
 			vim.api.nvim_win_set_cursor(0, cursorPreYank)
 			cursorPreYank = nil
 		end
-
 		-- ③ 延迟同步到系统剪贴板，优化 `unnamedplus` 的性能
 		local reg_type = vim.fn.getregtype('"')
 		if reg_type ~= "+" then
@@ -53,20 +46,20 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
--- -- 错误捕捉模块
--- vim.api.nvim_create_autocmd("VimLeave", {
--- 	callback = function()
--- 		local log_file = vim.fn.stdpath("config") .. "/logfile.txt"
--- 		local file = io.open(log_file, "a")
--- 		if file then
--- 			local err = vim.fn.execute("messages") -- 获取错误信息
--- 			file:write("Neovim closed with the following errors:\n")
--- 			file:write(err)
--- 			file:write("\n\n")
--- 			file:close()
--- 		end
--- 	end,
--- })
+-- 错误捕捉模块
+vim.api.nvim_create_autocmd("VimLeave", {
+	callback = function()
+		local log_file = vim.fn.stdpath("config") .. "/logfile.txt"
+		local file = io.open(log_file, "a")
+		if file then
+			local err = vim.fn.execute("messages") -- 获取错误信息
+			file:write("Neovim closed with the following errors:\n")
+			file:write(err)
+			file:write("\n\n")
+			file:close()
+		end
+	end,
+})
 
 -- ===========================
 -- 自动识别项目根目录
