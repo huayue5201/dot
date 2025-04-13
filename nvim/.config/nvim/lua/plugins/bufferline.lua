@@ -10,17 +10,10 @@ return {
 			return _G.__cached_neo_tree_selector
 		end
 
-		-- local highlights = require("nord").bufferline.highlights({
-		-- 	italic = true,
-		-- 	bold = true,
-		-- })
-
 		local icons = require("config.utils").icons.diagnostic
 		require("bufferline").setup({
-			-- highlights = highlights,
 			options = {
 				separator_style = "thin",
-				-- separator_style = "thick", -- 分隔符样式设置为thick
 				custom_filter = function(buf) -- 过滤qf缓冲区
 					local excluded_filetypes = { "qf", "help", "terminal", "fugitive" }
 					local excluded_buftypes = { "terminal", "acwrite", "nofile" }
