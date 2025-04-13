@@ -21,3 +21,8 @@ vim.region is deprecated. Run ":checkhealth vim.deprecated" for more information
 12 fewer lines
 "lua/config/autocmds.lua" 169L, 5559B written
 
+Neovim closed with the following errors:
+
+client.supports_method is deprecated. Run ":checkhealth vim.deprecated" for more information
+LSP 诊断信息已复制到剪贴板!
+
