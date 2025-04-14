@@ -23,11 +23,11 @@ local function load_env_lua(file)
 	end
 end
 
--- 主函数：自动加载 .env 和 .env.lua（如果存在）
+-- 主函数：自动加载 ~/.env 和 ~/.env.lua（如果存在）
 function M.load()
-	local config_path = vim.fn.stdpath("config")
-	local env_lua = config_path .. "/.env.lua"
-	local env_file = config_path .. "/.env"
+	local home = vim.env.HOME
+	local env_lua = home .. "/.env.lua"
+	local env_file = home .. "/.env"
 
 	if vim.fn.filereadable(env_file) == 1 then
 		load_env_file(env_file)
