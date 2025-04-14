@@ -22,7 +22,10 @@ return {
 					return not vim.tbl_contains(excluded_filetypes, filetype)
 						and not vim.tbl_contains(excluded_buftypes, buftype)
 				end,
-				numbers = "ordinal", -- 显示buffer的编号
+				-- numbers = "ordinal", -- 显示buffer的编号
+				numbers = function(opts)
+					return string.format("%s·%s", opts.raise(opts.id), opts.lower(opts.ordinal))
+				end,
 				max_name_length = 10, -- buffer名称的最大长度
 				max_prefix_length = 8, -- 去重时的前缀长度
 				tab_size = 10, -- tab的大小
@@ -34,24 +37,60 @@ return {
 				toggle_hidden_on_enter = true, -- 重新进入隐藏的组时，自动展开
 				items = {
 					{
-						name = "Tests", -- 组名
-						highlight = { underline = true, sp = "blue" }, -- 高亮样式
-						priority = 2, -- 显示优先级
-						icon = "", -- 组的图标
-						matcher = function(buf) -- 匹配测试文件的函数
-							return buf.filename:match("%_test") or buf.filename:match("%_spec")
+						name = "🧠 Code",
+						icon = "",
+						matcher = function(buf)
+							return buf.filename:match("%.rs")
+								and not buf.filename:match("test")
+								and not buf.filename:match("examples")
 						end,
 					},
 					{
-						name = "Docs", -- 组名
-						highlight = { undercurl = true, sp = "green" }, -- 高亮样式
-						auto_close = false, -- 当前buffer不在组内时不自动关闭
-						matcher = function(buf) -- 匹配文档文件的函数
+						name = "🧪 Tests",
+						icon = "",
+						matcher = function(buf)
+							return buf.filename:match("test") or buf.filename:match("spec")
+						end,
+					},
+					{
+						name = "📄 Docs",
+						icon = "",
+						matcher = function(buf)
 							return buf.filename:match("%.md") or buf.filename:match("%.txt")
 						end,
-						separator = { -- 分隔符设置
-							style = require("bufferline.groups").separator.tab,
-						},
+					},
+					{
+						name = "🧰 Cargo",
+						icon = "",
+						matcher = function(buf)
+							return buf.filename:match("Cargo.toml") or buf.filename:match("Cargo.lock")
+						end,
+					},
+					{
+						name = "🔧 Config",
+						icon = "",
+						matcher = function(buf)
+							return buf.path:match("%.vscode")
+								or buf.path:match("nvim")
+								or buf.filename:match("%.lua")
+								or buf.filename:match("%.json")
+						end,
+					},
+					{
+						name = "🧪 Examples",
+						icon = "",
+						matcher = function(buf)
+							return buf.path:match("/examples/")
+						end,
+					},
+					{
+						name = "🔍 Logs",
+						icon = "",
+						matcher = function(buf)
+							return buf.filename:match("%.log")
+								or buf.filename:match("rtt")
+								or buf.filename:match("probe")
+						end,
 					},
 				},
 				offsets = { -- 侧边栏偏移设置

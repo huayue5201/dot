@@ -128,7 +128,6 @@ M.lspSetup = function()
 		callback = function(args)
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
 			local bufnr = args.buf
-
 			set_keymaps(bufnr, client)
 			setup_codelens_autocmd(bufnr, client) -- 启用 CodeLens 自动刷新
 		end,
