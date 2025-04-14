@@ -33,7 +33,7 @@ return {
 
 		-- require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
 		require("dap.probe-rs")
-		-- require("dap.debug-file-manager") -- 调试文件标记模块
+		-- require("utils.debug-file-manager") -- 调试文件标记模块
 		local dap = require("dap")
 
 		local dap_defaults = {

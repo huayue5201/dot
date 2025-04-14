@@ -26,7 +26,7 @@
   "nvim-bqf": { "branch": "main", "commit": "e20417d5e589e03eaaaadc4687904528500608be" },
   "nvim-dap": { "branch": "master", "commit": "7aade9e99bef5f0735cf966e715b3ce45515d786" },
   "nvim-dap-cortex-debug": { "branch": "master", "commit": "8c1c250f3b830f2d1633bc98463109b625408cda" },
-  "nvim-dap-view": { "branch": "main", "commit": "ca373a2c8d85a696f667bfc6b14500ad4d386241" },
+  "nvim-dap-view": { "branch": "main", "commit": "de489c1b1e0fa426c5e6c42e05218c707e2c7373" },
   "nvim-dap-virtual-text": { "branch": "master", "commit": "df66808cd78b5a97576bbaeee95ed5ca385a9750" },
   "nvim-lightbulb": { "branch": "master", "commit": "aa3a8b0f4305b25cfe368f6c9be9923a7c9d0805" },
   "nvim-surround": { "branch": "main", "commit": "caf6f633d4d77a29b6e265b560c5a035d171a913" },

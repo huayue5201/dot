@@ -14,11 +14,32 @@ return {
 			vim.g.term_counter = 1 -- 初始化计数器
 		end
 		require("toggleterm").setup({
-			size = 25,
+			size = function(term)
+				if term.direction == "horizontal" then
+					return 15
+				elseif term.direction == "vertical" then
+					return vim.o.columns * 0.4
+				end
+			end,
 			open_mapping = [[<c-\>]],
 			persist_mode = true, -- 默认为 true，记住上次终端模式（普通/插入）
 			autochdir = true, -- 若为 true，当 Neovim 更改当前目录时，下次打开终端会自动同步目录
 			close_on_exit = true, -- 当进程退出时自动关闭终端窗口
+			direction = "float",
+			-- direction = "horizontal",
+			float_opts = {
+				border = "curved", -- 边框样式
+				width = function()
+					return vim.o.columns -- 使用当前屏幕宽度
+				end,
+				height = 18, -- 高度
+				row = function()
+					return vim.o.lines - 11 -- 固定在底部 (高度 10 + 1 行标题/边框)
+				end,
+				col = 0, -- 左对齐
+				winblend = 20, -- 设置透明度
+				title_pos = "center", -- 设置标题位置
+			},
 			winbar = {
 				enabled = true,
 				name_formatter = function(term)
