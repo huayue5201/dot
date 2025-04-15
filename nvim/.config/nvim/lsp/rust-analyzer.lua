@@ -9,6 +9,7 @@ return {
 	single_file_support = true, -- 启用单文件支持，允许在没有 Cargo.toml 文件的情况下分析 Rust 文件
 	settings = {
 		["rust-analyzer"] = {
+			showUnlinkedFileNotification = false,
 			imports = {
 				granularity = {
 					group = "module",
@@ -32,11 +33,17 @@ return {
 					},
 				},
 			},
+			check = {
+				allTargets = false,
+				noDefaultFeatures = true,
+			},
 			cargo = {
 				buildScripts = {
 					enable = true, -- 启用构建脚本支持
 				},
-				features = "all", -- 启用所有 Cargo 特性
+				target = "thumbv7em-none-eabihf",
+				noDefaultFeatures = true,
+				-- features = "all", -- 启用所有 Cargo 特性
 				-- extraArgs = {"--target","thumbv7em-none-eabi"}, -- 添加额外的命令行参数
 			},
 		},

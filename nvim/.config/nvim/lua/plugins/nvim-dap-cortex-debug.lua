@@ -50,7 +50,7 @@ return {
 					-- },
 					cwd = "${workspaceFolder}",
 					-- executable = vim.g.debug_file,
-					executable = binary,
+					executable = binary(),
 					-- configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
 					configFiles = {
 						"interface/cmsis-dap.cfg",
