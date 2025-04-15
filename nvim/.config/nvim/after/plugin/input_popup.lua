@@ -1,6 +1,10 @@
-local existing_window, existing_buffer
+local M = {}
 
--- 判断是否允许使用浮动输入框
+local existing_window, existing_buffer
+local input_history = {}
+local hist_index = 0
+
+-- 禁用的 buftype 和 filetype
 local disabled_types = {
 	buftype = {
 		"nofile",
@@ -23,29 +27,34 @@ local function is_disabled()
 	return vim.tbl_contains(disabled_types.buftype, buftype) or vim.tbl_contains(disabled_types.filetype, filetype)
 end
 
--- 输入框位置：相对于光标
 local function under_cursor(input_width)
 	return {
 		relative = "cursor",
 		row = 1,
 		col = 0,
 		width = input_width + 2,
-		height = 1, -- 固定高度为 1 行
+		height = 1,
 	}
 end
 
--- 关闭窗口函数
 local function close_window(window, buffer, on_confirm)
 	vim.cmd("stopinsert")
-	vim.api.nvim_win_close(window, true)
+	if window and vim.api.nvim_win_is_valid(window) then
+		pcall(vim.api.nvim_win_close, window, true)
+	end
+	if buffer and vim.api.nvim_buf_is_valid(buffer) then
+		pcall(vim.api.nvim_buf_delete, buffer, { force = true })
+	end
 	on_confirm(nil)
 end
 
--- 输入框函数
-local function input(opts, on_confirm, win_config)
+-- 浮动输入函数
+---@param opts table
+---@param on_confirm fun(input: string|nil)
+---@param win_config table|nil
+function M.input(opts, on_confirm, win_config)
 	if is_disabled() then
-		vim.notify("当前 buffer 类型不支持浮动输入", vim.log.levels.DEBUG)
-		return vim.ui.input_orig(opts, on_confirm) -- 使用原始输入框作为降级方案
+		return vim.ui.input_orig(opts, on_confirm)
 	end
 
 	local prompt = opts.prompt or "Input: "
@@ -58,44 +67,78 @@ local function input(opts, on_confirm, win_config)
 	local prompt_width = vim.fn.strdisplaywidth(prompt) + 10
 	local input_width = math.max(default_width, prompt_width) + 20
 
-	local default_win_config = {
+	local config = vim.tbl_deep_extend("force", {
 		focusable = true,
 		style = "minimal",
 		border = "rounded",
-		width = input_width,
-		height = 1, -- 固定高度
 		title = prompt,
-	}
-
-	-- 合并窗口配置
-	win_config = vim.tbl_deep_extend("force", default_win_config, win_config or {})
-	win_config = vim.tbl_deep_extend("force", win_config, under_cursor(input_width))
+		width = input_width,
+		height = 1,
+	}, win_config or {}, under_cursor(input_width))
 
 	-- 如果已有窗口则重用
 	if existing_window and vim.api.nvim_win_is_valid(existing_window) then
 		vim.api.nvim_buf_set_text(existing_buffer, 0, 0, 0, 0, { default })
-		vim.api.nvim_win_set_cursor(existing_window, { 1, vim.str_utfindex(default) + 1 })
+		vim.api.nvim_win_set_cursor(existing_window, { 1, vim.str_utfindex(default) + 1 }) -- 修复了这里
 		vim.cmd("startinsert")
-		existing_window, existing_buffer = nil, nil
 		return
 	end
 
 	-- 创建新的窗口和缓冲区
 	local buffer = vim.api.nvim_create_buf(false, true)
-	local window = vim.api.nvim_open_win(buffer, true, win_config)
+	local window = vim.api.nvim_open_win(buffer, true, config)
+	vim.api.nvim_buf_set_text(buffer, 0, 0, 0, 0, { default })
+
+	-- 替换掉废弃的 nvim_win_set_option，改为 nvim_set_option_value
+	vim.api.nvim_set_option_value("statuscolumn", "", { scope = "local", win = window })
+
+	existing_window, existing_buffer = window, buffer
+	vim.cmd("startinsert")
+	vim.api.nvim_win_set_cursor(window, { 1, vim.str_utfindex(default) + 1 }) -- 修复了这里
+end
+
+--- 浮动输入函数
+---@param opts table
+---@param on_confirm fun(input: string|nil)
+---@param win_config table|nil
+function M.input(opts, on_confirm, win_config)
+	if is_disabled() then
+		return vim.ui.input_orig(opts, on_confirm)
+	end
+
+	local prompt = opts.prompt or "Input: "
+	local default = opts.default or ""
+	local multiline = opts.multiline or false
+	on_confirm = on_confirm or function() end
+
+	local default_width = vim.fn.strdisplaywidth(default) + 10
+	local prompt_width = vim.fn.strdisplaywidth(prompt) + 10
+	local input_width = math.max(default_width, prompt_width) + 20
+
+	local config = vim.tbl_deep_extend("force", {
+		focusable = true,
+		style = "minimal",
+		border = "rounded",
+		title = prompt,
+		width = input_width,
+		height = 1,
+	}, win_config or {}, under_cursor(input_width))
+
+	if existing_window and vim.api.nvim_win_is_valid(existing_window) then
+		vim.api.nvim_buf_set_text(existing_buffer, 0, 0, 0, 0, { default })
+		vim.api.nvim_win_set_cursor(existing_window, { 1, vim.str_utfindex(default) + 1 })
+		vim.cmd("startinsert")
+		return
+	end
+
+	local buffer = vim.api.nvim_create_buf(false, true)
+	local window = vim.api.nvim_open_win(buffer, true, config)
 	vim.api.nvim_buf_set_text(buffer, 0, 0, 0, 0, { default })
 	vim.api.nvim_win_set_option(window, "statuscolumn", "")
 
-	existing_window = window
-	existing_buffer = buffer
-
-	-- 进入插入模式
+	existing_window, existing_buffer = window, buffer
 	vim.cmd("startinsert")
 	vim.api.nvim_win_set_cursor(window, { 1, vim.str_utfindex(default) + 1 })
-
-	-- 输入历史记录
-	local input_history = {}
-	local hist_index = 0
 
 	-- 回车确认
 	vim.keymap.set({ "n", "i", "v" }, "<CR>", function()
@@ -103,13 +146,15 @@ local function input(opts, on_confirm, win_config)
 		local text = lines[1]
 		if text and text ~= "" then
 			table.insert(input_history, text)
-			hist_index = #input_history -- 更新历史索引
+			hist_index = #input_history
 		end
-		on_confirm(text)
-		close_window(window, buffer, on_confirm)
+		close_window(window, buffer, function()
+			vim.schedule(function()
+				on_confirm(text)
+			end)
+		end)
 	end, { buffer = buffer })
 
-	-- Ctrl+Enter 提交多行
 	if multiline then
 		vim.keymap.set("i", "<C-CR>", function()
 			local lines = vim.api.nvim_buf_get_lines(buffer, 0, -1, false)
@@ -123,7 +168,6 @@ local function input(opts, on_confirm, win_config)
 		end, { buffer = buffer })
 	end
 
-	-- 上下键切换历史
 	vim.keymap.set("i", "<Up>", function()
 		if hist_index > 1 then
 			hist_index = hist_index - 1
@@ -138,9 +182,8 @@ local function input(opts, on_confirm, win_config)
 		end
 	end, { buffer = buffer })
 
-	-- 自动关闭浮动窗口
 	local augroup = vim.api.nvim_create_augroup("FloatingInputAutoClose", { clear = true })
-	vim.api.nvim_create_autocmd({ "CursorMoved", "BufLeave" }, {
+	vim.api.nvim_create_autocmd({ "CursorMoved", "BufLeave", "WinLeave" }, {
 		buffer = buffer,
 		group = augroup,
 		once = true,
@@ -149,7 +192,6 @@ local function input(opts, on_confirm, win_config)
 		end,
 	})
 
-	-- 取消操作
 	local cancel = function()
 		close_window(window, buffer, on_confirm)
 	end
@@ -157,6 +199,8 @@ local function input(opts, on_confirm, win_config)
 	vim.keymap.set("n", "q", cancel, { buffer = buffer })
 end
 
--- 保存原始输入接口，作为降级用
+-- 自动接管 vim.ui.input
 vim.ui.input_orig = vim.ui.input
-vim.ui.input = input
+vim.ui.input = M.input
+
+return M
