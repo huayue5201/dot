@@ -3,7 +3,7 @@
 
 return {
 	"mfussenegger/nvim-dap",
-	ft = { "rust", "c", "lua" },
+	ft = { "rust", "c" },
 	dependencies = {
 		-- https://github.com/igorlfs/nvim-dap-view
 		"igorlfs/nvim-dap-view",
@@ -17,9 +17,8 @@ return {
 		local signs = {
 			DapBreakpoint = { text = "🔴", texthl = "DapBreakpoint" }, -- 断点
 			DapBreakpointCondition = { text = "🟡", texthl = "DapBreakpointCondition" }, -- 条件断点
-			DapBreakpointRejected = { text = "⭕", texthl = "DapBreakpointRejected" }, -- 拒绝断点
-			DapLogPoint = { text = "⚪", texthl = "DapLogPoint" }, -- 日志点
-			-- DapExceptionBreakpoint = { text = "🛑", texthl = "DapExceptionBreakpoint" }, -- 异常断点🔻
+			DapBreakpointRejected = { text = "🌀", texthl = "DapBreakpointRejected" }, -- 拒绝断点
+			DapLogPoint = { text = "🔵", texthl = "DapLogPoint" }, -- 日志点
 			DapStopped = { -- 停止位置
 				text = "🎯", --🟨🔶
 				texthl = "DapBreakpoint",
@@ -32,10 +31,22 @@ return {
 		end
 
 		-- require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
-		require("dap.probe-rs")
+		require("nvim-dap-virtual-text").setup()
 		-- require("utils.debug-file-manager") -- 调试文件标记模块
 		local dap = require("dap")
 
+		-- 加载模块化配置
+		local modules = {
+			require("dap.adapters.probe_rs"),
+			require("dap.configs.rust"),
+			require("dap.listeners.probe_rs"),
+		}
+
+		for _, mod in ipairs(modules) do
+			mod.setup(dap)
+		end
+
+		--  nvim-dap配置
 		local dap_defaults = {
 			switchbuf = "useopen", -- 在调试时使用打开的缓冲区
 			terminal_win_cmd = "belowright new", -- 设置终端窗口在底部打开
@@ -52,7 +63,6 @@ return {
 			dap.defaults.fallback[key] = value
 		end
 
-		require("nvim-dap-virtual-text").setup()
 		local dv = require("dap-view")
 
 		dv.setup({

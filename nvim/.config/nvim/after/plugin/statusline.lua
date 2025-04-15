@@ -95,7 +95,7 @@ function Statusline.dap_status()
 	if dap_status == "" then
 		return "" -- 如果没有调试会话，返回空字符串
 	end
-	return "%#DapIcon" .. " " .. "%*" .. dap_status .. " " -- 有调试会话时，返回图标和状态
+	return "%#DapIcon#" .. " " .. "%*" .. dap_status .. " " -- 有调试会话时，返回图标和状态
 end
 
 -- -------------------- Git 状态 --------------------

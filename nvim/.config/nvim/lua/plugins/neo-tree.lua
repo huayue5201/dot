@@ -16,7 +16,7 @@ return {
 		"s1n7ax/nvim-window-picker",
 	},
 	config = function()
-		local debug_file = require("dap.debug-file-manager")
+		local debug_file = require("utils.debug-file-manager")
 		-- toggle_debug_from_neotree 函数
 		local function toggle_debug_from_neotree(state)
 			local node = state.tree:get_node()
