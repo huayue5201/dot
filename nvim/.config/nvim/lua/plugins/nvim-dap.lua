@@ -31,7 +31,6 @@ return {
 		end
 
 		-- require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
-		require("nvim-dap-virtual-text").setup()
 		-- require("utils.debug-file-manager") -- 调试文件标记模块
 		local dap = require("dap")
 
@@ -185,7 +184,11 @@ return {
 
 		vim.keymap.set("n", "<leader>dR", dap.repl.toggle, { silent = true, desc = "切换 REPL" })
 
-		vim.keymap.set("n", "<leader>dlq", dap.list_breakpoints, { silent = true, desc = "查看所有断点" })
+		vim.keymap.set("n", "<leader>dlq", function()
+			dap.list_breakpoints()
+			vim.cmd("copen")
+			-- vim.cmd("wincmd p") -- 或者用 "wincmd J" 把 quickfix 拉到底部
+		end, { desc = "查看所有断点" })
 
 		local widgets = require("dap.ui.widgets")
 
@@ -193,8 +196,16 @@ return {
 			widgets.hover(nil, { border = "rounded" })
 		end, { desc = "查看变量" })
 
+		-- local sidebar = nil
+		-- vim.keymap.set("n", "<leader>dlc", function()
+		-- 	if not sidebar then
+		-- 		sidebar = widgets.sidebar(widgets.scopes, { border = "rounded" ，width = 40})
+		-- 	end
+		-- 	sidebar.toggle()
+		-- end, { desc = "查看作用域" })
+
 		vim.keymap.set("n", "<leader>dlc", function()
-			widgets.cursor_float(widgets.scopes, { border = "rounded" })
+			widgets.centered_float(widgets.scopes, { border = "rounded" })
 		end, { desc = "查看作用域" })
 
 		vim.keymap.set("n", "<leader>dls", function()

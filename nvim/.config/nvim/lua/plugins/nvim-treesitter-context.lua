@@ -2,6 +2,7 @@
 
 return {
 	"nvim-treesitter/nvim-treesitter-context",
+	dependencies = "nvim-treesitter/nvim-treesitter",
 	event = "BufReadPost",
 	config = function()
 		-- 生成一个更亮一点的颜色（你可以用调色函数）

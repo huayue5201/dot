@@ -4,7 +4,7 @@
 local M = {}
 
 -- 设置诊断的全局配置
-local function setup_global_diagnostics()
+function M.setup_global_diagnostics()
 	local icons = require("config.utils").icons.diagnostic
 	vim.diagnostic.config({
 		-- virtual_text = { spacing = 4, source = "if_many", prefix = "■" }, -- 可选: '●', '▎', 'x'
@@ -55,7 +55,7 @@ local function setup_global_diagnostics()
 end
 
 -- 设置按键映射
-local function set_keymaps(buf, client)
+function M.set_keymaps(buf, client)
 	local keymaps = {
 		{ "<leader>ld", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
 		{ "<leader>rl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭 LSP 客户端" },
@@ -107,7 +107,7 @@ local function set_keymaps(buf, client)
 end
 
 -- 自动刷新 CodeLens
-local function setup_codelens_autocmd(bufnr, client)
+function M.setup_codelens_autocmd(bufnr, client)
 	if client.supports_method("textDocument/codeLens") then
 		-- 触发 CodeLens 刷新
 		vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
@@ -118,20 +118,4 @@ local function setup_codelens_autocmd(bufnr, client)
 		})
 	end
 end
-
--- LSP 主设置函数
-M.lspSetup = function()
-	setup_global_diagnostics()
-
-	vim.api.nvim_create_autocmd("LspAttach", {
-		group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
-		callback = function(args)
-			local client = vim.lsp.get_client_by_id(args.data.client_id)
-			local bufnr = args.buf
-			set_keymaps(bufnr, client)
-			setup_codelens_autocmd(bufnr, client) -- 启用 CodeLens 自动刷新
-		end,
-	})
-end
-
 return M
