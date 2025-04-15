@@ -103,7 +103,120 @@ return {
 
 		vim.g.repeatable_map("n", "<leader>dc", dap.continue, { silent = true, desc = "继续/启动调试" })
 
-		vim.keymap.set("n", "<leader>du", dap.run, { silent = true, desc = "启动新调试会话" })
+		-- vim.keymap.set("n", "<leader>du", dap.run, { silent = true, desc = "启动新调试会话" })
+
+		local history = {}
+		vim.keymap.set("n", "<leader>du", function()
+			local filetype = vim.bo.filetype
+			local program = vim.fn.expand("%")
+
+			local adapter_map = {
+				rust = { "probe-rs-debug", "cortex-debug" },
+				c = "cortex-debug",
+				cpp = "cortex-debug",
+			}
+
+			local function resolve_adapter(callback)
+				local entry = adapter_map[filetype]
+				if type(entry) == "table" then
+					if #entry == 1 then
+						callback(entry[1])
+					else
+						vim.ui.select(entry, { prompt = "请选择调试器适配器：" }, function(choice)
+							if choice then
+								callback(choice)
+							end
+						end)
+					end
+				else
+					callback(entry or filetype)
+				end
+			end
+
+			vim.ui.select({ "手动输入参数", "从历史记录选择" }, {
+				prompt = "选择运行方式：",
+			}, function(choice)
+				if choice == "手动输入参数" then
+					vim.ui.input({ prompt = "请输入参数（以空格分隔）：" }, function(input)
+						if not input then
+							return
+						end
+						local args = vim.split(input, "%s+")
+
+						resolve_adapter(function(adapter)
+							local approval = vim.fn.confirm(
+								("将使用以下配置运行程序：\n\n    [%s] %s %s\n\n是否确认？"):format(
+									adapter,
+									program,
+									input
+								),
+								"&Yes\n&No",
+								1
+							)
+
+							if approval ~= 1 then
+								return
+							end
+
+							dap.run({
+								type = adapter,
+								request = "launch",
+								name = "Launch with args",
+								program = program,
+								args = args,
+								cwd = vim.fn.getcwd(),
+								stopOnEntry = false,
+							})
+
+							table.insert(history, {
+								filetype = filetype,
+								program = program,
+								adapter = adapter,
+								args = args,
+							})
+							if #history > 20 then
+								table.remove(history, 1)
+							end
+						end)
+					end)
+				elseif choice == "从历史记录选择" then
+					if #history == 0 then
+						vim.notify("暂无历史记录", vim.log.levels.INFO)
+						return
+					end
+
+					local entries = {}
+					for i, item in ipairs(history) do
+						table.insert(
+							entries,
+							string.format(
+								"[%d] [%s] %s %s",
+								i,
+								item.adapter,
+								item.program,
+								table.concat(item.args, " ")
+							)
+						)
+					end
+
+					vim.ui.select(entries, { prompt = "选择历史记录运行：" }, function(_, idx)
+						local entry = history[idx]
+						if not entry then
+							return
+						end
+						dap.run({
+							type = entry.adapter,
+							request = "launch",
+							name = "Re-run from history",
+							program = entry.program,
+							args = entry.args,
+							cwd = vim.fn.getcwd(),
+							stopOnEntry = false,
+						})
+					end)
+				end
+			end)
+		end, { desc = "运行当前文件（带参数/历史）" })
 
 		vim.keymap.set("n", "<leader>rd", function()
 			dap.terminate({
@@ -164,9 +277,9 @@ return {
 
 		vim.keymap.set("n", "<leader>dd", dap.pause, { silent = true, desc = "暂停线程" })
 
-		vim.g.repeatable_map("n", "[.", dap.up, { silent = true, desc = "上一个断点" })
+		vim.g.repeatable_map("n", "<leader>dgu", dap.up, { silent = true, desc = "上一个断点" })
 
-		vim.g.repeatable_map("n", "].", dap.down, { silent = true, desc = "下一个断点" })
+		vim.g.repeatable_map("n", "<leader>dgd", dap.down, { silent = true, desc = "下一个断点" })
 
 		vim.keymap.set("n", "<leader>dgn", function()
 			vim.ui.input({ prompt = " 󰙎输入行号: " }, function(input)
