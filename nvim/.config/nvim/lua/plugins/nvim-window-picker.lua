@@ -15,8 +15,8 @@ return {
 				autoselect_one = true,
 				-- 过滤规则：按文件类型和缓冲区类型过滤
 				bo = {
-					-- filetype = { "neo-tree", "neo-tree-popup", "notify" },
-					-- buftype = { "terminal", "quickfix" },
+					filetype = { "neo-tree", "neo-tree-popup", "notify" },
+					buftype = { "terminal", "quickfix" },
 				},
 			},
 		})

@@ -13,6 +13,18 @@
 -- 	end,
 -- })
 
+vim.api.nvim_create_autocmd("LspAttach", {
+	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
+	callback = function(args)
+		local lsp = require("config.lsp")
+		lsp.setup_global_diagnostics()
+		local client = vim.lsp.get_client_by_id(args.data.client_id)
+		local bufnr = args.buf
+		lsp.set_keymaps(bufnr, client)
+		lsp.setup_codelens_autocmd(bufnr, client) -- 启用 CodeLens 自动刷新
+	end,
+})
+
 vim.api.nvim_create_autocmd("BufReadPost", {
 	desc = "记住最后的光标位置",
 	group = vim.api.nvim_create_augroup("LastPlace", { clear = true }),
@@ -78,14 +90,17 @@ vim.api.nvim_create_autocmd({ "FileType", "LspAttach" }, {
 		if args.event == "LspAttach" then
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
 			if client and client.supports_method("textDocument/foldingRange") then
+				-- 使用 LSP 折叠
 				set_folds("expr", "v:lua.vim.lsp.foldexpr()")
 				return
 			end
 		end
-		-- fallback: try treesitter if available
+		-- fallback: 如果 LSP 不支持折叠，尝试使用 Treesitter 或 manual
 		if pcall(vim.treesitter.start, bufnr) then
+			-- 如果 Treesitter 可用，使用 Treesitter 折叠
 			set_folds("expr", "v:lua.vim.treesitter.foldexpr()")
 		else
+			-- 如果没有 Treesitter，则使用 manual
 			set_folds("manual")
 		end
 	end,

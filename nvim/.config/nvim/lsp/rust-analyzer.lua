@@ -10,6 +10,20 @@ return {
 	settings = {
 		["rust-analyzer"] = {
 			showUnlinkedFileNotification = false,
+			check = {
+				command = "clippy",
+				allTargets = false,
+				noDefaultFeatures = true,
+			},
+			cargo = {
+				buildScripts = {
+					enable = true, -- 启用构建脚本支持
+				},
+				target = "thumbv7em-none-eabihf",
+				noDefaultFeatures = true,
+				-- features = "all", -- 启用所有 Cargo 特性
+				-- extraArgs = {"--target","thumbv7em-none-eabi"}, -- 添加额外的命令行参数
+			},
 			imports = {
 				granularity = {
 					group = "module",
@@ -33,18 +47,8 @@ return {
 					},
 				},
 			},
-			check = {
-				allTargets = false,
-				noDefaultFeatures = true,
-			},
-			cargo = {
-				buildScripts = {
-					enable = true, -- 启用构建脚本支持
-				},
-				target = "thumbv7em-none-eabihf",
-				noDefaultFeatures = true,
-				-- features = "all", -- 启用所有 Cargo 特性
-				-- extraArgs = {"--target","thumbv7em-none-eabi"}, -- 添加额外的命令行参数
+			procMacro = {
+				enable = true, -- 如果你用了 `#[proc_macro]` 的库（如 `defmt-rtt`）
 			},
 		},
 	},
