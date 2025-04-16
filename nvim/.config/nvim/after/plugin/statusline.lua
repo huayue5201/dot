@@ -13,7 +13,6 @@ vim.api.nvim_set_hl(0, "DapIcon", { fg = "#FF0000", bold = true })
 Statusline = {}
 
 -- -------------------- 模式定义 --------------------
--- 定义模式映射
 Statusline.modes = {
 	["n"] = { label = "NORMAL", hl = "NormalMode" },
 	["i"] = { label = "INSERT", hl = "InsertMode" },
@@ -33,7 +32,6 @@ function Statusline.mode()
 end
 
 -- -------------------- 文件名和图标 --------------------
--- 获取文件名和图标
 local function get_filename_with_icon()
 	local filename = vim.fn.expand("%:t") -- 获取当前文件名
 	local file_extension = vim.fn.expand("%:e") -- 获取文件扩展名
@@ -42,7 +40,6 @@ local function get_filename_with_icon()
 end
 
 -- -------------------- LSP 状态 --------------------
--- 获取 LSP 诊断信息
 function Statusline.lsp_diagnostics()
 	local count = vim.diagnostic.get(0)
 	local parts = {}
@@ -89,17 +86,15 @@ function Statusline.lsp()
 end
 
 -- -------------------- 调试状态 --------------------
--- 获取调试状态
 function Statusline.dap_status()
 	local dap_status = require("dap").status()
 	if dap_status == "" then
 		return "" -- 如果没有调试会话，返回空字符串
 	end
-	return "%#DapIcon#" .. " " .. "%*" .. dap_status .. " " -- 有调试会话时，返回图标和状态
+	return "%#DapIcon#" .. " " .. "%*" .. dap_status -- 有调试会话时，返回图标和状态
 end
 
 -- -------------------- Git 状态 --------------------
--- Git 状态
 function Statusline.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or not git_info.head then
@@ -119,7 +114,6 @@ function Statusline.vcs()
 end
 
 -- -------------------- 动态滚动条 --------------------
--- 动态图标
 local function get_scrollbar()
 	local progress_icons = {
 		" ",
@@ -166,7 +160,6 @@ function Statusline.active()
 end
 
 -- -------------------- 自动更新状态栏 --------------------
--- 设置状态栏：在窗口进入、缓冲区进入时更新
 vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
 	group = vim.api.nvim_create_augroup("Statusline", { clear = true }),
 	callback = function()
