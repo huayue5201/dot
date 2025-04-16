@@ -13,18 +13,6 @@
 -- 	end,
 -- })
 
-vim.api.nvim_create_autocmd("LspAttach", {
-	group = vim.api.nvim_create_augroup("UserLspConfig", { clear = false }),
-	callback = function(args)
-		local lsp = require("config.lsp")
-		lsp.setup_global_diagnostics()
-		local client = vim.lsp.get_client_by_id(args.data.client_id)
-		local bufnr = args.buf
-		lsp.set_keymaps(bufnr, client)
-		lsp.setup_codelens_autocmd(bufnr, client) -- 启用 CodeLens 自动刷新
-	end,
-})
-
 vim.api.nvim_create_autocmd("BufReadPost", {
 	desc = "记住最后的光标位置",
 	group = vim.api.nvim_create_augroup("LastPlace", { clear = true }),
@@ -73,34 +61,59 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
-vim.api.nvim_create_autocmd({ "FileType", "LspAttach" }, {
-	group = vim.api.nvim_create_augroup("AutoFoldMethod", { clear = true }),
-	desc = "优先启用 LSP 折叠，否则 fallback 到 Treesitter 或 manual",
+-- 第一组：处理 LSP 初始化时的设置（快捷键、诊断、CodeLens、折叠）
+vim.api.nvim_create_autocmd("LspAttach", {
+	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
 	callback = function(args)
-		local bufnr = args.buf or vim.api.nvim_get_current_buf()
+		local client = vim.lsp.get_client_by_id(args.data.client_id)
+		local bufnr = args.buf
+		local win = vim.fn.bufwinid(bufnr)
+
+		-- 安全检查
+		if not client or not vim.api.nvim_win_is_valid(win) then
+			return
+		end
+
+		-- 1. 设置 LSP 快捷键、诊断、CodeLens
+		local lsp = require("config.lsp")
+		lsp.setup_global_diagnostics()
+		lsp.set_keymaps(bufnr, client)
+		lsp.setup_codelens_autocmd(bufnr, client)
+
+		-- 2. 设置折叠（优先用 LSP，失败 fallback）
+		local function set_folds(method, expr)
+			vim.wo[win].foldmethod = method
+			vim.wo[win].foldexpr = expr or ""
+		end
+
+		if client:supports_method("textDocument/foldingRange") then
+			set_folds("expr", "v:lua.vim.lsp.foldexpr()")
+		elseif pcall(vim.treesitter.start, bufnr) then
+			set_folds("expr", "v:lua.vim.treesitter.foldexpr()")
+		else
+			set_folds("manual")
+		end
+	end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("FallbackFoldMethod", { clear = true }),
+	desc = "为未启用 LSP 的缓冲区设置默认折叠方式",
+	callback = function(args)
+		local bufnr = args.buf
 		local win = vim.fn.bufwinid(bufnr)
 		if not vim.api.nvim_win_is_valid(win) then
 			return
 		end
-		local set_folds = function(method, expr)
+
+		local function set_folds(method, expr)
 			vim.wo[win].foldmethod = method
 			vim.wo[win].foldexpr = expr or ""
 		end
-		-- check LSP client supports folding
-		if args.event == "LspAttach" then
-			local client = vim.lsp.get_client_by_id(args.data.client_id)
-			if client and client.supports_method("textDocument/foldingRange") then
-				-- 使用 LSP 折叠
-				set_folds("expr", "v:lua.vim.lsp.foldexpr()")
-				return
-			end
-		end
-		-- fallback: 如果 LSP 不支持折叠，尝试使用 Treesitter 或 manual
+
 		if pcall(vim.treesitter.start, bufnr) then
-			-- 如果 Treesitter 可用，使用 Treesitter 折叠
 			set_folds("expr", "v:lua.vim.treesitter.foldexpr()")
 		else
-			-- 如果没有 Treesitter，则使用 manual
 			set_folds("manual")
 		end
 	end,

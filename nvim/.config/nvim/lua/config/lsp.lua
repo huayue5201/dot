@@ -96,11 +96,6 @@ function M.set_keymaps(buf, client)
 		},
 	}
 
-	-- CodeLens 相关按键
-	if client.supports_method("textDocument/codeLens") then
-		table.insert(keymaps, { "<leader>cl", "<cmd>lua vim.lsp.codelens.run()<CR>", "运行 CodeLens" })
-	end
-
 	for _, map in ipairs(keymaps) do
 		vim.keymap.set("n", map[1], map[2], { buffer = buf, noremap = true, silent = true, desc = map[3] })
 	end
@@ -108,7 +103,7 @@ end
 
 -- 自动刷新 CodeLens
 function M.setup_codelens_autocmd(bufnr, client)
-	if client.supports_method("textDocument/codeLens") then
+	if client:supports_method("textDocument/codeLens") then
 		-- 触发 CodeLens 刷新
 		vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
 			buffer = bufnr,

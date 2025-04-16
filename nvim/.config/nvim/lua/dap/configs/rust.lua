@@ -1,5 +1,3 @@
-local binary = require("utils.program_binary").get_rust_program_binary
-
 return {
 	setup = function(dap)
 		dap.configurations.rust = {
@@ -21,7 +19,9 @@ return {
 				coreConfigs = {
 					{
 						coreIndex = 0,
-						programBinary = binary(),
+						programBinary = function()
+							return require("utils.program_binary").safe_get_rust_program_binary()
+						end,
 						svdFile = "",
 						rttEnabled = true,
 						rttChannelFormats = {
