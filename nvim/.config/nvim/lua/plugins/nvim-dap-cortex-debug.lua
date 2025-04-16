@@ -20,9 +20,6 @@ return {
 			},
 		})
 
-		-- 获取 ELF 路径（如果是 Rust 项目）
-		local binary = require("utils.program_binary").get_rust_program_binary
-
 		local dap = require("dap")
 		dap.providers.configs["OpenOCD"] = function(bufnr)
 			return {
@@ -50,7 +47,10 @@ return {
 					-- },
 					cwd = "${workspaceFolder}",
 					-- executable = vim.g.debug_file,
-					executable = binary(),
+					executable = function()
+						return require("utils.program_binary").safe_get_rust_program_binary()
+					end,
+
 					-- configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
 					configFiles = {
 						"interface/cmsis-dap.cfg",
