@@ -290,7 +290,7 @@ return {
 				prompt = "选择运行方式：",
 			}, function(choice)
 				if choice == "手动输入参数" then
-					vim.ui.input({ prompt = "请输入参数（以空格分隔）：" }, function(input)
+					vim.ui.input({ prompt = "输入参数(空格分隔)：" }, function(input)
 						if not input then
 							return
 						end
