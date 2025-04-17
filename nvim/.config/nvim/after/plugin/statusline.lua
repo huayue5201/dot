@@ -1,5 +1,4 @@
 -- 定义高亮组
--- 定义高亮组
 vim.api.nvim_set_hl(0, "DefaultMode", { bold = true })
 vim.api.nvim_set_hl(0, "NormalMode", { bold = true })
 vim.api.nvim_set_hl(0, "InsertMode", { bold = true })

@@ -3,8 +3,8 @@
 -- https://github.com/folke/tokyonight.nvim
 
 return {
-	"oxfist/night-owl.nvim",
-	-- "EdenEast/nightfox.nvim",
+	-- "oxfist/night-owl.nvim",
+	"EdenEast/nightfox.nvim",
 	-- "tomasiser/vim-code-dark",
 	-- "shaunsingh/nord.nvim",
 	-- "folke/tokyonight.nvim",
@@ -12,17 +12,15 @@ return {
 	lazy = false,
 	priority = 1000,
 	config = function()
-		require("night-owl").setup()
-		vim.cmd.colorscheme("night-owl")
-		-- vim.cmd("colorscheme nordfox")
+		-- require("night-owl").setup()
+		-- vim.cmd.colorscheme("night-owl")
+		vim.cmd("colorscheme nordfox")
 		-- vim.cmd.colorscheme("codedark")
 		-- vim.cmd([[colorscheme nord]])
 		-- vim.cmd([[colorscheme tokyonight-night]])
 		-- require("monokai-pro").setup({
-		-- ... your config
-		-- background_clear = { "float_win" },
+		-- 	background_clear = { "float_win" },
 		-- })
-		-- lua
 		-- vim.cmd([[colorscheme monokai-pro]])
 	end,
 }

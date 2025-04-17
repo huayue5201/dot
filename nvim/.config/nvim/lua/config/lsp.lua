@@ -104,13 +104,16 @@ end
 -- 自动刷新 CodeLens
 function M.setup_codelens_autocmd(bufnr, client)
 	if client:supports_method("textDocument/codeLens") then
-		-- 触发 CodeLens 刷新
+		local group = vim.api.nvim_create_augroup("LspCodeLensRefresh", { clear = false })
 		vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
+			group = group,
 			buffer = bufnr,
 			callback = function()
 				vim.lsp.codelens.refresh()
 			end,
 		})
+		-- 可选：attach 后立刻刷新一次
+		vim.schedule(vim.lsp.codelens.refresh)
 	end
 end
 return M
