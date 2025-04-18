@@ -65,3 +65,6 @@ vim.keymap.set("n", "<Leader>raw", function()
 	end
 	print("Deleted windows outside the current directory!")
 end, { silent = true, desc = "删除当前窗口外的所有窗口" })
+
+vim.keymap.set("n", "n", ":keepjumps normal! n<cr>")
+vim.keymap.set("n", "N", ":keepjumps normal! N<cr>")

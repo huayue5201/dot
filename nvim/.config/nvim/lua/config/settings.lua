@@ -133,3 +133,15 @@ vim.opt.listchars = {
 	nbsp = " ", -- 显示不间断空格
 	eol = " ", -- 换行符
 }
+
+-- diff
+vim.opt.diffopt = {
+	"internal",
+	"filler",
+	"closeoff",
+	"context:4",
+	"linematch:60",
+	"indent-heuristic",
+	"algorithm:histogram",
+	"inline:char",
+}
