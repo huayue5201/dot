@@ -5,13 +5,19 @@
 -- 启用 Lua 加载器加速启动
 vim.loader.enable()
 
+-- vim.filetype.add({
+-- 	extension = {
+-- 		cfg = "dosini",
+-- 	},
+-- })
+
 -- 光标配置（启动后设置，减少影响 UI 加载）
 vim.cmd([[
     au VimEnter,VimResume * set guicursor=n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50
     \,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor
     \,sm:block-blinkwait175-blinkoff150-blinkon175
     au VimLeave,VimSuspend * set guicursor=a:block-blinkon0
-    ]])
+]])
 
 -- 设置 Leader 键为空格
 vim.g.mapleader = vim.keycode("<space>")

@@ -40,5 +40,6 @@ return {
 			virt_text_win_col = nil, -- 将虚拟文本定位到固定的窗口列（从第一个文本列开始），
 			-- 例如，设置为 80 会将其定位在第 80 列，参见 `:h nvim_buf_set_extmark()`
 		})
+		vim.keymap.set("n", "<leader>dlx", "<cmd>DapVirtualTextToggle<cr>", { desc = "dap虚拟文" })
 	end,
 }

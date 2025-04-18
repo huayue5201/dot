@@ -108,6 +108,7 @@ return {
 				on_done = function()
 					require("dap").repl.close()
 					require("dap-view").close(true)
+					vim.cmd("DapVirtualTextForceRefresh")
 				end,
 			})
 		end, { silent = true, desc = "终止调试" })
