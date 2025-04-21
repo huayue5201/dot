@@ -149,7 +149,7 @@ function Statusline.active()
 		-- "  " .. "%t  ", -- 文件名
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
-		Statusline.dap_status(), -- dap调试信息
+		Statusline.dap_status() .. "  ", -- dap调试信息
 		'%{&ft == "toggleterm" ? "terminal (".b:toggle_number.")" : ""}', -- toggleterm 状态
 		Statusline.vcs(), -- Git 状态
 		"  %l%c ", -- 行列号

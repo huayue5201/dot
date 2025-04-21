@@ -66,5 +66,29 @@ vim.keymap.set("n", "<Leader>raw", function()
 	print("Deleted windows outside the current directory!")
 end, { silent = true, desc = "删除当前窗口外的所有窗口" })
 
+-- All the ways to start a search, with a description
+local mark_search_keys = {
+	["/"] = "Search forward",
+	["?"] = "Search backward",
+	["*"] = "Search current word (forward)",
+	["#"] = "Search current word (backward)",
+	["£"] = "Search current word (backward)",
+	["g*"] = "Search current word (forward, not whole word)",
+	["g#"] = "Search current word (backward, not whole word)",
+	["g£"] = "Search current word (backward, not whole word)",
+}
+
+-- Before starting the search, set a mark `s`
+for key, desc in pairs(mark_search_keys) do
+	vim.keymap.set("n", key, "ms" .. key, { desc = desc })
+end
+
+-- Clear search highlight when jumping back to beginning
+vim.keymap.set("n", "`s", function()
+	vim.cmd("normal! `s")
+	vim.cmd.nohlsearch()
+end)
+
+-- n/N不加入jumps列表
 vim.keymap.set("n", "n", ":keepjumps normal! n<cr>")
 vim.keymap.set("n", "N", ":keepjumps normal! N<cr>")
