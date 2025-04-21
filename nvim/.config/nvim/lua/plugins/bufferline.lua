@@ -96,7 +96,7 @@ return {
 				offsets = { -- 侧边栏偏移设置
 					{
 						filetype = "neo-tree",
-						text = "File explorer",
+						text = "󰙅 File explorer",
 						raw = " %{%v:lua.__get_selector()%} ",
 						highlight = { sep = { link = "WinSeparator" } },
 						separator = "┃",

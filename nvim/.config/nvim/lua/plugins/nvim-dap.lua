@@ -155,9 +155,9 @@ return {
 
 		vim.g.repeatable_map("n", "<leader>drb", dap.step_back, { silent = true, desc = "逆向单步" })
 
-		vim.keymap.set("n", "<leader>drc", dap.run_to_cursor, { silent = true, desc = "运行到光标" })
+		vim.g.repeatable_map("n", "<leader>drc", dap.run_to_cursor, { silent = true, desc = "运行到光标" })
 
-		vim.keymap.set("n", "<leader>drc", dap.reverse_continue, { silent = true, desc = "逆向继续" })
+		vim.keymap.set("n", "<leader>drr", dap.reverse_continue, { silent = true, desc = "逆向继续" })
 
 		vim.keymap.set("n", "<leader>drf", dap.restart_frame, { silent = true, desc = "重启当前帧" })
 
