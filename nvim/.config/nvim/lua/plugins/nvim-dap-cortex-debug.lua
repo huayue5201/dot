@@ -14,7 +14,7 @@ return {
 			node_path = "node", -- path to node.js executable
 			dapui_rtt = false, -- register nvim-dap-ui RTT element
 			-- make :DapLoadLaunchJSON register cortex-debug for C/C++, set false to disable
-			dap_vscode_filetypes = { "c", "cpp", "rust" },
+			dap_vscode_filetypes = "false",
 			rtt = {
 				buftype = "Terminal", -- 'Terminal' or 'BufTerminal' for terminal buffer vs normal buffer
 			},
@@ -48,13 +48,14 @@ return {
 					cwd = "${workspaceFolder}",
 					-- executable = vim.g.debug_file,
 					executable = function()
-						return require("utils.program_binary").safe_get_rust_program_binary()
+						return require("utils.program_binary").safe_get_program_binary()
 					end,
-
 					-- configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
 					configFiles = {
-						"interface/cmsis-dap.cfg",
-						"target/nrf52.cfg",
+						-- "interface/cmsis-dap.cfg",
+						-- "target/nrf52.cfg",
+						"interface/stlink.cfg",
+						"target/stm32f1x.cfg",
 					},
 					svdFile = "",
 					rttConfig = {

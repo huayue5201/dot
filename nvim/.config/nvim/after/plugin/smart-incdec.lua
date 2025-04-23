@@ -5,6 +5,8 @@ local replace_map = {
 	["False"] = "True",
 	["set_low"] = "set_high",
 	["set_high"] = "set_low",
+	["GPIO_PIN_RESET"] = "GPIO_PIN_SET",
+	["GPIO_PIN_SET"] = "GPIO_PIN_RESET",
 }
 
 local function toggle_or_default(default_key)

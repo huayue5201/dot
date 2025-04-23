@@ -63,21 +63,62 @@ function M.set_keymaps(buf, client)
 		{
 			"<leader>yd",
 			function()
-				local line = vim.fn.line(".") - 1 -- 获取当前光标所在行号（Lua 索引从 0 开始）
-				local diagnostics = vim.diagnostic.get(0, { lnum = line }) -- 获取当前行的诊断信息
-				local diagnostic_msgs = {}
-				for _, diag in ipairs(diagnostics) do
-					table.insert(diagnostic_msgs, diag.message) -- 提取报错信息
+				local bufnr = 0
+				local cursor = vim.api.nvim_win_get_cursor(0)
+				local row = cursor[1] - 1
+				local col = cursor[2]
+				local word = vim.fn.expand("<cword>")
+				local diagnostics = vim.diagnostic.get(bufnr)
+
+				local severity_map = {
+					[vim.diagnostic.severity.ERROR] = "Error",
+					[vim.diagnostic.severity.WARN] = "Warning",
+					[vim.diagnostic.severity.INFO] = "Info",
+					[vim.diagnostic.severity.HINT] = "Hint",
+				}
+
+				local function format(diag)
+					local severity = severity_map[diag.severity] or "Unknown"
+					local source = diag.source or "LSP"
+					return string.format("[%s] %s (from %s)", severity, diag.message, source)
 				end
-				if #diagnostic_msgs > 0 then
-					local message = table.concat(diagnostic_msgs, "\n") -- 合并报错信息
-					vim.fn.setreg("+", message)
-					print("LSP 诊断信息已复制到剪贴板!")
+
+				local matched_by_word = {}
+				local matched_by_line = {}
+
+				for _, diag in ipairs(diagnostics) do
+					local s_row = diag.lnum
+					local s_col = diag.col
+					local e_row = diag.end_lnum or s_row
+					local e_col = diag.end_col or (s_col + 1)
+
+					local in_range = (row > s_row or (row == s_row and col >= s_col))
+						and (row < e_row or (row == e_row and col < e_col))
+
+					local word_in_msg = diag.message:find(word, 1, true)
+
+					if in_range or word_in_msg then
+						table.insert(matched_by_word, format(diag))
+					end
+
+					if s_row == row then
+						table.insert(matched_by_line, format(diag))
+					end
+				end
+
+				if #matched_by_word > 0 then
+					local content = table.concat(matched_by_word, "\n")
+					vim.fn.setreg("+", content)
+					vim.notify("光标词诊断信息已复制到剪贴板!", vim.log.levels.INFO)
+				elseif #matched_by_line > 0 then
+					local content = table.concat(matched_by_line, "\n")
+					vim.fn.setreg("+", content)
+					vim.notify("当前行诊断信息已复制到剪贴板!", vim.log.levels.INFO)
 				else
-					print("当前行无 LSP 诊断信息!")
+					vim.notify("光标下词及当前行无诊断信息", vim.log.levels.INFO)
 				end
 			end,
-			"复制当前光标处的 LSP 诊断",
+			"复制光标词的诊断（无则退回整行）",
 		},
 		{
 			"<localleader>d",
