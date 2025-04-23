@@ -7,6 +7,9 @@ live_config_reload = true # 实时重新加载配置
 # 加载配色文件
 import = ["~/.config/alacritty/themes/nord.yaml"]
 
+[terminal]
+osc52 = "CopyPaste"
+
 # 字体设置
 [font]
 size = 15 # 字体大小
