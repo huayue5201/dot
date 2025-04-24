@@ -145,7 +145,7 @@ return {
 
 		vim.keymap.set("n", "<leader>rb", dap.clear_breakpoints, { silent = true, desc = "清除所有断点" })
 
-		vim.keymap.set("n", "<leader>drl", dap.run_last, { desc = "运行上次会话" })
+		vim.keymap.set("n", "<leader>drl", dap.run_last, { silent = true, desc = "运行上次会话" })
 
 		vim.g.repeatable_map("n", "<leader>dro", dap.step_over, { silent = true, desc = "单步跳过" })
 

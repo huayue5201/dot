@@ -34,16 +34,15 @@ return {
 					-- toolchainPath = "/opt/homebrew/bin",-- 工具链如果在当前系统环境变量中，可以省略
 					toolchainPrefix = "arm-none-eabi",
 					args = {},
-					runToEntryPoint = "main",
 					swoConfig = { enabled = false },
 					showDevDebugOutput = false,
 					gdbTarget = "localhost:3333",
+					runToEntryPoint = "main",
 					-- overrideLaunchCommands = {
-					-- 	"cd Output/build", -- 切换到指定目录
-					-- 	"file firmware.hex", -- 加载固件文件
-					-- 	"target extended-remote localhost:50000", -- 连接到 GDB 服务器
 					-- 	"monitor reset halt", -- 发送监控命令（复位并挂起目标）
-					-- 	"load firmware.hex", -- 加载固件
+					-- 	"load",
+					-- 	"break main",
+					-- 	"continue",
 					-- },
 					cwd = "${workspaceFolder}",
 					-- executable = vim.g.debug_file,
