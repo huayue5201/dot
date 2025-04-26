@@ -67,63 +67,20 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
--- ✨ 工具函数：安全获取窗口 ID
-local function get_valid_win(bufnr)
-	local win = vim.fn.bufwinid(bufnr)
-	return vim.api.nvim_win_is_valid(win) and win or nil
-end
-
 -- ✨ LSP 启动时绑定快捷键与功能
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
 	callback = function(args)
 		local client = vim.lsp.get_client_by_id(args.data.client_id)
-		local bufnr = args.buf
-		local win = get_valid_win(bufnr)
-		if not client or not win then
-			return
-		end
 
-		local lsp = require("config.lsp")
-		lsp.setup_global_diagnostics()
-		lsp.set_keymaps(bufnr, client)
-		lsp.setup_codelens_autocmd(bufnr, client)
-
-		local function set_folds(method, expr)
-			vim.wo[win].foldmethod = method
-			vim.wo[win].foldexpr = expr or ""
-		end
+		require("config.lsp")
 
 		if client:supports_method("textDocument/foldingRange") then
-			set_folds("expr", "v:lua.vim.lsp.foldexpr()")
-		elseif pcall(vim.treesitter.start, bufnr) then
-			set_folds("expr", "v:lua.vim.treesitter.foldexpr()")
-		else
-			set_folds("manual")
+			local win = vim.api.nvim_get_current_win()
+			vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
 		end
-	end,
-})
-
--- ✨ 非 LSP 缓冲区设置默认折叠
-vim.api.nvim_create_autocmd("FileType", {
-	group = vim.api.nvim_create_augroup("FallbackFoldMethod", { clear = true }),
-	desc = "为未启用 LSP 的缓冲区设置默认折叠方式",
-	callback = function(args)
-		local bufnr = args.buf
-		local win = get_valid_win(bufnr)
-		if not win then
-			return
-		end
-
-		local function set_folds(method, expr)
-			vim.wo[win].foldmethod = method
-			vim.wo[win].foldexpr = expr or ""
-		end
-
-		if pcall(vim.treesitter.start, bufnr) then
-			set_folds("expr", "v:lua.vim.treesitter.foldexpr()")
-		else
-			set_folds("manual")
+		if client:supports_method("textDocument/documentColor") then
+			vim.lsp.document_color.enable(true, args.buf)
 		end
 	end,
 })

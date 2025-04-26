@@ -3,8 +3,8 @@
 
 return {
 	"github/copilot.vim", -- or zbirenbaum/copilot.lua
-	event = "VeryLazy",
-	-- lazy = true,
+	-- event = "VeryLazy",
+	lazy = true,
 	config = function()
 		vim.g.copilot_no_tab_map = true
 		vim.keymap.set("i", "<C-J>", 'copilot#Accept("\\<CR>")', {

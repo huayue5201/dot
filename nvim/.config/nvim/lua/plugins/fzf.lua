@@ -57,5 +57,6 @@ return {
 		vim.keymap.set("n", "<leader>fo", "<cmd>History<cr>", { desc = "查看历史记录" })
 		vim.keymap.set("n", "<leader>fw", "<cmd>Windows<cr>", { desc = "窗口索引" })
 		vim.keymap.set("n", "<leader>fc", "<cmd>History:<cr>", { desc = "历史命令" })
+		vim.keymap.set("n", "<leader>fh", "<cmd>Helptags<cr>", { desc = "帮助文档" })
 	end,
 }

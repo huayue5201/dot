@@ -1,3 +1,5 @@
+-- https://clangd.llvm.org/config
+
 return {
 	cmd = {
 		"clangd",
@@ -13,6 +15,7 @@ return {
 		"compile_flags.txt",
 		"configure.ac",
 		".git",
+		"STM32CubeMX", -- 添加 STM32CubeMX 文件夹
 	},
-	filetypes = { "c", "cpp" },
+	filetypes = { "c", "cpp", "h" }, -- 添加 .h 文件支持
 }

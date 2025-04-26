@@ -41,8 +41,8 @@ vim.opt.messagesopt = "wait:500,history:1000" -- 消息选项：等待 500 毫�
 
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式
--- vim.o.foldmethod = "expr"
--- vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.o.foldmethod = "expr"
+vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 vim.opt.foldlevelstart = 99 -- 默认展开所有内容
 vim.opt.foldcolumn = "1" -- 显示折叠列
 vim.opt.foldtext = "v:lua.require('config.foldtext').custom_foldtext()"
