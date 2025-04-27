@@ -149,7 +149,7 @@ return {
 						dap.set_breakpoint(nil, nil, message)
 					end)
 				elseif choice == "异常断点" then
-					dap.set_exception_breakpoints()
+					dap.set_exception_breakpoints("default")
 				else
 					vim.notify("无效选择！", vim.log.levels.ERROR)
 				end
