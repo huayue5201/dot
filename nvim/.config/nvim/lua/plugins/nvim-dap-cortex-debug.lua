@@ -47,6 +47,7 @@ return {
 					cwd = "${workspaceFolder}",
 					-- executable = vim.g.debug_file,
 					executable = function()
+						-- require("dap.utils").pick_file()
 						return require("utils.program_binary").safe_get_program_binary()
 					end,
 					-- configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
