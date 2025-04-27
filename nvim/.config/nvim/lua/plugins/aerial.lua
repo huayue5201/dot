@@ -3,8 +3,8 @@
 return {
 	"stevearc/aerial.nvim",
 	keys = {
-		{ "<leader>la", desc = "符号树" },
-		{ "<leader>o", desc = "符号树浮窗" },
+		{ "<leader>ls", desc = "符号树" },
+		{ "<leader>la", desc = "符号树浮窗" },
 		{ "<leader>fl", desc = "fzf符号树" },
 	},
 	-- Optional dependencies
@@ -73,8 +73,8 @@ return {
 			},
 		})
 		-- You probably also want to set a keymap to toggle aerial
-		vim.keymap.set("n", "<leader>la", "<cmd>AerialToggle!<CR>")
-		vim.keymap.set("n", "<leader>o", "<cmd>AerialNavToggl<CR>")
+		vim.keymap.set("n", "<leader>ls", "<cmd>AerialToggle!<CR>")
+		vim.keymap.set("n", "<leader>la", "<cmd>AerialNavToggl<CR>")
 		vim.cmd([[nmap <silent> <leader>fl <cmd>call aerial#fzf()<cr>]])
 	end,
 }

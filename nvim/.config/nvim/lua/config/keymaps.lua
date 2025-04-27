@@ -48,6 +48,15 @@ vim.keymap.set("n", "<leader>ram", function()
 	vim.cmd("delmarks A-Z")
 end, { desc = "Delete all marks (lowercase and uppercase)" })
 
+-- use <C-L> in insert mode to jump to end of current treesitter node
+vim.keymap.set("i", "<tab>", function()
+	local node = vim.treesitter.get_node()
+	if node ~= nil then
+		local row, col = node:end_()
+		pcall(vim.api.nvim_win_set_cursor, 0, { row + 1, col })
+	end
+end, { desc = "insjump" })
+
 vim.keymap.set("n", "<Leader>raw", function()
 	local current_win = vim.api.nvim_get_current_win()
 	local current_buf = vim.api.nvim_win_get_buf(current_win)

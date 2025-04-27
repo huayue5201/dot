@@ -62,6 +62,19 @@ return {
 			dap.defaults.fallback[key] = value
 		end
 
+		-- Setup
+
+		-- Decides when and how to jump when stopping at a breakpoint
+		-- The order matters!
+		--
+		-- (1) If the line with the breakpoint is visible, don't jump at all
+		-- (2) If the buffer is opened in a tab, jump to it instead
+		-- (3) Else, create a new tab with the buffer
+		--
+		-- This avoid unnecessary jumps
+		dap.defaults.fallback.switchbuf = "usevisible,usetab,newtab"
+		dap.defaults.fallback.focus_terminal = true
+
 		local dv = require("dap-view")
 
 		dv.setup({
@@ -167,6 +180,8 @@ return {
 
 		vim.g.repeatable_map("n", "<leader>dgj", dap.down, { silent = true, desc = "下一个断点" })
 
+		vim.g.repeatable_map("n", "<leader>dgg", dap.focus_frame, { silent = true, desc = "跳转到当前帧" })
+
 		vim.keymap.set("n", "<leader>dgn", function()
 			vim.ui.input({ prompt = " 󰙎输入行号: " }, function(input)
 				if input then
@@ -181,7 +196,11 @@ return {
 			end)
 		end, { silent = true, desc = "跳转到行" })
 
-		vim.keymap.set("n", "<leader>dR", dap.repl.toggle, { silent = true, desc = "切换 REPL" })
+		vim.keymap.set("n", "<leader>dR", function()
+			dap.repl.toggle()
+		end, { silent = true, desc = "切换 REPL" })
+
+		vim.keymap.set("n", "<leader>de", "<cmd>DapEval<cr>", { silent = true, desc = "打开 Eval" })
 
 		vim.keymap.set("n", "<leader>dlq", function()
 			dap.list_breakpoints()
@@ -371,18 +390,6 @@ return {
 				end
 			end)
 		end, { desc = "运行当前文件（带参数/历史）" })
-
-		-- Setup
-
-		-- Decides when and how to jump when stopping at a breakpoint
-		-- The order matters!
-		--
-		-- (1) If the line with the breakpoint is visible, don't jump at all
-		-- (2) If the buffer is opened in a tab, jump to it instead
-		-- (3) Else, create a new tab with the buffer
-		--
-		-- This avoid unnecessary jumps
-		require("dap").defaults.fallback.switchbuf = "usevisible,usetab,newtab"
 
 		-- 退出neovim自动终止调试进程
 		vim.api.nvim_create_autocmd("VimLeave", {
