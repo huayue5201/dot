@@ -16,19 +16,6 @@ return {
 		"s1n7ax/nvim-window-picker",
 	},
 	config = function()
-		local debug_file = require("utils.debug-file-manager")
-		-- toggle_debug_from_neotree 函数
-		local function toggle_debug_from_neotree(state)
-			local node = state.tree:get_node()
-			if node and node.type == "file" then
-				local file = node.path
-				debug_file.toggle_debug_file(file)
-				require("neo-tree.sources.manager").refresh("filesystem")
-			else
-				vim.notify("⚠️ 请选择一个文件！", vim.log.levels.ERROR)
-			end
-		end
-
 		require("neo-tree").setup({
 			close_if_last_window = false, -- Close Neo-tree if it is the last window left in the tab
 			popup_border_style = "rounded",
@@ -84,19 +71,14 @@ return {
 					folder_open = "",
 					folder_empty = "󰜌",
 					provider = function(icon, node, state) -- default icon provider utilizes nvim-web-devicons if available
-						-- 处理文件图标
 						if node.type == "file" or node.type == "terminal" then
 							local success, web_devicons = pcall(require, "nvim-web-devicons")
 							local name = node.type == "terminal" and "terminal" or node.name
 							if success then
 								local devicon, hl = web_devicons.get_icon(name)
-								icon.text = devicon or icon.text -- 如果有图标就替换
+								icon.text = devicon or icon.text
 								icon.highlight = hl or icon.highlight
 							end
-						end
-						if node.path == vim.g.debug_file then
-							icon.text = icon.text .. " 🐞"
-							icon.highlight = icon.highlight or "NeoTreeFileNameOpened" -- 设置高亮
 						end
 					end,
 					-- The next two settings are only a fallback, if you use nvim-web-devicons and configure default icons there
@@ -213,7 +195,6 @@ return {
 							vim.cmd("edit " .. vim.fn.fnameescape(node.path))
 						end
 					end,
-					["<localleader>b"] = toggle_debug_from_neotree, -- 绑定快捷键
 					["O"] = "system_open",
 					["<2-LeftMouse>"] = "open",
 					["<cr>"] = "open",

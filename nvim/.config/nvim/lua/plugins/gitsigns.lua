@@ -63,7 +63,7 @@ return {
 				end
 
 				-- Navigation (导航)
-				vim.g.repeatable_map("n", "]h", function()
+				map("n", "]h", function()
 					if vim.wo.diff then
 						vim.cmd.normal({ "]h", bang = true })
 					else
@@ -71,7 +71,7 @@ return {
 					end
 				end, { desc = "跳转到下一个差异区块" })
 
-				vim.g.repeatable_map("n", "[h", function()
+				map("n", "[h", function()
 					if vim.wo.diff then
 						vim.cmd.normal({ "[h", bang = true })
 					else
