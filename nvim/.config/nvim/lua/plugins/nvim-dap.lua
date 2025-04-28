@@ -12,7 +12,7 @@ return {
 	},
 	config = function()
 		-- repl 自动补全支持
-		vim.cmd([[  au FileType dap-repl lua require('dap.ext.autocompl').attach()]])
+		vim.cmd([[au FileType dap-repl lua require('dap.ext.autocompl').attach()]])
 
 		local signs = {
 			DapBreakpoint = { text = "🔴", texthl = "DapBreakpoint" }, -- 断点
@@ -31,7 +31,6 @@ return {
 		end
 
 		-- require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
-		-- require("utils.debug-file-manager") -- 调试文件标记模块
 		local dap = require("dap")
 
 		-- 加载模块化配置
@@ -114,7 +113,15 @@ return {
 			require("dap-view").toggle()
 		end, { desc = "切换 nvim-dap-view" })
 
-		vim.g.repeatable_map("n", "<leader>dc", dap.continue, { silent = true, desc = "继续/启动调试" })
+		-- vim.g.operator_map("n", "<leader>dc", dap.continue, { silent = true, desc = "继续/启动调试" })
+		vim.keymap.set("n", "<leader>dc", function()
+			vim.o.operatorfunc = "v:lua._dap_continue" -- 使用一个正确的函数名
+			vim.cmd.normal("g@l") -- 执行操作符
+		end, { silent = true, desc = "继续/启动调试" })
+		-- 定义 _dap_continue 函数来调用 dap.continue
+		_G._dap_continue = function()
+			dap.continue() -- 调用 dap.continue 方法
+		end
 
 		vim.keymap.set("n", "<leader>rd", function()
 			dap.terminate({
@@ -126,7 +133,14 @@ return {
 			})
 		end, { silent = true, desc = "终止调试" })
 
-		vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "切换断点" })
+		-- vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "切换断点" })
+		vim.keymap.set("n", "<leader>b", function()
+			vim.o.operatorfunc = "v:lua._toggle_breakpoint" -- 使用一个正确的函数名
+			vim.cmd.normal("g@l") -- 执行操作符
+		end, { silent = true, desc = "设置/取消断点" })
+		_G._toggle_breakpoint = function()
+			dap.toggle_breakpoint()
+		end
 
 		vim.keymap.set("n", "<leader>B", function()
 			vim.ui.select({ "条件断点", "命中次数", "日志点", "异常断点" }, {
@@ -160,15 +174,50 @@ return {
 
 		vim.keymap.set("n", "<leader>drl", dap.run_last, { silent = true, desc = "运行上次会话" })
 
-		vim.g.repeatable_map("n", "<leader>dro", dap.step_over, { silent = true, desc = "单步跳过" })
+		-- vim.keymap.set("n", "<leader>dro", dap.step_over, { silent = true, desc = "单步跳过" })
+		vim.keymap.set("n", "<leader>dro", function()
+			vim.o.operatorfunc = "v:lua._dap_step_over" -- 使用一个正确的函数名
+			vim.cmd.normal("g@l") -- 执行操作符
+		end, { silent = true, desc = "单步跳过" })
+		_G._dap_step_over = function()
+			dap.step_over()
+		end
 
-		vim.g.repeatable_map("n", "<leader>dri", dap.step_into, { silent = true, desc = "单步进入" })
+		-- vim.keymap.set("n", "<leader>dri", dap.step_into, { silent = true, desc = "单步进入" })
+		vim.keymap.set("n", "<leader>dri", function()
+			vim.o.operatorfunc = "v:lua._dap_step_into" -- 使用一个正确的函数名
+			vim.cmd.normal("g@l") -- 执行操作符
+		end, { silent = true, desc = "单步进入" })
+		_G._dap_step_into = function()
+			dap.step_out()
+		end
 
-		vim.g.repeatable_map("n", "<leader>dru", dap.step_out, { silent = true, desc = "单步跳出" })
+		-- vim.keymap.set("n", "<leader>dru", dap.step_out, { silent = true, desc = "单步跳出" })
+		vim.keymap.set("n", "<leader>dru", function()
+			vim.o.operatorfunc = "v:lua._dap_step_out" -- 使用一个正确的函数名
+			vim.cmd.normal("g@l") -- 执行操作符
+		end, { silent = true, desc = "单步跳出" })
+		_G._dap_step_out = function()
+			dap.step_out()
+		end
 
-		vim.g.repeatable_map("n", "<leader>drb", dap.step_back, { silent = true, desc = "逆向单步" })
+		-- vim.keymap.set("n", "<leader>drb", dap.step_back, { silent = true, desc = "逆向单步" })
+		vim.keymap.set("n", "<leader>drb", function()
+			vim.o.operatorfunc = "v:lua._dap_step_back" -- 使用一个正确的函数名
+			vim.cmd.normal("g@l") -- 执行操作符
+		end, { silent = true, desc = "逆向单步" })
+		_G._dap_step_back = function()
+			dap.step_back()
+		end
 
-		vim.g.repeatable_map("n", "<leader>drc", dap.run_to_cursor, { silent = true, desc = "运行到光标" })
+		-- vim.keymap.set("n", "<leader>drc", dap.run_to_cursor, { silent = true, desc = "运行到光标" })
+		vim.keymap.set("n", "<leader>drc", function()
+			vim.o.operatorfunc = "v:lua._dap_run_to_cursor" -- 使用一个正确的函数名
+			vim.cmd.normal("g@l") -- 执行操作符
+		end, { silent = true, desc = "运行到光标位置" })
+		_G._dap_run_to_cursor = function()
+			dap.run_to_cursor()
+		end
 
 		vim.keymap.set("n", "<leader>drr", dap.reverse_continue, { silent = true, desc = "逆向继续" })
 
@@ -176,14 +225,28 @@ return {
 
 		vim.keymap.set("n", "<leader>dd", dap.pause, { silent = true, desc = "暂停线程" })
 
-		vim.g.repeatable_map("n", "<leader>dgk", dap.up, { silent = true, desc = "上一个断点" })
+		-- vim.keymap.set("n", "<leader>dgk", dap.up, { silent = true, desc = "上一个断点" })
+		vim.keymap.set("n", "<leader>dgk", function()
+			vim.o.operatorfunc = "v:lua._dap_up" -- 使用一个正确的函数名
+			vim.cmd.normal("g@l") -- 执行操作符
+		end, { silent = true, desc = "上一个断点" })
+		_G._dap_up = function()
+			dap.up()
+		end
 
-		vim.g.repeatable_map("n", "<leader>dgj", dap.down, { silent = true, desc = "下一个断点" })
+		-- vim.keymap.set("n", "<leader>dgj", dap.down, { silent = true, desc = "下一个断点" })
+		vim.keymap.set("n", "<leader>dgj", function()
+			vim.o.operatorfunc = "v:lua._dap_down" -- 使用一个正确的函数名
+			vim.cmd.normal("g@l") -- 执行操作符
+		end, { silent = true, desc = "下一个断点" })
+		_G._dap_down = function()
+			dap.down()
+		end
 
-		vim.g.repeatable_map("n", "<leader>dgg", dap.focus_frame, { silent = true, desc = "跳转到当前帧" })
+		vim.keymap.set("n", "<leader>dgg", dap.focus_frame, { silent = true, desc = "跳转到当前帧" })
 
 		vim.keymap.set("n", "<leader>dgn", function()
-			vim.ui.input({ prompt = " 󰙎输入行号: " }, function(input)
+			vim.ui.input({ prompt = " 󰙎 输入行号: " }, function(input)
 				if input then
 					-- 将用户输入的行号传递给 dap.goto_
 					local line = tonumber(input)
@@ -210,9 +273,16 @@ return {
 
 		local widgets = require("dap.ui.widgets")
 
+		-- vim.keymap.set("n", "<leader>dlk", function()
+		-- 	widgets.hover(nil, { border = "rounded" })
+		-- end, { desc = "查看变量" })
 		vim.keymap.set("n", "<leader>dlk", function()
+			vim.o.operatorfunc = "v:lua._dap_hover" -- 使用一个正确的函数名
+			vim.cmd.normal("g@l") -- 执行操作符
+		end, { silent = true, desc = "查看变量" })
+		_G._dap_hover = function()
 			widgets.hover(nil, { border = "rounded" })
-		end, { desc = "查看变量" })
+		end
 
 		-- local sidebar = nil
 		-- vim.keymap.set("n", "<leader>dlc", function()
