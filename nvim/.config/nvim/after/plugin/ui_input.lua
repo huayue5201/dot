@@ -81,7 +81,7 @@ vim.ui.input = function(opts, on_confirm)
 	end
 
 	if input_ui then
-		vim.api.nvim_err_writeln("busy: another input is pending!")
+		vim.notify("busy: another input is pending!", vim.log.levels.WARN)
 		return
 	end
 

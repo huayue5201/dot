@@ -48,5 +48,8 @@ return {
 			-- Customize formatters
 			formatters = { shfmt = { prepend_args = { "-i", "2" } } },
 		})
+
+		-- 格式化设置
+		vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
 	end,
 }
