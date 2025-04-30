@@ -9,8 +9,7 @@ return {
 				{ "on_output_quickfix", set_diagnostics = false, open = true },
 				"default",
 			},
-		},
-			vim.cmd("LspReload") -- 在任务完成后执行 LspReload
+		}
 	end,
 	condition = {
 		filetype = { "c", "cpp" },
