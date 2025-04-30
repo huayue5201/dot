@@ -25,8 +25,8 @@ return {
 			persist_mode = true, -- 默认为 true，记住上次终端模式（普通/插入）
 			autochdir = true, -- 若为 true，当 Neovim 更改当前目录时，下次打开终端会自动同步目录
 			close_on_exit = true, -- 当进程退出时自动关闭终端窗口
-			direction = "float",
-			-- direction = "horizontal",
+			-- direction = "float",
+			direction = "horizontal",
 			float_opts = {
 				border = "curved", -- 边框样式
 				width = function()
@@ -91,7 +91,5 @@ return {
 				set_terminal_keymaps()
 			end,
 		})
-		-- if you only want these mappings for toggle term use term://*toggleterm#* instead
-		-- vim.cmd("autocmd! TermOpen term://* lua set_terminal_keymaps()")
 	end,
 }

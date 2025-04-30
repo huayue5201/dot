@@ -27,7 +27,7 @@ brew tap laishulu/homebrew # neovim输入法切换依赖
 brew install macism
 brew install libgit2 # neovim SuperBo/fugit2.nvim插件依赖
 brew install superfile # 文件资源管理器
-brew install pipx # python虚拟环境管理工具
+brew install uv # python虚拟环境管理工具
 brew install xray # 作为后台启动:brew services start xray
 brew install llvm
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # 安装rust

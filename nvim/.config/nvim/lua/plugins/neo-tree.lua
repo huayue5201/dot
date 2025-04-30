@@ -6,7 +6,7 @@ return {
 		{ "<leader>ef", desc = "File Explorer" },
 		{ "<leader>eb", desc = "Buffers (root dir)" },
 		{ "<leader>eg", desc = "Git Status" },
-		{ "<leader>es", desc = "Symbols" },
+		-- { "<leader>es", desc = "Symbols" },
 		{ "<leader>ed", desc = "打开当前文件根目录" },
 	},
 	dependencies = {
