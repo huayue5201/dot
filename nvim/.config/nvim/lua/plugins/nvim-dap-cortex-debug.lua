@@ -47,17 +47,17 @@ return {
 					cwd = "${workspaceFolder}",
 					-- executable = vim.g.debug_file,
 					executable = function()
-						-- require("dap.utils").pick_file()
-						return require("utils.program_binary").safe_get_program_binary()
+						return require("dap.utils").pick_file()
+						-- return require("utils.program_binary").safe_get_program_binary()
 					end,
 					-- configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
+					svdFile = "/Users/lijia/cmsis-svd/schemas/CMSIS-SVD_1_3_9.xsd",
 					configFiles = {
 						-- "interface/cmsis-dap.cfg",
 						-- "target/nrf52.cfg",
 						"interface/stlink.cfg",
 						"target/stm32f1x.cfg",
 					},
-					svdFile = "",
 					rttConfig = {
 						enabled = true,
 						address = "auto",

@@ -92,9 +92,6 @@ vim.opt.relativenumber = true -- 启用相对行号
 vim.opt.signcolumn = "yes" -- 始终显示标志列
 vim.opt.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换到最近使用过的标签页（如果有）
 
--- 格式化设置
-vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
-
 -- qftf设置
 vim.o.qftf = "v:lua.require('config.quickfixtextfunc').GetQuickfixText"
 
