@@ -60,14 +60,9 @@ return {
 						.. terminal_name
 						.. "%*"
 						.. "%#ToggletermIcon#"
-						.. ""
+						.. ""
 						.. "%*"
 				end,
-			},
-			responsiveness = {
-				-- 控制窗口宽度在小于该值时自动从左右并排变为上下堆叠
-				-- 默认值为 0（关闭该特性）
-				horizontal_breakpoint = 135,
 			},
 		})
 
