@@ -16,7 +16,7 @@ return {
 		end
 
 		-- 获取 ELF 文件路径
-		local elf_file = program_binary.safe_get_program_binary()
+		local elf_file = program_binary.safe_get_program_binary("elf")
 
 		-- 返回 openocd 命令
 		return {

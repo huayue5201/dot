@@ -8,6 +8,8 @@ return {
 		build = "make",
 	},
 	config = function()
+		vim.api.nvim_set_hl(0, "htmlTag", { fg = "#FF8247" }) -- 后续图标的颜色
+
 		local dropbar = require("dropbar")
 		dropbar.setup({
 			menu = {
@@ -154,6 +156,9 @@ return {
 						return ok and cwd or vim.fn.getcwd()
 					end,
 				},
+			},
+			fzf = {
+				prompt = "%#htmlTag# :",
 			},
 		})
 		vim.ui.select = require("dropbar.utils.menu").select

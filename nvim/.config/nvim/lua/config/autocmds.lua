@@ -13,6 +13,11 @@
 -- 	end,
 -- })
 
+-- 在保存时删除尾随空格
+vim.api.nvim_create_autocmd("BufWritePre", {
+	pattern = "*",
+	command = ":%s/\\s\\+$//e",
+})
 -- ✨ 光标恢复位置
 vim.api.nvim_create_autocmd("BufReadPost", {
 	desc = "记住最后的光标位置",

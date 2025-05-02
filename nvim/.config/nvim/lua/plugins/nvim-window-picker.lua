@@ -47,7 +47,7 @@ return {
 			show_prompt = true,
 
 			-- 提示消息，提示用户输入
-			prompt_message = "Pick window: ",
+			prompt_message = "󰖳 Pick window: ",
 
 			-- 如果你想手动过滤窗口，传入一个函数，接受两个参数。
 			-- 你应该返回应该包含在选择中的窗口 ID
@@ -172,6 +172,6 @@ return {
 			else
 				print("No window picked!")
 			end
-		end, { silent = true, desc = "交换当前窗口与另一个窗口的缓冲区" })
+		end, { silent = true, desc = "交换当前窗口与目标窗口的位置" })
 	end,
 }

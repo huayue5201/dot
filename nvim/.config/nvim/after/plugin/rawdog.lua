@@ -1,5 +1,4 @@
 -- 可配置项
-local grepprg = "rg --vimgrep --smart-case"
 local fd_cmd = "fd --color=never --full-path --type file --hidden --exclude=.git"
 
 -- grep 异步搜索并打开 quickfix
@@ -11,18 +10,21 @@ vim.keymap.set("n", "<leader>/", function()
 
 		vim.system({ "rg", "--vimgrep", "--smart-case", pattern }, { text = true }, function(res)
 			vim.schedule(function()
-				if res.code ~= 0 and (res.stderr == nil or res.stderr == "") then
-					vim.notify("no result", vim.log.levels.WARN, { title = "rawdog.grep" })
+				if res.code ~= 0 then
+					local err_msg = res.stderr or "Unknown error"
+					vim.notify("rg failed: " .. err_msg, vim.log.levels.ERROR)
 					return
 				end
 				local lines = vim.split(res.stdout or "", "\n", { trimempty = true })
+				if #lines == 0 then
+					vim.notify("No results found for pattern: " .. pattern, vim.log.levels.WARN)
+					return
+				end
 				vim.fn.setqflist({}, " ", {
 					title = ("rg: %s"):format(pattern),
 					lines = lines,
 				})
-				if #lines > 0 then
-					vim.cmd("copen")
-				end
+				vim.cmd("copen")
 			end)
 		end)
 	end)

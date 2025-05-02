@@ -87,7 +87,7 @@ local keymaps = {
 		"复制光标词的诊断信息",
 	},
 	{
-		"<leader>Rl",
+		"<leader>tol",
 		function()
 			for _, client in pairs(vim.lsp.get_clients({ bufnr = 0 })) do
 				vim.lsp.stop_client(client.id)
@@ -98,7 +98,7 @@ local keymaps = {
 		"重启 LSP",
 	},
 	{
-		"<leader>Rd",
+		"<leader>tod",
 		"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
 		"打开/关闭 LSP 诊断",
 	},
@@ -108,7 +108,7 @@ local keymaps = {
 		"列出工作区文件夹",
 	},
 	{
-		"<leader>Ri",
+		"<leader>toi",
 		"<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>",
 		"打开/关闭内联提示",
 	},
