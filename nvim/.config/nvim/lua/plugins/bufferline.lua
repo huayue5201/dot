@@ -101,6 +101,12 @@ return {
 						highlight = { sep = { link = "WinSeparator" } },
 						separator = "┃",
 					},
+					{
+						filetype = "aerial",
+						text = " Symbols",
+						highlight = { sep = { link = "WinSeparator" } },
+						separator = "┃",
+					},
 				},
 				hover = { -- 鼠标悬停设置
 					enabled = true, -- 开启鼠标悬停

@@ -13,11 +13,6 @@
 -- 	end,
 -- })
 
--- 在保存时删除尾随空格
-vim.api.nvim_create_autocmd("BufWritePre", {
-	pattern = "*",
-	command = ":%s/\\s\\+$//e",
-})
 -- ✨ 光标恢复位置
 vim.api.nvim_create_autocmd("BufReadPost", {
 	desc = "记住最后的光标位置",
@@ -86,6 +81,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		end
 		if client:supports_method("textDocument/documentColor") then
 			vim.lsp.document_color.enable(true, args.buf)
+		end
+		if client:supports_method("textDocument/inlayHint") then
+			vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
 		end
 	end,
 })
