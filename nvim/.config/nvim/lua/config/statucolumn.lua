@@ -42,8 +42,8 @@ Statuscolumn.active = function()
 		"%l",
 		"%=",
 		"%=",
-		Statuscolumn.folds(),
-		-- "%C ",
+		-- Statuscolumn.folds(),
+		"%C ",
 	})
 end
 

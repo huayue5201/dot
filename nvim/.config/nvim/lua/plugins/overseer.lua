@@ -2,7 +2,10 @@
 
 return {
 	"stevearc/overseer.nvim",
-	ft = { "c", "rust", "lua" },
+	keys = {
+		{ "<leader>or", desc = "Run overseer" },
+		{ "<leader>ot", desc = "Overseer任务列表" },
+	},
 	config = function()
 		local overseer = require("overseer")
 		overseer.setup({

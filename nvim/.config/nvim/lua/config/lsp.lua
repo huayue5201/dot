@@ -38,11 +38,28 @@ vim.api.nvim_create_autocmd("ModeChanged", {
 	end,
 })
 
+-- 当进入插入模式时关闭内联提示
+vim.api.nvim_create_autocmd("InsertEnter", {
+	callback = function()
+		vim.lsp.inlay_hint.enable(false)
+	end,
+})
+-- 当退出插入模式时开启内联提示
+vim.api.nvim_create_autocmd("InsertLeave", {
+	callback = function()
+		vim.lsp.inlay_hint.enable(true)
+	end,
+})
+
+vim.cmd([[
+autocmd BufEnter,CursorHold,InsertLeave <buffer> lua vim.lsp.codelens.refresh({ bufnr = 0 })
+]])
+
 -- 设置按键映射
 local keymaps = {
 	{ "<leader>ld", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
 	{ "<leader>rl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭 LSP 客户端" },
-	{ "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
+	-- { "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
 	{
 		"<leader>yd",
 		function()
@@ -117,7 +134,3 @@ local keymaps = {
 for _, map in ipairs(keymaps) do
 	vim.keymap.set("n", map[1], map[2], { noremap = true, silent = true, desc = map[3] })
 end
-
-vim.cmd([[
-autocmd BufEnter,CursorHold,InsertLeave <buffer> lua vim.lsp.codelens.refresh({ bufnr = 0 })
-]])

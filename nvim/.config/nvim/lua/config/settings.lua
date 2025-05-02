@@ -89,7 +89,7 @@ vim.opt.showtabline = 2 -- 始终显示标签页栏
 vim.opt.statuscolumn = "%!v:lua.require('config.statucolumn').active()" -- 载入 statuscolumn 配置
 vim.opt.number = true --显示行号
 vim.opt.relativenumber = true -- 启用相对行号
-vim.opt.signcolumn = "yes" -- 始终显示标志列
+vim.opt.signcolumn = "yes:3" -- 始终显示标志列
 vim.opt.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换到最近使用过的标签页（如果有）
 
 -- qftf设置
@@ -112,9 +112,9 @@ vim.opt.fillchars = {
 	verthoriz = "╋", -- 垂直和水平重叠的分隔符
 	-- 折叠相关字符
 	fold = " ", -- 折叠文本填充字符
-	-- foldopen = "󰛲", -- 折叠打开时的标记字符
-	-- foldclose = "󰐖", -- 折叠关闭时的标记字符
-	-- foldsep = "│", -- 打开折叠时的中间分隔符
+	foldopen = "󰛲", -- 折叠打开时的标记字符
+	foldclose = "󰐖", -- 折叠关闭时的标记字符
+	foldsep = "│", -- 打开折叠时的中间分隔符
 	-- 其他
 	diff = "╱", -- 显示差异时，已删除的行字符
 	msgsep = "󰖰", -- 消息分隔符字符（例如用于 `display`）
