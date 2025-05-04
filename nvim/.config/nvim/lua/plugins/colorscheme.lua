@@ -6,9 +6,9 @@ return {
 	-- "oxfist/night-owl.nvim",
 	-- "EdenEast/nightfox.nvim",
 	-- "rebelot/kanagawa.nvim",
-	"tomasiser/vim-code-dark",
+	-- "tomasiser/vim-code-dark",
 	-- "shaunsingh/nord.nvim",
-	-- "folke/tokyonight.nvim",
+	"folke/tokyonight.nvim",
 	-- "loctvl842/monokai-pro.nvim",
 	lazy = false,
 	priority = 1000,
@@ -17,9 +17,9 @@ return {
 		-- vim.cmd.colorscheme("night-owl")
 		-- vim.cmd("colorscheme nordfox")
 		-- vim.cmd("colorscheme kanagawa")
-		vim.cmd.colorscheme("codedark")
+		-- vim.cmd.colorscheme("codedark")
 		-- vim.cmd([[colorscheme nord]])
-		-- vim.cmd([[colorscheme tokyonight-night]])
+		vim.cmd([[colorscheme tokyonight-night]])
 		-- require("monokai-pro").setup({
 		-- 	background_clear = { "float_win" },
 		-- })

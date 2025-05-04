@@ -98,5 +98,5 @@ vim.keymap.set("n", "`s", function()
 end)
 
 -- n/N不加入jumps列表
-vim.keymap.set("n", "n", ":keepjumps normal! n<cr>")
-vim.keymap.set("n", "N", ":keepjumps normal! N<cr>")
+vim.keymap.set("n", "n", ":keepjumps normal! n<cr>", { silent = true })
+vim.keymap.set("n", "N", ":keepjumps normal! N<cr>", { silent = true })
