@@ -93,10 +93,10 @@ return {
 
 				map("n", "<leader>gS", gitsigns.stage_buffer, { desc = "暂存整个文件的差异" })
 				map("n", "<leader>gR", gitsigns.reset_buffer, { desc = "重置整个文件的差异" })
-				map("n", "<leader>gp", gitsigns.preview_hunk, { desc = "预览当前差异区块" })
-				map("n", "<leader>gi", gitsigns.preview_hunk_inline, { desc = "内联预览当前差异区块" })
+				map("n", "<leader>glp", gitsigns.preview_hunk, { desc = "预览当前差异区块" })
+				map("n", "<leader>gli", gitsigns.preview_hunk_inline, { desc = "内联预览当前差异区块" })
 
-				map("n", "<leader>gb", function()
+				map("n", "<leader>glb", function()
 					gitsigns.blame_line({ full = true })
 				end, { desc = "显示当前行的 Git blame" })
 

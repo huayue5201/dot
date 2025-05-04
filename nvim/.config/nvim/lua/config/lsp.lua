@@ -38,16 +38,21 @@ vim.api.nvim_create_autocmd("ModeChanged", {
 	end,
 })
 
--- 当进入插入模式时关闭内联提示
 vim.api.nvim_create_autocmd("InsertEnter", {
-	callback = function()
-		vim.lsp.inlay_hint.enable(false)
-	end,
-})
--- 当退出插入模式时开启内联提示
-vim.api.nvim_create_autocmd("InsertLeave", {
-	callback = function()
-		vim.lsp.inlay_hint.enable(true)
+	desc = "Disable lsp.inlay_hint when in insert mode",
+	callback = function(args)
+		local filter = { bufnr = args.buf }
+		local inlay_hint = vim.lsp.inlay_hint
+		if inlay_hint.is_enabled(filter) then
+			inlay_hint.enable(false, filter)
+			vim.api.nvim_create_autocmd("InsertLeave", {
+				once = true,
+				desc = "Re-enable lsp.inlay_hint when leaving insert mode",
+				callback = function()
+					inlay_hint.enable(true, filter)
+				end,
+			})
+		end
 	end,
 })
 

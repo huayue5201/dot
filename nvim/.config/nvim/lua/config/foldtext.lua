@@ -52,7 +52,7 @@ end
 function Foldtext.custom_foldtext()
 	local start, stop = vim.v.foldstart - 1, vim.v.foldend - 1
 	local virt = build_virt_text(expand_tabs(vim.fn.getline(vim.v.foldstart)), start)
-	table.insert(virt, { "  ", "Delimiter" })
+	table.insert(virt, { "   ", "Delimiter" })
 
 	local diag, diaghl = fold_diagnostics(start, stop)
 	if diag ~= "" then

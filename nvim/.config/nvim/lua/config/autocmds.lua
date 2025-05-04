@@ -13,6 +13,12 @@
 -- 	end,
 -- })
 
+-- 自动删除尾随空格
+vim.api.nvim_create_autocmd("BufWritePre", {
+	pattern = "*",
+	command = "%s/\\s\\+$//e",
+})
+
 -- ✨ 光标恢复位置
 vim.api.nvim_create_autocmd("BufReadPost", {
 	desc = "记住最后的光标位置",
@@ -28,6 +34,19 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 		end
 	end,
 })
+
+-- ✨ 优化剪贴板操作
+vim.cmd([[
+function! YankShift()
+  call setreg(0, getreg('"'))
+  for i in range(9, 1, -1)
+    call setreg(i, getreg(i - 1))
+  endfor
+endfunction
+
+au TextYankPost * if v:event.operator == 'y' | call YankShift() | endif
+au TextYankPost * if v:event.operator == 'd' | call YankShift() | endif
+]])
 
 -- ✨ 复制前记录光标位置
 local cursorPreYank
@@ -83,7 +102,11 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			vim.lsp.document_color.enable(true, args.buf)
 		end
 		if client:supports_method("textDocument/inlayHint") then
-			vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
+			-- vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
+			vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+		end
+		if client:supports_method("textDocument/codeLens") then
+			vim.lsp.codelens.refresh({ bufnr = 0 })
 		end
 	end,
 })

@@ -12,29 +12,31 @@ osc52 = "CopyPaste"
 
 # 字体设置
 [font]
-size = 15 # 字体大小
+size = 19 # 字体大小
 
 [font.bold] # 粗体
 # family = "VictorMono Nerd Font"
-family = "FiraCode Nerd Font"
+# family = "FiraCode Nerd Font"
+family = "IosevkaTermSlab Nerd Font"
 # family = "GohuFont uni14 Nerd Font"
 # family = "anonymice Nerd Font"
-
 [font.italic] # 斜体
 # family = "VictorMono Nerd Font"
-family = "FiraCode Nerd Font"
+# family = "FiraCode Nerd Font"
+family = "IosevkaTermSlab Nerd Font"
 # family = "GohuFont uni14 Nerd Font"
 # family = "anonymice Nerd Font"
 
 [font.normal] # 正常
 # family = "VictorMono Nerd Font"
-family = "FiraCode Nerd Font"
+# family = "FiraCode Nerd Font"
+family = "IosevkaTermSlab Nerd Font"
 # family = "GohuFont uni14 Nerd Font"
 # family = "anonymice Nerd Font"
 
 [font.offset]
-x = 1 # 字间距
-y = 0 # 行间距
+x = 2 # 字间距
+y = 1 # 行间距
 
 # 滚动设置
 [scrolling]
@@ -58,8 +60,8 @@ dynamic_title = true       # 动态标题
 
 # 窗口尺寸
 [window.dimensions]
-columns = 100 # 窗口列数
-lines = 60    # 窗口行数
+columns = 120 # 窗口列数
+lines = 35    # 窗口行数
 
 # 窗口填充
 [window.padding]

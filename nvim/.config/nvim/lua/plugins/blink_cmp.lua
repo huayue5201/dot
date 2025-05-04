@@ -64,6 +64,7 @@ return {
 					end,
 					"fallback",
 				},
+				["<C-e>"] = { "hide", "show" },
 			},
 			-- appearance 配置：界面外观及图标显示设置
 			appearance = {
