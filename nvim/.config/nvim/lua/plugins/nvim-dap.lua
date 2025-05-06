@@ -9,8 +9,6 @@ return {
 		"igorlfs/nvim-dap-view",
 		-- https://github.com/theHamsta/nvim-dap-virtual-text
 		"theHamsta/nvim-dap-virtual-text",
-		-- https://github.com/lucaSartore/nvim-dap-exception-breakpoints
-		"lucaSartore/nvim-dap-exception-breakpoints",
 	},
 	config = function()
 		-- repl 自动补全支持
@@ -82,45 +80,6 @@ return {
 		dap.defaults.fallback.switchbuf = "usevisible,usetab,newtab"
 		dap.defaults.fallback.focus_terminal = true
 
-		local dv = require("dap-view")
-
-		dv.setup({
-			winbar = {
-				show = true,
-				sections = { "watches", "exceptions", "breakpoints", "threads", "repl" },
-				-- Must be one of the sections declared above
-				default_section = "watches",
-			},
-			windows = {
-				height = 12,
-				terminal = {
-					-- 'left'|'right'|'above'|'below': Terminal position in layout
-					position = "right",
-					-- List of debug adapters for which the terminal should be ALWAYS hidden
-					hide = { "OpenOCD" },
-					-- Hide the terminal when starting a new session
-					start_hidden = true,
-				},
-			},
-		})
-
-		-- dap.listeners.before.attach["dap-view-config"] = function()
-		-- 	dv.open()
-		-- end
-		-- dap.listeners.before.launch["dap-view-config"] = function()
-		-- 	dv.open()
-		-- end
-		-- dap.listeners.before.event_terminated["dap-view-config"] = function()
-		-- 	dv.close()
-		-- end
-		-- dap.listeners.before.event_exited["dap-view-config"] = function()
-		-- 	dv.close()
-		-- end
-
-		vim.keymap.set("n", "<leader>dv", function()
-			require("dap-view").toggle()
-		end, { desc = "切换 nvim-dap-view" })
-
 		-- vim.g.operator_map("n", "<leader>dc", dap.continue, { silent = true, desc = "继续/启动调试" })
 		-- 定义 _dap_continue 函数来调用 dap.continue
 		_G._dap_continue = function()
@@ -150,9 +109,9 @@ return {
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "设置/取消断点" })
 
-		-- vim.keymap.set("n", "<leader>B", function()
-		-- 	require("dap").set_exception_breakpoints()
-		-- end, { silent = true, desc = "异常断点" })
+		vim.keymap.set("n", "<leader>B", function()
+			require("dap").set_exception_breakpoints()
+		end, { silent = true, desc = "异常断点" })
 
 		vim.keymap.set("n", "<leader>dib", function()
 			vim.ui.select({ "条件断点", "命中次数", "日志点", "多条件断点" }, {
@@ -238,7 +197,6 @@ return {
 
 		vim.keymap.set("n", "<leader>drl", dap.run_last, { silent = true, desc = "运行上次会话" })
 
-		-- vim.keymap.set("n", "<leader>dro", dap.step_over, { silent = true, desc = "单步跳过" })
 		_G._dap_step_over = function()
 			dap.step_over()
 		end
@@ -247,7 +205,6 @@ return {
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "单步跳过" })
 
-		-- vim.keymap.set("n", "<leader>dri", dap.step_into, { silent = true, desc = "单步进入" })
 		_G._dap_step_into = function()
 			dap.step_out()
 		end
@@ -256,7 +213,6 @@ return {
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "单步进入" })
 
-		-- vim.keymap.set("n", "<leader>dru", dap.step_out, { silent = true, desc = "单步跳出" })
 		_G._dap_step_out = function()
 			dap.step_out()
 		end
@@ -265,7 +221,6 @@ return {
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "单步跳出" })
 
-		-- vim.keymap.set("n", "<leader>drb", dap.step_back, { silent = true, desc = "逆向单步" })
 		_G._dap_step_back = function()
 			dap.step_back()
 		end
@@ -274,7 +229,6 @@ return {
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "逆向单步" })
 
-		-- vim.keymap.set("n", "<leader>drc", dap.run_to_cursor, { silent = true, desc = "运行到光标" })
 		_G._dap_run_to_cursor = function()
 			dap.run_to_cursor()
 		end
@@ -289,7 +243,6 @@ return {
 
 		vim.keymap.set("n", "<leader>dd", dap.pause, { silent = true, desc = "暂停线程" })
 
-		-- vim.keymap.set("n", "<leader>dgk", dap.up, { silent = true, desc = "上一个断点" })
 		_G._dap_up = function()
 			dap.up()
 		end
@@ -298,7 +251,6 @@ return {
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "上一个断点" })
 
-		-- vim.keymap.set("n", "<leader>dgj", dap.down, { silent = true, desc = "下一个断点" })
 		_G._dap_down = function()
 			dap.down()
 		end
@@ -323,7 +275,7 @@ return {
 			end)
 		end, { silent = true, desc = "跳转到行" })
 
-		vim.keymap.set("n", "<leader>dR", function()
+		vim.keymap.set("n", "<leader>dlr", function()
 			dap.repl.toggle()
 		end, { silent = true, desc = "切换 REPL" })
 
@@ -337,27 +289,60 @@ return {
 
 		local widgets = require("dap.ui.widgets")
 
-		-- vim.keymap.set("n", "<leader>dlk", function()
+		-- _G._dap_hover = function()
 		-- 	widgets.hover(nil, { border = "rounded" })
-		-- end, { desc = "查看变量" })
-		_G._dap_hover = function()
-			widgets.hover(nil, { border = "rounded" })
+		-- end
+		-- vim.keymap.set("n", "<leader>dlk", function()
+		-- 	vim.o.operatorfunc = "v:lua._dap_hover" -- 使用一个正确的函数名
+		-- 	vim.cmd.normal("g@l") -- 执行操作符
+		-- end, { silent = true, desc = "查看变量" })
+
+		local api = vim.api
+		local keymap_restore = {}
+		dap.listeners.after["event_initialized"]["me"] = function()
+			for _, buf in pairs(api.nvim_list_bufs()) do
+				local keymaps = api.nvim_buf_get_keymap(buf, "n")
+				for _, keymap in pairs(keymaps) do
+					if keymap.lhs == "K" then
+						table.insert(keymap_restore, keymap)
+						api.nvim_buf_del_keymap(buf, "n", "K")
+					end
+				end
+			end
+			api.nvim_set_keymap("n", "K", '<Cmd>lua require("dap.ui.widgets").hover()<CR>', { silent = true })
 		end
-		vim.keymap.set("n", "<leader>dlk", function()
-			vim.o.operatorfunc = "v:lua._dap_hover" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "查看变量" })
+		dap.listeners.after["event_terminated"]["me"] = function()
+			for _, keymap in pairs(keymap_restore) do
+				if keymap.rhs then
+					api.nvim_buf_set_keymap(
+						keymap.buffer,
+						keymap.mode,
+						keymap.lhs,
+						keymap.rhs,
+						{ silent = keymap.silent == 1 }
+					)
+				elseif keymap.callback then
+					vim.keymap.set(
+						keymap.mode,
+						keymap.lhs,
+						keymap.callback,
+						{ buffer = keymap.buffer, silent = keymap.silent == 1 }
+					)
+				end
+			end
+			keymap_restore = {}
+		end
 
-		-- local sidebar = nil
-		-- vim.keymap.set("n", "<leader>dlc", function()
-		-- 	if not sidebar then
-		-- 		sidebar = widgets.sidebar(widgets.scopes, { border = "rounded" ，width = 40})
-		-- 	end
-		-- 	sidebar.toggle()
-		-- end, { desc = "查看作用域" })
+		vim.keymap.set("n", "<leader>dlp", function()
+			widgets.preview("some_variable", { listener = { "changed", "cursor_moved" } })
+		end, { desc = "查看达式值" })
 
+		local sidebar = nil
 		vim.keymap.set("n", "<leader>dlc", function()
-			widgets.centered_float(widgets.scopes, { border = "rounded" })
+			if not sidebar then
+				sidebar = widgets.sidebar(widgets.scopes, { width = 45, winblend = 15, signcolumn = "no" })
+			end
+			sidebar.toggle()
 		end, { desc = "查看作用域" })
 
 		vim.keymap.set("n", "<leader>dls", function()
@@ -365,7 +350,12 @@ return {
 		end, { desc = "查看调试会话" })
 
 		vim.keymap.set("n", "<leader>dle", function()
-			widgets.cursor_float(widgets.expression, { border = "rounded" })
+			local winopts = {
+				width = 45, -- 窗口宽度
+				height = 6, -- 窗口高度
+				border = "double", -- 双线边框
+			}
+			widgets.centered_float(widgets.expression, winopts)
 		end, { desc = "查看表达式值" })
 
 		vim.keymap.set("n", "<leader>dlt", function()
@@ -377,12 +367,13 @@ return {
 		end, { desc = "查看堆栈" })
 
 		vim.api.nvim_create_autocmd("FileType", {
-			pattern = "dap-repl",
+			pattern = { "dap-repl", "dap-view-term", "dap-view" },
 			group = vim.api.nvim_create_augroup("dapui_keymaps", { clear = true }),
 			desc = "Fix and add insert-mode keymaps for dap-repl",
 			callback = function()
 				vim.cmd("syntax on") -- 启用语法高亮（保险）
 				vim.cmd("runtime! syntax/rust.vim") -- 手动加载 Rust 的语法文件
+				vim.opt.signcolumn = "no" -- 禁用标志列
 				-- 向下浏览补全项
 				vim.keymap.set("i", "<tab>", function()
 					if vim.fn.pumvisible() == 1 then
@@ -409,8 +400,6 @@ return {
 				end, { buffer = true, expr = true, desc = "Confirm completion or Insert newline in dap-repl" })
 			end,
 		})
-
-		-- vim.keymap.set("n", "<leader>du", dap.run, { silent = true, desc = "启动新调试会话" })
 
 		local history = {}
 		vim.keymap.set("n", "<leader>du", function()

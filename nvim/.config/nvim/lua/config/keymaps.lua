@@ -57,6 +57,43 @@ vim.keymap.set("i", "<tab>", function()
 end, { desc = "insjump" })
 
 vim.keymap.set("n", "<Leader>raw", function()
+	-- 获取当前窗口的 ID 和缓冲区
+	local current_win = vim.api.nvim_get_current_win()
+	local current_buf = vim.api.nvim_win_get_buf(current_win)
+	local current_dir = vim.fn.fnamemodify(vim.fn.bufname(current_buf), ":p:h") -- 获取当前缓冲区的目录
+
+	-- 遍历所有窗口
+	for _, win_id in ipairs(vim.api.nvim_list_wins()) do
+		if win_id ~= current_win then
+			local buf_id = vim.api.nvim_win_get_buf(win_id)
+			local buf_dir = vim.fn.fnamemodify(vim.fn.bufname(buf_id), ":p:h") -- 获取窗口缓冲区的目录
+
+			-- 如果缓冲区不在当前目录，则删除该窗口
+			if buf_dir ~= current_dir then
+				local filetype = vim.api.nvim_buf_get_option(buf_id, "filetype")
+				local buftype = vim.api.nvim_buf_get_option(buf_id, "buftype")
+				local close_commands = require("config.utils").close_commands
+				local command = close_commands[filetype ~= "" and filetype or buftype]
+
+				-- 执行与关闭缓冲区相关的命令
+				if command then
+					-- 如果是函数，执行函数；否则执行命令字符串
+					if type(command) == "function" then
+						command() -- 执行函数
+					else
+						vim.cmd(command) -- 执行命令字符串
+					end
+				else
+					-- 默认执行 bdelete
+					vim.cmd(string.format("bdelete %d", buf_id))
+				end
+			end
+		end
+	end
+	print("Deleted windows outside the current directory!")
+end, { silent = true, desc = "删除当前窗口外的所有窗口" })
+
+vim.keymap.set("n", "<Leader>raw", function()
 	local current_win = vim.api.nvim_get_current_win()
 	local current_buf = vim.api.nvim_win_get_buf(current_win)
 	local current_dir = vim.fn.fnamemodify(vim.fn.bufname(current_buf), ":p:h") -- 获取当前缓冲区的目录
@@ -74,29 +111,45 @@ vim.keymap.set("n", "<Leader>raw", function()
 	print("Deleted windows outside the current directory!")
 end, { silent = true, desc = "删除当前窗口外的所有窗口" })
 
--- All the ways to start a search, with a description
-local mark_search_keys = {
-	["/"] = "Search forward",
-	["?"] = "Search backward",
-	["*"] = "Search current word (forward)",
-	["#"] = "Search current word (backward)",
-	["£"] = "Search current word (backward)",
-	["g*"] = "Search current word (forward, not whole word)",
-	["g#"] = "Search current word (backward, not whole word)",
-	["g£"] = "Search current word (backward, not whole word)",
-}
-
--- Before starting the search, set a mark `s`
-for key, desc in pairs(mark_search_keys) do
-	vim.keymap.set("n", key, "ms" .. key, { desc = desc })
-end
-
--- Clear search highlight when jumping back to beginning
-vim.keymap.set("n", "`s", function()
-	vim.cmd("normal! `s")
-	vim.cmd.nohlsearch()
-end)
-
 -- n/N不加入jumps列表
 vim.keymap.set("n", "n", ":keepjumps normal! n<cr>", { silent = true })
 vim.keymap.set("n", "N", ":keepjumps normal! N<cr>", { silent = true })
+
+-- vim.keymap.set(
+-- 	{ "n", "t" },
+-- 	"<C-t>",
+-- 	(function()
+-- 		local buf, win = nil, nil
+-- 		local was_insert = true
+-- 		local cfg = function()
+-- 			return {
+-- 				relative = "editor",
+-- 				width = math.floor(vim.o.columns * 0.8),
+-- 				height = math.floor(vim.o.lines * 0.8),
+-- 				row = math.floor(vim.o.lines * 0.1),
+-- 				col = math.floor(vim.o.columns * 0.1),
+-- 				style = "minimal",
+-- 				border = "rounded",
+-- 			}
+-- 		end
+-- 		return function()
+-- 			buf = (buf and vim.api.nvim_buf_is_valid(buf)) and buf or nil
+-- 			win = (win and vim.api.nvim_win_is_valid(win)) and win or nil
+-- 			if not buf and not win then
+-- 				vim.cmd("split | terminal")
+-- 				buf = vim.api.nvim_get_current_buf()
+-- 				vim.api.nvim_win_close(vim.api.nvim_get_current_win(), true)
+-- 				win = vim.api.nvim_open_win(buf, true, cfg())
+-- 			elseif not win and buf then
+-- 				win = vim.api.nvim_open_win(buf, true, cfg())
+-- 			elseif win then
+-- 				was_insert = vim.api.nvim_get_mode().mode == "t"
+-- 				return vim.api.nvim_win_close(win, true)
+-- 			end
+-- 			if was_insert then
+-- 				vim.cmd("startinsert")
+-- 			end
+-- 		end
+-- 	end)(),
+-- 	{ desc = "Toggle float terminal" }
+-- )

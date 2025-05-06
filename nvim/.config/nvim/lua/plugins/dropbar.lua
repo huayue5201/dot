@@ -14,7 +14,7 @@ return {
 		dropbar.setup({
 			menu = {
 				win_configs = {
-					border = "shadow",
+					border = "rounded",
 				},
 			},
 			icons = {

@@ -2,7 +2,7 @@
 -- https://github.com/neovim/nvim-lspconfig/tree/16666f1bc40f69ce05eb1883fd8c0d076284d8a5/lua/lspconfig/configs
 
 -- 设置诊断的全局配置
-local icons = require("config.utils").icons.diagnostic
+local icons = require("utils.utils").icons.diagnostic
 vim.diagnostic.config({
 	virtual_text = false,
 	severity_sort = true,
@@ -115,7 +115,9 @@ local keymaps = {
 				vim.lsp.stop_client(client.id)
 			end
 			-- 重新加载当前缓冲区
-			vim.cmd("edit")
+			vim.defer_fn(function()
+				vim.cmd("edit")
+			end, 100)
 		end,
 		"重启 LSP",
 	},
