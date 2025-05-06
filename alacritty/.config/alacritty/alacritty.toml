@@ -12,25 +12,25 @@ osc52 = "CopyPaste"
 
 # 字体设置
 [font]
-size = 19 # 字体大小
+size = 16 # 字体大小
 
 [font.bold] # 粗体
 # family = "VictorMono Nerd Font"
-# family = "FiraCode Nerd Font"
-family = "IosevkaTermSlab Nerd Font"
+family = "FiraCode Nerd Font"
+# family = "IosevkaTermSlab Nerd Font"
 # family = "GohuFont uni14 Nerd Font"
 # family = "anonymice Nerd Font"
 [font.italic] # 斜体
 # family = "VictorMono Nerd Font"
-# family = "FiraCode Nerd Font"
-family = "IosevkaTermSlab Nerd Font"
+family = "FiraCode Nerd Font"
+# family = "IosevkaTermSlab Nerd Font"
 # family = "GohuFont uni14 Nerd Font"
 # family = "anonymice Nerd Font"
 
 [font.normal] # 正常
 # family = "VictorMono Nerd Font"
-# family = "FiraCode Nerd Font"
-family = "IosevkaTermSlab Nerd Font"
+family = "FiraCode Nerd Font"
+# family = "IosevkaTermSlab Nerd Font"
 # family = "GohuFont uni14 Nerd Font"
 # family = "anonymice Nerd Font"
 

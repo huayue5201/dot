@@ -1,18 +1,14 @@
 local Input = require("nui.input")
 local event = require("nui.utils.autocmd").event
 
--- 自定义禁用的 buftype 和 filetype
-local disabled_buftypes = {
-	["nofile"] = true,
-	["terminal"] = true,
-	["prompt"] = true,
-}
+-- 禁用的 buftype / filetype
+local disabled_buftypes = { terminal = true, prompt = true }
+local disabled_filetypes = { TelescopePrompt = true, alpha = true }
 
-local disabled_filetypes = {
-	["TelescopePrompt"] = true,
-	["alpha"] = true,
-}
+-- 历史输入存储
+local input_history = {}
 
+-- 获取提示文本
 local function get_prompt_text(prompt, default_prompt)
 	local prompt_text = prompt or default_prompt
 	if prompt_text:sub(-1) == ":" then
@@ -21,27 +17,32 @@ local function get_prompt_text(prompt, default_prompt)
 	return prompt_text
 end
 
+-- 自定义 Input 类
 local UIInput = Input:extend("UIInput")
 
 function UIInput:init(opts, on_done)
 	local border_top_text = get_prompt_text(opts.prompt, "[Input]")
-	local default_value = tostring(opts.default or "")
+	local default_value = tostring(opts.default or input_history[opts.prompt] or "")
+
+	local relative_mode = opts.relative or "cursor"
+	local border_style = opts.border_style or "rounded"
+	local winhighlight = opts.winhighlight or "NormalFloat:Normal,FloatBorder:FloatBorder"
 
 	UIInput.super.init(self, {
-		relative = "cursor",
+		relative = relative_mode,
 		position = { row = 1, col = 0 },
 		size = {
 			width = math.max(40, vim.api.nvim_strwidth(default_value)),
 		},
 		border = {
-			style = "rounded",
+			style = border_style,
 			text = {
 				top = border_top_text,
 				top_align = "left",
 			},
 		},
 		win_options = {
-			winhighlight = "NormalFloat:Normal,FloatBorder:Normal",
+			winhighlight = winhighlight,
 		},
 	}, {
 		default_value = default_value,
@@ -49,6 +50,9 @@ function UIInput:init(opts, on_done)
 			on_done(nil)
 		end,
 		on_submit = function(value)
+			if opts.prompt then
+				input_history[opts.prompt] = value -- 存储输入历史
+			end
 			on_done(value)
 		end,
 	})
@@ -66,12 +70,12 @@ function UIInput:init(opts, on_done)
 	end, { noremap = true, nowait = true })
 end
 
+-- 实例控制变量
 local input_ui
 
 vim.ui.input = function(opts, on_confirm)
-	assert(type(on_confirm) == "function", "missing on_confirm function")
+	assert(type(on_confirm) == "function", "Missing on_confirm callback")
 
-	-- 检查当前缓冲区是否在禁用列表中
 	local buftype = vim.api.nvim_get_option_value("buftype", { buf = 0 })
 	local filetype = vim.api.nvim_get_option_value("filetype", { buf = 0 })
 
@@ -81,7 +85,7 @@ vim.ui.input = function(opts, on_confirm)
 	end
 
 	if input_ui then
-		vim.notify("busy: another input is pending!", vim.log.levels.WARN)
+		vim.notify("Busy: another input is pending!", vim.log.levels.WARN)
 		return
 	end
 

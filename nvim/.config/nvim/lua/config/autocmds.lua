@@ -86,12 +86,59 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
+-- 固定窗口尺寸配置：支持 filetype 和 buftype
+local fixed_sizes = {
+	filetype = {
+		["dap-view"] = { height = 13 },
+		["dap-view-trem"] = { height = 13 },
+		-- 可以为类似的 filetype 提供统一的配置
+		["dap-scopes"] = { width = 45 },
+		["aerial"] = { width = 35 },
+		-- ["dap-watches"] = { width = 45 },
+		-- ["qf"] = { height = 10, width = 80 },
+		-- ["help"] = { height = 20, width = 90 },
+	},
+	buftype = {
+		-- ["terminal"] = { height = 12 },
+		-- ["nofile"] = { height = 8 },
+		-- ["quickfix"] = { height = 10, width = 80 },
+	},
+}
+vim.api.nvim_create_autocmd("WinResized", {
+	callback = function()
+		local win_id = vim.api.nvim_get_current_win()
+		local ft = vim.bo.filetype
+		local bt = vim.bo.buftype
+		local size = nil
+		-- 先根据 filetype 进行匹配
+		for prefix, dimensions in pairs(fixed_sizes.filetype) do
+			if ft:match("^" .. prefix) then
+				size = dimensions
+				break
+			end
+		end
+		-- 如果没有找到 filetype 的匹配，再根据 buftype 进行匹配
+		if not size then
+			size = fixed_sizes.buftype[bt]
+		end
+		-- 如果找到匹配的尺寸设置，应用它
+		if size then
+			if size.height then
+				vim.api.nvim_win_set_height(win_id, size.height)
+			end
+			if size.width then
+				vim.api.nvim_win_set_width(win_id, size.width)
+			end
+		end
+	end,
+})
+
 -- ✨ LSP 启动时绑定快捷键与功能
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
 	callback = function(args)
 		local client = vim.lsp.get_client_by_id(args.data.client_id)
-
+		-- print("LspAttach", client.name)
 		require("config.lsp")
 
 		if client:supports_method("textDocument/foldingRange") then
@@ -116,7 +163,7 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	desc = "用 q 关闭窗口或删除缓冲区",
 	pattern = "*",
 	callback = function()
-		local close_commands = require("config.utils").close_commands
+		local close_commands = require("utils.utils").close_commands
 		local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
 		local command = close_commands[current_type]
 		if command then

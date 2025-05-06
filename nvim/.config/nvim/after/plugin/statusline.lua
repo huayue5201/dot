@@ -42,7 +42,7 @@ end
 function Statusline.lsp_diagnostics()
 	local count = vim.diagnostic.get(0)
 	local parts = {}
-	local icons = require("config.utils").icons.diagnostic
+	local icons = require("utils.utils").icons.diagnostic
 	local severity_map = {
 		[vim.diagnostic.severity.ERROR] = "ERROR",
 		[vim.diagnostic.severity.WARN] = "WARN",

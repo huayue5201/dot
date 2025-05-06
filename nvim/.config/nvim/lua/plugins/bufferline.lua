@@ -10,13 +10,13 @@ return {
 			return _G.__cached_neo_tree_selector
 		end
 
-		local icons = require("config.utils").icons.diagnostic
+		local icons = require("utils.utils").icons.diagnostic
 		require("bufferline").setup({
 			options = {
 				separator_style = "thin",
 				custom_filter = function(buf) -- 过滤qf缓冲区
-					local excluded_filetypes = { "qf", "help", "terminal", "fugitive" }
-					local excluded_buftypes = { "terminal", "acwrite", "nofile" }
+					local excluded_filetypes = { "qf", "help", "fugitive" }
+					local excluded_buftypes = { "acwrite", "nofile" }
 					local filetype = vim.bo[buf].filetype
 					local buftype = vim.bo[buf].buftype
 					return not vim.tbl_contains(excluded_filetypes, filetype)

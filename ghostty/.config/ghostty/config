@@ -23,7 +23,7 @@ custom-shader-animation = true
 window-decoration = auto
 
 # 设置窗口高度为
-window-height = 36
+window-height = 38
 
 # 设置窗口宽度为
 window-width = 145
