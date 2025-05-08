@@ -4,6 +4,7 @@ return {
 	"nvim-treesitter/nvim-treesitter-context",
 	dependencies = "nvim-treesitter/nvim-treesitter",
 	event = "BufReadPost",
+	-- event = "VeryLazy",
 	config = function()
 		-- 生成一个更亮一点的颜色（你可以用调色函数）
 		vim.api.nvim_set_hl(0, "TreesitterContext", { bg = "#2a2a38", fg = "#c0c0c0" })

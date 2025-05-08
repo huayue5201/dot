@@ -11,6 +11,7 @@ return {
 		end
 
 		local icons = require("utils.utils").icons.diagnostic
+
 		require("bufferline").setup({
 			options = {
 				separator_style = "thin",

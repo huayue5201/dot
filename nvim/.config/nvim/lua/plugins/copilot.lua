@@ -12,8 +12,8 @@ return {
 	config = function()
 		require("copilot").setup({
 			panel = {
-				enabled = false,
-				auto_refresh = true,
+				enabled = true,
+				auto_refresh = false,
 				keymap = {
 					jump_prev = "[[",
 					jump_next = "]]",
@@ -33,9 +33,9 @@ return {
 				debounce = 75,
 				trigger_on_accept = true,
 				keymap = {
-					accept = "<M-j>",
-					accept_word = "<M-l>",
-					accept_line = false,
+					accept = "<M-p>",
+					accept_word = "<M-w>",
+					accept_line = "<M-l>",
 					next = "<M-]>",
 					prev = "<M-[>",
 					dismiss = "<C-]>",
@@ -47,7 +47,7 @@ return {
 			require("copilot.panel").toggle()
 		end, { desc = "Copilot Panel" })
 
-		vim.keymap.set("n", "<leader>at", function()
+		vim.keymap.set("n", "<leader>toc", function()
 			require("copilot.suggestion").toggle_auto_trigger()
 		end, { desc = "Copilot Suggestion" })
 

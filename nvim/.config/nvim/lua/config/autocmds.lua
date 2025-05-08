@@ -48,91 +48,6 @@ au TextYankPost * if v:event.operator == 'y' | call YankShift() | endif
 au TextYankPost * if v:event.operator == 'd' | call YankShift() | endif
 ]])
 
--- ✨ 复制前记录光标位置
-local cursorPreYank
-vim.keymap.set({ "n", "x" }, "y", function()
-	cursorPreYank = vim.api.nvim_win_get_cursor(0)
-	return "y"
-end, { expr = true })
-vim.keymap.set("n", "Y", function()
-	cursorPreYank = vim.api.nvim_win_get_cursor(0)
-	return "y$"
-end, { expr = true })
-
--- ✨ 高亮复制 & 光标恢复 & 剪贴板同步
-vim.api.nvim_create_autocmd("TextYankPost", {
-	pattern = "*",
-	callback = function()
-		vim.highlight.on_yank({ timeout = 330 })
-
-		if vim.v.event.operator == "y" and cursorPreYank then
-			vim.schedule(function()
-				vim.api.nvim_win_set_cursor(0, cursorPreYank)
-				cursorPreYank = nil
-			end)
-		end
-
-		if vim.fn.has("clipboard") == 1 then
-			local reg_type = vim.fn.getregtype('"')
-			if reg_type ~= "+" then
-				local clipboard_content = vim.fn.getreg('"')
-				if clipboard_content ~= "" then
-					vim.defer_fn(function()
-						vim.fn.setreg("+", clipboard_content)
-					end, 20)
-				end
-			end
-		end
-	end,
-})
-
--- 固定窗口尺寸配置：支持 filetype 和 buftype
-local fixed_sizes = {
-	filetype = {
-		["dap-view"] = { height = 13 },
-		["dap-view-trem"] = { height = 13 },
-		-- 可以为类似的 filetype 提供统一的配置
-		["dap-scopes"] = { width = 45 },
-		["aerial"] = { width = 35 },
-		-- ["dap-watches"] = { width = 45 },
-		-- ["qf"] = { height = 10, width = 80 },
-		-- ["help"] = { height = 20, width = 90 },
-	},
-	buftype = {
-		-- ["terminal"] = { height = 12 },
-		-- ["nofile"] = { height = 8 },
-		-- ["quickfix"] = { height = 10, width = 80 },
-	},
-}
-vim.api.nvim_create_autocmd("WinResized", {
-	callback = function()
-		local win_id = vim.api.nvim_get_current_win()
-		local ft = vim.bo.filetype
-		local bt = vim.bo.buftype
-		local size = nil
-		-- 先根据 filetype 进行匹配
-		for prefix, dimensions in pairs(fixed_sizes.filetype) do
-			if ft:match("^" .. prefix) then
-				size = dimensions
-				break
-			end
-		end
-		-- 如果没有找到 filetype 的匹配，再根据 buftype 进行匹配
-		if not size then
-			size = fixed_sizes.buftype[bt]
-		end
-		-- 如果找到匹配的尺寸设置，应用它
-		if size then
-			if size.height then
-				vim.api.nvim_win_set_height(win_id, size.height)
-			end
-			if size.width then
-				vim.api.nvim_win_set_width(win_id, size.width)
-			end
-		end
-	end,
-})
-
 -- ✨ LSP 启动时绑定快捷键与功能
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
@@ -179,58 +94,96 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	end,
 })
 
--- ✨ 删除 quickfix / loclist 条目工具函数
-local function delete_qf_items()
-	local is_qf = vim.fn.getwininfo(vim.fn.win_getid())[1].quickfix == 1
-	local qflist = is_qf and vim.fn.getqflist() or vim.fn.getloclist(0)
-	if not qflist or #qflist == 0 then
-		return
-	end
-
-	local mode = vim.api.nvim_get_mode().mode
-	local start_idx, count
-	if mode == "n" then
-		start_idx = vim.fn.line(".")
-		count = vim.v.count > 0 and vim.v.count or 1
-	else
-		local v_start_idx = vim.fn.line("v")
-		local v_end_idx = vim.fn.line(".")
-		start_idx = math.min(v_start_idx, v_end_idx)
-		count = math.abs(v_end_idx - v_start_idx) + 1
-		vim.cmd("normal! <esc>")
-	end
-
-	if start_idx < 1 or start_idx > #qflist then
-		return
-	end
-
-	for _ = 1, count do
-		if start_idx <= #qflist then
-			table.remove(qflist, start_idx)
-		end
-	end
-
-	if is_qf then
-		vim.fn.setqflist(qflist, "r")
-	else
-		vim.fn.setloclist(0, qflist, "r")
-	end
-
-	local new_pos = math.min(start_idx, #qflist)
-	if new_pos > 0 then
-		vim.fn.cursor(new_pos, 1)
-	end
-end
-
--- ✨ Quickfix 窗口定制
-vim.api.nvim_create_autocmd("FileType", {
-	group = vim.api.nvim_create_augroup("QuickfixTweaks", { clear = true }),
-	pattern = "qf",
-	desc = "Quickfix tweaks",
+-- -- ✨ 复制前记录光标位置
+-- local cursorPreYank
+-- vim.keymap.set({ "n", "x" }, "y", function()
+-- 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
+-- 	return "y"
+-- end, { expr = true })
+-- vim.keymap.set("n", "Y", function()
+-- 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
+-- 	return "y$"
+-- end, { expr = true })
+--
+-- -- ✨ 高亮复制 & 光标恢复 & 剪贴板同步
+vim.api.nvim_create_autocmd("TextYankPost", {
+	pattern = "*",
 	callback = function()
-		vim.api.nvim_set_option_value("buflisted", false, { buf = 0 })
-		vim.keymap.set("n", "<ESC>", "<CMD>cclose<CR>", { buffer = true, silent = true })
-		vim.keymap.set("n", "dd", delete_qf_items, { buffer = true })
-		vim.keymap.set("x", "d", delete_qf_items, { buffer = true })
+		-- 		vim.hl.on_yank({ timeout = 330 })
+		--
+		-- 		if vim.v.event.operator == "y" and cursorPreYank then
+		-- 			vim.schedule(function()
+		-- 				vim.api.nvim_win_set_cursor(0, cursorPreYank)
+		-- 				cursorPreYank = nil
+		-- 			end)
+		-- 		end
+		--
+		if vim.fn.has("clipboard") == 1 then
+			local reg_type = vim.fn.getregtype('"')
+			if reg_type ~= "+" then
+				local clipboard_content = vim.fn.getreg('"')
+				if clipboard_content ~= "" then
+					vim.defer_fn(function()
+						vim.fn.setreg("+", clipboard_content)
+					end, 20)
+				end
+			end
+		end
 	end,
 })
+
+-- -- ✨ 删除 quickfix / loclist 条目工具函数
+-- local function delete_qf_items()
+-- 	local is_qf = vim.fn.getwininfo(vim.fn.win_getid())[1].quickfix == 1
+-- 	local qflist = is_qf and vim.fn.getqflist() or vim.fn.getloclist(0)
+-- 	if not qflist or #qflist == 0 then
+-- 		return
+-- 	end
+--
+-- 	local mode = vim.api.nvim_get_mode().mode
+-- 	local start_idx, count
+-- 	if mode == "n" then
+-- 		start_idx = vim.fn.line(".")
+-- 		count = vim.v.count > 0 and vim.v.count or 1
+-- 	else
+-- 		local v_start_idx = vim.fn.line("v")
+-- 		local v_end_idx = vim.fn.line(".")
+-- 		start_idx = math.min(v_start_idx, v_end_idx)
+-- 		count = math.abs(v_end_idx - v_start_idx) + 1
+-- 		vim.cmd("normal! <esc>")
+-- 	end
+--
+-- 	if start_idx < 1 or start_idx > #qflist then
+-- 		return
+-- 	end
+--
+-- 	for _ = 1, count do
+-- 		if start_idx <= #qflist then
+-- 			table.remove(qflist, start_idx)
+-- 		end
+-- 	end
+--
+-- 	if is_qf then
+-- 		vim.fn.setqflist(qflist, "r")
+-- 	else
+-- 		vim.fn.setloclist(0, qflist, "r")
+-- 	end
+--
+-- 	local new_pos = math.min(start_idx, #qflist)
+-- 	if new_pos > 0 then
+-- 		vim.fn.cursor(new_pos, 1)
+-- 	end
+-- end
+--
+-- -- ✨ Quickfix 窗口定制
+-- vim.api.nvim_create_autocmd("FileType", {
+-- 	group = vim.api.nvim_create_augroup("QuickfixTweaks", { clear = true }),
+-- 	pattern = "qf",
+-- 	desc = "Quickfix tweaks",
+-- 	callback = function()
+-- 		vim.api.nvim_set_option_value("buflisted", false, { buf = 0 })
+-- 		vim.keymap.set("n", "<ESC>", "<CMD>cclose<CR>", { buffer = true, silent = true })
+-- 		vim.keymap.set("n", "dd", delete_qf_items, { buffer = true })
+-- 		vim.keymap.set("x", "d", delete_qf_items, { buffer = true })
+-- 	end,
+-- })

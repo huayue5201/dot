@@ -2,7 +2,7 @@
 local fd_cmd = "fd --color=never --full-path --type file --hidden --exclude=.git"
 
 -- grep 异步搜索并打开 quickfix
-vim.keymap.set("n", "<leader>/", function()
+vim.keymap.set("n", "<c-/>", function()
 	vim.ui.input({ prompt = "rg pattern: " }, function(pattern)
 		if not pattern or pattern == "" then
 			return
@@ -31,7 +31,7 @@ vim.keymap.set("n", "<leader>/", function()
 end, { desc = "rawdog: grep search" })
 
 -- fd 异步搜索并使用 ui.select 选择文件
-vim.keymap.set("n", "<C-p>", function()
+vim.keymap.set("n", "<A-/>", function()
 	vim.ui.input({ prompt = "fd pattern: " }, function(file_pattern)
 		if not file_pattern or file_pattern == "" then
 			return

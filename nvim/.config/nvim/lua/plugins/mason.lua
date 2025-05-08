@@ -1,7 +1,7 @@
 -- https://github.com/williamboman/mason.nvim
 
 return {
-	"williamboman/mason.nvim",
+	"mason-org/mason.nvim",
 	ft = { "lua", "tmol", "rust", "c" },
 	cmd = "Mason",
 	config = function()

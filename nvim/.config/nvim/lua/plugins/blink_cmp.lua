@@ -23,7 +23,7 @@ return {
 				list = { selection = { preselect = false, auto_insert = true } },
 				-- 补全菜单设置：
 				menu = {
-					border = "shadow",
+					border = "rounded",
 					draw = {
 						columns = {
 							{ "kind_icon" }, -- 显示补全项的图标
@@ -38,7 +38,7 @@ return {
 				documentation = {
 					auto_show = true, -- 自动显示补全文档预览
 					auto_show_delay_ms = 500, -- 延迟 500 毫秒后自动弹出文档窗口
-					window = { border = "shadow" },
+					window = { border = "rounded" },
 				},
 			},
 			-- keymap 配置：定义补全键映射及其行为
@@ -78,7 +78,7 @@ return {
 			-- 签名帮助配置：启用并设置签名提示窗口的外观
 			signature = {
 				enabled = true, -- 启用签名提示功能
-				window = { border = "shadow" },
+				window = { border = "rounded" },
 			},
 			-- 补全源配置：定义默认启用的补全提供者
 			sources = {

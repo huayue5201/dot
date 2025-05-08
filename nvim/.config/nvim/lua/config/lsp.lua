@@ -29,7 +29,6 @@ vim.lsp.util.open_floating_preview = function(contents, syntax, opts, ...)
 	return orig_util_open_floating_preview(contents, syntax, opts, ...)
 end
 
--- 插入模式下禁用/启用诊断信息
 vim.api.nvim_create_autocmd("ModeChanged", {
 	pattern = { "n:i", "v:s", "i:n" },
 	desc = "插入/选择模式禁用/启用诊断",
