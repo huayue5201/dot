@@ -1,12 +1,12 @@
 -- https://github.com/tomblind/local-lua-debugger-vscode
 
 return {
-	stup = function(dap)
+	setup = function(dap)
 		dap.adapters["local-lua"] = {
 			type = "executable",
 			command = "node",
 			args = {
-				"/absolute/path/to/local-lua-debugger-vscode/extension/debugAdapter.js",
+				"~/.local/share/nvim/mason/packages/local-lua-debugger-vscode/extension/extension/debugAdapter.js",
 			},
 			enrich_config = function(config, on_config)
 				if not config["extensionPath"] then

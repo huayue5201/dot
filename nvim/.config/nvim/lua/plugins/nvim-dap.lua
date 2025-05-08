@@ -36,27 +36,39 @@ return {
 			vim.fn.sign_define(name, opts)
 		end
 
-		-- require("dap.ext.vscode").load_launchjs() -- 和vscode共用配置
 		local dap = require("dap")
 
-		-- 加载模块化配置
-		local modules = {
-			require("dap.adapters.probe_rs"),
-			require("dap.configs.rust"),
-			require("dap.listeners.probe_rs"),
-		}
-
-		for _, mod in ipairs(modules) do
-			mod.setup(dap)
+		local module_cache = {}
+		local function load_modules_from_dir(dir)
+			if not module_cache[dir] then
+				local path = vim.fn.stdpath("config") .. "/" .. dir
+				module_cache[dir] = vim.fn.globpath(path, "*.lua", false, true)
+			end
+			for _, file in ipairs(module_cache[dir]) do
+				local module_name =
+					file:match("(.+).lua$"):gsub(vim.pesc(vim.fn.stdpath("config") .. "/"), ""):gsub("/", ".")
+				local ok, mod = pcall(require, module_name)
+				if ok then
+					if mod.setup then
+						mod.setup(dap)
+					end
+				else
+				end
+			end
 		end
+		-- 加载模块
+		load_modules_from_dir("lua/dap/adapters")
+		load_modules_from_dir("lua/dap/configs")
+		load_modules_from_dir("lua/dap/listeners")
 
 		--  nvim-dap配置
 		local dap_defaults = {
-			switchbuf = "useopen", -- 在调试时使用打开的缓冲区
+			switchbuf = "usevisible,usetab,newtab", -- 在调试时使用打开的缓冲区
 			terminal_win_cmd = "belowright new", -- 设置终端窗口在底部打开
 			focus_terminal = true, -- 打开终端时将焦点切换到终端
 			autostart = "nluarepl", -- 自动启动 Lua REPL
 			console = "integratedTerminal", -- 控制台设置
+			stepping_granularity = "statement", -- `line` or `instructions`
 			external_terminal = {
 				command = "/usr/bin/alacritty", -- 外部终端的命令路径
 				args = { "-e" }, -- 外部终端的参数
@@ -67,20 +79,6 @@ return {
 			dap.defaults.fallback[key] = value
 		end
 
-		-- Setup
-
-		-- Decides when and how to jump when stopping at a breakpoint
-		-- The order matters!
-		--
-		-- (1) If the line with the breakpoint is visible, don't jump at all
-		-- (2) If the buffer is opened in a tab, jump to it instead
-		-- (3) Else, create a new tab with the buffer
-		--
-		-- This avoid unnecessary jumps
-		dap.defaults.fallback.switchbuf = "usevisible,usetab,newtab"
-		dap.defaults.fallback.focus_terminal = true
-
-		-- vim.g.operator_map("n", "<leader>dc", dap.continue, { silent = true, desc = "继续/启动调试" })
 		-- 定义 _dap_continue 函数来调用 dap.continue
 		_G._dap_continue = function()
 			dap.continue() -- 调用 dap.continue 方法
@@ -100,7 +98,6 @@ return {
 			})
 		end, { silent = true, desc = "终止调试" })
 
-		-- vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "切换断点" })
 		_G._toggle_breakpoint = function()
 			dap.toggle_breakpoint()
 		end
@@ -340,7 +337,7 @@ return {
 		local sidebar = nil
 		vim.keymap.set("n", "<leader>dlc", function()
 			if not sidebar then
-				sidebar = widgets.sidebar(widgets.scopes, { width = 45, winblend = 15, signcolumn = "no" })
+				sidebar = widgets.sidebar(widgets.scopes, { width = 35, winblend = 15, signcolumn = "no" })
 			end
 			sidebar.toggle()
 		end, { desc = "查看作用域" })
@@ -351,7 +348,7 @@ return {
 
 		vim.keymap.set("n", "<leader>dle", function()
 			local winopts = {
-				width = 45, -- 窗口宽度
+				width = 60, -- 窗口宽度
 				height = 6, -- 窗口高度
 				border = "double", -- 双线边框
 			}
