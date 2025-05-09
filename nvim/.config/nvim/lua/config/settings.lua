@@ -37,7 +37,7 @@ vim.opt.smoothscroll = true -- 开启平滑滚动
 vim.opt.undofile = true -- 启用持久撤销
 vim.opt.confirm = true -- 未保存退出确认
 vim.opt.spelloptions = "camel" -- 开启驼峰拼写检查
-vim.opt.messagesopt = "wait:500,history:1000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
+-- vim.opt.messagesopt = "wait:500,history:1000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
 
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式
@@ -84,7 +84,7 @@ vim.opt.splitkeep = "screen" -- 保持分割窗口屏幕位置
 -- -------------- 状态栏和标签页 --------------
 vim.opt.showmode = false -- 禁用模式显示
 vim.opt.laststatus = 3 -- 启用全局状态栏
-vim.opt.cmdheight = 0 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
+vim.opt.cmdheight = 1 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
 vim.opt.showtabline = 2 -- 始终显示标签页栏
 vim.opt.statuscolumn = "%!v:lua.require('config.statucolumn').active()" -- 载入 statuscolumn 配置
 vim.opt.number = true --显示行号

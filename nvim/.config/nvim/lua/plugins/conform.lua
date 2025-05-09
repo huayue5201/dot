@@ -22,6 +22,9 @@ return {
 				toml = { "taplo" },
 				-- https://github.com/jqlang/jq
 				json = { "jq" },
+				c = { "clang-format" },
+				-- c={ "astyle" },
+				rust = { "rustfmt" },
 			},
 			-- Set up format-on-save
 			format_on_save = function(bufnr)

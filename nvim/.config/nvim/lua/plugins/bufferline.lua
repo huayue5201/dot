@@ -2,7 +2,7 @@
 
 return {
 	"akinsho/bufferline.nvim",
-	event = "VeryLazy",
+	event = "UIEnter",
 	dependencies = "nvim-tree/nvim-web-devicons",
 	config = function()
 		_G.__cached_neo_tree_selector = nil

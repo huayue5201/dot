@@ -5,6 +5,12 @@
 local icons = require("utils.utils").icons.diagnostic
 vim.diagnostic.config({
 	virtual_text = false,
+	-- virtual_text = {
+	-- 	current_line = false,
+	-- },
+	-- virtual_lines = {
+	-- 	current_line = true,
+	-- },
 	severity_sort = true,
 	float = { source = "if_many", border = "shadow" },
 	signs = {
