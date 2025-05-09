@@ -48,7 +48,7 @@ vim.keymap.set("n", "<leader>ram", function()
 	vim.cmd("delmarks A-Z")
 end, { desc = "Delete all marks (lowercase and uppercase)" })
 
-vim.keymap.set("i", "<tab>", function()
+vim.keymap.set("i", "<c-l>", function()
 	local node = vim.treesitter.get_node()
 	if node ~= nil then
 		local row, col = node:end_()
@@ -57,63 +57,28 @@ vim.keymap.set("i", "<tab>", function()
 end, { desc = "insjump" })
 
 vim.keymap.set("n", "<Leader>raw", function()
-	-- 获取当前窗口的 ID 和缓冲区
 	local current_win = vim.api.nvim_get_current_win()
 	local current_buf = vim.api.nvim_win_get_buf(current_win)
 	local current_dir = vim.fn.fnamemodify(vim.fn.bufname(current_buf), ":p:h") -- 获取当前缓冲区的目录
-
+	-- 收集所有要删除的窗口ID
+	local windows_to_close = {}
 	-- 遍历所有窗口
 	for _, win_id in ipairs(vim.api.nvim_list_wins()) do
 		if win_id ~= current_win then
 			local buf_id = vim.api.nvim_win_get_buf(win_id)
 			local buf_dir = vim.fn.fnamemodify(vim.fn.bufname(buf_id), ":p:h") -- 获取窗口缓冲区的目录
-
-			-- 如果缓冲区不在当前目录，则删除该窗口
+			-- 如果缓冲区不在当前目录，则将该窗口标记为待删除
 			if buf_dir ~= current_dir then
-				local filetype = vim.api.nvim_buf_get_option(buf_id, "filetype")
-				local buftype = vim.api.nvim_buf_get_option(buf_id, "buftype")
-				local close_commands = require("config.utils").close_commands
-				local command = close_commands[filetype ~= "" and filetype or buftype]
-
-				-- 执行与关闭缓冲区相关的命令
-				if command then
-					-- 如果是函数，执行函数；否则执行命令字符串
-					if type(command) == "function" then
-						command() -- 执行函数
-					else
-						vim.cmd(command) -- 执行命令字符串
-					end
-				else
-					-- 默认执行 bdelete
-					vim.cmd(string.format("bdelete %d", buf_id))
-				end
+				table.insert(windows_to_close, win_id)
 			end
 		end
 	end
-	print("Deleted windows outside the current directory!")
-end, { silent = true, desc = "删除当前窗口外的所有窗口" })
-
-vim.keymap.set("n", "<Leader>raw", function()
-	local current_win = vim.api.nvim_get_current_win()
-	local current_buf = vim.api.nvim_win_get_buf(current_win)
-	local current_dir = vim.fn.fnamemodify(vim.fn.bufname(current_buf), ":p:h") -- 获取当前缓冲区的目录
-	-- 遍历所有窗口
-	for _, win_id in ipairs(vim.api.nvim_list_wins()) do
-		if win_id ~= current_win then
-			local buf_id = vim.api.nvim_win_get_buf(win_id)
-			local buf_dir = vim.fn.fnamemodify(vim.fn.bufname(buf_id), ":p:h") -- 获取窗口缓冲区的目录
-			-- 如果缓冲区不在当前目录，则删除该窗口
-			if buf_dir ~= current_dir then
-				vim.api.nvim_win_close(win_id, true) -- 关闭该窗口
-			end
-		end
+	-- 删除待删除的窗口
+	for _, win_id in ipairs(windows_to_close) do
+		vim.api.nvim_win_close(win_id, true) -- 关闭该窗口
 	end
 	print("Deleted windows outside the current directory!")
 end, { silent = true, desc = "删除当前窗口外的所有窗口" })
-
--- n/N不加入jumps列表
-vim.keymap.set("n", "n", ":keepjumps normal! n<cr>", { silent = true })
-vim.keymap.set("n", "N", ":keepjumps normal! N<cr>", { silent = true })
 
 -- vim.keymap.set(
 -- 	{ "n", "t" },
