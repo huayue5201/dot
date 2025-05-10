@@ -69,6 +69,9 @@ return {
 						-- You can use the capture groups defined in textobjects.scm
 						["af"] = { query = "@function.outer", desc = "选择函数内部" },
 						["if"] = { query = "@function.inner", desc = "选择整个函数" },
+						-- 选择类（适用于支持类的语言，如 Rust）
+						-- ["ac"] = { query = "@class.outer", desc = "选择类" },
+						["ic"] = { query = "@class.inner", desc = "选择类内部" },
 						-- You can optionally set descriptions to the mappings (used in the desc parameter of
 						-- nvim_buf_set_keymap) which plugins like which-key display
 						-- You can also use captures from other query groups like `locals.scm`

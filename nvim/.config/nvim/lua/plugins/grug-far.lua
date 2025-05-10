@@ -2,7 +2,7 @@
 
 return {
 	"MagicDuck/grug-far.nvim",
-	event = "UIEnter",
+	event = "VeryLazy",
 	config = function()
 		require("grug-far").setup()
 

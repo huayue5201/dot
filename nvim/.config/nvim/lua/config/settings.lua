@@ -91,9 +91,7 @@ vim.opt.number = true --显示行号
 vim.opt.relativenumber = true -- 启用相对行号
 vim.opt.signcolumn = "yes:3" -- 始终显示标志列
 vim.opt.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换到最近使用过的标签页（如果有）
-
--- qftf设置
-vim.o.qftf = "v:lua.require('config.quickfixtextfunc').GetQuickfixText"
+-- require("vim._extui").enable({})
 
 -- -------------- 显示和符号设置 --------------
 vim.opt.list = true -- 显示不可见字符

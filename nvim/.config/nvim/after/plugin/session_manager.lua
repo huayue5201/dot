@@ -1,148 +1,139 @@
--- 获取当前项目的名称（优先使用 cd 到的根目录，其次是 Git 仓库根目录）
-local function get_project_name()
-	local current_dir = vim.fn.getcwd()
-	local git_root = vim.fn.trim(vim.fn.system("git rev-parse --show-toplevel"))
-	if vim.fn.isdirectory(current_dir) == 1 and git_root == "" then
-		return vim.fn.fnamemodify(current_dir, ":p:t") -- 只返回目录的最后一部分
-	elseif git_root ~= "" then
-		return vim.fn.fnamemodify(git_root, ":p:t") -- 只返回 Git 根目录的最后一部分
-	else
-		return vim.fn.fnamemodify(current_dir, ":p:t") -- 只返回当前目录的最后一部分
-	end
+local session_dir = vim.fn.expand("~/.local/share/nvim/sessions")
+
+-- 确保目录存在
+if vim.fn.isdirectory(session_dir) == 0 then
+	vim.fn.mkdir(session_dir, "p")
 end
 
+-- 获取项目名称
+local function get_project_name()
+	local cwd = vim.fn.getcwd()
+
+	-- Git 仓库：返回 "repo (branch)"
+	local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")
+	if vim.v.shell_error == 0 and #git_root > 0 then
+		local repo = vim.fn.fnamemodify(git_root[1], ":t")
+		local branch = vim.fn.trim(vim.fn.system("git rev-parse --abbrev-ref HEAD"))
+		if branch ~= "" then
+			return ("%s (%s)"):format(repo, branch)
+		end
+		return repo
+	end
+
+	-- 检查 Rust 项目 (Cargo.toml)
+	local cargo_toml = cwd .. "/Cargo.toml"
+	if vim.fn.filereadable(cargo_toml) == 1 then
+		for _, line in ipairs(vim.fn.readfile(cargo_toml)) do
+			local name = line:match("^name%s*=%s*[\"'](.+)[\"']")
+			if name then
+				return name
+			end
+		end
+	end
+
+	-- 检查 Makefile 中的 PROJECT / PROJECT_NAME 变量
+	local makefile = cwd .. "/Makefile"
+	if vim.fn.filereadable(makefile) == 1 then
+		for _, line in ipairs(vim.fn.readfile(makefile)) do
+			local name = line:match("^%s*PROJECT[_NAME]*%s*=%s*(.+)")
+			if name then
+				return vim.fn.trim(name)
+			end
+		end
+	end
+
+	-- 否则使用当前目录名
+	return vim.fn.fnamemodify(cwd, ":t")
+end
+
+-- 会话路径生成器
+local function get_session_file()
+	local project = get_project_name()
+	local hash = vim.fn.sha256(vim.fn.getcwd()):sub(1, 8)
+	local filename = ("%s_%s_session.vim"):format(project, hash)
+	return session_dir .. "/" .. filename
+end
+
+-- 保存会话
 local function save_session()
-	local session_dir = vim.fn.expand("~/.local/share/nvim/sessions")
-	local project_name = get_project_name()
-	local unique_id = vim.fn.sha256(vim.fn.getcwd()):sub(1, 8)
-	local session_file = session_dir .. "/" .. project_name .. "_" .. unique_id .. "_session.vim"
-
-	-- 如果会话目录不存在，创建该目录
-	if vim.fn.isdirectory(session_dir) == 0 then
-		vim.fn.mkdir(session_dir, "p")
-	end
-
-	-- 检查是否已经存在会话文件，如果存在则覆盖
-	if vim.fn.filereadable(session_file) == 1 then
-		print("覆盖现有会话文件： " .. session_file)
-		-- 删除已存在的会话文件
-		vim.fn.delete(session_file)
-	end
-
-	-- 获取当前会话文件的修改时间
-	local current_time = vim.fn.getftime(session_file)
-	local current_content = vim.fn.execute("mksession! " .. session_file)
-	if current_time > 0 and current_content == vim.fn.readfile(session_file) then
-		print("没有更改，未保存会话。")
-		return
-	end
-
-	-- 直接保存会话，确保会话数据保存在正确的路径下
-	vim.cmd("mksession! " .. session_file)
-	print("会话已保存： " .. session_file)
+	local path = get_session_file()
+	-- vim.api.nvim_command("mksession! " .. vim.fn.fnameescape(path))
+	vim.fn.execute("mksession! " .. vim.fn.fnameescape(path))
+	vim.notify("会话已保存: " .. path)
 end
 
 -- 加载会话
-local function load_session(session_file)
-	if vim.fn.filereadable(session_file) == 1 then
-		vim.defer_fn(function()
-			print("Loading session from: " .. session_file)
-			vim.cmd("source " .. session_file)
-			print("Session loaded from: " .. session_file)
-		end, 50)
+local function load_session(path)
+	if vim.fn.filereadable(path) == 1 then
+		vim.fn.execute("source " .. vim.fn.fnameescape(path))
+		vim.notify("加载会话: " .. path)
 	else
-		print("No session found at: " .. session_file)
+		vim.notify("未找到会话: " .. path, vim.log.levels.WARN)
 	end
 end
 
 -- 恢复当前项目的会话
 local function restore_current_session()
-	local session_dir = vim.fn.expand("~/.local/share/nvim/sessions")
-	local project_name = get_project_name()
-	local unique_id = vim.fn.sha256(vim.fn.getcwd()):sub(1, 8)
-	local session_file = session_dir .. "/" .. project_name .. "_" .. unique_id .. "_session.vim"
+	load_session(get_session_file())
+end
 
-	if vim.fn.filereadable(session_file) == 1 then
-		load_session(session_file)
+-- 删除指定会话
+local function delete_session(path)
+	if vim.fn.filereadable(path) == 1 then
+		vim.fn.delete(path)
+		vim.notify("删除会话: " .. path)
 	else
-		vim.notify("No session found for current project: " .. project_name, vim.log.levels.WARN)
+		vim.notify("会话文件不存在: " .. path, vim.log.levels.WARN)
 	end
 end
 
--- 提供 vim.ui.select 选择会话
-local function select_session()
-	local session_dir = vim.fn.expand("~/.local/share/nvim/sessions")
-	local session_files = vim.fn.glob(session_dir .. "/*_session.vim", false, true)
-
-	if #session_files == 0 then
-		print("No saved sessions found.")
+-- 选择操作：加载或删除
+local function select_session_action(action)
+	local files = vim.fn.glob(session_dir .. "/*_session.vim", false, true)
+	if #files == 0 then
+		vim.notify("没有保存的会话")
 		return
 	end
 
-	local session_names = {}
-	for _, file in ipairs(session_files) do
-		table.insert(session_names, vim.fn.fnamemodify(file, ":t:r"))
-	end
+	local labels = vim.tbl_map(function(path)
+		return vim.fn.fnamemodify(path, ":t")
+	end, files)
 
-	vim.ui.select(session_names, {
-		prompt = "Select a session to load:",
-	}, function(selected)
-		if selected then
-			local selected_session = session_files[vim.fn.index(session_names, selected) + 1]
-			load_session(selected_session)
-		else
-			print("No session selected.")
+	vim.ui.select(labels, { prompt = "选择会话：" }, function(choice)
+		if not choice then
+			return
+		end
+		local selected = session_dir .. "/" .. choice
+		if action == "load" then
+			load_session(selected)
+		elseif action == "delete" then
+			delete_session(selected)
 		end
 	end)
 end
 
--- 异步清理无用的会话文件
+-- 清理不存在项目的会话（目录被删）
 local function clean_unused_sessions()
-	local session_dir = vim.fn.expand("~/.local/share/nvim/sessions")
-	local session_files = vim.fn.glob(session_dir .. "/*_session.vim", false, true)
-
-	if #session_files == 0 then
-		print("No saved sessions found.")
-		return
-	end
-
-	vim.defer_fn(function()
-		for _, session_file in ipairs(session_files) do
-			local project_dir = vim.fn.fnamemodify(session_file, ":p:h")
-			if vim.fn.isdirectory(project_dir) == 0 then
-				vim.fn.delete(session_file)
-				print("Deleted unused session: " .. session_file)
-			end
+	local files = vim.fn.glob(session_dir .. "/*_session.vim", false, true)
+	for _, file in ipairs(files) do
+		local stat = vim.loop.fs_stat(file)
+		if not stat then
+			vim.fn.delete(file)
+			vim.notify("已清理失效会话: " .. file)
 		end
-	end, 100)
+	end
 end
 
--- 设置会话选项（可根据需求调整）
-vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
-
--- -- 自动保存会话（退出时保存会话）
--- vim.api.nvim_create_autocmd("VimLeave", {
--- 	callback = function()
--- 		save_session()
--- 	end,
--- })
-
--- 按键映射：清理无效会话
-vim.keymap.set("n", "<leader>sc", function()
-	clean_unused_sessions()
-end, { silent = true, desc = "清理无效会话" })
-
--- 按键映射：手动保存会话
-vim.keymap.set("n", "<leader>ss", function()
-	save_session()
-end, { silent = true, desc = "手动保存会话" })
-
--- 按键映射：手动选择并加载会话
+-- 键位绑定
+vim.keymap.set("n", "<leader>ss", save_session, { desc = "保存会话" })
+vim.keymap.set("n", "<leader>sr", restore_current_session, { desc = "恢复当前项目会话" })
 vim.keymap.set("n", "<leader>sl", function()
-	select_session()
-end, { silent = true, desc = "手动选择并加载会话" })
+	select_session_action("load")
+end, { desc = "选择并加载会话" })
+vim.keymap.set("n", "<leader>sd", function()
+	select_session_action("delete")
+end, { desc = "选择并删除会话" })
+vim.keymap.set("n", "<leader>sc", clean_unused_sessions, { desc = "清理无效会话" })
 
--- 按键映射：恢复当前项目的会话
-vim.keymap.set("n", "<leader>sr", function()
-	restore_current_session()
-end, { silent = true, desc = "恢复当前项目的会话" })
+-- 会话选项
+vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
