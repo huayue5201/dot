@@ -2,7 +2,7 @@
 
 return {
 	"chentoast/marks.nvim",
-	event = "BufReadPost",
+	event = "VeryLazy",
 	config = function()
 		require("marks").setup({
 			-- whether to map keybinds or not. default true

@@ -35,19 +35,6 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	end,
 })
 
--- ✨ 优化剪贴板操作
-vim.cmd([[
-function! YankShift()
-  call setreg(0, getreg('"'))
-  for i in range(9, 1, -1)
-    call setreg(i, getreg(i - 1))
-  endfor
-endfunction
-
-au TextYankPost * if v:event.operator == 'y' | call YankShift() | endif
-au TextYankPost * if v:event.operator == 'd' | call YankShift() | endif
-]])
-
 -- ✨ LSP 启动时绑定快捷键与功能
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
@@ -93,6 +80,19 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 		end
 	end,
 })
+
+-- ✨ 优化剪贴板操作
+vim.cmd([[
+function! YankShift()
+  call setreg(0, getreg('"'))
+  for i in range(9, 1, -1)
+    call setreg(i, getreg(i - 1))
+  endfor
+endfunction
+
+au TextYankPost * if v:event.operator == 'y' | call YankShift() | endif
+au TextYankPost * if v:event.operator == 'd' | call YankShift() | endif
+]])
 
 -- -- ✨ 复制前记录光标位置
 -- local cursorPreYank

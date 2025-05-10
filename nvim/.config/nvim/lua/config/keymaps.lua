@@ -16,9 +16,9 @@ vim.keymap.set("n", "<Leader>q", "<cmd>bd<cr>", { silent = true, desc = "退出b
 
 vim.keymap.set("n", "<leader>ttn", "<cmd>$tabnew<cr>", { silent = true, desc = "创建新的标签页" })
 
-vim.keymap.set("n", "<leader>ttr", "<cmd>tabclose<cr>", { silent = true, desc = "关闭当前标签页" })
+vim.keymap.set("n", "<leader>trt", "<cmd>tabclose<cr>", { silent = true, desc = "关闭当前标签页" })
 
-vim.keymap.set("n", "<leader>ttR", "<cmd>tabonly<cr>", { silent = true, desc = "仅保留当前标签页" })
+vim.keymap.set("n", "<leader>tRt", "<cmd>tabonly<cr>", { silent = true, desc = "仅保留当前标签页" })
 
 -- vim.keymap.set("n", "<leader>lm", "<cmd>Messages<cr>", { silent = true, desc = "查看历史消息" })
 

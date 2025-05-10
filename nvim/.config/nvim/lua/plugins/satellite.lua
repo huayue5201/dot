@@ -2,7 +2,7 @@
 
 return {
 	"lewis6991/satellite.nvim",
-	event = "BufReadPost",
+	event = "VeryLazy",
 	config = function()
 		require("satellite").setup({
 			current_only = false,

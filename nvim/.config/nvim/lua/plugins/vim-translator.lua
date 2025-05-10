@@ -1,8 +1,9 @@
 -- https://github.com/huayue5201/vim-translator
 -- https://github.com/voldikss/vim-translator
+-- https://github.com/pand5a/vim-translator
 
 return {
-	"huayue5201/vim-translator",
+	"pand5a/vim-translator",
 	keys = {
 		{ mode = { "v", "n" }, "<Leader>tle", desc = "翻译并在命令行回显" },
 		{ mode = { "v", "n" }, "<Leader>tlw", desc = "翻译并在窗口中显示" },

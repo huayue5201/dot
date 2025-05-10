@@ -201,6 +201,10 @@ return {
 					nowait = true,
 				},
 				mappings = {
+					["<space>"] = {
+						"toggle_node",
+						nowait = true, -- disable `nowait` if you have existing combos starting with this char that you want to use
+					},
 					["+"] = "avante_add_files",
 					["w"] = function(state)
 						local node = state.tree:get_node()
@@ -230,8 +234,6 @@ return {
 					["t"] = "open_tabnew",
 					-- ["<cr>"] = "open_drop",
 					-- ["t"] = "open_tab_drop",
-					-- ["w"] = "open_with_window_picker",
-					--["P"] = "toggle_preview", -- enter preview mode, which shows the current node without focusing
 					["C"] = "close_node",
 					-- ['C'] = 'close_all_subnodes',
 					["z"] = "close_all_nodes",
@@ -241,7 +243,7 @@ return {
 						-- this command supports BASH style brace expansion ("x{a,b,c}" -> xa,xb,xc). see `:h neo-tree-file-actions` for details
 						-- some commands may take optional config options, see `:h neo-tree-mappings` for details
 						config = {
-							show_path = "none", -- "none", "relative", "absolute"
+							show_path = "relative", -- "none", "relative", "absolute"
 						},
 					},
 					["A"] = "add_directory", -- also accepts the optional config.show_path option like "add". this also supports BASH style brace expansion.
