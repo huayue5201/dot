@@ -11,7 +11,7 @@ local function expand_tabs(line)
 end
 -- 获取诊断统计信息
 local function fold_diagnostics(start_lnum, end_lnum)
-	local icons = require("config.utils").icons.diagnostic
+	local icons = require("utils.utils").icons.diagnostic
 	local counts = { 0, 0, 0, 0 } -- ERROR, WARN, INFO, HINT
 	for _, d in ipairs(vim.diagnostic.get(0)) do
 		if d.lnum >= start_lnum and d.lnum <= end_lnum then
