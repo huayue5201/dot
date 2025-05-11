@@ -29,9 +29,9 @@ require("config.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nv
 
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()
-	require("config.autocmds") -- 延迟加载自动命令
-	require("config.usercmds") -- 延迟加载用户命令
-	require("config.keymaps") -- 延迟加载按键映射
+	require("config.autocmds") -- 加载自动命令
+	require("config.usercmds") -- 加载用户命令
+	require("config.keymaps") -- 加载按键映射
 	require("utils.dotenv").load() -- token加载模块
 
 	-- 延迟 LSP 配置
