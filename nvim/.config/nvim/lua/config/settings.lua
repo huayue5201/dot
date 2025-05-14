@@ -79,7 +79,7 @@ vim.opt.smartcase = true -- 智能区分大小写
 vim.opt.splitbelow = true -- 新分割窗口默认在下方
 vim.opt.splitright = true -- 新分割窗口默认在右边
 vim.opt.splitkeep = "screen" -- 保持分割窗口屏幕位置
--- vim.opt.winborder = "bold" -- 浮动窗口边框
+vim.opt.winborder = "bold" -- 浮动窗口边框
 
 -- -------------- 状态栏和标签页 --------------
 vim.opt.showmode = false -- 禁用模式显示

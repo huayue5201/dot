@@ -43,17 +43,18 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		-- print("LspAttach", client.name)
 		require("config.lsp")
 
+		vim.lsp.document_color.enable(true, args.buf)
+
 		if client:supports_method("textDocument/foldingRange") then
 			local win = vim.api.nvim_get_current_win()
 			vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
 		end
-		if client:supports_method("textDocument/documentColor") then
-			vim.lsp.document_color.enable(true, args.buf)
-		end
+
 		if client:supports_method("textDocument/inlayHint") then
 			-- vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
 			vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
 		end
+
 		if client:supports_method("textDocument/codeLens") then
 			vim.lsp.codelens.refresh({ bufnr = 0 })
 		end
