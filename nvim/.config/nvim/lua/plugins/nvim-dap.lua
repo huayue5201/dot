@@ -3,7 +3,7 @@
 
 return {
 	"mfussenegger/nvim-dap",
-	ft = { "rust", "c" },
+	ft = { "rust", "c", "lua " },
 	dependencies = {
 		-- https://github.com/igorlfs/nvim-dap-view
 		"igorlfs/nvim-dap-view",

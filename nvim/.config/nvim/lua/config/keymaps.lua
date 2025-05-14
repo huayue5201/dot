@@ -60,8 +60,10 @@ vim.keymap.set("n", "<Leader>raw", function()
 	local current_win = vim.api.nvim_get_current_win()
 	local current_buf = vim.api.nvim_win_get_buf(current_win)
 	local current_dir = vim.fn.fnamemodify(vim.fn.bufname(current_buf), ":p:h") -- 获取当前缓冲区的目录
+
 	-- 收集所有要删除的窗口ID
 	local windows_to_close = {}
+
 	-- 遍历所有窗口
 	for _, win_id in ipairs(vim.api.nvim_list_wins()) do
 		if win_id ~= current_win then
@@ -73,10 +75,14 @@ vim.keymap.set("n", "<Leader>raw", function()
 			end
 		end
 	end
-	-- 删除待删除的窗口
+
+	-- 删除待删除的窗口（确保每个窗口 ID 是有效的）
 	for _, win_id in ipairs(windows_to_close) do
-		vim.api.nvim_win_close(win_id, true) -- 关闭该窗口
+		if vim.api.nvim_win_is_valid(win_id) then
+			vim.api.nvim_win_close(win_id, true) -- 关闭该窗口
+		end
 	end
+
 	print("Deleted windows outside the current directory!")
 end, { silent = true, desc = "删除当前窗口外的所有窗口" })
 
