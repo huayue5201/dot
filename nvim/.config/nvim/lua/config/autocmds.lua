@@ -107,31 +107,31 @@ au TextYankPost * if v:event.operator == 'd' | call YankShift() | endif
 -- end, { expr = true })
 --
 -- -- ✨ 高亮复制 & 光标恢复 & 剪贴板同步
-vim.api.nvim_create_autocmd("TextYankPost", {
-	pattern = "*",
-	callback = function()
-		-- 		vim.hl.on_yank({ timeout = 330 })
-		--
-		-- 		if vim.v.event.operator == "y" and cursorPreYank then
-		-- 			vim.schedule(function()
-		-- 				vim.api.nvim_win_set_cursor(0, cursorPreYank)
-		-- 				cursorPreYank = nil
-		-- 			end)
-		-- 		end
-		--
-		if vim.fn.has("clipboard") == 1 then
-			local reg_type = vim.fn.getregtype('"')
-			if reg_type ~= "+" then
-				local clipboard_content = vim.fn.getreg('"')
-				if clipboard_content ~= "" then
-					vim.defer_fn(function()
-						vim.fn.setreg("+", clipboard_content)
-					end, 20)
-				end
-			end
-		end
-	end,
-})
+-- vim.api.nvim_create_autocmd("TextYankPost", {
+-- 	pattern = "*",
+-- 	callback = function()
+-- 		vim.hl.on_yank({ timeout = 330 })
+--
+-- 		if vim.v.event.operator == "y" and cursorPreYank then
+-- 			vim.schedule(function()
+-- 				vim.api.nvim_win_set_cursor(0, cursorPreYank)
+-- 				cursorPreYank = nil
+-- 			end)
+-- 		end
+--
+-- 		if vim.fn.has("clipboard") == 1 then
+-- 			local reg_type = vim.fn.getregtype('"')
+-- 			if reg_type ~= "+" then
+-- 				local clipboard_content = vim.fn.getreg('"')
+-- 				if clipboard_content ~= "" then
+-- 					vim.defer_fn(function()
+-- 						vim.fn.setreg("+", clipboard_content)
+-- 					end, 20)
+-- 				end
+-- 			end
+-- 		end
+-- 	end,
+-- })
 
 -- -- ✨ 删除 quickfix / loclist 条目工具函数
 -- local function delete_qf_items()

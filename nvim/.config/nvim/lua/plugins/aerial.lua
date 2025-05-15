@@ -23,9 +23,9 @@ return {
 			-- 控制aerial窗口的宽度和布局选项
 			-- 包括最大宽度、宽度、最小宽度、默认打开方向和位置
 			layout = {
-				max_width = { 40, 0.2 },
+				max_width = { 35, 0.2 },
 				width = nil,
-				min_width = 38,
+				min_width = 30,
 				default_direction = "prefer_right",
 				placement = "window",
 			},
