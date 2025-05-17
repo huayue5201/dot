@@ -59,7 +59,7 @@ return {
 				poll_rate = 10, -- 更新并渲染通知的频率（ms）
 				filter = vim.log.levels.INFO, -- 最低通知等级（如 INFO、WARN）
 				history_size = 128, -- 保留在历史记录中的已移除消息数量
-				override_vim_notify = true, -- 自动覆盖 vim.notify()
+				override_vim_notify = false, -- 自动覆盖 vim.notify()
 				configs = { default = require("fidget.notification").default_config }, -- 通知组的默认配置
 				redirect = function(msg, level, opts) -- 条件性地重定向通知到其他后端
 					if opts and opts.on_open then

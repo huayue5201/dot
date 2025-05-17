@@ -36,75 +36,18 @@ return {
 					return "" .. icon .. count
 				end,
 				toggle_hidden_on_enter = true, -- 重新进入隐藏的组时，自动展开
-				items = {
-					{
-						name = "🧠 Code",
-						icon = "",
-						matcher = function(buf)
-							return buf.filename:match("%.rs")
-								and not buf.filename:match("test")
-								and not buf.filename:match("examples")
-						end,
-					},
-					{
-						name = "🧪 Tests",
-						icon = "",
-						matcher = function(buf)
-							return buf.filename:match("test") or buf.filename:match("spec")
-						end,
-					},
-					{
-						name = "📄 Docs",
-						icon = "",
-						matcher = function(buf)
-							return buf.filename:match("%.md") or buf.filename:match("%.txt")
-						end,
-					},
-					{
-						name = "🧰 Cargo",
-						icon = "",
-						matcher = function(buf)
-							return buf.filename:match("Cargo.toml") or buf.filename:match("Cargo.lock")
-						end,
-					},
-					{
-						name = "🔧 Config",
-						icon = "",
-						matcher = function(buf)
-							return buf.path:match("%.vscode")
-								or buf.path:match("nvim")
-								or buf.filename:match("%.lua")
-								or buf.filename:match("%.json")
-						end,
-					},
-					{
-						name = "🧪 Examples",
-						icon = "",
-						matcher = function(buf)
-							return buf.path:match("/examples/")
-						end,
-					},
-					{
-						name = "🔍 Logs",
-						icon = "",
-						matcher = function(buf)
-							return buf.filename:match("%.log")
-								or buf.filename:match("rtt")
-								or buf.filename:match("probe")
-						end,
-					},
-				},
+				-- items = {},
 				offsets = { -- 侧边栏偏移设置
 					{
 						filetype = "neo-tree",
-						text = "󰙅 File explorer",
+						text = "  File explorer",
 						raw = " %{%v:lua.__get_selector()%} ",
 						highlight = { sep = { link = "WinSeparator" } },
 						separator = "┃",
 					},
 					{
 						filetype = "aerial",
-						text = " Symbols",
+						text = "  Symbols",
 						highlight = { sep = { link = "WinSeparator" } },
 						separator = "┃",
 					},

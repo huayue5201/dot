@@ -125,19 +125,19 @@ return {
 			},
 			sources = {
 				terminal = {
-					icon = function(_)
-						return M.opts.icons.kinds.symbols.Terminal or " "
-					end,
-					name = function(buf)
-						local name = vim.api.nvim_buf_get_name(buf)
-						-- the second result val is the terminal object
-						local term = select(2, require("toggleterm.terminal").indentify(name))
-						if term then
-							return term.display_name or term.name
-						else
-							return name
-						end
-					end,
+					-- icon = function(_)
+					-- 	return M.opts.icons.kinds.symbols.Terminal or " "
+					-- end,
+					-- name = function(buf)
+					-- 	local name = vim.api.nvim_buf_get_name(buf)
+					-- 	-- the second result val is the terminal object
+					-- 	local term = select(2, require("toggleterm.terminal").indentify(name))
+					-- 	if term then
+					-- 		return term.display_name or term.name
+					-- 	else
+					-- 		return name
+					-- 	end
+					-- end,
 				},
 				path = {
 					max_depth = 10,
