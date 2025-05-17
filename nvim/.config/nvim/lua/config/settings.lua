@@ -24,7 +24,7 @@ vim.g.loaded_ruby_provider = 0
 -- -------------- 基本设置 --------------
 vim.opt.mousemoveevent = true -- 启用鼠标移动事件
 vim.opt.inccommand = "split" -- 启用增量命令模式（即时显示命令效果）
-vim.opt.clipboard = "unnamedplus" -- 使用系统剪贴板
+-- vim.opt.clipboard = "unnamedplus" -- 使用系统剪贴板
 -- vim.g.clipboard = "osc52"
 vim.opt.modeline = false -- 禁用 modeline
 vim.opt.updatetime = 300 -- 设置更新延迟时间（毫秒）
@@ -79,19 +79,25 @@ vim.opt.smartcase = true -- 智能区分大小写
 vim.opt.splitbelow = true -- 新分割窗口默认在下方
 vim.opt.splitright = true -- 新分割窗口默认在右边
 vim.opt.splitkeep = "screen" -- 保持分割窗口屏幕位置
-vim.opt.winborder = "bold" -- 浮动窗口边框
+vim.opt.winborder = "rounded" -- 浮动窗口边框
 
 -- -------------- 状态栏和标签页 --------------
 vim.opt.showmode = false -- 禁用模式显示
 vim.opt.laststatus = 3 -- 启用全局状态栏
-vim.opt.cmdheight = 1 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
+vim.opt.cmdheight = 0 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
 vim.opt.showtabline = 2 -- 始终显示标签页栏
 vim.opt.statuscolumn = "%!v:lua.require('config.statucolumn').active()" -- 载入 statuscolumn 配置
 vim.opt.number = true --显示行号
 vim.opt.relativenumber = true -- 启用相对行号
 vim.opt.signcolumn = "yes:3" -- 始终显示标志列
 vim.opt.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换到最近使用过的标签页（如果有）
--- require("vim._extui").enable({})
+-- https://github.com/neovim/neovim/pull/27855
+require("vim._extui").enable({
+	msg = {
+		pos = "box",
+		box = { timeout = 10000 },
+	},
+})
 
 -- -------------- 显示和符号设置 --------------
 vim.opt.list = true -- 显示不可见字符

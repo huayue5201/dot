@@ -38,29 +38,6 @@ return {
 
 		local dap = require("dap")
 
-		local module_cache = {}
-		local function load_modules_from_dir(dir)
-			if not module_cache[dir] then
-				local path = vim.fn.stdpath("config") .. "/" .. dir
-				module_cache[dir] = vim.fn.globpath(path, "*.lua", false, true)
-			end
-			for _, file in ipairs(module_cache[dir]) do
-				local module_name =
-					file:match("(.+).lua$"):gsub(vim.pesc(vim.fn.stdpath("config") .. "/"), ""):gsub("/", ".")
-				local ok, mod = pcall(require, module_name)
-				if ok then
-					if mod.setup then
-						mod.setup(dap)
-					end
-				else
-				end
-			end
-		end
-		-- 加载模块
-		load_modules_from_dir("lua/dap/adapters")
-		load_modules_from_dir("lua/dap/configs")
-		load_modules_from_dir("lua/dap/listeners")
-
 		--  nvim-dap配置
 		local dap_defaults = {
 			switchbuf = "usevisible,usetab,newtab", -- 在调试时使用打开的缓冲区
@@ -389,6 +366,29 @@ return {
 				end, { buffer = true, expr = true, desc = "Confirm completion or Insert newline in dap-repl" })
 			end,
 		})
+
+		local module_cache = {}
+		local function load_modules_from_dir(dir)
+			if not module_cache[dir] then
+				local path = vim.fn.stdpath("config") .. "/" .. dir
+				module_cache[dir] = vim.fn.globpath(path, "*.lua", false, true)
+			end
+			for _, file in ipairs(module_cache[dir]) do
+				local module_name =
+					file:match("(.+).lua$"):gsub(vim.pesc(vim.fn.stdpath("config") .. "/"), ""):gsub("/", ".")
+				local ok, mod = pcall(require, module_name)
+				if ok then
+					if mod.setup then
+						mod.setup(dap)
+					end
+				else
+				end
+			end
+		end
+		-- 加载模块
+		load_modules_from_dir("lua/dap/adapters")
+		load_modules_from_dir("lua/dap/configs")
+		load_modules_from_dir("lua/dap/listeners")
 
 		-- 退出neovim自动终止调试进程
 		vim.api.nvim_create_autocmd("VimLeave", {

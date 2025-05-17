@@ -1,13 +1,26 @@
+local utils = require("utils.utils")
+local colors, icons = utils.palette, utils.icons
+
 -- 定义高亮组
-vim.api.nvim_set_hl(0, "DefaultMode", { bold = true })
-vim.api.nvim_set_hl(0, "NormalMode", { bold = true })
-vim.api.nvim_set_hl(0, "InsertMode", { bold = true })
-vim.api.nvim_set_hl(0, "VisualMode", { bold = true })
-vim.api.nvim_set_hl(0, "ReplaceMode", { bold = true })
-vim.api.nvim_set_hl(0, "PinkHighlight", { fg = "#ffde7d", bold = true })
-vim.api.nvim_set_hl(0, "StatuslineIcon", { fg = "#ffde7d", bold = true })
-vim.api.nvim_set_hl(0, "LspIcon", { fg = "#4876FF", bold = true })
-vim.api.nvim_set_hl(0, "DapIcon", { fg = "#FF0000", bold = true })
+local function set_highlights(highlight_defs)
+	for group, opts in pairs(highlight_defs) do
+		vim.api.nvim_set_hl(0, group, opts)
+	end
+end
+set_highlights({
+	DefaultMode = { bold = true },
+	NormalMode = { bold = true },
+	InsertMode = { bold = true },
+	VisualMode = { bold = true },
+	ReplaceMode = { bold = true },
+	PinkHighlight = { fg = "#ffde7d", bold = true },
+	StatuslineIcon = { fg = "#ffde7d", bold = true },
+	LspIcon = { fg = "#4876FF", bold = true },
+	DapIcon = { fg = "#FF0000", bold = true },
+	GitIconChanged = { fg = colors.yellow, bold = true },
+	GitIconRemoved = { fg = colors.red, bold = true },
+	GitIconAdded = { fg = colors.green, bold = true },
+})
 
 Statusline = {}
 
@@ -27,7 +40,7 @@ Statusline.modes = {
 function Statusline.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
 	local mode_info = Statusline.modes[current_mode] or { label = current_mode, hl = "DefaultMode" }
-	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
+	return "%#StatuslineIcon#%*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
 -- -------------------- 文件名和图标 --------------------
@@ -42,7 +55,7 @@ end
 function Statusline.lsp_diagnostics()
 	local count = vim.diagnostic.get(0)
 	local parts = {}
-	local icons = require("utils.utils").icons.diagnostic
+	local icon = icons.diagnostic
 	local severity_map = {
 		[vim.diagnostic.severity.ERROR] = "ERROR",
 		[vim.diagnostic.severity.WARN] = "WARN",
@@ -55,7 +68,7 @@ function Statusline.lsp_diagnostics()
 		end, count)
 		if num > 0 then
 			local highlight_group = "Diagnostic" .. key
-			table.insert(parts, "%#" .. highlight_group .. "#" .. icons[key] .. num .. "%*")
+			table.insert(parts, "%#" .. highlight_group .. "#" .. icon[key] .. num .. "%*")
 		end
 	end
 	return table.concat(parts, "")
@@ -99,11 +112,11 @@ function Statusline.vcs()
 	if not git_info or not git_info.head then
 		return ""
 	end
-	local parts = { " " .. git_info.head }
+	local parts = { " " .. git_info.head }
 	for key, icon in pairs({
-		added = "+",
-		changed = "󰱑",
-		removed = "-",
+		added = "%#GitIconAdded#" .. "+" .. "%*",
+		removed = "%#GitIconRemoved#" .. "-" .. "%*",
+		changed = "%#GitIconChanged#" .. "󰱑" .. "%*",
 	}) do
 		if git_info[key] and git_info[key] > 0 then
 			table.insert(parts, icon .. git_info[key])
@@ -150,7 +163,6 @@ function Statusline.active()
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
 		Statusline.dap_status() .. "  ", -- dap调试信息
-		'%{&ft == "toggleterm" ? "terminal (".b:toggle_number.")" : ""}', -- toggleterm 状态
 		Statusline.vcs(), -- Git 状态
 		"  %l%c ", -- 行列号
 		" %P", -- 文件百分比
