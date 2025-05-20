@@ -2,7 +2,7 @@
 
 return -- Lua
 {
-	"folke/persistence.nvim",
+	"huayue5201/persistence.nvim",
 	event = "VeryLazy",
 	config = function()
 		require("persistence").setup({
@@ -31,5 +31,7 @@ return -- Lua
 		vim.keymap.set("n", "<leader>sd", function()
 			require("persistence").stop()
 		end, { desc = "停止会话保存" })
+
+		vim.keymap.set("n", "<leader>sr", require("persistence").delete, { desc = "删除会话" })
 	end,
 }

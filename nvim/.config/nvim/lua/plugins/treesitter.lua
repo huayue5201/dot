@@ -5,7 +5,10 @@ return {
 	build = ":TSUpdate",
 	event = "VeryLazy",
 	-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
-	dependencies = "nvim-treesitter/nvim-treesitter-textobjects",
+	dependencies = {
+		"nvim-treesitter/nvim-treesitter-textobjects",
+		"OXY2DEV/markview.nvim",
+	},
 	config = function()
 		require("nvim-treesitter.configs").setup({
 			-- 是否同步安装解析器

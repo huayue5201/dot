@@ -40,7 +40,7 @@ Statusline.modes = {
 function Statusline.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
 	local mode_info = Statusline.modes[current_mode] or { label = current_mode, hl = "DefaultMode" }
-	return "%#StatuslineIcon#%*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
+	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
 -- -------------------- 文件名和图标 --------------------
@@ -181,3 +181,5 @@ vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
 		)
 	end,
 })
+
+return Statusline

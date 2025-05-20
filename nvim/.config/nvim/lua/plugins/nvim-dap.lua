@@ -290,13 +290,63 @@ return {
 
 		local widgets = require("dap.ui.widgets")
 
-		_G._dap_hover = function()
-			widgets.hover(nil, { border = "rounded" })
+		-- _G._dap_hover = function()
+		-- 	widgets.hover(nil, { border = "rounded" })
+		-- end
+		-- vim.keymap.set("n", "<leader>dlk", function()
+		-- 	vim.o.operatorfunc = "v:lua._dap_hover" -- 使用一个正确的函数名
+		-- 	vim.cmd.normal("g@l") -- 执行操作符
+		-- end, { silent = true, desc = "查看变量" })
+
+		local keymap_restore = {}
+		dap.listeners.after["event_initialized"]["me"] = function()
+			keymap_restore = {} -- 清空旧数据
+			for _, buf in pairs(vim.api.nvim_list_bufs()) do
+				local keymaps = vim.api.nvim_buf_get_keymap(buf, "n")
+				for _, keymap in pairs(keymaps) do
+					if keymap.lhs == "K" then
+						table.insert(keymap_restore, {
+							buffer = buf,
+							mode = keymap.mode,
+							lhs = keymap.lhs,
+							rhs = keymap.rhs,
+							callback = keymap.callback,
+							silent = keymap.silent == 1,
+						})
+						vim.api.nvim_buf_del_keymap(buf, "n", "K")
+					end
+				end
+				-- 设置 buffer-local 的 dap hover
+				vim.api.nvim_buf_set_keymap(
+					buf,
+					"n",
+					"K",
+					'<Cmd>lua require("dap.ui.widgets").hover()<CR>',
+					{ silent = true }
+				)
+			end
 		end
-		vim.keymap.set("n", "<leader>dlk", function()
-			vim.o.operatorfunc = "v:lua._dap_hover" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "查看变量" })
+		dap.listeners.after["event_terminated"]["me"] = function()
+			for _, keymap in pairs(keymap_restore) do
+				if keymap.rhs then
+					vim.api.nvim_buf_set_keymap(
+						keymap.buffer,
+						keymap.mode,
+						keymap.lhs,
+						keymap.rhs,
+						{ silent = keymap.silent }
+					)
+				elseif keymap.callback then
+					vim.keymap.set(
+						keymap.mode,
+						keymap.lhs,
+						keymap.callback,
+						{ buffer = keymap.buffer, silent = keymap.silent }
+					)
+				end
+			end
+			keymap_restore = {}
+		end
 
 		vim.keymap.set("n", "<leader>dle", function()
 			widgets.preview(nil, {
@@ -304,6 +354,9 @@ return {
 					"event_stopped", -- 停下时更新
 					"event_continued", -- 继续时可清空或更新
 					"event_terminated", -- 会话结束时清理
+					"event_initialized", -- 可选，在调试会话开始时刷新
+					"event_thread", -- 有时可以响应线程状态变化
+					"event_breakpoint", -- 添加或命中断点
 				},
 			})
 		end, { desc = "查看光标下的表达式并自动刷新" })

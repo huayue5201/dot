@@ -24,7 +24,7 @@ vim.diagnostic.config({
 		numhl = { [vim.diagnostic.severity.WARN] = "WarningMsg" },
 	},
 	underline = true,
-	update_in_insert = false,
+	update_in_insert = true,
 })
 
 -- 高级诊断处理器：过滤掉非法（超出 buffer 行数）的诊断信息
@@ -47,10 +47,8 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx,
 		local line = diag.range and diag.range.start and diag.range.start.line
 		return type(line) == "number" and line < max_line
 	end, result.diagnostics or {})
-
 	-- 替换原始诊断结果
 	result.diagnostics = valid_diagnostics
-
 	-- 调用 Neovim 默认处理器
 	vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
 end
@@ -85,67 +83,47 @@ vim.cmd([[
 autocmd BufEnter,CursorHold,InsertLeave <buffer> lua vim.lsp.codelens.refresh({ bufnr = 0 })
 ]])
 
+-- local timer = vim.uv.new_timer()
+-- local delay = 500 -- ms，适当调整，500ms 比较自然
+-- vim.api.nvim_create_autocmd({ "CursorMoved", "DiagnosticChanged" }, {
+-- 	callback = function()
+-- 		timer:stop()
+-- 		timer:start(delay, 0, function()
+-- 			vim.schedule(function()
+-- 				-- 打开浮窗
+-- 				local _, win = vim.diagnostic.open_float(nil, {
+-- 					focusable = false,
+-- 					source = "if_many",
+-- 				})
+-- 				-- 若打开失败（无诊断），则退出
+-- 				if not win then
+-- 					return
+-- 				end
+-- 				-- 获取当前浮窗配置并调整位置与尺寸
+-- 				local cfg = vim.api.nvim_win_get_config(win)
+-- 				cfg.anchor = "NE"
+-- 				cfg.row = 0
+-- 				cfg.col = vim.o.columns - 1
+-- 				cfg.width = math.min(cfg.width or 999, math.floor(vim.o.columns * 0.6))
+-- 				cfg.height = math.min(cfg.height or 999, math.floor(vim.o.lines * 0.4))
+-- 				-- 更新浮窗配置
+-- 				vim.api.nvim_win_set_config(win, cfg)
+-- 			end)
+-- 		end)
+-- 	end,
+-- })
+
 -- 设置按键映射
+local diagnostics = require("config.diagnostics_keymap")
+
 local keymaps = {
-	{ "<leader>ld", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
+	{ "<leader>lq", diagnostics.open_all_diagnostics, "打开所有诊断（Quickfix）" },
+	{ "<leader>ll", diagnostics.open_buffer_diagnostics, "打开当前 buffer 诊断（Loclist）" },
+	-- { "<leader>ld", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
 	{ "<leader>rl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭 LSP 客户端" },
 	-- { "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
-	{
-		"<leader>yd",
-		function()
-			local bufnr = 0
-			local cursor = vim.api.nvim_win_get_cursor(0)
-			local row, col = cursor[1] - 1, cursor[2]
-			local word = vim.fn.expand("<cword>")
-			local diagnostics = vim.diagnostic.get(bufnr)
-
-			local severity_map = {
-				[vim.diagnostic.severity.ERROR] = "Error",
-				[vim.diagnostic.severity.WARN] = "Warning",
-				[vim.diagnostic.severity.INFO] = "Info",
-				[vim.diagnostic.severity.HINT] = "Hint",
-			}
-
-			local function format(diag)
-				local severity = severity_map[diag.severity] or "Unknown"
-				local source = diag.source or "LSP"
-				return string.format("[%s] %s (from %s)", severity, diag.message, source)
-			end
-
-			local matched = {}
-			for _, diag in ipairs(diagnostics) do
-				local s_row, s_col = diag.lnum, diag.col
-				local e_row, e_col = diag.end_lnum or s_row, diag.end_col or s_col + 1
-				local in_range = (row > s_row or (row == s_row and col >= s_col))
-					and (row < e_row or (row == e_row and col < e_col))
-				if in_range or diag.message:find(word, 1, true) then
-					table.insert(matched, format(diag))
-				end
-			end
-
-			if #matched > 0 then
-				local content = table.concat(matched, "\n")
-				vim.fn.setreg("+", content)
-				vim.notify("诊断信息已复制到剪贴板!", vim.log.levels.INFO)
-			else
-				vim.notify("无诊断信息", vim.log.levels.INFO)
-			end
-		end,
-		"复制光标词的诊断信息",
-	},
-	{
-		"<leader>tol",
-		function()
-			for _, client in pairs(vim.lsp.get_clients({ bufnr = 0 })) do
-				vim.lsp.stop_client(client.id)
-			end
-			-- 重新加载当前缓冲区
-			vim.defer_fn(function()
-				vim.cmd("edit")
-			end, 100)
-		end,
-		"重启 LSP",
-	},
+	{ "<leader>yd", diagnostics.copy_diagnostics_under_cursor, "复制光标词的诊断信息" },
+	{ "<leader>tol", diagnostics.restart_lsp, "重启 LSP" },
 	{
 		"<leader>tod",
 		"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
