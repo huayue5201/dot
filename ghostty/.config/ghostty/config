@@ -3,15 +3,15 @@
 #           字体设置
 # ================================================
 # 设置字体
-# font-family = Victor Mono
+font-family = Victor Mono
 # font-family = FiraCode Nerd Font
-font-family = IosevkaTermSlab Nerd Font
+# font-family = IosevkaTermSlab Nerd Font
 # font-family = GohuFont uni14 Nerd Font
 # 启用加粗字体
-# font-thicken = true
+font-thicken = true
 
 # 设置字体大小
-font-size = 19
+font-size = 17
 
 # ================================================
 #           窗口与主题设置
@@ -23,7 +23,7 @@ custom-shader-animation = true
 window-decoration = auto
 
 # 设置窗口高度为
-window-height = 38
+window-height = 35
 
 # 设置窗口宽度为
 window-width = 145

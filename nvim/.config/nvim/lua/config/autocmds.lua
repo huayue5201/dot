@@ -64,7 +64,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 -- ✨ 通用 `q` 快捷键关闭窗口
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	desc = "用 q 关闭窗口或删除缓冲区",
-	pattern = "*",
 	callback = function()
 		local close_commands = require("utils.utils").close_commands
 		local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype

@@ -139,7 +139,6 @@ return {
 			-- that will be available in all sources (if not overridden in `opts[source_name].commands`)
 			-- see `:h neo-tree-custom-commands-global`
 			commands = {
-				toggle_debug = toggle_debug_from_neotree,
 				system_open = function(state)
 					local node = state.tree:get_node()
 					local path = node:get_id()

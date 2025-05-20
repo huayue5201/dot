@@ -1,6 +1,7 @@
 -- https://devhints.io/vim
 -- https://github.com/neovim/neovim/releases/
 -- https://neovim.io/
+-- https://github.com/neovim/neovim/pull/34009
 
 -- 启用 Lua 加载器加速启动
 vim.loader.enable()
@@ -26,6 +27,7 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 -- 立即加载基础配置
 require("config.settings") -- 基础 Neovim 选项
 require("config.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
+require("config.statusline").active()
 
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()
@@ -42,8 +44,22 @@ vim.defer_fn(function()
 				semanticTokens = { multilineTokenSupport = true },
 			},
 		},
+		on_attach = function(client, bufnr)
+			-- 确保 diagnostics 功能已启用
+			client.server_capabilities.publishDiagnostics = true
+		end,
 	})
-	vim.lsp.enable({ "lua_ls", "clangd", "taplo", "rust-analyzer" })
+
+	-- vim.lsp.enable({ "lua_ls", "clangd", "taplo", "rust-analyzer" })
+
+	local configs = {}
+	-- 遍历 runtime 中所有 lsp/* 文件
+	for _, v in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
+		local name = vim.fn.fnamemodify(v, ":t:r")
+		configs[name] = true
+	end
+	-- 启用所有存在的配置
+	vim.lsp.enable(vim.tbl_keys(configs))
 
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()

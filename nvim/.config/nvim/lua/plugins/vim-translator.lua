@@ -1,6 +1,6 @@
 -- https://github.com/voldikss/vim-translator
 -- https://github.com/pand5a/vim-translator
--- NOTE: 备选插件 https://github.com/askfiy/smart-translate.nvim?tab=readme-ov-file#custom-translatoradvanced
+-- NOTE: 备选插件 https://github.com/askfiy/smart-translate.nvim
 
 return {
 	"pand5a/vim-translator",

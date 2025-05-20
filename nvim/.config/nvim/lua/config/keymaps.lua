@@ -11,8 +11,7 @@ vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更
 
 vim.keymap.set("n", "<c-s>", "<cmd>w<cr>", { silent = true, desc = "保存buffer" })
 
--- vim.keymap.set("n", "<Leader>q", ":bp|bd#<cr>", { silent = true, desc = "退出buffer" })
-vim.keymap.set("n", "<Leader>q", "<cmd>bd<cr>", { silent = true, desc = "退出buffer" })
+vim.keymap.set("n", "<Leader>q", ":bd<cr>", { silent = true, desc = "退出buffer" })
 
 vim.keymap.set("n", "<leader>ttn", "<cmd>$tabnew<cr>", { silent = true, desc = "创建新的标签页" })
 
@@ -26,7 +25,7 @@ vim.keymap.set("n", "<leader>lm", "<cmd>messages<cr>", { silent = true, desc = "
 
 -- vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
-vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
+-- vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
 
 vim.keymap.set("n", "<leader>yp", function()
 	vim.fn.setreg("+", vim.fn.expand("%:p"))
@@ -48,6 +47,10 @@ vim.keymap.set("n", "<leader>ram", function()
 	vim.cmd("delmarks A-Z")
 end, { desc = "Delete all marks (lowercase and uppercase)" })
 
+vim.keymap.set("n", "<leader>tob", function()
+	require("utils.bitcalc").bitcalc()
+end, { desc = "打开位运算浮窗计算器" })
+
 vim.keymap.set("i", "<c-l>", function()
 	local node = vim.treesitter.get_node()
 	if node ~= nil then
@@ -60,10 +63,8 @@ vim.keymap.set("n", "<Leader>raw", function()
 	local current_win = vim.api.nvim_get_current_win()
 	local current_buf = vim.api.nvim_win_get_buf(current_win)
 	local current_dir = vim.fn.fnamemodify(vim.fn.bufname(current_buf), ":p:h") -- 获取当前缓冲区的目录
-
 	-- 收集所有要删除的窗口ID
 	local windows_to_close = {}
-
 	-- 遍历所有窗口
 	for _, win_id in ipairs(vim.api.nvim_list_wins()) do
 		if win_id ~= current_win then
@@ -75,52 +76,11 @@ vim.keymap.set("n", "<Leader>raw", function()
 			end
 		end
 	end
-
 	-- 删除待删除的窗口（确保每个窗口 ID 是有效的）
 	for _, win_id in ipairs(windows_to_close) do
 		if vim.api.nvim_win_is_valid(win_id) then
 			vim.api.nvim_win_close(win_id, true) -- 关闭该窗口
 		end
 	end
-
 	print("Deleted windows outside the current directory!")
 end, { silent = true, desc = "删除当前窗口外的所有窗口" })
-
--- vim.keymap.set(
--- 	{ "n", "t" },
--- 	"<C-t>",
--- 	(function()
--- 		local buf, win = nil, nil
--- 		local was_insert = true
--- 		local cfg = function()
--- 			return {
--- 				relative = "editor",
--- 				width = math.floor(vim.o.columns * 0.8),
--- 				height = math.floor(vim.o.lines * 0.8),
--- 				row = math.floor(vim.o.lines * 0.1),
--- 				col = math.floor(vim.o.columns * 0.1),
--- 				style = "minimal",
--- 				border = "rounded",
--- 			}
--- 		end
--- 		return function()
--- 			buf = (buf and vim.api.nvim_buf_is_valid(buf)) and buf or nil
--- 			win = (win and vim.api.nvim_win_is_valid(win)) and win or nil
--- 			if not buf and not win then
--- 				vim.cmd("split | terminal")
--- 				buf = vim.api.nvim_get_current_buf()
--- 				vim.api.nvim_win_close(vim.api.nvim_get_current_win(), true)
--- 				win = vim.api.nvim_open_win(buf, true, cfg())
--- 			elseif not win and buf then
--- 				win = vim.api.nvim_open_win(buf, true, cfg())
--- 			elseif win then
--- 				was_insert = vim.api.nvim_get_mode().mode == "t"
--- 				return vim.api.nvim_win_close(win, true)
--- 			end
--- 			if was_insert then
--- 				vim.cmd("startinsert")
--- 			end
--- 		end
--- 	end)(),
--- 	{ desc = "Toggle float terminal" }
--- )

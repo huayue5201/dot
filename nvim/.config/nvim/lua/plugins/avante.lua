@@ -14,19 +14,30 @@ return {
 		--- The below dependencies are optional,
 		"nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
 		"zbirenbaum/copilot.lua", -- for providers='copilot'
+		"MeanderingProgrammer/render-markdown.nvim",
 	},
 	config = function()
 		require("avante").setup({
 			-- provider = "openai",
-			provider = "copilot",
-			openai = {
-				endpoint = "https://api.openai.com/v1",
-				model = "gpt-4o", -- your desired model (or use gpt-4o, etc.)
-				timeout = 30000, -- Timeout in milliseconds, increase this for reasoning models
-				temperature = 0,
-				max_completion_tokens = 8192, -- Increase this to include reasoning tokens (for reasoning models)
-				--reasoning_effort = "medium", -- low|medium|high, only used for reasoning models
+			provider = "ollama",
+			ollama = {
+				endpoint = "http://127.0.0.1:11434", -- Note that there is no /v1 at the end.
+				model = "gemma3",
 			},
+			cursor_applying_provider = "gemma3",
+			behaviour = {
+				--- ... existing behaviours
+				enable_cursor_planning_mode = true, -- enable cursor planning mode!
+			},
+			-- provider = "copilot",
+			-- openai = {
+			-- 	endpoint = "https://api.openai.com/v1",
+			-- 	model = "gpt-4o", -- your desired model (or use gpt-4o, etc.)
+			-- 	timeout = 30000, -- Timeout in milliseconds, increase this for reasoning models
+			-- 	temperature = 0,
+			-- 	max_completion_tokens = 8192, -- Increase this to include reasoning tokens (for reasoning models)
+			-- 	--reasoning_effort = "medium", -- low|medium|high, only used for reasoning models
+			-- },
 			rag_service = {
 				enabled = false, -- 启用 RAG 服务
 				host_mount = os.getenv("HOME"), -- RAG 服务的主机挂载路径
@@ -34,6 +45,10 @@ return {
 				llm_model = "", -- 用于 RAG 服务的 LLM 模型
 				embed_model = "", -- 用于 RAG 服务的嵌入模型
 				endpoint = "https://api.openai.com/v1", -- RAG 服务的 API 端点
+			},
+			web_search_engine = {
+				provider = "tavily", -- tavily, serpapi, searchapi, google, kagi, brave 或 searxng
+				proxy = nil, -- proxy support, e.g., http://127.0.0.1:7890
 			},
 			windows = {
 				---@type "right" | "left" | "top" | "bottom"
@@ -56,7 +71,7 @@ return {
 				ask = {
 					floating = false, -- 在浮动窗口中打开 'AvanteAsk' 提示
 					start_insert = true, -- 打开询问窗口时开始插入模式
-					border = "rounded",
+					border = "shadow",
 					---@type "ours" | "theirs"
 					focus_on_apply = "ours", -- 应用后聚焦的差异
 				},
