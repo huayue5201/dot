@@ -78,6 +78,6 @@ return {
 		-- 	require("todo-comments").jump_prev()
 		-- end, { desc = "Previous todo comment" })
 
-		vim.keymap.set("n", "<leader>td", "<cmd>TodoLocList<cr>", { desc = "Previous todo comment" })
+		vim.keymap.set("n", "<leader>lt", "<cmd>TodoLocList<cr>", { desc = "Previous todo comment" })
 	end,
 }
