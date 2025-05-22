@@ -39,6 +39,13 @@ vim.defer_fn(function()
 	-- 延迟 LSP 配置
 	vim.lsp.config("*", {
 		root_markers = { ".git" },
+		settings = {
+			workspace = {
+				didChangeWatchedFiles = {
+					enabled = true,
+				},
+			},
+		},
 		capabilities = {
 			textDocument = {
 				semanticTokens = { multilineTokenSupport = true },

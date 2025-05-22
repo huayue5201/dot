@@ -23,6 +23,7 @@ vim.g.loaded_ruby_provider = 0
 
 -- -------------- 基本设置 --------------
 vim.opt.mousemoveevent = true -- 启用鼠标移动事件
+vim.opt.fileencodings = { "utf-8", "gbk", "cp936", "ucs-bom", "latin1" }
 vim.opt.inccommand = "split" -- 启用增量命令模式（即时显示命令效果）
 -- vim.opt.clipboard = "unnamedplus" -- 使用系统剪贴板
 -- vim.g.clipboard = "osc52"

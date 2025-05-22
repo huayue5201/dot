@@ -4,7 +4,8 @@
 return {
 	"zbirenbaum/copilot.lua",
 	cmd = "Copilot",
-	event = "InsertEnter",
+	-- event = "InsertEnter",
+	lazy = true,
 	keys = {
 		{ "<leader>ap", desc = "Copilot Panel" },
 		{ "<leader>at", desc = "Copilot Suggestion" },

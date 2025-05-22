@@ -68,13 +68,10 @@ end
 -- 自动保存/恢复视图
 local function remember(mode)
 	local ignored = {
-		"TelescopePrompt",
 		"DressingSelect",
 		"DressingInput",
-		"toggleterm",
 		"gitcommit",
 		"replacer",
-		"harpoon",
 		"help",
 		"qf",
 	}

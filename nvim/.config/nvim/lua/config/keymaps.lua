@@ -49,7 +49,15 @@ end, { desc = "Delete all marks (lowercase and uppercase)" })
 
 vim.keymap.set("n", "<leader>tob", function()
 	require("utils.bitcalc").bitcalc()
-end, { desc = "打开位运算浮窗计算器" })
+end, { desc = "位运算计算器" })
+
+-- 为 Visual 模式设置快捷键
+vim.api.nvim_set_keymap(
+	"v",
+	"<leader>tob",
+	":lua require('utils.bitcalc').bitcalc_visual()<CR>",
+	{ noremap = true, silent = true }
+)
 
 vim.keymap.set("i", "<c-l>", function()
 	local node = vim.treesitter.get_node()
