@@ -8,8 +8,8 @@ function M.toggle_task_state()
 	local options = {
 		{ display = "󰄱 待完成", symbol = "[ ]" },
 		{ display = "󰱒 完成", symbol = "[x]" },
-		{ display = "✘ 丢弃", symbol = "[-]" },
-		{ display = " 暂停", symbol = "[~]" },
+		{ display = " 搁置", symbol = "[-]" },
+		{ display = " 待定", symbol = "[~]" },
 	}
 
 	vim.ui.select(options, {

@@ -12,6 +12,9 @@ return {
 			file_types = { "markdown", "Avante" },
 			render_modes = true,
 			completions = { blink = { enabled = true } },
+			preset = "obsidian",
+			heading = { position = "inline" },
+			checkbox = { checked = { scope_highlight = "@markup.strikethrough" } },
 		})
 	end,
 }
