@@ -9,10 +9,10 @@ return {
 	ft = { "markdown", "Avante" },
 	config = function()
 		require("render-markdown").setup({
-			render_modes = true,
+			-- render_modes = true,
 			file_types = { "markdown", "Avante" },
 			completions = { blink = { enabled = true } },
-			checkbox = { checked = { scope_highlight = "@markup.strikethrough" } },
+			-- checkbox = { checked = { scope_highlight = "@markup.strikethrough" } },
 			link = {
 				-- Turn on / off inline link icon rendering.
 				enabled = true,
