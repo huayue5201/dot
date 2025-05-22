@@ -1,4 +1,3 @@
-vim.keymap.set("v", "J", ":m '>+1<cr>gv=gv", { silent = true, desc = "向下移动选中的代码块" })
 vim.keymap.set("v", "K", ":m '<-2<cr>gv=gv", { silent = true, desc = "向上移动选中的代码块" })
 
 vim.keymap.set("n", "c", '"_c', { desc = "修改并丢弃到黑洞寄存器" })
@@ -47,16 +46,21 @@ vim.keymap.set("n", "<leader>ram", function()
 	vim.cmd("delmarks A-Z")
 end, { desc = "Delete all marks (lowercase and uppercase)" })
 
-vim.keymap.set("n", "<leader>tob", function()
-	require("utils.bitcalc").bitcalc()
-end, { desc = "位运算计算器" })
+local bitcalc = require("utils.bitcalc")
+vim.keymap.set("n", "<leader>tob", bitcalc.bitcalc, { noremap = true, silent = true, desc = "位运算计算器" })
 
--- 为 Visual 模式设置快捷键
-vim.api.nvim_set_keymap(
+vim.keymap.set(
 	"v",
 	"<leader>tob",
-	":lua require('utils.bitcalc').bitcalc_visual()<CR>",
-	{ noremap = true, silent = true }
+	bitcalc.bitcalc_visual,
+	{ noremap = true, silent = true, desc = "位运算计算器" }
+)
+
+vim.keymap.set(
+	"n",
+	"<leader>tdn",
+	require("utils.todo").create_todo_file,
+	{ noremap = true, silent = true, desc = "新建todo清单" }
 )
 
 vim.keymap.set("i", "<c-l>", function()
