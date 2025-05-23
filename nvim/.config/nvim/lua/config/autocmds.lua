@@ -35,15 +35,23 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	end,
 })
 
+local lsp_config = require("config.lsp")
 -- ✨ LSP 启动时绑定快捷键与功能
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
 	callback = function(args)
 		local client = vim.lsp.get_client_by_id(args.data.client_id)
 		-- print("LspAttach", client.name)
-		require("config.lsp")
+		-- local capabilities = vim.lsp.get_clients()[1].server_capabilities
+		-- print(vim.inspect(capabilities))
+		lsp_config.diagnostic_config() -- 设置诊断配置
+		lsp_config.diagnostic_handler() -- 设置诊断处理器
+		lsp_config.mode_changed_handler() -- 设置模式变化时禁用/启用诊断
+		lsp_config.inlay_hint_handler() -- 设置插入模式内联提示处理
+		lsp_config.set_keymaps() -- 设置按键映射
 
 		vim.lsp.document_color.enable(true, args.buf)
+		-- vim.lsp.document_color.enable(not vim.lsp.document_color.is_enabled())
 
 		if client:supports_method("textDocument/foldingRange") then
 			local win = vim.api.nvim_get_current_win()
@@ -57,6 +65,20 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
 		if client:supports_method("textDocument/codeLens") then
 			vim.lsp.codelens.refresh({ bufnr = 0 })
+		end
+		-- 自动刷新 CodeLens
+		vim.cmd([[ autocmd BufEnter,CursorHold,InsertLeave <buffer> lua vim.lsp.codelens.refresh({ bufnr = 0 }) ]])
+	end,
+})
+
+-- lsp退出时自动注销相关映射
+vim.api.nvim_create_autocmd("LspDetach", {
+	group = vim.api.nvim_create_augroup("UserLspDetach", { clear = true }),
+	callback = function(args)
+		local client = vim.lsp.get_client_by_id(args.data.client_id)
+		if client then
+			-- 移除键映射
+			lsp_config.remove_keymaps()
 		end
 	end,
 })

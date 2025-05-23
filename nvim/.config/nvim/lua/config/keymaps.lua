@@ -56,12 +56,9 @@ vim.keymap.set(
 	{ noremap = true, silent = true, desc = "位运算计算器" }
 )
 
-vim.keymap.set(
-	"n",
-	"<leader>tdn",
-	require("utils.todo").create_todo_file,
-	{ noremap = true, silent = true, desc = "新建todo清单" }
-)
+vim.keymap.set("n", "<leader>tdo", function()
+	require("utils.todo").open_or_create_todo_file(true)
+end, { noremap = true, silent = true, desc = "打开todo清单" })
 
 vim.keymap.set("i", "<c-l>", function()
 	local node = vim.treesitter.get_node()

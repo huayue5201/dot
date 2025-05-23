@@ -18,6 +18,9 @@ return {
 				callSnippet = "Both", -- 代码补全时，函数参数提示
 				displayContext = 3, -- 显示上下文行数
 			},
+			codeLensProvider = {
+				resolveProvider = true,
+			},
 			hint = {
 				enable = true, -- 启用内联提示
 				setPype = true, -- 设置类型

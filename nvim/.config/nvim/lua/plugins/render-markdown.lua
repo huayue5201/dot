@@ -14,7 +14,8 @@ return {
 			completions = { blink = { enabled = true } },
 			preset = "obsidian",
 			heading = { position = "inline" },
-			checkbox = { checked = { scope_highlight = "@markup.strikethrough" } },
+			-- checkbox = { checked = { scope_highlight = "@markup.strikethrough" } },
+			checkbox = { enabled = false },
 		})
 	end,
 }
