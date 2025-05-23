@@ -46,15 +46,12 @@ vim.keymap.set("n", "<leader>ram", function()
 	vim.cmd("delmarks A-Z")
 end, { desc = "Delete all marks (lowercase and uppercase)" })
 
-local bitcalc = require("utils.bitcalc")
-vim.keymap.set("n", "<leader>tob", bitcalc.bitcalc, { noremap = true, silent = true, desc = "位运算计算器" })
-
-vim.keymap.set(
-	"v",
-	"<leader>tob",
-	bitcalc.bitcalc_visual,
-	{ noremap = true, silent = true, desc = "位运算计算器" }
-)
+vim.keymap.set("n", "<leader>tc", function()
+	require("utils.bitcalc").bitcalc()
+end, { desc = "打开位运算计算器" })
+vim.keymap.set("v", "<leader>tc", function()
+	require("utils.bitcalc").bitcalc_visual()
+end, { desc = "计算选中位表达式" })
 
 vim.keymap.set("n", "<leader>tdo", function()
 	require("utils.todo").open_or_create_todo_file(true)
