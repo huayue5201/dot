@@ -5,6 +5,7 @@ return {
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter",
 		"nvim-tree/nvim-web-devicons",
+		"bngarren/checkmate.nvim", -- 更好的复选框支持
 	},
 	ft = { "markdown", "Avante" },
 	config = function()

@@ -1,55 +1,33 @@
--- 加载 FFI 库
-local ffi = require("ffi")
+local bit = require("bit")
 
--- 定义 C 函数接口
-ffi.cdef([[
-    unsigned int band(unsigned int a, unsigned int b);
-    unsigned int bor(unsigned int a, unsigned int b);
-    unsigned int bxor(unsigned int a, unsigned int b);
-    unsigned int lshift(unsigned int a, int b);
-    unsigned int rshift(unsigned int a, int b);
-    unsigned int bnot(unsigned int a);
-]])
-
--- 加载 C 标准库
-local bit = ffi.C
-
--- 封装位运算函数
 local function band(a, b)
 	return bit.band(a, b)
 end
-
 local function bor(a, b)
 	return bit.bor(a, b)
 end
-
 local function bxor(a, b)
 	return bit.bxor(a, b)
 end
-
 local function lshift(a, b)
 	return bit.lshift(a, b)
 end
-
 local function rshift(a, b)
 	return bit.rshift(a, b)
 end
-
 local function bnot(a)
 	return bit.bnot(a)
 end
 
--- 辅助函数：将十进制数转换为二进制字符串
 local function to_binary(n)
 	local t = {}
-	repeat
-		table.insert(t, 1, n % 2)
-		n = math.floor(n / 2)
-	until n == 0
-	return table.concat(t)
+	for i = 31, 0, -1 do
+		table.insert(t, bit.band(bit.rshift(n, i), 1))
+	end
+	local result = table.concat(t):gsub("^0+", "")
+	return result ~= "" and result or "0"
 end
 
--- 格式化结果
 local function format_result(val)
 	return {
 		"   Dec: " .. val,
@@ -58,105 +36,182 @@ local function format_result(val)
 	}
 end
 
--- 解析表达式，替换 C 风格的位运算符并计算结果
 local function eval_expr(expr)
-	-- 替换表达式中的位运算符
-	expr = expr:gsub("(%w+)%s*&%s*(%w+)", "band(%1, %2)")
-	expr = expr:gsub("(%w+)%s*|%s*(%w+)", "bor(%1, %2)")
-	expr = expr:gsub("(%w+)%s*~%s*(%w+)", "bxor(%1, %2)")
-	expr = expr:gsub("(%w+)%s*<<%s*(%d+)", "lshift(%1, %2)")
-	expr = expr:gsub("(%w+)%s*>>%s*(%d+)", "rshift(%1, %2)")
-	expr = expr:gsub("~(%w+)", "bnot(%1)")
+	-- 去掉空格方便处理
+	expr = expr:gsub("%s+", "")
 
-	-- 使用 load 函数执行 Lua 表达式，确保传递 bit 函数
-	local f, err = load(
-		"return " .. expr,
-		"expr",
-		"t",
-		{ band = band, bor = bor, bxor = bxor, lshift = lshift, rshift = rshift, bnot = bnot }
-	)
+	-- 支持十六进制数字，转成十进制字符串（load里能直接识别其实可不转）
+	expr = expr:gsub("0x%x+", function(h)
+		return tostring(tonumber(h))
+	end)
+
+	-- 替换 C 风格位运算符为函数调用
+	-- 支持数字和变量（%w_）
+	expr = expr:gsub("([%w_%(%)]+)<<([%w_%(%)]+)", "lshift(%1,%2)")
+		:gsub("([%w_]+)>>(%d+)", "rshift(%1,%2)")
+		:gsub("~([%w_]+)", "bnot(%1)")
+		:gsub("([%w_]+)&([%w_]+)", "band(%1,%2)")
+		:gsub("([%w_]+)|([%w_]+)", "bor(%1,%2)")
+		:gsub("([%w_]+)~([%w_]+)", "bxor(%1,%2)")
+
+	-- 载入并运行表达式
+	local f, err = load("return " .. expr, "bitcalc", "t", {
+		band = band,
+		bor = bor,
+		bxor = bxor,
+		lshift = lshift,
+		rshift = rshift,
+		bnot = bnot,
+		math = math, -- 预留，方便扩展
+	})
+
 	if not f then
-		return nil, "表达式错误: " .. err
+		return nil, "语法错误: " .. err
 	end
 
 	local ok, result = pcall(f)
 	if not ok then
-		return nil, "计算失败: " .. result
+		return nil, "执行出错: " .. result
 	end
 
 	if type(result) ~= "number" then
-		return nil, "结果类型错误: 非数字"
+		return nil, "结果类型错误: 计算结果不是数字"
 	end
 
 	return result
 end
 
--- 打开浮动窗口显示计算结果
-local function open_float_win(lines)
+local open_windows = {}
+local function get_next_row(height)
+	-- 从第2行开始
+	local base_row = -1
+	-- 找出当前所有窗口的最大底部行
+	local max_bottom = base_row
+	for _, win in pairs(open_windows) do
+		local win_config = vim.api.nvim_win_get_config(win)
+		if win_config.relative == "editor" then
+			local top = win_config.row or base_row
+			local bottom = top + (win_config.height or height)
+			if bottom > max_bottom then
+				max_bottom = bottom
+			end
+		end
+	end
+
+	local gap = 2 -- 你想要的间距，比如2行
+	return max_bottom + gap
+end
+
+local function open_float_win(lines, expr)
 	local buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_set_option_value("filetype", "c", { buf = buf })
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
 	local width = 40
 	local height = #lines
+	-- local col = math.max(0, vim.o.columns - width - 2)
+	local row = get_next_row(height)
 
 	local win_opts = {
 		relative = "editor",
-		row = 1,
-		col = vim.o.columns - width,
+		row = row,
+		col = vim.o.columns - width - 2,
 		width = width,
 		height = height,
 		style = "minimal",
 		border = "rounded",
-		title = "BitCalc",
-		title_pos = "left",
-		footer = { { "计算结果", "Type" } },
+		title = " 󱖦 BitCalc ",
+		title_pos = "center",
+		footer = { { " " .. expr .. " ", "Number" } },
 		footer_pos = "center",
 	}
 
-	vim.api.nvim_open_win(buf, false, win_opts)
+	local win = vim.api.nvim_open_win(buf, false, win_opts)
+
+	-- 记录窗口id
+	table.insert(open_windows, win)
+
+	-- 窗口关闭自动清理 open_windows
+	vim.api.nvim_create_autocmd("WinClosed", {
+		buffer = buf,
+		once = true,
+		callback = function()
+			for i, w in ipairs(open_windows) do
+				if w == win then
+					table.remove(open_windows, i)
+					break
+				end
+			end
+		end,
+	})
+
+	-- 高亮显示结果数字部分
+	vim.api.nvim_buf_add_highlight(buf, -1, "Function", 0, 6, -1)
+	vim.api.nvim_buf_add_highlight(buf, -1, "Constant", 1, 6, -1)
+	vim.api.nvim_buf_add_highlight(buf, -1, "Keyword", 2, 6, -1)
+
+	-- 关闭窗口的快捷键
+	vim.api.nvim_buf_set_keymap(buf, "n", "q", "<cmd>close<CR>", { nowait = true, noremap = true, silent = true })
+
+	-- 自动设置buffer不可修改，避免误操作
+	vim.api.nvim_get_option_value("modifiable", { buf = buf })
+
+	return win, buf
 end
 
--- 用户输入表达式并计算
 local function bitcalc()
-	vim.ui.input({ prompt = "输入表达式 : " }, function(input)
+	vim.ui.input({ prompt = "输入表达式: " }, function(input)
 		if not input or input == "" then
 			return
 		end
-
 		local result, err = eval_expr(input)
-		if err then
-			vim.notify(err, vim.log.levels.ERROR)
-			return
+		if not result then
+			vim.notify(err or "", vim.log.levels.ERROR)
+		else
+			open_float_win(format_result(result), input)
 		end
-
-		open_float_win(format_result(result))
 	end)
 end
 
--- 获取 Visual 模式下选中的文本并计算
 local function bitcalc_visual()
-	-- 获取当前选区的文本
-	local start_line, start_col = unpack(vim.api.nvim_buf_get_mark(0, "<"))
-	local end_line, end_col = unpack(vim.api.nvim_buf_get_mark(0, ">"))
-	local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
-	local selected_text = table.concat(lines, "\n"):sub(start_col + 1, end_col)
+	local mode = vim.fn.mode()
+	if mode ~= "v" and mode ~= "V" then
+		vim.notify("请在 Visual 模式下使用", vim.log.levels.WARN)
+		return
+	end
+	local start_pos = vim.fn.getpos("'<")
+	local end_pos = vim.fn.getpos("'>")
+	local lines = vim.api.nvim_buf_get_lines(0, start_pos[2] - 1, end_pos[2], false)
 
-	-- 如果选中的文本为空，直接返回
+	-- 处理多行选中，连接为一整串表达式
+	local expr_lines = {}
+	for i, line in ipairs(lines) do
+		if i == 1 and i == #lines then
+			-- 只有一行选区，截取start_col到end_col
+			expr_lines[#expr_lines + 1] = line:sub(start_pos[3], end_pos[3])
+		elseif i == 1 then
+			-- 第一行截取start_col到行尾
+			expr_lines[#expr_lines + 1] = line:sub(start_pos[3])
+		elseif i == #lines then
+			-- 最后一行截取行首到end_col
+			expr_lines[#expr_lines + 1] = line:sub(1, end_pos[3])
+		else
+			-- 中间整行
+			expr_lines[#expr_lines + 1] = line
+		end
+	end
+	local selected_text = table.concat(expr_lines, "")
+
 	if selected_text == "" then
 		vim.notify("没有选中任何文本", vim.log.levels.ERROR)
 		return
 	end
 
-	-- 计算选中的文本
 	local result, err = eval_expr(selected_text)
-	if err then
-		vim.notify(err, vim.log.levels.ERROR)
-		return
+	if not result then
+		vim.notify(err or "", vim.log.levels.ERROR)
+	else
+		open_float_win(format_result(result), selected_text)
 	end
-
-	-- 打开浮动窗口显示计算结果
-	open_float_win(format_result(result))
 end
 
 return {

@@ -12,7 +12,7 @@ return {
 			-- 'floating-big-letter'：在浮动窗口中显示大字母
 			-- 'floating-letter'：在浮动窗口中显示字母
 			-- 使用
-			hint = "statusline-winbar",
+			hint = "floating-letter",
 
 			-- 当进入窗口选择模式时，状态栏会显示以下字母之一，你可以使用这些字母来选择窗口
 			selection_chars = "FJDKSLA;CMRUEIWOQP",

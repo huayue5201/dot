@@ -97,6 +97,22 @@ function Statusline.lsp()
 	}, " ")
 end
 
+-- -- -------------------- USB 连接状态（嵌入式设备） --------------------
+-- function Statusline.usb_status()
+-- 	local device_keyword = "STM32 STLink" -- ← 替换为你设备关键字
+-- 	local handle = io.popen("system_profiler SPUSBDataType | grep -i '" .. device_keyword .. "'")
+-- 	if not handle then
+-- 		return "%#GitIconRemoved#󰀃 检测失败%*"
+-- 	end
+-- 	local result = handle:read("*a")
+-- 	handle:close()
+-- 	if result ~= "" then
+-- 		return "%#GitIconAdded#󰀂 已连接%*"
+-- 	else
+-- 		return "%#GitIconRemoved#󰀃 未连接%*"
+-- 	end
+-- end
+
 -- -------------------- 调试状态 --------------------
 function Statusline.dap_status()
 	local dap_status = require("dap").status()
@@ -159,9 +175,9 @@ function Statusline.active()
 		"%#Normal#", -- 默认文本高亮组
 		string.format("%-46s", Statusline.mode()), -- 左对齐，13个字符
 		" " .. get_filename_with_icon() .. "  ", -- 动态获取文件图标
-		-- "  " .. "%t  ", -- 文件名
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
+		-- Statusline.usb_status(), -- ✅ USB 状态
 		Statusline.dap_status() .. "  ", -- dap调试信息
 		Statusline.vcs(), -- Git 状态
 		"  %l%c ", -- 行列号

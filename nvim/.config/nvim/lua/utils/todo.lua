@@ -32,11 +32,18 @@ end
 
 -- 打开或新建 todo.md 文件（支持浮动窗口或常规窗口）
 function M.open_or_create_todo_file(floating)
-	local root = vim.fn.getcwd() -- 替换为你的项目根检测逻辑
+	local root = vim.fn.getcwd() -- 项目根目录
 	local todo_path = root .. "/todo.md"
 
-	-- 如果文件不存在，创建文件
+	-- 如果文件不存在，询问是否创建
 	if vim.fn.filereadable(todo_path) == 0 then
+		local answer = vim.fn.input(" 当前项目没有  todo 文件，是否创建？(y/n): ")
+		if answer:lower() ~= "y" then
+			print("取消创建 todo 文件。")
+			return
+		end
+
+		-- 用户同意创建文件
 		local fd = io.open(todo_path, "w")
 		if fd then
 			fd:write("# A list of tasks Launch  \n\n")
@@ -50,12 +57,10 @@ function M.open_or_create_todo_file(floating)
 
 	-- 文件存在或刚创建，打开文件
 	if floating then
-		-- 使用浮动窗口打开文件
 		local width = 80
 		local height = 20
-		local buf = vim.api.nvim_create_buf(false, true) -- 创建一个新的缓冲区
-		vim.api.nvim_set_option_value("filetype", "markdown", { buf = buf })
-		local win = vim.api.nvim_open_win(buf, true, {
+		local buf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_open_win(buf, true, {
 			relative = "editor",
 			width = width,
 			height = height,
@@ -63,12 +68,10 @@ function M.open_or_create_todo_file(floating)
 			row = math.floor((vim.o.lines - height) / 2),
 			border = "rounded",
 			title = " 󱑆 TODO清单 ",
+			style = "minimal",
 		})
-		vim.wo[win].signcolumn = "no"
-
-		vim.cmd("edit " .. vim.fn.fnameescape(todo_path)) -- 在浮动窗口中打开文件
+		vim.cmd("edit " .. vim.fn.fnameescape(todo_path))
 	else
-		-- 常规窗口打开文件
 		vim.cmd("edit " .. vim.fn.fnameescape(todo_path))
 	end
 end
