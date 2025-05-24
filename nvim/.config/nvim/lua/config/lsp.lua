@@ -66,7 +66,25 @@ M.mode_changed_handler = function()
 		pattern = { "n:i", "v:s", "i:n" },
 		desc = "插入/选择模式禁用/启用诊断",
 		callback = function()
-			vim.diagnostic.enable(not vim.diagnostic.is_enabled())
+			local bufnr = vim.api.nvim_get_current_buf()
+			local diag_enabled = vim.diagnostic.is_enabled({ bufnr = bufnr })
+			if diag_enabled then
+				-- 进入插入/选择模式时关闭诊断
+				vim.diagnostic.enable(false, { bufnr = bufnr })
+
+				-- 离开插入/选择模式后重新启用诊断，只启用一次自动命令
+				vim.api.nvim_create_autocmd("ModeChanged", {
+					pattern = { "i:n", "s:v" },
+					once = true,
+					desc = "离开插入/选择模式后重新启用诊断",
+					callback = function()
+						local current_buf = vim.api.nvim_get_current_buf()
+						if vim.api.nvim_buf_is_valid(current_buf) then
+							vim.diagnostic.enable(true, { bufnr = current_buf })
+						end
+					end,
+				})
+			end
 		end,
 	})
 end
@@ -93,7 +111,7 @@ M.inlay_hint_handler = function()
 end
 
 -- 按键映射
-local diagnostics = require("config.diagnostics_keymap")
+local diagnostics = require("config.lsp_util")
 local keymaps = {
 	{ "<leader>lq", diagnostics.open_all_diagnostics, "打开所有诊断（Quickfix）" },
 	{ "<leader>ll", diagnostics.open_buffer_diagnostics, "打开当前 buffer 诊断（Loclist）" },
@@ -101,7 +119,6 @@ local keymaps = {
 	{ "<leader>rl", "<cmd>lua vim.lsp.stop_client(vim.lsp.get_clients())<cr>", "关闭 LSP 客户端" },
 	-- { "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
 	{ "<leader>yd", diagnostics.copy_diagnostics_under_cursor, "复制光标词的诊断信息" },
-	{ "<leader>tol", diagnostics.restart_lsp, "重启 LSP" },
 	{
 		"<leader>tod",
 		"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
@@ -122,14 +139,14 @@ local keymaps = {
 -- 设置按键映射
 M.set_keymaps = function()
 	for _, map in ipairs(keymaps) do
-		vim.keymap.set("n", map[1], map[2], { noremap = true, silent = true, desc = map[3] })
+		vim.keymap.set("n", map[1], map[2], { noremap = true, silent = true, desc = map[3], buffer = bufnr })
 	end
 end
 
 -- 删除按键映射
-M.remove_keymaps = function()
+M.remove_keymaps = function(bufnr)
 	for _, map in ipairs(keymaps) do
-		vim.keymap.del("n", map[1])
+		pcall(vim.keymap.del, "n", map[1], { buffer = bufnr })
 	end
 end
 

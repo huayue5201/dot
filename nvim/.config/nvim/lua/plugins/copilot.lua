@@ -4,7 +4,7 @@
 return {
 	"zbirenbaum/copilot.lua",
 	cmd = "Copilot",
-	-- event = "InsertEnter",
+	event = "InsertEnter",
 	lazy = true,
 	keys = {
 		{ "<leader>ap", desc = "Copilot Panel" },
@@ -12,8 +12,12 @@ return {
 	},
 	config = function()
 		require("copilot").setup({
+			filetypes = {
+				markdown = true,
+				help = true,
+			},
 			panel = {
-				enabled = true,
+				enabled = false,
 				auto_refresh = false,
 				keymap = {
 					jump_prev = "[[",
@@ -28,7 +32,7 @@ return {
 				},
 			},
 			suggestion = {
-				enabled = true,
+				enabled = false,
 				auto_trigger = false,
 				hide_during_completion = true,
 				debounce = 75,

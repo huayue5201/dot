@@ -57,16 +57,8 @@ vim.defer_fn(function()
 		end,
 	})
 
-	-- vim.lsp.enable({ "lua_ls", "clangd", "taplo", "rust-analyzer" })
-
-	local configs = {}
-	-- 遍历 runtime 中所有 lsp/* 文件
-	for _, v in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
-		local name = vim.fn.fnamemodify(v, ":t:r")
-		configs[name] = true
-	end
-	-- 启用所有存在的配置
-	vim.lsp.enable(vim.tbl_keys(configs))
+	-- 自动启用所有存在的配置
+	vim.lsp.enable(require("config.lsp_util").get_all_lsp_names())
 
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()

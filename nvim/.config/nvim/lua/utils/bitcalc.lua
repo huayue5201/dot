@@ -117,9 +117,11 @@ local function open_float_win(lines, expr)
 		col = vim.o.columns - width - 2,
 		width = width,
 		height = height,
+		focusable = true, -- 可以被聚焦
+		mouse = false, -- 不能使用鼠标
 		style = "minimal",
 		border = "rounded",
-		title = " 󱖦 BitCalc ",
+		title = "  BitCalc ",
 		title_pos = "center",
 		footer = { { " " .. expr .. " ", "Number" } },
 		footer_pos = "center",
@@ -153,7 +155,8 @@ local function open_float_win(lines, expr)
 	vim.api.nvim_buf_set_keymap(buf, "n", "q", "<cmd>close<CR>", { nowait = true, noremap = true, silent = true })
 
 	-- 自动设置buffer不可修改，避免误操作
-	vim.api.nvim_get_option_value("modifiable", { buf = buf })
+
+	vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
 
 	return win, buf
 end

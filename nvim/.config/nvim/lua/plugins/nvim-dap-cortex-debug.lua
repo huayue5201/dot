@@ -48,7 +48,6 @@ return {
 					-- executable = vim.g.debug_file,
 					executable = function()
 						return require("dap.utils").pick_file()
-						-- return require("utils.program_binary").safe_get_program_binary()
 					end,
 					-- configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
 					svdFile = "/Users/lijia/cmsis-svd/schemas/CMSIS-SVD_1_3_9.xsd",
