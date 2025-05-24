@@ -25,6 +25,11 @@ vim.keymap.set("n", "<leader>lm", "<cmd>messages<cr>", { silent = true, desc = "
 -- vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
 -- vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
+vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "重新加载当前buffer" })
+
+vim.keymap.set("n", "<leader>tol", function()
+	require("config.lsp_util").restart_lsp()
+end, { silent = true, desc = "重启 LSP" })
 
 vim.keymap.set("n", "<leader>yp", function()
 	vim.fn.setreg("+", vim.fn.expand("%:p"))

@@ -1,6 +1,16 @@
 -- 文件: lua/my/diagnostics.lua
 local M = {}
 
+-- 获取所有 lsp/*.lua 文件的名称（不带后缀）
+function M.get_all_lsp_names()
+	local configs = {}
+	for _, path in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
+		local name = vim.fn.fnamemodify(path, ":t:r")
+		configs[name] = true
+	end
+	return vim.tbl_keys(configs)
+end
+
 -- 打开所有 buffer 的诊断（Quickfix 风格，适合全局排查）
 function M.open_all_diagnostics()
 	vim.diagnostic.setqflist({
@@ -70,11 +80,18 @@ end
 
 -- 重启当前缓冲区的 LSP 客户端
 function M.restart_lsp()
-	for _, client in pairs(vim.lsp.get_clients({ bufnr = 0 })) do
-		vim.lsp.stop_client(client.id)
+	local bufnr = vim.api.nvim_get_current_buf()
+	local clients = vim.lsp.get_clients({ bufnr = bufnr })
+	if vim.tbl_isempty(clients) then
+		return
+	end
+	local active = {}
+	for _, client in ipairs(clients) do
+		active[client.name] = true
+		vim.lsp.stop_client(client.id, true)
 	end
 	vim.defer_fn(function()
-		vim.cmd("edit")
+		vim.lsp.enable(vim.tbl_keys(active))
 	end, 100)
 end
 
