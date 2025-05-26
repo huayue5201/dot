@@ -29,8 +29,8 @@ vim.keymap.set("n", "<leader>lm", "<cmd>messages<cr>", { silent = true, desc = "
 -- vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
 vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "重新加载当前buffer" })
 
-vim.keymap.set("x", "z/", "<C-\\><C-n>`</\\%V", { desc = "Search forward within visual selection" })
-vim.keymap.set("x", "z?", "<C-\\><C-n>`>?\\%V", { desc = "Search backward within visual selection" })
+vim.keymap.set("x", "/", "<C-\\><C-n>`</\\%V", { desc = "Search forward within visual selection" })
+vim.keymap.set("x", "?", "<C-\\><C-n>`>?\\%V", { desc = "Search backward within visual selection" })
 
 vim.keymap.set("n", "<leader>tol", function()
 	require("config.lsp_util").restart_lsp()
@@ -60,8 +60,16 @@ vim.keymap.set("n", "<leader>ob", function()
 	require("utils.bitcalc").bitcalc()
 end, { desc = "打开位运算计算器" })
 
-vim.keymap.set("n", "<leader>tdo", function()
+vim.keymap.set("n", "<leader>tde", function()
+	require("utils.todo").open_or_create_todo_file(false)
+end, { noremap = true, silent = true, desc = "打开todo清单" })
+
+vim.keymap.set("n", "<leader>tdf", function()
 	require("utils.todo").open_or_create_todo_file(true)
+end, { noremap = true, silent = true, desc = "打开todo清单" })
+
+vim.keymap.set("n", "<leader>tdr", function()
+	require("utils.todo").delete_project_todo()
 end, { noremap = true, silent = true, desc = "打开todo清单" })
 
 vim.keymap.set("i", "<c-l>", function()
