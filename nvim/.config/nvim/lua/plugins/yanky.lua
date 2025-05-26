@@ -3,11 +3,12 @@
 return {
 	"gbprod/yanky.nvim",
 	event = "VeryLazy",
+	dependencies = { "kkharji/sqlite.lua" },
 	config = function()
 		require("yanky").setup({
 			ring = {
 				history_length = 100,
-				storage = "shada",
+				storage = "sqlite",
 				storage_path = vim.fn.stdpath("data") .. "/databases/yanky.db", -- Only for sqlite storage
 				sync_with_numbered_registers = true,
 				cancel_event = "update",

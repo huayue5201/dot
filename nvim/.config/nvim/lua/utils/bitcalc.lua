@@ -24,15 +24,30 @@ local function to_binary(n)
 	for i = 31, 0, -1 do
 		table.insert(t, bit.band(bit.rshift(n, i), 1))
 	end
-	local result = table.concat(t):gsub("^0+", "")
-	return result ~= "" and result or "0"
+	local bin_str = table.concat(t):gsub("^0+", "")
+	bin_str = bin_str ~= "" and bin_str or "0"
+
+	-- 每4位加一个空格分隔
+	local padded = bin_str:reverse():gsub("....", "%0 "):reverse():gsub("^%s+", "")
+	return padded
+end
+
+local function format_number_groups(s)
+	return s:reverse():gsub("(%d%d%d%d)", "%1 "):reverse():gsub("^%s+", "")
+end
+
+local function format_hex_groups(s)
+	return s:reverse():gsub("(%x%x%x%x)", "%1 "):reverse():gsub("^%s+", "")
 end
 
 local function format_result(val)
+	local dec = format_number_groups(tostring(val))
+	local hex = format_hex_groups(string.format("%X", val))
+	local bin = to_binary(val)
 	return {
-		"   Dec: " .. val,
-		"   Hex: 0x" .. string.format("%X", val),
-		"   Bin: " .. to_binary(val),
+		"   Dec: " .. dec,
+		"   Hex: 0x" .. hex,
+		"   Bin: " .. bin,
 	}
 end
 
@@ -104,21 +119,39 @@ end
 
 local function open_float_win(lines, expr)
 	local buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
-	local width = 40
-	local height = #lines
-	-- local col = math.max(0, vim.o.columns - width - 2)
-	local row = get_next_row(height)
+	local max_width = 80
+	local min_width = 30
+
+	local display_lines = {}
+	local max_line_len = 0
+
+	for _, line in ipairs(lines) do
+		local chunks = { line }
+		for _, chunk in ipairs(chunks) do
+			table.insert(display_lines, chunk)
+			max_line_len = math.max(max_line_len, vim.fn.strdisplaywidth(chunk))
+		end
+	end
+
+	local width = math.max(min_width, math.min(max_line_len + 4, max_width))
+	local total_height = #display_lines
+	local max_height = vim.o.lines - 4
+	local height = math.min(total_height, max_height)
+
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, display_lines)
+
+	local row = math.min(get_next_row(height), vim.o.lines - height - 2)
+	local col = math.max(2, vim.o.columns - width - 2)
 
 	local win_opts = {
 		relative = "editor",
 		row = row,
-		col = vim.o.columns - width - 2,
+		col = col,
 		width = width,
 		height = height,
-		focusable = true, -- 可以被聚焦
-		mouse = false, -- 不能使用鼠标
+		focusable = true,
+		mouse = false,
 		style = "minimal",
 		border = "rounded",
 		title = "  BitCalc ",
@@ -129,10 +162,19 @@ local function open_float_win(lines, expr)
 
 	local win = vim.api.nvim_open_win(buf, false, win_opts)
 
-	-- 记录窗口id
+	vim.api.nvim_set_option_value("wrap", true, { win = win })
+	vim.api.nvim_set_option_value("linebreak", true, { win = win })
+	vim.api.nvim_set_option_value("scrolloff", 1, { win = win })
+	vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
+
+	-- 支持浮窗内容滚动
+	local opts = { nowait = true, noremap = true, silent = true }
+	vim.api.nvim_buf_set_keymap(buf, "n", "<C-d>", "<C-d>", opts)
+	vim.api.nvim_buf_set_keymap(buf, "n", "<C-u>", "<C-u>", opts)
+	vim.api.nvim_buf_set_keymap(buf, "n", "q", "<cmd>close<CR>", opts)
+
 	table.insert(open_windows, win)
 
-	-- 窗口关闭自动清理 open_windows
 	vim.api.nvim_create_autocmd("WinClosed", {
 		buffer = buf,
 		once = true,
@@ -151,13 +193,6 @@ local function open_float_win(lines, expr)
 	vim.api.nvim_buf_add_highlight(buf, -1, "Constant", 1, 6, -1)
 	vim.api.nvim_buf_add_highlight(buf, -1, "Keyword", 2, 6, -1)
 
-	-- 关闭窗口的快捷键
-	vim.api.nvim_buf_set_keymap(buf, "n", "q", "<cmd>close<CR>", { nowait = true, noremap = true, silent = true })
-
-	-- 自动设置buffer不可修改，避免误操作
-
-	vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
-
 	return win, buf
 end
 
@@ -175,49 +210,6 @@ local function bitcalc()
 	end)
 end
 
-local function bitcalc_visual()
-	local mode = vim.fn.mode()
-	if mode ~= "v" and mode ~= "V" then
-		vim.notify("请在 Visual 模式下使用", vim.log.levels.WARN)
-		return
-	end
-	local start_pos = vim.fn.getpos("'<")
-	local end_pos = vim.fn.getpos("'>")
-	local lines = vim.api.nvim_buf_get_lines(0, start_pos[2] - 1, end_pos[2], false)
-
-	-- 处理多行选中，连接为一整串表达式
-	local expr_lines = {}
-	for i, line in ipairs(lines) do
-		if i == 1 and i == #lines then
-			-- 只有一行选区，截取start_col到end_col
-			expr_lines[#expr_lines + 1] = line:sub(start_pos[3], end_pos[3])
-		elseif i == 1 then
-			-- 第一行截取start_col到行尾
-			expr_lines[#expr_lines + 1] = line:sub(start_pos[3])
-		elseif i == #lines then
-			-- 最后一行截取行首到end_col
-			expr_lines[#expr_lines + 1] = line:sub(1, end_pos[3])
-		else
-			-- 中间整行
-			expr_lines[#expr_lines + 1] = line
-		end
-	end
-	local selected_text = table.concat(expr_lines, "")
-
-	if selected_text == "" then
-		vim.notify("没有选中任何文本", vim.log.levels.ERROR)
-		return
-	end
-
-	local result, err = eval_expr(selected_text)
-	if not result then
-		vim.notify(err or "", vim.log.levels.ERROR)
-	else
-		open_float_win(format_result(result), selected_text)
-	end
-end
-
 return {
 	bitcalc = bitcalc,
-	bitcalc_visual = bitcalc_visual,
 }

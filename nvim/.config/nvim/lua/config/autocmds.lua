@@ -49,7 +49,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		lsp_config.mode_changed_handler() -- 设置模式变化时禁用/启用诊断
 		lsp_config.inlay_hint_handler() -- 设置插入模式内联提示处理
 		lsp_config.set_keymaps() -- 设置按键映射
-
 		vim.lsp.document_color.enable(true, args.buf)
 		-- vim.lsp.document_color.enable(not vim.lsp.document_color.is_enabled())
 

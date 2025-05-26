@@ -1,4 +1,5 @@
 -- https://github.com/monaqa/dial.nvim?tab=readme-ov-file
+-- TODO:https://github.com/monaqa/dial.nvim/pull/107
 
 return {
 	"monaqa/dial.nvim",
@@ -11,6 +12,7 @@ return {
 			default = {
 				augend.integer.alias.decimal, -- nonnegative decimal number (0, 1, 2, 3, ...)
 				augend.integer.alias.hex, -- nonnegative hex number  (0x01, 0x1a1f, etc.)
+				augend.integer.alias.binary, -- 二进制数
 				augend.date.alias["%Y/%m/%d"], -- date (2022/02/19, etc.)
 				augend.constant.alias.bool,
 			},
