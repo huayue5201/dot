@@ -4,10 +4,11 @@ local todo = require("utils.todo")
 -- 设置本地映射（仅对当前缓冲区有效）
 vim.keymap.set(
 	"n",
-	"<leader>tdi",
+	"<leader>tdn",
 	todo.new_task_item,
 	{ buffer = true, noremap = true, silent = true, desc = "新建任务" }
 )
+
 vim.keymap.set(
 	"n",
 	"<CR>",
