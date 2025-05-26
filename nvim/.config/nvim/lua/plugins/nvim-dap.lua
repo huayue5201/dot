@@ -65,7 +65,7 @@ return {
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "继续/启动调试" })
 
-		vim.keymap.set("n", "<leader>rd", function()
+		vim.keymap.set("n", "<leader>dd", function()
 			dap.terminate({
 				on_done = function()
 					require("dap").repl.close()
@@ -78,12 +78,12 @@ return {
 		_G._toggle_breakpoint = function()
 			dap.toggle_breakpoint()
 		end
-		vim.keymap.set("n", "<leader>b", function()
+		vim.keymap.set("n", "<localleader>d", function()
 			vim.o.operatorfunc = "v:lua._toggle_breakpoint" -- 使用一个正确的函数名
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "设置/取消断点" })
 
-		vim.keymap.set("n", "<leader>B", function()
+		vim.keymap.set("n", "<localleader>B", function()
 			dap.set_exception_breakpoints()
 		end, { silent = true, desc = "异常断点" })
 
@@ -215,7 +215,7 @@ return {
 
 		vim.keymap.set("n", "<leader>drf", dap.restart_frame, { silent = true, desc = "重启当前帧" })
 
-		vim.keymap.set("n", "<leader>dd", dap.pause, { silent = true, desc = "暂停线程" })
+		vim.keymap.set("n", "<leader>ds", dap.pause, { silent = true, desc = "暂停线程" })
 
 		_G._dap_up = function()
 			dap.up()
@@ -310,10 +310,6 @@ return {
 				},
 			})
 		end, { desc = "查看光标下的表达式并自动刷新" })
-
-		-- vim.keymap.set("n", "<leader>dle", function()
-		-- 	widgets.preview()
-		-- end, { desc = "查看表达式值" })
 
 		local sidebar = nil
 		vim.keymap.set("n", "<leader>dlc", function()

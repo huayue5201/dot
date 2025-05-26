@@ -1,14 +1,48 @@
 local M = {}
+
 -- 切换任务状态
+local namespace = vim.api.nvim_create_namespace("task_timestamp_highlight")
+
+-- 高亮标签+时间戳
+function M.highlight_timestamp()
+	vim.api.nvim_buf_clear_namespace(0, namespace, 0, -1)
+	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+	for i, line in ipairs(lines) do
+		local s, e = line:find("%s+%a+:%d%d%d%d%-%d%d%-%d%d %d%d:%d%d")
+		if s and e then
+			vim.api.nvim_buf_set_extmark(0, namespace, i - 1, s - 1, {
+				end_col = e,
+				hl_group = "TaskTimestamp",
+				priority = 100,
+			})
+		end
+	end
+end
+
+-- 设置高亮样式
+vim.api.nvim_set_hl(0, "TaskTimestamp", {
+	fg = "#888888",
+	italic = true,
+})
+
+-- 自动命令：保存或移动光标时刷新高亮
+vim.api.nvim_create_autocmd({ "BufReadPost", "InsertEnter" }, {
+	callback = function()
+		M.highlight_timestamp()
+	end,
+})
+
+-- 切换任务状态并更新标签+时间戳
 function M.toggle_task_state()
 	local row = vim.api.nvim_win_get_cursor(0)[1]
 	local line = vim.api.nvim_get_current_line()
 
 	local options = {
-		{ display = "󰄱 待完成", symbol = "[ ]" },
-		{ display = "󰱒 完成", symbol = "[x]" },
-		{ display = " 搁置", symbol = "[-]" },
-		{ display = " 待定", symbol = "[~]" },
+		{ display = "󰄱 待完成", symbol = "[ ]", label = "todo" },
+		{ display = "󰱒 完成", symbol = "[x]", label = "done" },
+		{ display = " 搁置", symbol = "[-]", label = "postponed" },
+		{ display = " 待定", symbol = "[~]", label = "pending" },
 	}
 
 	vim.ui.select(options, {
@@ -21,8 +55,18 @@ function M.toggle_task_state()
 			for _, state in ipairs({ "[ ]", "[x]", "[-]", "[~]" }) do
 				local start_idx, end_idx = line:find(state, 1, true)
 				if start_idx then
+					local timestamp = os.date(":%Y-%m-%d %H:%M")
 					local new_line = line:sub(1, start_idx - 1) .. choice.symbol .. line:sub(end_idx + 1)
+
+					-- 去除旧标签+时间戳
+					new_line = new_line:gsub("%s+%a+:%d%d%d%d%-%d%d%-%d%d %d%d:%d%d", "")
+
+					-- 添加新标签+时间戳
+					new_line = new_line .. " " .. choice.label .. timestamp
+
 					vim.api.nvim_buf_set_lines(0, row - 1, row, false, { new_line })
+					-- 更新高亮
+					M.highlight_timestamp()
 					return
 				end
 			end

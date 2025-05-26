@@ -1,4 +1,6 @@
-vim.keymap.set("v", "K", ":m '<-2<cr>gv=gv", { silent = true, desc = "向上移动选中的代码块" })
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { silent = true, desc = "向上移动选中的代码块" })
+
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { silent = true, desc = "向下移动选中的代码块" })
 
 vim.keymap.set("n", "c", '"_c', { desc = "修改并丢弃到黑洞寄存器" })
 
@@ -14,9 +16,9 @@ vim.keymap.set("n", "<Leader>q", ":bd<cr>", { silent = true, desc = "退出buffe
 
 vim.keymap.set("n", "<leader>ttn", "<cmd>$tabnew<cr>", { silent = true, desc = "创建新的标签页" })
 
-vim.keymap.set("n", "<leader>trt", "<cmd>tabclose<cr>", { silent = true, desc = "关闭当前标签页" })
+vim.keymap.set("n", "<leader>rt", "<cmd>tabclose<cr>", { silent = true, desc = "关闭当前标签页" })
 
-vim.keymap.set("n", "<leader>tRt", "<cmd>tabonly<cr>", { silent = true, desc = "仅保留当前标签页" })
+vim.keymap.set("n", "<leader>rat", "<cmd>tabonly<cr>", { silent = true, desc = "仅保留当前标签页" })
 
 vim.keymap.set("n", "<leader>lm", "<cmd>messages<cr>", { silent = true, desc = "查看历史消息" })
 
@@ -26,6 +28,9 @@ vim.keymap.set("n", "<leader>lm", "<cmd>messages<cr>", { silent = true, desc = "
 
 -- vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
 vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "重新加载当前buffer" })
+
+vim.keymap.set("x", "z/", "<C-\\><C-n>`</\\%V", { desc = "Search forward within visual selection" })
+vim.keymap.set("x", "z?", "<C-\\><C-n>`>?\\%V", { desc = "Search backward within visual selection" })
 
 vim.keymap.set("n", "<leader>tol", function()
 	require("config.lsp_util").restart_lsp()
@@ -51,12 +56,9 @@ vim.keymap.set("n", "<leader>ram", function()
 	vim.cmd("delmarks A-Z")
 end, { desc = "Delete all marks (lowercase and uppercase)" })
 
-vim.keymap.set("n", "<leader>tc", function()
+vim.keymap.set("n", "<leader>ob", function()
 	require("utils.bitcalc").bitcalc()
 end, { desc = "打开位运算计算器" })
-vim.keymap.set("v", "<leader>tc", function()
-	require("utils.bitcalc").bitcalc_visual()
-end, { desc = "计算选中位表达式" })
 
 vim.keymap.set("n", "<leader>tdo", function()
 	require("utils.todo").open_or_create_todo_file(true)

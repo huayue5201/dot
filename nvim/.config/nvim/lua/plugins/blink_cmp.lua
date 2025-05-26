@@ -5,7 +5,10 @@ return {
 	event = { "InsertEnter", "CmdlineEnter" },
 	-- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
 	build = "cargo build --release",
-	dependencies = { "fang2hou/blink-copilot" },
+	dependencies = {
+		"xzbdmw/colorful-menu.nvim",
+		"fang2hou/blink-copilot",
+	},
 	---@module 'blink.cmp'
 	---@type blink.cmp.Config
 	config = function()

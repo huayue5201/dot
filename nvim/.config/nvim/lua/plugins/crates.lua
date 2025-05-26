@@ -130,129 +130,152 @@ return {
 				hover = true, -- 启用悬停提示
 			},
 		})
+		local function map_filetype(ft, mode, lhs, rhs, opts)
+			vim.api.nvim_create_autocmd("FileType", {
+				pattern = ft,
+				callback = function()
+					vim.keymap.set(
+						mode,
+						lhs,
+						rhs,
+						vim.tbl_extend("force", opts or {}, { buffer = true, silent = true })
+					)
+				end,
+			})
+		end
 
-		local opts = { silent = true }
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>ct",
 			crates.toggle,
-			vim.tbl_extend("force", opts, { desc = "切换 crates 显示/隐藏" })
+			vim.tbl_extend("force", {}, { desc = "切换 crates 显示/隐藏" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cr",
 			crates.reload,
-			vim.tbl_extend("force", opts, { desc = "重新加载 crates 数据" })
+			vim.tbl_extend("force", {}, { desc = "重新加载 crates 数据" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cv",
 			crates.show_versions_popup,
-			vim.tbl_extend("force", opts, { desc = "显示版本弹窗" })
+			vim.tbl_extend("force", {}, { desc = "显示版本弹窗" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cf",
 			crates.show_features_popup,
-			vim.tbl_extend("force", opts, { desc = "显示功能弹窗" })
+			vim.tbl_extend("force", {}, { desc = "显示功能弹窗" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cd",
 			crates.show_dependencies_popup,
-			vim.tbl_extend("force", opts, { desc = "显示依赖关系弹窗" })
+			vim.tbl_extend("force", {}, { desc = "显示依赖关系弹窗" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cu",
 			crates.update_crate,
-			vim.tbl_extend("force", opts, { desc = "更新当前 crate" })
+			vim.tbl_extend("force", {}, { desc = "更新当前 crate" })
 		)
-		vim.keymap.set(
+		map_filetype(
 			"v",
 			"<leader>cu",
 			crates.update_crates,
-			vim.tbl_extend("force", opts, { desc = "更新选中的多个 crate" })
+			vim.tbl_extend("force", {}, { desc = "更新选中的多个 crate" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>ca",
 			crates.update_all_crates,
-			vim.tbl_extend("force", opts, { desc = "更新所有 crates" })
+			vim.tbl_extend("force", {}, { desc = "更新所有 crates" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cU",
 			crates.upgrade_crate,
-			vim.tbl_extend("force", opts, { desc = "升级当前 crate" })
+			vim.tbl_extend("force", {}, { desc = "升级当前 crate" })
 		)
-		vim.keymap.set(
+		map_filetype(
 			"v",
 			"<leader>cU",
 			crates.upgrade_crates,
-			vim.tbl_extend("force", opts, { desc = "升级选中的多个 crate" })
+			vim.tbl_extend("force", {}, { desc = "升级选中的多个 crate" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cA",
 			crates.upgrade_all_crates,
-			vim.tbl_extend("force", opts, { desc = "升级所有 crates" })
+			vim.tbl_extend("force", {}, { desc = "升级所有 crates" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cx",
 			crates.expand_plain_crate_to_inline_table,
-			vim.tbl_extend("force", opts, { desc = "展开一个 crate 成为内联表格" })
+			vim.tbl_extend("force", {}, { desc = "展开一个 crate 成为内联表格" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cX",
 			crates.extract_crate_into_table,
-			vim.tbl_extend("force", opts, { desc = "提取 crate 成为独立的表格" })
+			vim.tbl_extend("force", {}, { desc = "提取 crate 成为独立的表格" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cH",
 			crates.open_homepage,
-			vim.tbl_extend("force", opts, { desc = "打开 crate 的主页" })
+			vim.tbl_extend("force", {}, { desc = "打开 crate 的主页" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cR",
 			crates.open_repository,
-			vim.tbl_extend("force", opts, { desc = "打开 crate 的 Git 仓库" })
+			vim.tbl_extend("force", {}, { desc = "打开 crate 的 Git 仓库" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cD",
 			crates.open_documentation,
-			vim.tbl_extend("force", opts, { desc = "打开 crate 的文档" })
+			vim.tbl_extend("force", {}, { desc = "打开 crate 的文档" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cC",
 			crates.open_crates_io,
-			vim.tbl_extend("force", opts, { desc = "打开 crates.io 页面" })
+			vim.tbl_extend("force", {}, { desc = "打开 crates.io 页面" })
 		)
-		vim.keymap.set(
+		map_filetype(
+			"toml",
 			"n",
 			"<leader>cL",
 			crates.open_lib_rs,
-			vim.tbl_extend("force", opts, { desc = "打开 lib.rs 页面" })
+			vim.tbl_extend("force", {}, { desc = "打开 lib.rs 页面" })
 		)
 
 		local function show_documentation()
-			local filetype = vim.bo.filetype
-			if filetype == "vim" or filetype == "help" then
-				vim.cmd("h " .. vim.fn.expand("<cword>"))
-			elseif filetype == "man" then
-				vim.cmd("Man " .. vim.fn.expand("<cword>"))
-			elseif vim.fn.expand("%:t") == "Cargo.toml" and require("crates").popup_available() then
+			if vim.fn.expand("%:t") == "Cargo.toml" and require("crates").popup_available() then
 				require("crates").show_popup()
 			else
 				vim.lsp.buf.hover()
 			end
 		end
-		vim.keymap.set("n", "K", show_documentation, { silent = true })
+		map_filetype("toml", "n", "K", show_documentation, { silent = true })
 	end,
 }

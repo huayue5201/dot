@@ -17,6 +17,7 @@ M.palette = {
 	-- 常用基础色
 	red = "#f38ba8", -- 红色，用于错误
 	green = "#a6e3a1", -- 绿色，用于成功、通过
+	green3 = "#00CD00",
 	blue = "#89b4fa", -- 蓝色，用于信息
 	yellow = "#f9e2af", -- 黄色，用于警告
 	magenta = "#f5c2e7", -- 洋红，用于强调
@@ -35,6 +36,7 @@ M.close_commands = {
 	help = "quit", -- 专属窗口
 	man = "quit",
 	msgmore = "quit",
+	FunctionReferences = "quit",
 
 	checkhealth = "close", -- 通常是浮窗
 	qf = "close", -- quickfix 通常是浮窗
