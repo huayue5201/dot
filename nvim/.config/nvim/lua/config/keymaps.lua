@@ -29,8 +29,19 @@ vim.keymap.set("n", "<leader>lm", "<cmd>messages<cr>", { silent = true, desc = "
 -- vim.keymap.set({ "v", "n" }, "<A-v>", '"+p', { silent = true, desc = "粘贴<系统剪贴板>" })
 vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "重新加载当前buffer" })
 
-vim.keymap.set("x", "/", "<C-\\><C-n>`</\\%V", { desc = "Search forward within visual selection" })
-vim.keymap.set("x", "?", "<C-\\><C-n>`>?\\%V", { desc = "Search backward within visual selection" })
+-- 在可视选区内正向搜索
+vim.keymap.set("x", "/", "<C-\\><C-n>`</\\%V", { desc = "在可视选区中正向搜索" })
+
+-- 在可视选区内反向搜索
+vim.keymap.set("x", "?", "<C-\\><C-n>`>?\\%V", { desc = "在可视选区中反向搜索" })
+
+-- 在当前窗口可见区域中搜索
+vim.keymap.set(
+	"n",
+	"z/",
+	'/\\%><C-r>=line("w0")-1<CR>l\\%<<C-r>=line("w$")+1<CR>l',
+	{ silent = false, desc = "在当前视口中搜索" }
+)
 
 vim.keymap.set("n", "<leader>tol", function()
 	require("config.lsp_util").restart_lsp()
@@ -59,6 +70,10 @@ end, { desc = "Delete all marks (lowercase and uppercase)" })
 vim.keymap.set("n", "<leader>ob", function()
 	require("utils.bitcalc").bitcalc()
 end, { desc = "打开位运算计算器" })
+
+vim.keymap.set("n", "<leader>tdl", function()
+	require("utils.todo").select_and_open_todo_file(false)
+end, { noremap = true, silent = true, desc = "打开todo列表" })
 
 vim.keymap.set("n", "<leader>tde", function()
 	require("utils.todo").open_or_create_todo_file(false)
