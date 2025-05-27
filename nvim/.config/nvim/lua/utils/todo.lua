@@ -233,14 +233,33 @@ function M.delete_project_todo()
 	end)
 end
 
--- 插入新的任务项（缩进自动对齐）
+-- 将普通文本转化为任务行
+function M.convert_line_to_task()
+	local row = vim.api.nvim_win_get_cursor(0)[1]
+	local line = vim.api.nvim_get_current_line()
+	if line:match("^%s*%- %[[ xX%-~]%]") then
+		vim.notify("当前行已经是任务。", vim.log.levels.INFO)
+		return
+	end
+	local indent = line:match("^%s*") or ""
+	local new_line = indent .. "- [ ] " .. line:match("^%s*(.-)%s*$")
+	vim.api.nvim_buf_set_lines(0, row - 1, row, false, { new_line })
+	vim.api.nvim_win_set_cursor(0, { row, #new_line })
+end
+
+-- 在当前行插入新任务项
 function M.new_task_item()
 	local row = vim.api.nvim_win_get_cursor(0)[1]
-	local indent = vim.fn.indent(row)
-	local line = string.rep(" ", indent) .. "- [ ]  "
+	local indent = vim.fn.indent(row) -- 获取当前行的缩进
+	local line = string.rep(" ", indent) .. "- [ ]  " -- 创建新任务行
+	-- 在当前行插入新任务项
 	vim.api.nvim_buf_set_lines(0, row, row, true, { line })
-	vim.api.nvim_win_set_cursor(0, { row + 1, #line })
-	vim.cmd("startinsert")
+	-- 将光标移到新插入的任务行
+	vim.api.nvim_win_set_cursor(0, { row + 1, #line + 1 })
+	-- 延迟执行插入模式，以确保光标已经更新
+	vim.defer_fn(function()
+		vim.cmd("startinsert")
+	end, 10) -- 延迟 10ms 进入插入模式
 end
 
 return M

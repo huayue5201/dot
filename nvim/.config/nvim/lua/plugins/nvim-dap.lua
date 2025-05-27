@@ -282,6 +282,8 @@ return {
 
 		vim.keymap.set("n", "<leader>de", "<cmd>DapEval<cr>", { silent = true, desc = "打开 Eval" })
 
+		vim.keymap.set("n", "<leader>dll", "<cmd>DapShowLog<cr>", { desc = "查看调试日志" })
+
 		vim.keymap.set("n", "<leader>dlq", function()
 			dap.list_breakpoints()
 			vim.cmd("copen")
