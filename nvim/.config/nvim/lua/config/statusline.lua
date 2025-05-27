@@ -254,7 +254,7 @@ function Statusline.vcs()
 	if not git_info or not git_info.head then
 		return ""
 	end
-	local parts = { " " .. git_info.head }
+	local parts = { " " .. "[" .. git_info.head .. "]" }
 	for key, icon in pairs({
 		added = "%#GitIconAdded#" .. "+" .. "%*",
 		removed = "%#GitIconRemoved#" .. "-" .. "%*",

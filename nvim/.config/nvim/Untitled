@@ -1,0 +1,57 @@
+E5108: Lua: vim/_editor.lua:0: nvim_exec2()[1]..BufReadPost Autocommands for "*": Vim(append):Lua callback: ...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:36: nvim_exec2()[1]..BufReadPost Autocommands for "*"..FileType Autocommands for "*"..function <SNR>1_LoadFTPlugin[20]..script /Users/lijia/dotfile/nvim/.config/nvim/after/ftplugin/markdown.lua: Vim(runtime):E5113: Lua chunk: vim/keymap.lua:0: rhs: expected string|function, got nil
+stack traceback:
+	[C]: in function 'error'
+	vim/shared.lua: in function 'validate'
+	vim/keymap.lua: in function 'set'
+	...ia/dotfile/nvim/.config/nvim/after/ftplugin/markdown.lua:5: in main chunk
+	[C]: in function 'nvim_cmd'
+	...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:36: in function <...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:35>
+	[C]: in function 'pcall'
+	vim/shared.lua: in function <vim/shared.lua:0>
+	[C]: in function '_with'
+	...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:35: in function <...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:10>
+	[C]: in function 'nvim_exec2'
+	vim/_editor.lua: in function 'cmd'
+	/Users/lijia/.config/nvim/lua/utils/todo.lua:183: in function 'open_or_create_todo_file'
+	/Users/lijia/.config/nvim/lua/config/keymaps.lua:68: in function </Users/lijia/.config/nvim/lua/config/keymaps.lua:67>
+stack traceback:
+	[C]: in function '_with'
+	...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:35: in function <...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:10>
+	[C]: in function 'nvim_exec2'
+	vim/_editor.lua: in function 'cmd'
+	/Users/lijia/.config/nvim/lua/utils/todo.lua:183: in function 'open_or_create_todo_file'
+	/Users/lijia/.config/nvim/lua/config/keymaps.lua:68: in function </Users/lijia/.config/nvim/lua/config/keymaps.lua:67>
+stack traceback:
+	[C]: in function 'nvim_exec2'
+	vim/_editor.lua: in function 'cmd'
+	/Users/lijia/.config/nvim/lua/utils/todo.lua:183: in function 'open_or_create_todo_file'
+	/Users/lijia/.config/nvim/lua/config/keymaps.lua:68: in function </Users/lijia/.config/nvim/lua/config/keymaps.lua:67>
+E5108: Lua: vim/_editor.lua:0: nvim_exec2()[1]..BufReadPost Autocommands for "*": Vim(append):Lua callback: ...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:36: nvim_exec2()[1]..BufReadPost Autocommands for "*"..FileType Autocommands for "*"..function <SNR>1_LoadFTPlugin[20]..script /Users/lijia/dotfile/nvim/.config/nvim/after/ftplugin/markdown.lua: Vim(runtime):E5113: Lua chunk: vim/keymap.lua:0: rhs: expected string|function, got nil
+stack traceback:
+	[C]: in function 'error'
+	vim/shared.lua: in function 'validate'
+	vim/keymap.lua: in function 'set'
+	...ia/dotfile/nvim/.config/nvim/after/ftplugin/markdown.lua:5: in main chunk
+	[C]: in function 'nvim_cmd'
+	...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:36: in function <...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:35>
+	[C]: in function 'pcall'
+	vim/shared.lua: in function <vim/shared.lua:0>
+	[C]: in function '_with'
+	...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:35: in function <...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:10>
+	[C]: in function 'nvim_exec2'
+	vim/_editor.lua: in function 'cmd'
+	/Users/lijia/.config/nvim/lua/utils/todo.lua:183: in function 'open_or_create_todo_file'
+	/Users/lijia/.config/nvim/lua/config/keymaps.lua:68: in function </Users/lijia/.config/nvim/lua/config/keymaps.lua:67>
+stack traceback:
+	[C]: in function '_with'
+	...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:35: in function <...wnloads/nvim-macos-arm64/share/nvim/runtime/filetype.lua:10>
+	[C]: in function 'nvim_exec2'
+	vim/_editor.lua: in function 'cmd'
+	/Users/lijia/.config/nvim/lua/utils/todo.lua:183: in function 'open_or_create_todo_file'
+	/Users/lijia/.config/nvim/lua/config/keymaps.lua:68: in function </Users/lijia/.config/nvim/lua/config/keymaps.lua:67>
+stack traceback:
+	[C]: in function 'nvim_exec2'
+	vim/_editor.lua: in function 'cmd'
+	/Users/lijia/.config/nvim/lua/utils/todo.lua:183: in function 'open_or_create_todo_file'
+	/Users/lijia/.config/nvim/lua/config/keymaps.lua:68: in function </Users/lijia/.config/nvim/lua/config/keymaps.lua:67>
+client.request is deprecated. Run ":checkhealth vim.deprecated" for more information

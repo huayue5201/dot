@@ -62,11 +62,11 @@ end, { desc = "打开位运算计算器" })
 
 vim.keymap.set("n", "<leader>tde", function()
 	require("utils.todo").open_or_create_todo_file(false)
-end, { noremap = true, silent = true, desc = "打开todo清单" })
+end, { noremap = true, silent = true, desc = "常规打开todo清单" })
 
 vim.keymap.set("n", "<leader>tdf", function()
 	require("utils.todo").open_or_create_todo_file(true)
-end, { noremap = true, silent = true, desc = "打开todo清单" })
+end, { noremap = true, silent = true, desc = "浮窗打开todo清单" })
 
 vim.keymap.set("n", "<leader>tdr", function()
 	require("utils.todo").delete_project_todo()
