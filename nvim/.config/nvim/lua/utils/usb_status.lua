@@ -62,8 +62,7 @@ local function update_status()
 		usb_status.cached_status = "%#UsbDisconnected#  %*"
 	end
 	vim.schedule(function()
-		-- vim.cmd("redrawstatus")
-		vim.api.nvim_exec_autocmds("User", { pattern = "StatusLine" })
+		vim.cmd("redrawstatus")
 	end)
 end
 
