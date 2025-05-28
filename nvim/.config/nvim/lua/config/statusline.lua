@@ -171,7 +171,7 @@ function Statusline.active()
 		"%=", -- 分隔符
 		Statusline.dap_status() .. " ", -- dap调试信息
 		Statusline.vcs() .. " ", -- Git 状态
-		Statusline.usb(),
+		Statusline.usb() .. " ",
 		"  %l%c ", -- 行列号
 		"%P", -- 文件百分比
 		Statusline.get_scrollbar(), -- 动态图标
