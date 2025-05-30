@@ -40,17 +40,17 @@ vim.opt.confirm = true -- 未保存退出确认
 vim.opt.spelloptions = "camel" -- 开启驼峰拼写检查
 -- vim.opt.messagesopt = "wait:500,history:1000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
 -- https://github.com/neovim/neovim/pull/27855
-require("vim._extui").enable({
-	enable = true, -- 是否启用 UI。
-	msg = { -- 与消息模块相关的选项。
-		---@type 'box'|'cmd' 消息显示的窗口类型，可以是命令行窗口（cmd）
-		---或一个单独的消息框窗口（box），用于显示临时消息。
-		pos = "box", -- 消息显示位置：'cmd' 或 'box'。
-		box = { -- 与消息框窗口相关的选项。
-			timeout = 2000, -- 消息显示的时间（单位：毫秒）。
-		},
-	},
-})
+-- require("vim._extui").enable({
+-- 	enable = true, -- 是否启用 UI。
+-- 	msg = { -- 与消息模块相关的选项。
+-- 		---@type 'box'|'cmd' 消息显示的窗口类型，可以是命令行窗口（cmd）
+-- 		---或一个单独的消息框窗口（box），用于显示临时消息。
+-- 		pos = "box", -- 消息显示位置：'cmd' 或 'box'。
+-- 		box = { -- 与消息框窗口相关的选项。
+-- 			timeout = 2000, -- 消息显示的时间（单位：毫秒）。
+-- 		},
+-- 	},
+-- })
 
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式
@@ -82,7 +82,7 @@ vim.opt.shadafile = shadafile
 vim.bo.omnifunc = "" -- 禁用 omnifunc 补全
 vim.opt.complete = "" -- 禁用补全
 -- vim.opt.completeopt = "menuone,noinsert,noselect" -- 补全菜单的选项
-vim.o.completeopt = "menu,menuone,popup,fuzzy" -- 现代补全菜单
+vim.opt.completeopt = "menu,menuone,popup,fuzzy" -- 现代补全菜单
 
 -- -------------- 搜索设置 --------------
 vim.opt.ignorecase = true -- 搜索时忽略大小写
@@ -139,16 +139,4 @@ vim.opt.listchars = {
 	trail = "␣", -- 显示尾随空格
 	nbsp = " ", -- 显示不间断空格
 	eol = " ", -- 换行符
-}
-
--- diff
-vim.opt.diffopt = {
-	"internal",
-	"filler",
-	"closeoff",
-	"context:4",
-	"linematch:60",
-	"indent-heuristic",
-	"algorithm:histogram",
-	"inline:char",
 }

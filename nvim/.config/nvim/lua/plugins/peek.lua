@@ -30,5 +30,7 @@ return {
 		})
 		vim.keymap.set("n", "<leader>omo", require("peek").open, { desc = "Open Peek" })
 		vim.keymap.set("n", "<leader>omc", require("peek").close, { desc = "Close Peek" })
+		vim.api.nvim_create_user_command("PeekOpen", require("peek").open, {})
+		vim.api.nvim_create_user_command("PeekClose", require("peek").close, {})
 	end,
 }

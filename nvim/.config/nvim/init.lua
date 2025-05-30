@@ -63,7 +63,7 @@ vim.defer_fn(function()
 
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
-		-- vim.opt.runtimepath:append("/opt/homebrew/opt/fzf")
+		vim.opt.runtimepath:append("/opt/homebrew/opt/fzf")
 	end)
 
 	-- 颜色主题（如果需要的话）
