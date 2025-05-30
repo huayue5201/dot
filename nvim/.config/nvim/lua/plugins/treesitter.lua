@@ -37,10 +37,10 @@ return {
 			incremental_selection = {
 				enable = true,
 				keymaps = {
-					init_selection = "gnn", -- set to `false` to disable one of the mappings
-					node_incremental = "grn",
-					scope_incremental = "grc",
-					node_decremental = "grm",
+					init_selection = "<tab>", -- set to `false` to disable one of the mappings
+					node_incremental = "<tab>",
+					scope_incremental = "<cr>",
+					node_decremental = "<s-tab>",
 				},
 			},
 			-- 确保所需的语言解析器被安装
