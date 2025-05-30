@@ -59,11 +59,11 @@ vim.defer_fn(function()
 	})
 
 	-- 自动启用所有存在的配置
-	vim.lsp.enable(require("config.lsp_util").get_all_lsp_names())
+	vim.lsp.enable(require("utils.lsp_util").get_all_lsp_names())
 
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
-		vim.opt.runtimepath:append("/opt/homebrew/opt/fzf")
+		-- vim.opt.runtimepath:append("/opt/homebrew/opt/fzf")
 	end)
 
 	-- 颜色主题（如果需要的话）

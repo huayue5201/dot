@@ -17,6 +17,7 @@ set_highlights({
 	StatuslineIcon = { fg = "#ffde7d", bold = true },
 	LspIcon = { fg = "#4876FF", bold = true },
 	DapIcon = { fg = "#FF0000", bold = true },
+	GitIcon = { fg = "#6639a6", bold = true },
 	GitIconChanged = { fg = colors.yellow, bold = true },
 	GitIconRemoved = { fg = colors.red, bold = true },
 	GitIconAdded = { fg = colors.green, bold = true },
@@ -120,7 +121,7 @@ function Statusline.vcs()
 	if not git_info or not git_info.head then
 		return ""
 	end
-	local parts = { " " .. "[" .. git_info.head .. "]" }
+	local parts = { "%#GitIcon#" .. " " .. "%*" .. "[" .. git_info.head .. "]" }
 	for key, icon in pairs({
 		added = "%#GitIconAdded#" .. "+" .. "%*",
 		removed = "%#GitIconRemoved#" .. "-" .. "%*",

@@ -2,7 +2,6 @@
 
 return {
 	"nvim-treesitter/nvim-treesitter",
-	branch = "master",
 	build = ":TSUpdate",
 	lazy = false,
 	-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
@@ -34,6 +33,15 @@ return {
 				end,
 				-- 关闭 vim 自带语法高亮引擎，只使用 Treesitter
 				additional_vim_regex_highlighting = false,
+			},
+			incremental_selection = {
+				enable = true,
+				keymaps = {
+					init_selection = "gnn", -- set to `false` to disable one of the mappings
+					node_incremental = "grn",
+					scope_incremental = "grc",
+					node_decremental = "grm",
+				},
 			},
 			-- 确保所需的语言解析器被安装
 			ensure_installed = {

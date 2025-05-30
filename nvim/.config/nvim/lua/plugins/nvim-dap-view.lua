@@ -68,6 +68,18 @@ return {
 					-- 启动新会话时隐藏终端
 					start_hidden = false,
 				},
+				anchor = function()
+					-- 获取当前 tab 页中的所有窗口
+					local windows = vim.api.nvim_tabpage_list_wins(0)
+
+					-- 遍历窗口，查找第一个终端窗口
+					for _, win in ipairs(windows) do
+						local bufnr = vim.api.nvim_win_get_buf(win)
+						if vim.bo[bufnr].buftype == "terminal" then
+							return win -- 找到后返回该窗口 ID
+						end
+					end
+				end,
 			},
 			-- 控制选择断点或导航堆栈时的跳转行为
 			-- switchbuf = "usetab,newtab",
