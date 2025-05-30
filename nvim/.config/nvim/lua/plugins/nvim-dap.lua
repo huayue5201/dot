@@ -78,12 +78,12 @@ return {
 		_G._toggle_breakpoint = function()
 			dap.toggle_breakpoint()
 		end
-		vim.keymap.set("n", "<localleader>d", function()
+		vim.keymap.set("n", "<leader>b", function()
 			vim.o.operatorfunc = "v:lua._toggle_breakpoint" -- 使用一个正确的函数名
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "设置/取消断点" })
 
-		vim.keymap.set("n", "<localleader>B", function()
+		vim.keymap.set("n", "<leader>B", function()
 			dap.set_exception_breakpoints()
 		end, { silent = true, desc = "异常断点" })
 
@@ -167,14 +167,14 @@ return {
 			end)
 		end, { desc = "设置断点" })
 
-		vim.keymap.set("n", "<leader>rb", dap.clear_breakpoints, { silent = true, desc = "清除所有断点" })
+		vim.keymap.set("n", "<leader>drb", dap.clear_breakpoints, { silent = true, desc = "清除所有断点" })
 
-		vim.keymap.set("n", "<leader>drl", dap.run_last, { silent = true, desc = "运行上次会话" })
+		vim.keymap.set("n", "<leader>dnl", dap.run_last, { silent = true, desc = "运行上次会话" })
 
 		_G._dap_step_over = function()
 			dap.step_over()
 		end
-		vim.keymap.set("n", "<leader>dro", function()
+		vim.keymap.set("n", "<leader>dno", function()
 			vim.o.operatorfunc = "v:lua._dap_step_over" -- 使用一个正确的函数名
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "单步跳过" })
@@ -182,7 +182,7 @@ return {
 		_G._dap_step_into = function()
 			dap.step_out()
 		end
-		vim.keymap.set("n", "<leader>dri", function()
+		vim.keymap.set("n", "<leader>dni", function()
 			vim.o.operatorfunc = "v:lua._dap_step_into" -- 使用一个正确的函数名
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "单步进入" })
@@ -190,7 +190,7 @@ return {
 		_G._dap_step_out = function()
 			dap.step_out()
 		end
-		vim.keymap.set("n", "<leader>dru", function()
+		vim.keymap.set("n", "<leader>dnu", function()
 			vim.o.operatorfunc = "v:lua._dap_step_out" -- 使用一个正确的函数名
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "单步跳出" })
@@ -198,7 +198,7 @@ return {
 		_G._dap_step_back = function()
 			dap.step_back()
 		end
-		vim.keymap.set("n", "<leader>drb", function()
+		vim.keymap.set("n", "<leader>dnb", function()
 			vim.o.operatorfunc = "v:lua._dap_step_back" -- 使用一个正确的函数名
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "逆向单步" })
@@ -206,14 +206,14 @@ return {
 		_G._dap_run_to_cursor = function()
 			dap.run_to_cursor()
 		end
-		vim.keymap.set("n", "<leader>drc", function()
+		vim.keymap.set("n", "<leader>dnc", function()
 			vim.o.operatorfunc = "v:lua._dap_run_to_cursor" -- 使用一个正确的函数名
 			vim.cmd.normal("g@l") -- 执行操作符
 		end, { silent = true, desc = "运行到光标位置" })
 
-		vim.keymap.set("n", "<leader>drr", dap.reverse_continue, { silent = true, desc = "逆向继续" })
+		vim.keymap.set("n", "<leader>dnr", dap.reverse_continue, { silent = true, desc = "逆向继续" })
 
-		vim.keymap.set("n", "<leader>drf", dap.restart_frame, { silent = true, desc = "重启当前帧" })
+		vim.keymap.set("n", "<leader>dnf", dap.restart_frame, { silent = true, desc = "重启当前帧" })
 
 		vim.keymap.set("n", "<leader>ds", dap.pause, { silent = true, desc = "暂停线程" })
 

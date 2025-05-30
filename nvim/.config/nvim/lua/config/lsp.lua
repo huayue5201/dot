@@ -111,7 +111,7 @@ M.inlay_hint_handler = function()
 end
 
 -- 按键映射
-local diagnostics = require("config.lsp_util")
+local diagnostics = require("utils.lsp_util")
 local keymaps = {
 	{ "<leader>lq", diagnostics.open_all_diagnostics, "打开所有诊断（Quickfix）" },
 	{ "<leader>ll", diagnostics.open_buffer_diagnostics, "打开当前 buffer 诊断（Loclist）" },

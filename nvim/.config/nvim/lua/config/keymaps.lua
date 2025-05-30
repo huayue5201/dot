@@ -44,7 +44,7 @@ vim.keymap.set(
 )
 
 vim.keymap.set("n", "<leader>tol", function()
-	require("config.lsp_util").restart_lsp()
+	require("utils.lsp_util").restart_lsp()
 end, { silent = true, desc = "重启 LSP" })
 
 vim.keymap.set("n", "<leader>yp", function()
