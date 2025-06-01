@@ -28,7 +28,6 @@ return {
 			vim.keymap.set("t", "<C-l>", [[<Cmd>wincmd l<CR>]], opts)
 			vim.keymap.set("t", "<C-w>", [[<C-\><C-n><C-w>]], opts)
 		end
-		-- ✅ 只作用于 toggleterm 终端
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = "better_term",
 			callback = function()
