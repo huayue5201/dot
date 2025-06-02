@@ -1,3 +1,5 @@
+-- NOTE:https://github.com/bngarren/checkmate.nvim  备选插件
+
 local M = {}
 
 -- 命名空间和样式

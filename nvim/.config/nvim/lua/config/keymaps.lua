@@ -43,6 +43,10 @@ vim.keymap.set(
 	{ silent = false, desc = "在当前视口中搜索" }
 )
 
+vim.keymap.set("n", "<leader>or", function()
+	require("utils.neotask").build()
+end, { desc = "选择构建操作" })
+
 vim.keymap.set("n", "<leader>tol", function()
 	require("utils.lsp_util").restart_lsp()
 end, { silent = true, desc = "重启 LSP" })
