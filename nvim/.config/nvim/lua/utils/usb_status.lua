@@ -12,6 +12,7 @@ local usb_status = {
 local DEVICE_MAP = {
 	["j-link"] = "j",
 	["stm32 stlink"] = "st",
+	["stlink"] = "st",
 	["daplink"] = "dap",
 }
 
