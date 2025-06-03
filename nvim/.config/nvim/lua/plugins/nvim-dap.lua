@@ -37,6 +37,15 @@ return {
 		end
 
 		local dap = require("dap")
+		-- 获取当前调试会话
+		local session = dap.session()
+
+		if session then
+			-- 打印当前会话的调试器类型
+			print("当前调试器: " .. session.config.type)
+		else
+			print("没有活跃的调试会话")
+		end
 
 		--  nvim-dap配置
 		local dap_defaults = {
@@ -68,7 +77,7 @@ return {
 		vim.keymap.set("n", "<leader>dd", function()
 			dap.terminate({
 				on_done = function()
-					require("dap").repl.close()
+					dap.repl.close()
 					require("dap-view").close(true)
 					vim.cmd("DapVirtualTextForceRefresh")
 				end,
@@ -284,6 +293,36 @@ return {
 
 		vim.keymap.set("n", "<leader>dll", "<cmd>DapShowLog<cr>", { desc = "查看调试日志" })
 
+		vim.keymap.set("n", "<leader>dil", function()
+			local levels = {
+				"TRACE", -- 追踪，最详细的日志信息
+				"DEBUG", -- 调试信息
+				"INFO", -- 一般信息，默认级别
+				"WARN", -- 警告信息
+				"ERROR", -- 错误信息
+			}
+			vim.ui.select(levels, {
+				prompt = "选择 DAP 日志级别:",
+				format_item = function(item)
+					local desc = {
+						TRACE = "追踪，最详细的日志信息",
+						DEBUG = "调试信息",
+						INFO = "一般信息，默认级别",
+						WARN = "警告信息",
+						ERROR = "错误信息",
+					}
+					return item .. " — " .. desc[item]
+				end,
+			}, function(choice)
+				if choice then
+					require("dap").set_log_level(choice)
+					print("DAP 日志级别设置为: " .. choice)
+				else
+					print("未选择日志级别，操作取消")
+				end
+			end)
+		end, { desc = "设置 DAP 日志级别" })
+
 		vim.keymap.set("n", "<leader>dlq", function()
 			dap.list_breakpoints()
 			vim.cmd("copen")
@@ -375,23 +414,23 @@ return {
 				module_cache[dir] = vim.fn.globpath(path, "*.lua", false, true)
 			end
 			for _, file in ipairs(module_cache[dir]) do
-				local module_name =
-					file:match("(.+).lua$"):gsub(vim.pesc(vim.fn.stdpath("config") .. "/"), ""):gsub("/", ".")
-				local ok, mod = pcall(require, module_name)
-				if ok then
-					if mod.setup then
-						mod.setup(dap)
-					end
-				else
+				-- 用 sub 来提取模块名
+				local module_name = file:sub(#vim.fn.stdpath("config") + 2, -5):gsub("/", ".")
+				-- 修正模块名称去掉 "lua." 前缀
+				module_name = module_name:sub(5) -- 移除前4个字符，即 "lua."
+				-- 尝试加载模块
+				local ok, mod_or_err = pcall(require, module_name)
+				if not ok then
+					print("Failed to load module '" .. module_name .. "': " .. mod_or_err)
+					vim.notify("Failed to load module '" .. module_name .. "': " .. mod_or_err, vim.log.levels.ERROR)
+				elseif mod_or_err.setup then
+					mod_or_err.setup(dap)
 				end
 			end
 		end
 		-- 加载模块
-		load_modules_from_dir("lua/dap/adapters")
-		load_modules_from_dir("lua/dap/configs")
-		load_modules_from_dir("lua/dap/listeners")
+		load_modules_from_dir("lua/dap")
 
-		-- 退出neovim自动终止调试进程
 		vim.api.nvim_create_autocmd("VimLeave", {
 			callback = function()
 				-- 通过系统命令关闭 OpenOCD

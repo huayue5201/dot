@@ -1,4 +1,4 @@
--- https://github.com/yetone/avante.nvim/blob/main/README_zh.md
+-- https://github.com/yetone/avante.nvim
 
 return {
 	"yetone/avante.nvim",
@@ -17,11 +17,20 @@ return {
 	},
 	config = function()
 		require("avante").setup({
-			-- provider = "openai",
 			provider = "ollama",
-			ollama = {
-				endpoint = "http://127.0.0.1:11434", -- Note that there is no /v1 at the end.
-				model = "gemma3",
+			providers = {
+				ollama = {
+					model = "gemma3",
+					endpoint = "http://127.0.0.1:11434",
+					timeout = 30000, -- Timeout in milliseconds
+					extra_request_body = {
+						options = {
+							temperature = 0.75,
+							num_ctx = 20480,
+							keep_alive = "5m",
+						},
+					},
+				},
 			},
 			cursor_applying_provider = "gemma3",
 			behaviour = {

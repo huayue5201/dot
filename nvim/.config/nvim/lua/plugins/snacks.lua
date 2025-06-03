@@ -25,9 +25,11 @@ return {
 			notifier = { enabled = false },
 			quickfile = { enabled = true },
 			scope = { enabled = false },
-			scroll = { enabled = true },
+			scroll = { enabled = false },
 			statuscolumn = { enabled = false },
 			words = { enabled = true },
+			terminal = { enabled = true },
+			win = { enabled = false },
 		})
 		vim.keymap.set("n", "<leader>ef", function()
 			Snacks.explorer()
