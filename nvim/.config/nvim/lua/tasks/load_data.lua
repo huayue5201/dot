@@ -16,16 +16,11 @@ return {
 					vim.notify("找不到 ELF 文件，终止 Load Date", vim.log.levels.ERROR)
 					return
 				end
-				local openocd_cmd = {
-					"openocd",
-					"-f",
-					"interface/stlink.cfg",
-					"-f",
-					-- "target/stm32f1x.cfg",
-					"target/stm32h7x.cfg",
-					"-c",
-					"program " .. binary_file .. " verify reset exit",
-				}
+
+				local openocd_template = vim.g.selected_chip_config.openocd_template
+				-- 替换模板中的 {binary_file} 为实际的文件路径
+				local openocd_cmd = openocd_template:gsub("{binary_file}", binary_file)
+
 				run_job(openocd_cmd, {
 					on_exit = function(_, ocd_code)
 						if ocd_code == 0 then

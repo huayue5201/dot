@@ -37,15 +37,6 @@ return {
 		end
 
 		local dap = require("dap")
-		-- 获取当前调试会话
-		local session = dap.session()
-
-		if session then
-			-- 打印当前会话的调试器类型
-			print("当前调试器: " .. session.config.type)
-		else
-			print("没有活跃的调试会话")
-		end
 
 		--  nvim-dap配置
 		local dap_defaults = {

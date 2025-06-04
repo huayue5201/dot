@@ -25,7 +25,7 @@ return {
 			notifier = { enabled = false },
 			quickfile = { enabled = true },
 			scope = { enabled = false },
-			scroll = { enabled = false },
+			scroll = { enabled = true },
 			statuscolumn = { enabled = false },
 			words = { enabled = true },
 			terminal = { enabled = true },
