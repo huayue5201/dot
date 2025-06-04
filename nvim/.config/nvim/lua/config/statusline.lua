@@ -21,8 +21,6 @@ set_highlights({
 	GitIconChanged = { fg = colors.yellow, bold = true },
 	GitIconRemoved = { fg = colors.red, bold = true },
 	GitIconAdded = { fg = colors.green, bold = true },
-	UsbConnected = { fg = colors.green3, bold = true }, -- 绿色
-	UsbDisconnected = { fg = colors.red, bold = true }, -- 红色
 })
 
 Statusline = {}

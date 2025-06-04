@@ -355,7 +355,7 @@ return {
 		local sidebar = nil
 		vim.keymap.set("n", "<leader>dlc", function()
 			if not sidebar then
-				sidebar = widgets.sidebar(widgets.scopes, { width = 35, winblend = 15, signcolumn = "no" })
+				sidebar = widgets.sidebar(widgets.scopes, { width = 40, winblend = 15, signcolumn = "no" })
 			end
 			sidebar.toggle()
 		end, { desc = "查看作用域" })

@@ -7,8 +7,16 @@ local M = {}
 
 -- ======= 内部函数 =======
 
--- 加载任务模块
+-- 缓存任务列表
+local cached_tasks = nil
+
+-- 加载任务模块（加缓存）
 local function load_tasks_from_dir(dir)
+	-- 如果缓存中已有任务列表，直接返回缓存
+	if cached_tasks then
+		return cached_tasks
+	end
+
 	local task_list = {}
 	local task_path = vim.fn.stdpath("config") .. "/lua/" .. dir
 	local handle = uv.fs_scandir(task_path)
@@ -32,62 +40,95 @@ local function load_tasks_from_dir(dir)
 		end
 	end
 
+	-- 将加载的任务列表缓存起来
+	cached_tasks = task_list
+
 	return task_list
-end
-
--- 检测项目类型
-local function detect_project_type()
-	if uv.fs_stat("Makefile") then
-		return "make"
-	elseif uv.fs_stat("Cargo.toml") then
-		return "cargo"
-	end
-	return nil
-end
-
--- 设置 errorformat
-local function setup_errorformat(project_type)
-	if project_type == "make" then
-		vim.opt_local.errorformat = {
-			"%f:%l:%c: %t%*[^:]: %m",
-			"%E%f:%l:%c: %t%*[^:]: %m",
-			"%C%.%#",
-			"%Z",
-		}
-	elseif project_type == "cargo" then
-		vim.opt_local.errorformat = {
-			"%f:%l:%c: %m",
-			"%Eerror: %m",
-			"%C%.%#",
-			"%Z",
-		}
-	else
-		vim.opt_local.errorformat = "%f:%l:%c: %m"
-	end
-end
-
--- 追加输出到 quickfix
-local function append_to_qf(data)
-	local lines = vim.tbl_filter(function(line)
-		return line ~= ""
-	end, data)
-	if #lines > 0 then
-		vim.fn.setqflist({}, "a", { lines = lines })
-		for _, win in ipairs(api.nvim_list_wins()) do
-			local buf = api.nvim_win_get_buf(win)
-			if api.nvim_get_option_value("buftype", { buf = buf }) == "quickfix" then
-				local last_line = api.nvim_buf_line_count(buf)
-				api.nvim_win_set_cursor(win, { last_line, 0 })
-				break
-			end
-		end
-	end
 end
 
 -- ======= 对外暴露 =======
 
 M.tasks = load_tasks_from_dir("tasks")
 
+function M.clear_task_cache()
+	cached_tasks = nil
+end
+
+-- 项目类型配置表
+local project_types = {
+	make = { "Makefile" },
+	cargo = { "Cargo.toml" },
+	python = { "setup.py", "requirements.txt" },
+	node = { "package.json" },
+}
+
+-- 检测项目类型
+local function detect_project_type()
+	for project_type, files in pairs(project_types) do
+		for _, file in ipairs(files) do
+			if uv.fs_stat(file) then
+				return project_type
+			end
+		end
+	end
+	return nil
+end
+
+-- 设置 errorformat
+local function setup_errorformat(project_type)
+	local formats = {
+		make = {
+			"%f:%l:%c: %t%*[^:]: %m",
+			"%E%f:%l:%c: %t%*[^:]: %m",
+			"%C%.%#",
+			"%Z",
+		},
+		cargo = {
+			"%f:%l:%c: %m",
+			"%Eerror: %m",
+			"%C%.%#",
+			"%Z",
+		},
+	}
+
+	vim.opt_local.errorformat = formats[project_type] or "%f:%l:%c: %m"
+end
+
+-- 添加内容到 QuickFix
+local function append_to_qf(data, qf_window)
+	-- 过滤掉空行
+	local lines = vim.tbl_filter(function(line)
+		return line ~= ""
+	end, data)
+
+	if #lines > 0 then
+		-- 如果 qf_window 不为空，直接往指定窗口添加内容
+		if qf_window then
+			vim.fn.setqflist({}, "a", { lines = lines })
+			api.nvim_set_current_win(qf_window)
+		else
+			-- 遍历窗口并寻找 Quickfix 窗口
+			local added = false
+			for _, win in ipairs(api.nvim_list_wins()) do
+				local buf = api.nvim_win_get_buf(win)
+				if api.nvim_get_option_value("buftype", { buf = buf }) == "quickfix" then
+					vim.fn.setqflist({}, "a", { lines = lines })
+					api.nvim_win_set_cursor(win, { api.nvim_buf_line_count(buf), 0 })
+					added = true
+					break
+				end
+			end
+
+			-- 若没有找到，自动打开新窗口
+			if not added then
+				vim.fn.setqflist({}, "a", { lines = lines })
+				vim.cmd("copen")
+			end
+		end
+	end
+end
+
+-- 运行任务并处理输出
 function M.run_job(cmd, opts)
 	local function wrap_handler(handler)
 		return function(_, data)
@@ -111,6 +152,7 @@ function M.run_job(cmd, opts)
 	return vim.fn.jobstart(cmd, default_opts)
 end
 
+-- 执行任务
 function M.run_task(task)
 	if not task or type(task.run) ~= "function" then
 		vim.notify("无效的任务", vim.log.levels.ERROR)
@@ -125,6 +167,7 @@ function M.run_task(task)
 	end
 end
 
+-- 构建任务
 function M.build()
 	local project_type = detect_project_type()
 	if not project_type then
@@ -158,4 +201,5 @@ function M.build()
 	end)
 end
 
+-- ======= 对外暴露 =======
 return M
