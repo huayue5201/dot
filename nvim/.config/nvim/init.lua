@@ -33,7 +33,7 @@ require("config.statusline").active()
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()
 	require("config.autocmds") -- 加载自动命令
-	-- require("config.usercmds") -- 加载用户命令
+	require("config.usercmds") -- 加载用户命令
 	require("config.keymaps") -- 加载按键映射
 	require("utils.dotenv").load() -- token加载模块
 

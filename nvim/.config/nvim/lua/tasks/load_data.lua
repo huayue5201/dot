@@ -11,8 +11,8 @@ return {
 					return
 				end
 				local program_binary = require("utils.program_binary")
-				local elf_file = program_binary.safe_get_program_binary("elf")
-				if not elf_file or elf_file == "" then
+				local binary_file = program_binary.safe_get_program_binary("elf")
+				if not binary_file or binary_file == "" then
 					vim.notify("找不到 ELF 文件，终止 Load Date", vim.log.levels.ERROR)
 					return
 				end
@@ -21,9 +21,10 @@ return {
 					"-f",
 					"interface/stlink.cfg",
 					"-f",
-					"target/stm32f1x.cfg",
+					-- "target/stm32f1x.cfg",
+					"target/stm32h7x.cfg",
 					"-c",
-					"program " .. elf_file .. " verify reset exit",
+					"program " .. binary_file .. " verify reset exit",
 				}
 				run_job(openocd_cmd, {
 					on_exit = function(_, ocd_code)

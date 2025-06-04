@@ -1,9 +1,13 @@
 local uv = vim.loop
 
+local colors = require("utils.utils").palette
+vim.api.nvim_set_hl(0, "UsbDisconnected", { fg = colors.red, bold = true })
+vim.api.nvim_set_hl(0, "UsbConnected", { fg = colors.green3, bold = true })
+
 local M = {}
 
 local usb_status = {
-	cached_status = "%#UsbDisconnected#  %*",
+	cached_status = "%#UsbDisconnected#󱊟  %*",
 	checking = false,
 	_output = "",
 }
@@ -12,7 +16,7 @@ local usb_status = {
 local DEVICE_MAP = {
 	["j-link"] = "j",
 	["stm32 stlink"] = "st",
-	["stlink"] = "st",
+	["stlink-v3"] = "st-v3",
 	["daplink"] = "dap",
 }
 
@@ -58,9 +62,10 @@ end
 local function update_status()
 	local device_name = detect_device_name(usb_status._output)
 	if device_name then
-		usb_status.cached_status = string.format("%%#UsbConnected# %s%%*", device_name)
+		-- usb_status.cached_status = string.format("%%#UsbConnected# %s%%*", device_name)
+		usb_status.cached_status = "%#UsbConnected#󱊟 %*" .. device_name
 	else
-		usb_status.cached_status = "%#UsbDisconnected#  %*"
+		usb_status.cached_status = "%#UsbDisconnected#󱊟  %*"
 	end
 	vim.schedule(function()
 		vim.cmd("redrawstatus")

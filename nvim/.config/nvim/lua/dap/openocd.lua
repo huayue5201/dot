@@ -17,7 +17,7 @@ return {
 					ajgs = {},
 					swoConfig = { enabled = false },
 					showDevDebugOutput = false,
-					gdbTarget = "localhost:3333",
+					-- gdbTarget = "localhost:3333",
 					runToEntryPoint = "main",
 					-- overrideLaunchCommands = {
 					-- 	"monitor reset halt", -- 发送监控命令（复位并挂起目标）
@@ -37,7 +37,7 @@ return {
 						-- "interface/cmsis-dap.cfg",
 						-- "target/nrf52.cfg",
 						"interface/stlink.cfg",
-						"target/stm32f1x.cfg",
+						"target/stm32h7x.cfg",
 					},
 					rttConfig = dap_cortex_debug.rtt_config(0),
 					-- rttConfig = {
