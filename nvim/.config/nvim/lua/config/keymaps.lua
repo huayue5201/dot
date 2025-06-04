@@ -43,25 +43,9 @@ vim.keymap.set(
 	{ silent = false, desc = "在当前视口中搜索" }
 )
 
--- lua/config/keymaps.lua
 vim.keymap.set("n", "<leader>os", function()
-	-- 调用芯片选择函数
-	require("utils.platform_config").choose_chip()
-
-	-- 等待选择完后再触发配置
-	local chip_config = require("utils.platform_config").get_selected_chip_config()
-	if chip_config then
-		-- 配置已选择，调用相关的 setup 函数
-		require("dap.openocd").setup()
-	else
-		-- 如果没有选择芯片，显示错误信息
-		vim.api.nvim_err_writeln("请先选择芯片配置！")
-	end
-end, { desc = "配置芯片" })
-
--- vim.keymap.set("n", "<leader>os", function()
--- 	require("utils.platform_config").choose_chip()
--- end, { desc = "配置切换" })
+	require("utils.cross_config").choose_chip()
+end, { desc = "配置切换" })
 
 vim.keymap.set("n", "<leader>or", function()
 	require("utils.neotask").build()

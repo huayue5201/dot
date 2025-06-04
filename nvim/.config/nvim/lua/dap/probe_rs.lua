@@ -30,7 +30,7 @@ return {
 			-- NOTE: https://probe.rs/targets/?q=&p=142 支持芯片参考表单
 			-- chip = "nrf52833_xxAA",
 			-- chip = "STM32F103C8",
-			chip = "STM32H743VI", -- 指定目标芯片型号，必须准确匹配
+			chip = vim.g.selected_chip_config.chip, -- 指定目标芯片型号，必须准确匹配
 			flashingConfig = {
 				flashingEnabled = true, -- 是否启用烧录（写入 Flash）
 				haltAfterReset = true, -- 烧录后是否保持暂停状态
@@ -45,8 +45,7 @@ return {
 						return require("dap.utils").pick_file() -- 弹出选择框选择 ELF 文件路径
 						-- return require("utils.program_binary").safe_get_rust_program_binary("elf") -- 另一种方式：自动获取 rust 编译产物路径
 					end,
-					-- svdFile = "/Users/lijia/MCU-Project/cmsis-svd-data/data/STMicro/STM32F103xx.svd",
-					svdFile = "/Users/lijia/MCU-Project/cmsis-svd-data/data/STMicro/STM32H743x.svd", -- SVD 文件路径，用于寄存器视图
+					svdFile = vim.g.selected_chip_config.svdFile,
 					rttEnabled = true, -- 启用 RTT 输出功能（实时日志）
 					rttChannelFormats = {
 						{
@@ -66,9 +65,7 @@ return {
 			},
 			consoleLogLevel = "Console", -- 控制台日志输出等级，可为 "Info"、"Debug"、"Console"
 
-			-- 以下为补充字段：
-
-			-- probe = "VID:PID:<Serial>", -- （可选）指定具体调试器，如果多个设备可用时手动选择
+			-- probe = vim.g.selected_chip_config.probe, -- （可选）指定具体调试器，如果多个设备可用时手动选择
 
 			runtimeExecutable = "probe-rs", -- （可选）用于启动 DAP 的程序，一般为 probe-rs 可执行文件
 			runtimeArgs = { "dap-server" }, -- （可选）传给 runtimeExecutable 的参数，默认为启动 DAP server

@@ -21,6 +21,8 @@ vim.g.loaded_netrwFileHandlers = 1
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_ruby_provider = 0
 
+-- 在 Neovim 启动时加载平台配置
+require("utils.cross_config").load_chip_config_on_startup()
 -- -------------- 基本设置 --------------
 vim.opt.mousemoveevent = true -- 启用鼠标移动事件
 vim.opt.fileencodings = { "utf-8", "gbk", "cp936", "ucs-bom", "latin1" }
