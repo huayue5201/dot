@@ -44,13 +44,13 @@ function Statusline.mode()
 	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
--- -------------------- 文件名和图标 --------------------
-function Statusline.get_filename_with_icon()
-	local filename = vim.fn.expand("%:t") -- 获取当前文件名
-	local file_extension = vim.fn.expand("%:e") -- 获取文件扩展名
-	local icon, _ = require("nvim-web-devicons").get_icon(filename, file_extension, { default = true })
-	return icon and icon .. " " .. filename or filename
-end
+-- -- -------------------- 文件名和图标 --------------------
+-- function Statusline.get_filename_with_icon()
+-- 	local filename = vim.fn.expand("%:t") -- 获取当前文件名
+-- 	local file_extension = vim.fn.expand("%:e") -- 获取文件扩展名
+-- 	local icon, _ = require("nvim-web-devicons").get_icon(filename, file_extension, { default = true })
+-- 	return icon and icon .. " " .. filename or filename
+-- end
 
 -- -------------------- LSP 状态 --------------------
 function Statusline.lsp_diagnostics()
@@ -69,10 +69,10 @@ function Statusline.lsp_diagnostics()
 		end, count)
 		if num > 0 then
 			local highlight_group = "Diagnostic" .. key
-			table.insert(parts, "%#" .. highlight_group .. "#" .. icon[key] .. num .. "%*")
+			table.insert(parts, "%#" .. highlight_group .. "#" .. icon[key] .. "%*" .. "<" .. num .. ">")
 		end
 	end
-	return table.concat(parts, "")
+	return table.concat(parts, " ")
 end
 
 -- 获取当前 buffer 附加的 LSP 客户端名称
@@ -96,12 +96,19 @@ function Statusline.lsp()
 		Statusline.lsp_clients(),
 		" " .. require("utils.lsp_status").status(),
 		Statusline.lsp_diagnostics(),
-	}, " ")
+	})
 end
 
 -- -------------------- USB 连接状态（嵌入式设备） --------------------
 function Statusline.usb()
 	return require("utils.usb_status").UsbStatus()
+end
+
+-- -------------------- 芯片状态（嵌入式设备） --------------------
+local chip_config = require("utils.cross_config")
+-- 定义状态栏显示函数
+function Statusline.chip()
+	return chip_config.ChipStatus() -- 调用 ChipStatus 函数
 end
 
 -- -------------------- 调试状态 --------------------
@@ -110,14 +117,14 @@ function Statusline.dap_status()
 	if dap_status == "" then
 		return "" -- 如果没有调试会话，返回空字符串
 	end
-	return "%#DapIcon#" .. " " .. "%*" .. dap_status -- 有调试会话时，返回图标和状态
+	return "%#DapIcon#" .. " " .. "%*" .. dap_status -- 有调试会话时，返回图标和状态
 end
 
 -- -------------------- Git 状态 --------------------
 function Statusline.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or not git_info.head then
-		return ""
+		return "%#GitIcon#" .. " " .. "%*" .. "[ ]"
 	end
 	local parts = { "%#GitIcon#" .. " " .. "%*" .. "[" .. git_info.head .. "]" }
 	for key, icon in pairs({
@@ -165,11 +172,12 @@ function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
 		string.format("%-46s", Statusline.mode()), -- 左对齐，13个字符
-		" " .. Statusline.get_filename_with_icon() .. "  ", -- 动态获取文件图标
+		-- " " .. Statusline.get_filename_with_icon() .. "  ", -- 动态获取文件图标
+		Statusline.vcs() .. "  ", -- Git 状态
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
 		Statusline.dap_status() .. " ", -- dap调试信息
-		Statusline.vcs() .. " ", -- Git 状态
+		Statusline.chip() .. "  ",
 		Statusline.usb() .. " ",
 		"  %l%c ", -- 行列号
 		"%P", -- 文件百分比

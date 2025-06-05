@@ -24,7 +24,7 @@ local chip_configs = {
 	},
 	nrf52 = {
 		chip = "nrf52833_xxAA",
-		svdFile = {
+		configFiles = {
 			"interface/cmsis-dap.cfg",
 			"target/nrf52.cfg",
 		},
@@ -80,7 +80,12 @@ end
 
 -- 选择芯片的函数
 function M.choose_chip()
-	local chips = { "stm32f103c8t6", "stm32h743vi", "nrf52" }
+	-- 自动从 chip_configs 中获取芯片列表
+	local chips = {}
+	for chip, _ in pairs(chip_configs) do
+		table.insert(chips, chip)
+	end
+
 	vim.ui.select(chips, {
 		prompt = "选择目标芯片",
 		format_item = function(item)
@@ -97,6 +102,16 @@ end
 -- 返回已选择的芯片配置
 function M.get_selected_chip_config()
 	return vim.g.selected_chip_config
+end
+
+-- ChipStatus: 返回当前选择的芯片状态
+vim.api.nvim_set_hl(0, "chipIion", { fg = "#6B8E23", bold = true })
+function M.ChipStatus()
+	local selected_chip = vim.g.selected_chip_config
+	if selected_chip then
+		-- 设置状态栏显示格式
+		return "%#chipIion# %*" .. selected_chip.chip
+	end
 end
 
 return M
