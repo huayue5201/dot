@@ -87,7 +87,7 @@ function M.choose_chip()
 	end
 
 	vim.ui.select(chips, {
-		prompt = "选择目标芯片",
+		prompt = " 芯片架构  ",
 		format_item = function(item)
 			return item
 		end,

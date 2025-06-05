@@ -7,14 +7,14 @@ local M = {}
 
 -- ======= 内部函数 =======
 
--- 缓存任务列表
-local cached_tasks = nil
+-- 统一管理缓存
+local cached_tasks = {}
 
--- 加载任务模块（加缓存）
+-- 加载任务模块（带缓存）
 local function load_tasks_from_dir(dir)
 	-- 如果缓存中已有任务列表，直接返回缓存
-	if cached_tasks then
-		return cached_tasks
+	if cached_tasks[dir] then
+		return cached_tasks[dir]
 	end
 
 	local task_list = {}
@@ -40,9 +40,8 @@ local function load_tasks_from_dir(dir)
 		end
 	end
 
-	-- 将加载的任务列表缓存起来
-	cached_tasks = task_list
-
+	-- 缓存任务列表
+	cached_tasks[dir] = task_list
 	return task_list
 end
 
@@ -51,7 +50,7 @@ end
 M.tasks = load_tasks_from_dir("tasks")
 
 function M.clear_task_cache()
-	cached_tasks = nil
+	cached_tasks = {} -- 清空缓存
 end
 
 -- 项目类型配置表
@@ -190,7 +189,7 @@ function M.build()
 	end
 
 	vim.ui.select(available_tasks, {
-		prompt = "选择构建任务",
+		prompt = " 任务列表   ",
 		format_item = function(item)
 			return item.label
 		end,
