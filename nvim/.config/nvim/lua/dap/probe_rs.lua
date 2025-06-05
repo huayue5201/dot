@@ -1,14 +1,5 @@
 -- https://probe.rs/docs/tools/debugger/
 
-local function write_log(msg)
-	local path = vim.fn.getcwd() .. "/probe-rs.log"
-	local file = io.open(path, "a")
-	if file then
-		file:write(msg .. "\n")
-		file:close()
-	end
-end
-
 return {
 	setup = function(dap)
 		dap.adapters["probe-rs-debug"] = {
@@ -77,24 +68,57 @@ return {
 		dap.configurations.c = { config }
 		-- dap.configurations.cpp = { config }
 
-		dap.listeners.before["event_probe-rs-rtt-channel-config"]["probe-rs"] = function(session, body)
-			local msg =
-				string.format("%s: Open RTT channel %d (%s)", os.date("%F %T"), body.channelNumber, body.channelName)
-			vim.notify(msg)
-			write_log(msg)
+		dap.listeners.before["event_probe-rs-rtt-channel-config"]["plugins.nvim-dap-probe-rs"] = function(session, body)
+			local utils = require("dap.utils")
+			utils.notify(
+				string.format('probe-rs: Opening RTT channel %d with name "%s"!', body.channelNumber, body.channelName)
+			)
+			local file = io.open("probe-rs.log", "a")
+			if file then
+				file:write(
+					string.format(
+						'%s: Opening RTT channel %d with name "%s"!\n',
+						os.date("%Y-%m-%d-T%H:%M:%S"),
+						body.channelNumber,
+						body.channelName
+					)
+				)
+			end
+			if file then
+				file:close()
+			end
 			session:request("rttWindowOpened", { body.channelNumber, true })
 		end
 
-		dap.listeners.before["event_probe-rs-rtt-data"]["probe-rs"] = function(_, body)
-			local msg = string.format("%s: RTT[%d] %s", os.date("%F %T"), body.channelNumber, body.data)
-			require("dap.repl").append(msg)
-			write_log(msg)
+		dap.listeners.before["event_probe-rs-rtt-data"]["plugins.nvim-dap-probe-rs"] = function(_, body)
+			local message = string.format(
+				"%s: RTT-Channel %d - Message: %s",
+				os.date("%Y-%m-%d-T%H:%M:%S"),
+				body.channelNumber,
+				body.data
+			)
+			local repl = require("dap.repl")
+			repl.append(message)
+			local file = io.open("probe-rs.log", "a")
+			if file then
+				file:write(message)
+			end
+			if file then
+				file:close()
+			end
 		end
 
-		dap.listeners.before["event_probe-rs-show-message"]["probe-rs"] = function(_, body)
-			local msg = string.format("%s: Message: %s", os.date("%F %T"), body.message)
-			require("dap.repl").append(msg)
-			write_log(msg)
+		dap.listeners.before["event_probe-rs-show-message"]["plugins.nvim-dap-probe-rs"] = function(_, body)
+			local message = string.format("%s: probe-rs message: %s", os.date("%Y-%m-%d-T%H:%M:%S"), body.message)
+			local repl = require("dap.repl")
+			repl.append(message)
+			local file = io.open("probe-rs.log", "a")
+			if file then
+				file:write(message)
+			end
+			if file then
+				file:close()
+			end
 		end
 	end,
 }

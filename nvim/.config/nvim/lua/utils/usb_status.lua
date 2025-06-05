@@ -43,6 +43,8 @@ local function get_usb_cmd()
 		return "ioreg -p IOUSB -l"
 	elseif platform == "linux" then
 		return "lsusb"
+	elseif platform == "windows" then
+		return "wmic path Win32_USBHub"
 	else
 		return nil
 	end
