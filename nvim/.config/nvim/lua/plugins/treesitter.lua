@@ -9,6 +9,14 @@ return {
 		"nvim-treesitter/nvim-treesitter-textobjects",
 	},
 	config = function()
+		local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
+		parser_configs.qf = {
+			install_info = {
+				url = "https://github.com/OXY2DEV/tree-sitter-qf",
+				files = { "src/parser.c" },
+				branch = "main",
+			},
+		}
 		require("nvim-treesitter.configs").setup({
 			-- 是否同步安装解析器
 			sync_install = true,
@@ -56,6 +64,7 @@ return {
 				"cmake",
 				"json",
 				"rust",
+				"qf",
 			},
 			textobjects = {
 				move = {

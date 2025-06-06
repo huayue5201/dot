@@ -1,3 +1,5 @@
+-- utils/usb_status.lua
+
 local uv = vim.loop
 
 local colors = require("utils.utils").palette
@@ -6,25 +8,18 @@ vim.api.nvim_set_hl(0, "UsbConnected", { fg = colors.green3, bold = true })
 
 local M = {}
 
+local CHECK_INTERVAL_MS = 30000
+
 local usb_status = {
 	cached_status = "%#UsbDisconnected#󱊟  %*",
 	checking = false,
 	_output = "",
+	_devices = {},
 }
 
--- 设备关键词映射（key: 关键字，value: 显示名）
-local DEVICE_MAP = {
-	["j-link"] = "j",
-	["stm32 stlink"] = "st",
-	["stlink-v3"] = "st-v3",
-	["daplink"] = "dap",
-}
-
-local CHECK_INTERVAL_MS = 30000
-
--- 平台自动检测
+-- 平台检测
 local function get_platform()
-	local sysname = vim.loop.os_uname().sysname:lower()
+	local sysname = uv.os_uname().sysname:lower()
 	if sysname == "darwin" then
 		return "macos"
 	elseif sysname == "linux" then
@@ -36,7 +31,7 @@ local function get_platform()
 	end
 end
 
--- 根据平台构造命令
+-- 默认 USB 探测命令
 local function get_usb_cmd()
 	local platform = get_platform()
 	if platform == "macos" then
@@ -50,22 +45,26 @@ local function get_usb_cmd()
 	end
 end
 
--- 查找第一个匹配的设备显示名
-local function detect_device_name(output)
-	local lower_out = output:lower()
-	for key, display_name in pairs(DEVICE_MAP) do
-		if lower_out:find(key, 1, true) then
-			return display_name
-		end
-	end
-	return nil
+-- 探测器注册表
+local DETECTORS = {}
+
+--- 注册新的设备探测器
+---@param detector { name: string, match: fun(output: string): boolean, display: string, source?: string }
+function M.register_device_detector(detector)
+	table.insert(DETECTORS, detector)
 end
 
-local function update_status()
-	local device_name = detect_device_name(usb_status._output)
-	if device_name then
-		-- usb_status.cached_status = string.format("%%#UsbConnected# %s%%*", device_name)
-		usb_status.cached_status = "%#UsbConnected#󱊟 %*" .. device_name
+--- 外部注入已识别设备
+function M.inject_device(name)
+	table.insert(usb_status._devices, name)
+	M.update_status()
+end
+
+--- 更新状态栏缓存
+function M.update_status()
+	if #usb_status._devices > 0 then
+		local joined = table.concat(usb_status._devices, " | ")
+		usb_status.cached_status = "%#UsbConnected#󱊟 %*" .. joined
 	else
 		usb_status.cached_status = "%#UsbDisconnected#󱊟  %*"
 	end
@@ -74,6 +73,25 @@ local function update_status()
 	end)
 end
 
+-- 启动探测流程
+local function detect_all_devices(output)
+	usb_status._devices = {}
+	for _, detector in ipairs(DETECTORS) do
+		local src_out = output
+		if detector.source then
+			local handle = io.popen(detector.source)
+			if handle then
+				src_out = handle:read("*a")
+				handle:close()
+			end
+		end
+		if detector.match(src_out) then
+			table.insert(usb_status._devices, detector.display)
+		end
+	end
+end
+
+-- 主检测函数
 local function check_usb()
 	if usb_status.checking then
 		return
@@ -103,8 +121,9 @@ local function check_usb()
 		if handle then
 			handle:close()
 		end
+		detect_all_devices(usb_status._output)
+		M.update_status()
 		usb_status.checking = false
-		update_status()
 	end)
 
 	if not handle then
@@ -128,19 +147,16 @@ local function check_usb()
 	end)
 end
 
--- 启动立即检测
+-- 启动
 check_usb()
-
--- 定时检测
 local timer = uv.new_timer()
 timer:start(CHECK_INTERVAL_MS, CHECK_INTERVAL_MS, vim.schedule_wrap(check_usb))
 
--- 用户可调用函数
+-- 公共接口
 M.UsbStatus = function()
 	return usb_status.cached_status
 end
 
--- 用户手动触发命令
 M.RefreshUsbStatus = function()
 	usb_status.checking = false
 	check_usb()
@@ -148,5 +164,36 @@ M.RefreshUsbStatus = function()
 end
 
 vim.api.nvim_create_user_command("RefreshUsbStatus", M.RefreshUsbStatus, {})
+
+-- 预注册几个典型设备
+M.register_device_detector({
+	name = "jlink",
+	match = function(out)
+		return out:lower():find("j%-link")
+	end,
+	display = "j",
+})
+M.register_device_detector({
+	name = "stlink",
+	match = function(out)
+		return out:lower():find("stm32 stlink")
+	end,
+	display = "st",
+})
+M.register_device_detector({
+	name = "stlink-v3",
+	match = function(out)
+		return out:lower():find("stlink%-v3")
+	end,
+	display = "st-v3",
+})
+M.register_device_detector({
+	name = "probe-rs",
+	match = function(out)
+		return out:find("cmsis%-dap")
+	end,
+	display = "prb",
+	source = "probe-rs list",
+})
 
 return M

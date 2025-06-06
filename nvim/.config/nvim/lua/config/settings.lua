@@ -53,6 +53,8 @@ require("vim._extui").enable({
 		},
 	},
 })
+-- quickfixtextfunc
+require("config.quickfixtext").setup()
 
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式
