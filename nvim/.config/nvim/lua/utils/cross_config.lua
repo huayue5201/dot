@@ -31,6 +31,21 @@ local chip_configs = {
 	},
 }
 
+-- 校验每个芯片配置是否包含必须字段
+local function validate_chip_configs()
+	local required_fields = { "chip", "configFiles" }
+	for name, conf in pairs(chip_configs) do
+		for _, key in ipairs(required_fields) do
+			if conf[key] == nil then
+				vim.notify(("芯片配置 [%s] 缺少字段: %s"):format(name, key), vim.log.levels.WARN)
+			end
+		end
+	end
+end
+
+-- 在模块加载时执行校验
+validate_chip_configs()
+
 -- 缓存文件路径
 local cache_file_path = vim.fn.stdpath("cache") .. "/selected_chip_config.json"
 
