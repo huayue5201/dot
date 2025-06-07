@@ -4,7 +4,14 @@ return {
 	"MagicDuck/grug-far.nvim",
 	event = "VeryLazy",
 	config = function()
-		require("grug-far").setup()
+		require("grug-far").setup({
+			helpLine = {
+				enabled = false,
+			},
+			showCompactInputs = true,
+			showInputsTopPadding = false,
+			showInputsBottomPadding = false,
+		})
 
 		-- 启动时使用当前光标下的单词作为搜索内容
 		vim.keymap.set("n", "<leader>fs", function()

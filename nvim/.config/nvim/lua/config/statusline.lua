@@ -1,5 +1,6 @@
 local utils = require("utils.utils")
 local colors, icons = utils.palette, utils.icons
+local lsp_status = require("utils.lsp_status")
 
 -- 定义高亮组
 local function set_highlights(highlight_defs)
@@ -54,6 +55,10 @@ end
 
 -- -------------------- LSP 状态 --------------------
 function Statusline.lsp_diagnostics()
+	if lsp_status.is_loading() then
+		return "" -- 如果LSP正在加载，返回空字符串
+	end
+
 	local count = vim.diagnostic.get(0)
 	local parts = {}
 	local icon = icons.diagnostic
