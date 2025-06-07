@@ -4,7 +4,7 @@ local M = {}
 local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
 local spinner_index = 1
 local lsp_status_msg = ""
--- local client_msgs = {}
+local is_lsp_loading = true -- LSP加载标志
 
 local function update_spinner()
 	spinner_index = (spinner_index % #spinner_frames) + 1
@@ -23,7 +23,7 @@ function M.status()
 	end
 
 	local spinner = spinner_frames[spinner_index]
-	local max_len = 30 -- 最长保留的 LSP 消息长度，可根据需要调整
+	local max_len = 40 -- 最长保留的 LSP 消息长度，可根据需要调整
 
 	local msg = lsp_status_msg
 	if #msg > max_len then
@@ -48,8 +48,10 @@ vim.api.nvim_create_autocmd("LspProgress", {
 
 		if kind == "begin" or kind == "report" then
 			lsp_status_msg = msg
+			is_lsp_loading = true -- 设置为正在加载
 		elseif kind == "end" then
 			lsp_status_msg = ""
+			is_lsp_loading = false -- LSP 加载完成
 		end
 
 		schedule_redraw()
@@ -63,5 +65,10 @@ vim.fn.timer_start(120, function()
 		schedule_redraw()
 	end
 end, { ["repeat"] = -1 })
+
+-- 返回是否正在加载LSP
+function M.is_loading()
+	return is_lsp_loading
+end
 
 return M
