@@ -1,4 +1,5 @@
 -- https://github.com/CRAG666/betterTerm.nvim/tree/main
+-- NOTE:https://github.com/nvzone/floaterm 浮动终端插件
 
 return {
 	"CRAG666/betterTerm.nvim",
