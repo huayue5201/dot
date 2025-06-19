@@ -39,7 +39,7 @@ M.close_commands = {
 	FunctionReferences = "quit",
 
 	checkhealth = "close", -- 通常是浮窗
-	qf = "close", -- quickfix 通常是浮窗
+	-- qf = "close", -- quickfix 通常是浮窗
 	better_term = "close", -- term 为 buffer
 	["grug-far"] = "bdelete",
 	git = "bdelete",
