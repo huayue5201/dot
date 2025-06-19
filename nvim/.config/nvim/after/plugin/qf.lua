@@ -102,10 +102,10 @@ function QuickfixPreview:open()
 	local win_height = vim.api.nvim_win_get_height(0)
 	local win_width = vim.api.nvim_win_get_width(0)
 
-	-- 计算预览窗口大小和位置 - 始终放在上方
-	local preview_height = math.min(15, math.floor(win_height * 0.4)) -- 最大15行或窗口高度的40%
+	-- 计算预览窗口大小 - 使用窗口高度的1.5倍（最大35行）
+	local preview_height = math.min(35, math.floor(win_height * 1.5))
 
-	-- 预览窗口放在当前窗口上方
+	-- 预览窗口始终放在上方
 	local preview_row = -preview_height - 2 -- -2 为边框留出空间
 
 	-- 获取文件名并截断过长的标题
@@ -300,24 +300,113 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
 	end,
 })
 
--- 测试命令
-vim.api.nvim_create_user_command("QfPreviewTest", function()
-	-- 创建测试文件
-	vim.cmd([[silent! edit test.lua]])
-	vim.cmd([[silent! lua vim.api.nvim_buf_set_lines(0, 0, -1, false, {'local x = 1', '', 'print(x)'})]])
+-- ✨ 删除 quickfix / loclist 条目工具函数
+local function delete_qf_items()
+	-- 获取当前窗口信息以区分 quickfix 和 location list
+	local win_id = vim.api.nvim_get_current_win()
+	local win_info = vim.fn.getwininfo(win_id)[1]
 
-	-- 生成quickfix错误
-	vim.cmd([[cexpr system('luacheck test.lua')]])
-	vim.cmd([[copen]])
-end, {})
+	-- 修复：正确判断 location list
+	local is_loc = win_info and win_info.loclist == 1
+	local is_qf = win_info and win_info.quickfix == 1 and not is_loc
 
--- Location list测试命令
-vim.api.nvim_create_user_command("LocPreviewTest", function()
-	-- 创建测试文件
-	vim.cmd([[silent! edit test.lua]])
-	vim.cmd([[silent! lua vim.api.nvim_buf_set_lines(0, 0, -1, false, {'local y = 2', '', 'print(y)'})]])
+	-- 获取对应的列表
+	local qflist
+	if is_qf then
+		qflist = vim.fn.getqflist()
+	elseif is_loc then
+		qflist = vim.fn.getloclist(0)
+	else
+		return
+	end
 
-	-- 生成location list错误
-	vim.cmd([[lexpr system('luacheck test.lua')]])
-	vim.cmd([[lopen]])
-end, {})
+	if not qflist or #qflist == 0 then
+		return
+	end
+
+	local mode = vim.api.nvim_get_mode().mode
+	local start_idx, count
+	if mode == "n" then
+		start_idx = vim.fn.line(".")
+		count = vim.v.count > 0 and vim.v.count or 1
+	else
+		local v_start_idx = vim.fn.line("v")
+		local v_end_idx = vim.fn.line(".")
+		start_idx = math.min(v_start_idx, v_end_idx)
+		count = math.abs(v_end_idx - v_start_idx) + 1
+		vim.cmd("normal! <esc>")
+	end
+
+	if start_idx < 1 or start_idx > #qflist then
+		return
+	end
+
+	-- 创建要删除的索引列表（从后往前删除避免索引变化）
+	local indices_to_remove = {}
+	for i = start_idx, math.min(start_idx + count - 1, #qflist) do
+		table.insert(indices_to_remove, i)
+	end
+
+	-- 从后往前删除
+	table.sort(indices_to_remove, function(a, b)
+		return a > b
+	end)
+	for _, idx in ipairs(indices_to_remove) do
+		table.remove(qflist, idx)
+	end
+
+	-- 更新列表
+	if is_qf then
+		vim.fn.setqflist(qflist, "r")
+	elseif is_loc then
+		vim.fn.setloclist(0, qflist, "r")
+	end
+
+	-- 定位到合适位置
+	local new_pos = math.min(start_idx, #qflist)
+	if new_pos > 0 then
+		vim.fn.cursor(new_pos, 1)
+	end
+end
+
+-- ✨ Quickfix/Location list 窗口定制
+vim.api.nvim_create_autocmd("FileType", {
+	group = vim.api.nvim_create_augroup("QuickfixTweaks", { clear = true }),
+	pattern = "qf",
+	desc = "Quickfix and location list tweaks",
+	callback = function()
+		local win_id = vim.api.nvim_get_current_win()
+		local win_info = vim.fn.getwininfo(win_id)[1]
+
+		-- 确定是 quickfix 还是 location list
+		local is_loc = win_info and win_info.loclist == 1
+		local is_qf = win_info and win_info.quickfix == 1 and not is_loc
+
+		-- 设置不显示在缓冲区列表
+		vim.api.nvim_set_option_value("buflisted", false, { buf = 0 })
+
+		-- 设置关闭命令（根据窗口类型）
+		local close_cmd = is_qf and "<CMD>cclose<CR>" or "<CMD>lclose<CR>"
+
+		-- 设置删除映射
+		vim.keymap.set("n", "<ESC>", close_cmd, { buffer = true, silent = true })
+		vim.keymap.set("n", "dd", delete_qf_items, { buffer = true, desc = "Delete current item" })
+		vim.keymap.set("x", "d", delete_qf_items, { buffer = true, desc = "Delete selected items" })
+
+		-- 添加更多实用映射
+		vim.keymap.set("n", "q", close_cmd, { buffer = true, silent = true })
+
+		-- 添加列表特定导航
+		if is_qf then
+			vim.keymap.set("n", "L", "<CMD>cnext<CR>", { buffer = true, desc = "Next quickfix item" })
+			vim.keymap.set("n", "H", "<CMD>cprev<CR>", { buffer = true, desc = "Previous quickfix item" })
+		elseif is_loc then
+			vim.keymap.set("n", "L", "<CMD>lnext<CR>", { buffer = true, desc = "Next location item" })
+			vim.keymap.set("n", "H", "<CMD>lprev<CR>", { buffer = true, desc = "Previous location item" })
+		end
+
+		-- 添加状态行提示
+		local list_type = is_qf and "Quickfix" or "Location List"
+		vim.opt_local.statusline = list_type .. " %<%f %=%-14.(%l/%L%)%P"
+	end,
+})

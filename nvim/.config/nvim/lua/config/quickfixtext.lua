@@ -265,10 +265,13 @@ quickfix.qf_text = function(data)
 		line = line .. center(info.row .. " col " .. info.col, s_width)
 		line = line .. " |"
 
+		-- 检查 info.text 是否为 nil
 		if info.filetype then
-			line = line .. string.format(">!%s!< %s", info.filetype, info.text)
+			-- 如果有 filetype，继续格式化
+			line = line .. string.format(">!%s!< %s", info.filetype, info.text or "")
 		else
-			line = line .. " " .. info.text
+			-- 如果没有 filetype，直接拼接 text（确保 info.text 不是 nil）
+			line = line .. " " .. (info.text or "")
 		end
 
 		table.insert(lines, line)
