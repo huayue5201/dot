@@ -1,112 +1,327 @@
+-- https://github.com/OXY2DEV/nvim/blob/7bc8919c9a7a0ea0fa22105db42bd747953fa3d5/lua/scripts/quickfix.lua
+
+--- Custom quickfix menu for Neovim.
 local quickfix = {}
 
--- 缓存常用值
-local PATH_SEP = string.sub(package.config, 1, 1)
-local NS_NAME = "quickfix_decorations"
-
--- 路径处理工具
+--- Shortens path segment length.
+---@param path string
+---@return string
 local function shorten_path(path)
-	if path == "" then
-		return ""
+	---|fS
+
+	local sep = string.sub(package.config, 1, 1)
+	local as_raw = {
+		"nvim$",
+	}
+
+	local function is_raw(str)
+		for _, pattern in ipairs(as_raw) do
+			if string.match(str, pattern) then
+				return true
+			end
+		end
+
+		return false
 	end
-	local parts = vim.split(path, PATH_SEP, { trimempty = true })
-	for i = 2, #parts - 1 do
-		if not string.match(parts[i], "^%.") then
-			parts[i] = string.sub(parts[i], 1, 1)
+
+	local parts = vim.split(path, sep, { trimempty = true })
+	local shortened = {}
+
+	for p, part in ipairs(parts) do
+		if is_raw(part) or p == 1 or p == #parts then
+			table.insert(shortened, part)
+		elseif string.match(part, "^%.") then
+			table.insert(shortened, vim.fn.strcharpart(part, 0, 2))
+		else
+			table.insert(shortened, vim.fn.strcharpart(part, 0, 1))
 		end
 	end
-	return table.concat(parts, PATH_SEP)
+
+	return table.concat(shortened, sep)
+
+	---|fE
 end
 
--- 文本处理工具
+--- Creates range text between a & b.
+---@param a number
+---@param b number
+---@return string
 local function range_text(a, b)
-	return a == b and tostring(a) or (tostring(a) .. "-" .. tostring(b))
+	---|fS
+
+	if a ~= b then
+		return tostring(a) .. "-" .. tostring(b)
+	else
+		return tostring(a)
+	end
+
+	---|fE
 end
 
+--- Centers text.
+---@param text string
+---@param width integer
+---@return string
 local function center(text, width)
+	---|fS
+
 	local text_width = vim.fn.strdisplaywidth(text)
-	if text_width >= width then
-		return text
-	end
+	local before, after = math.floor((width - text_width) / 2), math.ceil((width - text_width) / 2)
 
-	local left = math.floor((width - text_width) / 2)
-	local right = width - text_width - left
-	return string.rep(" ", left) .. text .. string.rep(" ", right)
+	return string.rep(" ", before) .. text .. string.rep(" ", after)
+
+	---|fE
 end
 
--- 列表处理工具
-local function process_items(items, start_idx, end_idx)
-	local infos, path_width, loc_width = {}, 0, 0
-	local valid_items = {}
+---@type "quickfix" | "location" Currently visible list type.
+quickfix.list = nil
 
-	-- 先收集有效项，减少重复计算
-	for i = start_idx, end_idx do
+---@type integer Decoration namespace.
+quickfix.ns = vim.api.nvim_create_namespace("quickfix")
+
+---@type integer The buffer showing the quickfix list.
+quickfix.buffer = nil
+
+---@type integer
+quickfix.winid = nil
+
+---@type boolean Should the quickfix be decorated?
+quickfix.should_decorate = true
+
+------------------------------------------------------------------------------
+
+--- Text to show for the location list.
+---@param data any
+---@return string[]
+quickfix.loc_text = function(data) ---@diagnostic disable-line
+	---|fS
+
+	local items = vim.fn.getloclist(data.winid, { id = data.id, items = 0 }).items
+	local infos = {}
+
+	local p_width, s_width = 0, 0
+
+	for i = data.start_idx, data.end_idx do
+		---|fS "doc: Quickfix item to information table"
+
 		local item = items[i]
-		if item and (not item.valid or item.valid == 1) then
-			table.insert(valid_items, item)
+		local buf = item.bufnr
+
+		local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":~:.")
+		name = shorten_path(name)
+
+		local row, col = range_text(item.lnum, item.end_lnum), range_text(item.col, item.end_col)
+
+		p_width = math.max(p_width, vim.fn.strdisplaywidth(name))
+		s_width = math.max(s_width, vim.fn.strdisplaywidth(row .. " col " .. col))
+
+		if vim.api.nvim_buf_is_loaded(buf) then
+			---|fS
+
+			local ft = vim.bo[buf].ft
+
+			table.insert(infos, {
+				path = name,
+				filetype = ft ~= "" and ft or nil,
+
+				row = row,
+				col = col,
+
+				text = item.text,
+			})
+
+			---|fE
+		else
+			---|fS
+
+			local ft
+
+			if string.match(quickfix.last_command or "", "grep") then
+				-- Only add filetype for searches.
+				ft = vim.filetype.match({ filename = name })
+			end
+
+			table.insert(infos, {
+				path = name,
+				filetype = ft ~= "" and ft or nil,
+
+				row = row,
+				col = col,
+
+				text = item.text,
+			})
+
+			---|fE
 		end
+
+		---|fE
 	end
 
-	for _, item in ipairs(valid_items) do
-		local bufname = vim.api.nvim_buf_get_name(item.bufnr)
-		local path = shorten_path(vim.fn.fnamemodify(bufname, ":~:."))
-		local rows = range_text(item.lnum, item.end_lnum or item.lnum)
-		local cols = range_text(item.col, item.end_col or item.col)
-		local location = rows .. " col " .. cols
-
-		path_width = math.max(path_width, vim.fn.strdisplaywidth(path))
-		loc_width = math.max(loc_width, vim.fn.strdisplaywidth(location))
-
-		table.insert(infos, {
-			path = path,
-			location = location,
-			text = item.text,
-		})
-	end
-
-	return infos, path_width, loc_width
-end
-
-local function build_lines(infos, path_width, loc_width)
+	---@type string[]
 	local lines = {}
+
 	for _, info in ipairs(infos) do
-		local line = string.format(" %-" .. path_width .. "s", info.path)
-		line = line .. " | " .. center(info.location, loc_width) .. " |"
-		if info.text then
+		---|fS "doc: Turns info to line"
+
+		local line = string.format(" %" .. p_width .. "s", info.path)
+		line = line .. " | "
+
+		line = line .. center(info.row .. " col " .. info.col, s_width)
+		line = line .. " |"
+
+		if info.filetype then
+			line = line .. string.format(">!%s!< %s", info.filetype, info.text)
+		else
 			line = line .. " " .. info.text
 		end
+
 		table.insert(lines, line)
+
+		---|fE
 	end
+
 	return lines
+
+	---|fE
 end
 
--- 位置列表处理
-function quickfix.loc_text(data)
-	local items = vim.fn.getloclist(data.winid, { id = data.id, items = 0 }).items
-	local infos, path_width, loc_width = process_items(items, data.start_idx, data.end_idx)
-	return build_lines(infos, path_width, loc_width)
-end
+--- Text to show for the quickfix list.
+---@param data any
+---@return string[]
+quickfix.qf_text = function(data)
+	---|fS
 
--- 快速修复列表处理
-function quickfix.qf_text(data)
 	local items = vim.fn.getqflist({ id = data.id, items = 0 }).items
-	local infos, path_width, loc_width = process_items(items, data.start_idx, data.end_idx)
-	return build_lines(infos, path_width, loc_width)
+	local infos = {}
+
+	local p_width, s_width = 0, 0
+
+	for i = data.start_idx, data.end_idx do
+		---|fS "doc: Quickfix item to information table"
+
+		local item = items[i]
+		local buf = item.bufnr
+
+		local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":~:.")
+		name = shorten_path(name)
+
+		local row, col = range_text(item.lnum, item.end_lnum), range_text(item.col, item.end_col)
+
+		p_width = math.max(p_width, vim.fn.strdisplaywidth(name))
+		s_width = math.max(s_width, vim.fn.strdisplaywidth(row .. " col " .. col))
+
+		if vim.api.nvim_buf_is_loaded(buf) then
+			---|fS
+
+			local ft = vim.bo[buf].ft
+			local line = vim.api.nvim_buf_get_lines(buf, item.lnum - 1, item.lnum, false)[1]
+
+			table.insert(infos, {
+				path = name,
+				filetype = ft ~= "" and ft or nil,
+
+				row = row,
+				col = col,
+
+				text = line,
+			})
+
+			---|fE
+		else
+			---|fS
+
+			local ft
+
+			if string.match(quickfix.last_command or "", "grep") then
+				-- Only add filetype for searches.
+				ft = vim.filetype.match({ filename = name })
+			end
+
+			table.insert(infos, {
+				path = name,
+				filetype = ft ~= "" and ft or nil,
+
+				row = row,
+				col = col,
+
+				text = item.text,
+			})
+
+			---|fE
+		end
+
+		---|fE
+	end
+
+	---@type string[]
+	local lines = {}
+
+	for _, info in ipairs(infos) do
+		---|fS "doc: Turns info to line"
+
+		local line = string.format(" %" .. p_width .. "s", info.path)
+		line = line .. " | "
+
+		line = line .. center(info.row .. " col " .. info.col, s_width)
+		line = line .. " |"
+
+		if info.filetype then
+			line = line .. string.format(">!%s!< %s", info.filetype, info.text)
+		else
+			line = line .. " " .. info.text
+		end
+
+		table.insert(lines, line)
+
+		---|fE
+	end
+
+	return lines
+
+	---|fE
 end
 
--- 主文本展示
-function quickfix.text(data)
-	return data.quickfix == 1 and quickfix.qf_text(data) or quickfix.loc_text(data)
+--- Text to show in the quickfix window.
+---@param data any
+---@return string[]
+quickfix.text = function(data)
+	---|fS
+
+	if data.quickfix == 1 then
+		quickfix.list = "quickfix"
+		return quickfix.qf_text(data)
+	else
+		quickfix.list = "location"
+		return quickfix.loc_text(data)
+	end
+
+	---|fE
 end
 
--- 装饰器回调
-local decor_callbacks = {
-	qf_filename = function(buf, ns, node, injection_set)
-		local text = vim.treesitter.get_node_text(node, buf, {})
-		local whitespaces = string.match(text, "^%s*") or ""
-		local srow, scol, _, ecol = node:range()
+------------------------------------------------------------------------------
 
-		if package.loaded["icons"] then
+--- Adds decorations for the given node.
+---@param name string
+---@param TSNode table
+---@param injection_lines string[]
+quickfix.add_decor = function(name, TSNode, injection_lines)
+	---|fS
+
+	local line_count = vim.api.nvim_buf_line_count(quickfix.buffer)
+
+	local callbacks = {
+		qf_filename = function()
+			---|fS
+
+			local text = vim.treesitter.get_node_text(TSNode, quickfix.buffer, {})
+			local whitespaces = string.match(text, "^%s*")
+
+			local range = { TSNode:range() }
+
+			if not package.loaded["icons"] then
+				return
+			end
+
 			local icon = package.loaded["icons"].get(vim.fn.fnamemodify(text, ":e"), {
 				"@comment",
 				"DiagnosticError",
@@ -117,187 +332,270 @@ local decor_callbacks = {
 				"@property",
 			})
 
-			vim.api.nvim_buf_set_extmark(buf, ns, srow, scol + #whitespaces, {
-				end_col = ecol,
+			vim.api.nvim_buf_set_extmark(quickfix.buffer, quickfix.ns, range[1], range[2] + #whitespaces, {
+				end_col = range[4],
+
 				virt_text_pos = "inline",
-				virt_text = { { icon.icon, icon.hl } },
+				virt_text = {
+					{ icon.icon, icon.hl },
+				},
+
 				hl_group = icon.hl,
 			})
-		end
-	end,
 
-	qf_separator = function(buf, ns, node, injection_set)
-		local text = vim.treesitter.get_node_text(node, buf, {})
-		local whitespaces = string.match(text, "^%s*") or ""
-		local srow, scol, _, ecol = node:range()
-		local line_count = vim.api.nvim_buf_line_count(buf)
-		local char = "│"
+			---|fE
+		end,
 
-		local parent = node:parent()
-		if parent then
-			if not parent:next_sibling() and not parent:prev_sibling() then
+		qf_separator = function()
+			---|fS
+
+			local text = vim.treesitter.get_node_text(TSNode, quickfix.buffer, {})
+			local whitespaces = string.match(text, "^%s*")
+
+			local range = { TSNode:range() }
+			local char = "│"
+
+			if not TSNode:parent():next_sibling() and not TSNode:parent():prev_sibling() then
 				char = "◆"
-			elseif srow == 0 then
+			elseif range[1] == 0 then
 				char = "╷"
-			elseif srow == line_count - 1 then
+			elseif range[1] == line_count - 1 then
 				char = "╵"
 			end
-		end
 
-		vim.api.nvim_buf_set_extmark(buf, ns, srow, scol + #whitespaces, {
-			end_col = ecol,
-			hl_mode = "combine",
-			virt_text_pos = "overlay",
-			virt_text = { { char } },
-		})
-	end,
+			vim.api.nvim_buf_set_extmark(quickfix.buffer, quickfix.ns, range[1], range[2] + #whitespaces, {
+				end_col = range[4],
+				hl_mode = "combine",
 
-	qf_content = function(buf, ns, node, injection_set, list_type)
-		local text = vim.treesitter.get_node_text(node, buf, {})
-		local whitespaces = string.match(text, "^%s*") or ""
-		local srow, scol, _, ecol = node:range()
+				virt_text_pos = "overlay",
+				virt_text = {
+					{ char },
+				},
+			})
 
-		-- 修复图标加载问题
-		local diagnostic_icons = {
-			WARN = " ",
-			ERROR = "󰅙 ",
-			INFO = "󰀨 ",
-			HINT = "󰁨 ",
-		}
+			---|fE
+		end,
 
-		-- 尝试加载自定义图标
-		local custom_icons_ok, custom_icons = pcall(require, "utils.utils")
-		if custom_icons_ok and custom_icons.icons and custom_icons.icons.diagnostic then
-			diagnostic_icons = custom_icons.icons.diagnostic
-		end
+		qf_content = function()
+			---|fS
 
-		local kinds = {
-			default = { "󱈤 ", "@function" },
-			loc = { " ", "@conditional" },
-			w = { diagnostic_icons.WARN, "DiagnosticWarn" },
-			e = { diagnostic_icons.ERROR, "DiagnosticError" },
-			i = { diagnostic_icons.INFO, "DiagnosticInfo" },
-			n = { diagnostic_icons.HINT, "DiagnosticHint" },
-		}
-		local virt_text = kinds.default
+			local text = vim.treesitter.get_node_text(TSNode, quickfix.buffer, {})
+			local whitespaces = string.match(text, "^%s*")
 
-		if list_type == "location" then
-			virt_text = kinds.loc
-		else
-			local qflist = vim.fn.getqflist()
-			if qflist[srow + 1] then
-				local item = qflist[srow + 1]
-				local item_type = string.lower(item.type or "")
-				virt_text = kinds[item_type] or kinds.default
+			local range = { TSNode:range() }
 
-				if item.text and item.text ~= "" and text ~= " " .. item.text then
-					vim.api.nvim_buf_set_extmark(buf, ns, srow, scol, {
-						virt_lines = { { { " ╰╴", "@comment" }, { item.text, virt_text[2] } } },
-					})
-				elseif item.text and item.text ~= "" then
-					virt_text = { "󰵅 ", virt_text[2] }
+			local kinds = {
+				default = { "󱈤 ", "@function" },
+				loc = { " ", "@conditional" },
+
+				w = { " ", "DiagnosticWarn" },
+				e = { "󰅙 ", "DiagnosticError" },
+				i = { "󰀨 ", "DiagnosticInfo" },
+				n = { "󰁨 ", "DiagnosticHint" },
+			}
+			local virt_text = kinds.default
+
+			if quickfix.list == "location" then
+				virt_text = kinds.loc
+			else
+				local qflist = vim.fn.getqflist()
+
+				if qflist[range[1] + 1] then
+					local item = qflist[range[1] + 1]
+					local type = string.lower(item.type or "")
+
+					virt_text = kinds[type] or kinds.default
+
+					if item.text and item.text ~= "" and text ~= " " .. item.text then
+						---|fS
+
+						-- Show the actual message below if the buffer
+						-- text is being shown instead of the message.
+						vim.api.nvim_buf_set_extmark(quickfix.buffer, quickfix.ns, range[1], range[2], {
+							virt_lines = {
+								{
+									{ " ╰╴", "@comment" },
+									{ item.text, virt_text[2] },
+								},
+							},
+						})
+
+						---|fE
+					elseif item.text and item.text ~= "" then
+						-- Unloaded buffer's show the item text.
+						-- Change the icon as an indicator.
+						virt_text = {
+							"󰵅 ",
+							virt_text[2],
+						}
+					end
 				end
 			end
-		end
 
-		local has_space = #whitespaces > 0
-		vim.api.nvim_buf_set_extmark(buf, ns, srow, scol + (has_space and 1 or 0), {
-			virt_text_pos = "inline",
-			virt_text = { { has_space and "" or " " }, virt_text },
-		})
+			---@type boolean Are there whitespace before this node?
+			local has_space = #whitespaces > 0
 
-		-- 使用集合进行快速查找
-		if not injection_set[srow] then
-			vim.api.nvim_buf_set_extmark(buf, ns, srow, scol + #whitespaces, {
-				end_col = ecol,
-				hl_group = "@comment",
+			vim.api.nvim_buf_set_extmark(quickfix.buffer, quickfix.ns, range[1], range[2] + (has_space and 1 or 0), {
+				virt_text_pos = "inline",
+				virt_text = {
+					{ has_space and "" or " " },
+					virt_text,
+				},
 			})
+
+			if vim.list_contains(injection_lines, range[1]) == false then
+				vim.api.nvim_buf_set_extmark(quickfix.buffer, quickfix.ns, range[1], range[2] + #whitespaces, {
+					end_col = range[4],
+					hl_group = "@comment",
+				})
+			end
+
+			---|fE
+		end,
+	}
+
+	if callbacks[name] then
+		local can_call, err = pcall(callbacks[name])
+
+		if can_call == false then
+			vim.print(err)
 		end
-	end,
-}
-
--- 缓存Treesitter查询
-local query_cache = nil
-local function get_query()
-	if not query_cache then
-		query_cache = vim.treesitter.query.parse(
-			"qf",
-			[[
-            (filename) @qf_filename
-            [ "|" ] @qf_separator
-            (code_block (content) @qf_content)
-        ]]
-		)
 	end
-	return query_cache
+
+	---|fE
 end
 
--- 添加装饰
-local function add_decor(name, node, injection_set, list_type)
-	if decor_callbacks[name] then
-		pcall(decor_callbacks[name], quickfix.buffer, quickfix.ns, node, injection_set, list_type)
-	end
-end
+--- Decorates quickfix menu.
+---@param from integer Start.
+---@param to integer End.
+quickfix.decorate = function(from, to)
+	---|fS
 
--- 装饰修复列表
-function quickfix.decorate(from, to)
+	local function get_tstree()
+		---|fS
+
+		local parser = vim.treesitter.get_parser(quickfix.buffer, "qf", { error = false })
+
+		if not parser then
+			return
+		end
+
+		local TSTrees = parser:parse(true)
+
+		if not TSTrees then
+			return
+		elseif TSTrees[1]:root():type() ~= "quickfix_list" then
+			return
+		end
+
+		return TSTrees[1], parser
+
+		---|fE
+	end
+
 	if not quickfix.buffer or not vim.api.nvim_buf_is_valid(quickfix.buffer) then
 		return
 	end
 
 	vim.api.nvim_buf_clear_namespace(quickfix.buffer, quickfix.ns, 0, -1)
+	local valid_modes = { "n", "c" }
 
-	local parser = vim.treesitter.get_parser(quickfix.buffer, "qf", { error = false })
-	if not parser then
+	if quickfix.should_decorate ~= true then
+		return
+	elseif vim.list_contains(valid_modes, vim.api.nvim_get_mode().mode) == false then
 		return
 	end
 
-	local tstree = parser:parse(true)[1]
-	if not tstree then
+	local TSTree, root_parser = get_tstree()
+
+	if not TSTree or not root_parser then
 		return
 	end
 
-	-- 使用集合代替数组
-	local injection_set = {}
-	parser:for_each_tree(function(tree)
-		if tree ~= tstree then
-			injection_set[tree:root():range()] = true
+	local injection_lines = {}
+
+	root_parser:for_each_tree(function(tree)
+		if tree ~= TSTree then
+			local row = tree:root():range()
+			table.insert(injection_lines, row)
 		end
 	end)
 
-	local query = get_query()
-	for id, node in query:iter_captures(tstree:root(), quickfix.buffer, from, to) do
-		add_decor(query.captures[id], node, injection_set, quickfix.list)
+	local queries = vim.treesitter.query.parse(
+		"qf",
+		[[
+		(filename) @qf_filename
+
+		[ "|" ] @qf_separator
+
+		(code_block
+			(content) @qf_content)
+	]]
+	)
+
+	for id, node in queries:iter_captures(TSTree:root(), quickfix.buffer, from, to) do
+		local name = queries.captures[id]
+		quickfix.add_decor(name, node, injection_lines)
 	end
+
+	---|fE
 end
 
--- 初始化
-function quickfix.setup()
-	quickfix.ns = vim.api.nvim_create_namespace(NS_NAME)
-	vim.o.quickfixtextfunc = "v:lua.require'config.quickfixtext'.text"
+------------------------------------------------------------------------------
+
+--- Setup function for the quickfix menu.
+quickfix.setup = function()
+	---|fS
+
+	-- Custom quickfix text function.
+	vim.o.quickfixtextfunc = "{ item -> v:lua.require('config.quickfixtext').text(item) }"
 
 	vim.api.nvim_create_autocmd("FileType", {
 		pattern = "qf",
 		callback = function(event)
+			---|fS
+
 			quickfix.buffer = event.buf
-			local wins = vim.fn.win_findbuf(event.buf)
-			if #wins == 0 then
-				return
+
+			---|fS "fix: tree-sitter highlight update"
+
+			--- BUG, Quickfix menu doesn't update it's
+			--- tree-sitter highlighting.
+			--- So, we rewrite the entire buffer.
+			vim.bo[quickfix.buffer].modifiable = true
+
+			local lines = vim.api.nvim_buf_get_lines(quickfix.buffer, 0, -1, false)
+			vim.api.nvim_buf_set_lines(quickfix.buffer, 0, -1, false, lines)
+
+			vim.bo[quickfix.buffer].modifiable = false
+			vim.bo[quickfix.buffer].modified = false
+
+			---|fE
+
+			local win = vim.fn.win_findbuf(quickfix.buffer)[1]
+			local H = math.floor(vim.o.columns * 0.5)
+
+			if win then
+				vim.wo[win].conceallevel = 3
+				vim.wo[win].concealcursor = "nc"
+
+				---|fS "fix: Disable statuscolumn"
+
+				vim.wo[win].number = false
+				vim.wo[win].relativenumber = false
+				vim.wo[win].numberwidth = 1
+
+				vim.wo[win].signcolumn = "no"
+				vim.wo[win].foldcolumn = "0"
+
+				---|fE
+
+				H = vim.api.nvim_win_get_height(win)
 			end
 
-			local win = wins[1]
-			local winfo = vim.fn.getwininfo(win)[1]
-			quickfix.list = winfo.loclist and "location" or "quickfix"
+			quickfix.decorate(0, H)
 
-			vim.wo[win].conceallevel = 3
-			vim.wo[win].concealcursor = "nc"
-			vim.wo[win].number = false
-			vim.wo[win].relativenumber = false
-			vim.wo[win].numberwidth = 1
-			vim.wo[win].signcolumn = "no"
-			vim.wo[win].foldcolumn = "0"
-
-			quickfix.decorate(0, vim.api.nvim_win_get_height(win))
+			---|fE
 		end,
 	})
 
@@ -307,29 +605,39 @@ function quickfix.setup()
 		end,
 	})
 
-	vim.api.nvim_create_autocmd({ "CursorMoved", "ModeChanged" }, {
+	vim.api.nvim_create_autocmd({
+		"CursorMoved",
+		"ModeChanged",
+	}, {
 		callback = function()
+			---|fS
+
 			local buf = vim.api.nvim_get_current_buf()
+
 			if buf ~= quickfix.buffer then
 				return
 			end
 
-			-- 只在可修改时更新
-			if vim.bo[buf].modifiable then
-				local cursor = vim.api.nvim_win_get_cursor(0)
-				local total_lines = vim.api.nvim_buf_line_count(buf)
-				local start = math.max(0, cursor[1] - 1 - 20) -- 减1转换为0-based索引
-				local end_line = math.min(total_lines - 1, cursor[1] - 1 + 20)
+			local win = vim.api.nvim_get_current_win()
+			local H = vim.api.nvim_win_get_height(win)
 
-				quickfix.decorate(start, end_line)
-			end
+			local cursor = vim.api.nvim_win_get_cursor(win)
+			local lines = vim.api.nvim_buf_line_count(buf)
+
+			quickfix.decorate(math.max(0, cursor[1] - H), math.min(lines, cursor[1] + H))
+
+			---|fE
 		end,
 	})
 
 	vim.api.nvim_create_user_command("QfToggleDecors", function()
 		quickfix.should_decorate = not quickfix.should_decorate
 		quickfix.decorate(0, -1)
-	end, { desc = "Toggle quickfix decorations" })
+	end, {
+		desc = "Allows toggling decorations of the quickfix list",
+	})
+
+	---|fE
 end
 
 return quickfix
