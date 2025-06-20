@@ -124,7 +124,7 @@ function QuickfixPreview:open()
 		row = preview_row,
 		col = 0,
 		border = "rounded",
-		title = title,
+		title = " " .. "  " .. title .. " ",
 		title_pos = "center",
 		focusable = false,
 		style = "minimal",
@@ -410,3 +410,6 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.opt_local.statusline = list_type .. " %<%f %=%-14.(%l/%L%)%P"
 	end,
 })
+
+-- quickfixtextfunc
+require("config.quickfixtext").setup()

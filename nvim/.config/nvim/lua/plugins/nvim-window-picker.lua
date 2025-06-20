@@ -74,7 +74,7 @@ return {
 				-- 根据缓冲区选项进行过滤
 				bo = {
 					-- 如果文件类型是以下之一，窗口将被忽略
-					filetype = { "neo-tree", "msgmore", "snacks_picker_input" },
+					filetype = { "pager", "neo-tree", "msgmore", "snacks_picker_input" },
 
 					-- 如果缓冲区类型是以下之一，窗口将被忽略
 					-- buftype = { "terminal" },

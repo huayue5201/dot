@@ -43,18 +43,14 @@ vim.opt.spelloptions = "camel" -- 开启驼峰拼写检查
 -- vim.opt.messagesopt = "wait:500,history:1000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
 -- https://github.com/neovim/neovim/pull/27855
 require("vim._extui").enable({
-	enable = true, -- 是否启用 UI。
-	msg = { -- 与消息模块相关的选项。
-		---@type 'box'|'cmd' 消息显示的窗口类型，可以是命令行窗口（cmd）
-		---或一个单独的消息框窗口（box），用于显示临时消息。
-		pos = "cmd", -- 消息显示位置：'cmd' 或 'box'。
-		box = { -- 与消息框窗口相关的选项。
-			timeout = 2000, -- 消息显示的时间（单位：毫秒）。
-		},
+	enable = true, -- Whether to enable or disable the UI.
+	msg = { -- Options related to the message module.
+		---@type 'cmd'|'msg' Where to place regular messages, either in the
+		---cmdline or in a separate ephemeral message window.
+		target = "cmd",
+		timeout = 4000, -- Time a message is visible in the message window.
 	},
 })
--- quickfixtextfunc
-require("config.quickfixtext").setup()
 
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式

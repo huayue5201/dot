@@ -65,6 +65,7 @@ return {
 				"json",
 				"rust",
 				"qf",
+				"comment",
 			},
 			textobjects = {
 				move = {

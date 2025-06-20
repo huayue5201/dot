@@ -266,12 +266,14 @@ quickfix.qf_text = function(data)
 		line = line .. " |"
 
 		-- 检查 info.text 是否为 nil
+		local text = info.text or "" -- 如果 info.text 是 nil，使用空字符串
+
 		if info.filetype then
 			-- 如果有 filetype，继续格式化
-			line = line .. string.format(">!%s!< %s", info.filetype, info.text or "")
+			line = line .. string.format(">!%s!< %s", info.filetype, text)
 		else
-			-- 如果没有 filetype，直接拼接 text（确保 info.text 不是 nil）
-			line = line .. " " .. (info.text or "")
+			-- 如果没有 filetype，直接拼接 text
+			line = line .. " " .. text
 		end
 
 		table.insert(lines, line)
@@ -551,6 +553,7 @@ quickfix.setup = function()
 	---|fS
 
 	-- Custom quickfix text function.
+	-- NOTE 修改模块路径
 	vim.o.quickfixtextfunc = "{ item -> v:lua.require('config.quickfixtext').text(item) }"
 
 	vim.api.nvim_create_autocmd("FileType", {
