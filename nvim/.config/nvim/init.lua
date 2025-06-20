@@ -35,7 +35,6 @@ vim.defer_fn(function()
 	require("config.autocmds") -- 加载自动命令
 	require("config.usercmds") -- 加载用户命令
 	require("config.keymaps") -- 加载按键映射
-	require("utils.dotenv").load() -- token加载模块
 
 	-- 延迟 LSP 配置
 	vim.lsp.config("*", {
@@ -63,7 +62,7 @@ vim.defer_fn(function()
 
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
-		vim.opt.runtimepath:append("/opt/homebrew/opt/fzf")
+		require("utils.dotenv").load() -- token加载模块
 	end)
 
 	-- 颜色主题（如果需要的话）

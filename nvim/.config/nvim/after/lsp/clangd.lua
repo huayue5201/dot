@@ -1,5 +1,5 @@
 -- https://clangd.llvm.org/config
--- NOTE:https://github.com/clice-project/clice 候选lsp
+-- NOTE https://github.com/clice-project/clice 候选lsp
 
 return {
 	cmd = {

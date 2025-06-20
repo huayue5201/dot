@@ -53,6 +53,24 @@ end
 -- 	return icon and icon .. " " .. filename or filename
 -- end
 
+-- 获取当前 buffer 附加的 LSP 客户端名称
+function Statusline.lsp_clients()
+	local buf_clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
+
+	if vim.tbl_isempty(buf_clients) then
+		return "%#LspIcon#" .. "󰂵 " .. "%* "
+	end
+
+	-- 给每个客户端加上编号
+	local client_names = {}
+	for idx, client in ipairs(buf_clients) do
+		table.insert(client_names, string.format("%d.%s", idx, client.name))
+	end
+
+	-- 拼接客户端名称，并返回
+	return "%#LspIcon#" .. "󰂵 " .. "%*" .. table.concat(client_names, " ") .. " 󱞩"
+end
+
 -- -------------------- LSP 状态 --------------------
 function Statusline.lsp_diagnostics()
 	if lsp_status.is_loading() then
@@ -78,21 +96,6 @@ function Statusline.lsp_diagnostics()
 		end
 	end
 	return table.concat(parts, " ")
-end
-
--- 获取当前 buffer 附加的 LSP 客户端名称
-function Statusline.lsp_clients()
-	local buf_clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
-	if vim.tbl_isempty(buf_clients) then
-		return ""
-	end
-	-- 给每个客户端加上编号
-	local client_names = {}
-	for idx, client in ipairs(buf_clients) do
-		table.insert(client_names, string.format("%d.%s", idx, client.name))
-	end
-	-- 拼接客户端名称，并返回
-	return "%#LspIcon#" .. "󰂵 " .. "%*" .. table.concat(client_names, " ") .. " 󱞩"
 end
 
 -- LSP 状态（包含客户端名称、诊断和进度信息）
