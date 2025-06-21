@@ -82,17 +82,19 @@ end
 function M.restart_lsp()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local clients = vim.lsp.get_clients({ bufnr = bufnr })
-	if vim.tbl_isempty(clients) then
-		return
-	end
-	local active = {}
 	for _, client in ipairs(clients) do
-		active[client.name] = true
 		vim.lsp.stop_client(client.id, true)
 	end
 	vim.defer_fn(function()
-		vim.lsp.enable(vim.tbl_keys(active))
+		vim.lsp.enable(M.get_all_lsp_names())
+		vim.g.lsp_enabled = true
 	end, 100)
+end
+
+-- 关闭lsp
+function M.stop_lsp()
+	vim.lsp.stop_client(vim.lsp.get_clients(), true)
+	vim.g.lsp_enabled = false
 end
 
 return M
