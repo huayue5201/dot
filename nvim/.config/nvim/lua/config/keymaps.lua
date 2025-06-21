@@ -26,6 +26,14 @@ vim.keymap.set("n", "<localleader>q", "<cmd>Toggle quickfix<cr>", { desc = "Togg
 
 vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
+vim.keymap.set("n", "<leader>ol", function()
+	require("utils.lsp_util").restart_lsp()
+end, { silent = true, desc = "重启 LSP" })
+
+vim.keymap.set("n", "<leader>rl", function()
+	require("utils.lsp_util").stop_lsp()
+end, { silent = true, desc = "关闭 LSP" })
+
 vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "重新加载当前buffer" })
 vim.keymap.set("n", "<leader>tor", "<cmd>restart<cr>", { silent = true, desc = "热重启nvim" })
 
@@ -50,10 +58,6 @@ end, { desc = "配置切换" })
 vim.keymap.set("n", "<leader>or", function()
 	require("utils.neotask").build()
 end, { desc = "选择构建操作" })
-
-vim.keymap.set("n", "<leader>tol", function()
-	require("utils.lsp_util").restart_lsp()
-end, { silent = true, desc = "重启 LSP" })
 
 vim.keymap.set("n", "<leader>yp", function()
 	vim.fn.setreg("+", vim.fn.expand("%:p"))

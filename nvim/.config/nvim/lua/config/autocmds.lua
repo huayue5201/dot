@@ -25,46 +25,61 @@ local lsp_config = require("config.lsp")
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
 	callback = function(args)
-		local client = vim.lsp.get_client_by_id(args.data.client_id)
-		-- print("LspAttach", client.name)
-		-- local capabilities = vim.lsp.get_clients()[1].server_capabilities
-		-- print(vim.inspect(capabilities))
-		lsp_config.diagnostic_config() -- 设置诊断配置
-		lsp_config.diagnostic_handler() -- 设置诊断处理器
-		lsp_config.mode_changed_handler() -- 设置模式变化时禁用/启用诊断
-		lsp_config.inlay_hint_handler() -- 设置插入模式内联提示处理
-		lsp_config.set_keymaps() -- 设置按键映射
-		-- vim.lsp.document_color.enable(true, args.buf)
-		vim.lsp.document_color.enable(not vim.lsp.document_color.is_enabled())
+		if not vim.g.lsp_enabled then
+			vim.lsp.stop_client(args.data.client_id, true)
+		else
+			local client = vim.lsp.get_client_by_id(args.data.client_id)
+			-- print("LspAttach", client.name)
+			-- local capabilities = vim.lsp.get_clients()[1].server_capabilities
+			-- print(vim.inspect(capabilities))
+			lsp_config.diagnostic_config() -- 设置诊断配置
+			lsp_config.diagnostic_handler() -- 设置诊断处理器
+			lsp_config.mode_changed_handler() -- 设置模式变化时禁用/启用诊断
+			lsp_config.inlay_hint_handler() -- 设置插入模式内联提示处理
+			lsp_config.set_keymaps() -- 设置按键映射
+			-- vim.lsp.document_color.enable(true, args.buf)
 
-		if client:supports_method("textDocument/foldingRange") then
-			local win = vim.api.nvim_get_current_win()
-			vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
-		end
+			if client:supports_method("textDocument/foldingRange") then
+				local win = vim.api.nvim_get_current_win()
+				vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
+			end
 
-		if client:supports_method("textDocument/inlayHint") then
-			-- vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
-			vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-		end
+			if client:supports_method("textDocument/inlayHint") then
+				-- vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
+				vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+			end
 
-		if client:supports_method("textDocument/codeLens") then
-			vim.lsp.codelens.refresh({ bufnr = 0 })
+			if client:supports_method("textDocument/codeLens") then
+				vim.lsp.codelens.refresh({ bufnr = 0 })
+			end
+			-- 自动刷新 CodeLens
+			vim.cmd([[ autocmd BufEnter,CursorHold,InsertLeave <buffer> lua vim.lsp.codelens.refresh({ bufnr = 0 }) ]])
 		end
-		-- 自动刷新 CodeLens
-		vim.cmd([[ autocmd BufEnter,CursorHold,InsertLeave <buffer> lua vim.lsp.codelens.refresh({ bufnr = 0 }) ]])
 	end,
 })
 
--- lsp退出时自动注销相关映射
 vim.api.nvim_create_autocmd("LspDetach", {
-	group = vim.api.nvim_create_augroup("UserLspDetach", { clear = true }),
+	group = vim.api.nvim_create_augroup("LspStopAndUnmap", { clear = true }),
 	callback = function(args)
+		-- 获取 LSP 客户端
 		local client = vim.lsp.get_client_by_id(args.data.client_id)
 		if client then
+			-- 停止 LSP 客户端（当没有附加的缓冲区时）
+			if not client.attached_buffers then
+				client:stop()
+			else
+				for buf_id in pairs(client.attached_buffers) do
+					if buf_id == args.buf then
+						client:stop()
+						break
+					end
+				end
+			end
 			-- 移除键映射
 			lsp_config.remove_keymaps()
 		end
 	end,
+	desc = "Stop LSP client and remove keymaps when no buffer is attached",
 })
 
 -- ✨ 通用 `q` 快捷键关闭窗口

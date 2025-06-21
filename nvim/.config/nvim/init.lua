@@ -58,7 +58,12 @@ vim.defer_fn(function()
 	})
 
 	-- 自动启用所有存在的配置
-	vim.lsp.enable(require("utils.lsp_util").get_all_lsp_names())
+	vim.g.lsp_enabled = true
+	if not vim.g.lsp_enabled then
+		vim.lsp.enable(require("utils.lsp_util").get_all_lsp_names(), false)
+	else
+		vim.lsp.enable(require("utils.lsp_util").get_all_lsp_names(), true)
+	end
 
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
