@@ -68,6 +68,15 @@ return {
 				"comment",
 			},
 			textobjects = {
+				swap = {
+					enable = true,
+					swap_next = {
+						["<a-l>"] = "@parameter.inner",
+					},
+					swap_previous = {
+						["<a-h>"] = "@parameter.inner",
+					},
+				},
 				move = {
 					enable = true,
 					set_jumps = true, -- whether to set jumps in the jumplist

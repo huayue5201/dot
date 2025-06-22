@@ -1,5 +1,4 @@
 -- https://github.com/mfussenegger/nvim-dap
--- TODO: https://github.com/mfussenegger/nvim-dap/issues/1388
 
 return {
 	"mfussenegger/nvim-dap",

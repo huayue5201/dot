@@ -53,6 +53,15 @@ end
 -- 	return icon and icon .. " " .. filename or filename
 -- end
 
+-- nvim-lint
+local lint_progress = function()
+	local linters = require("lint").get_running()
+	if #linters == 0 then
+		return "󰦕"
+	end
+	return "󱉶 " .. table.concat(linters, ", ")
+end
+
 -- 获取当前 buffer 附加的 LSP 客户端名称
 function Statusline.lsp_clients()
 	local buf_clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
@@ -118,7 +127,7 @@ function Statusline.lsp_diagnostics()
 	local parts = {}
 
 	-- 按严重程度顺序添加组件：错误 → 警告 → 信息 → 提示
-	for severity, info in ipairs({
+	for severity in ipairs({
 		vim.diagnostic.severity.ERROR,
 		vim.diagnostic.severity.WARN,
 		vim.diagnostic.severity.INFO,
@@ -219,6 +228,7 @@ function Statusline.active()
 		string.format("%-46s", Statusline.mode()), -- 左对齐，13个字符
 		-- " " .. Statusline.get_filename_with_icon() .. "  ", -- 动态获取文件图标
 		Statusline.vcs() .. "  ", -- Git 状态
+		lint_progress() .. " ",
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
 		Statusline.dap_status() .. " ", -- dap调试信息

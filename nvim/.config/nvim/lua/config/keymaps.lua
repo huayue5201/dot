@@ -1,6 +1,8 @@
-vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { silent = true, desc = "向上移动选中的代码块" })
+vim.keymap.set("n", "<A-k>", ":move .-2<CR>==", { noremap = true, silent = true })
+vim.keymap.set("x", "<A-k>", ":move '<-2<CR>gv=gv", { noremap = true, silent = true })
 
-vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { silent = true, desc = "向下移动选中的代码块" })
+vim.keymap.set("n", "<A-j>", ":move .+1<CR>==", { noremap = true, silent = true })
+vim.keymap.set("x", "<A-j>", ":move '>+1<CR>gv=gv", { noremap = true, silent = true })
 
 vim.keymap.set("n", "c", '"_c', { desc = "修改并丢弃到黑洞寄存器" })
 
@@ -33,6 +35,18 @@ end, { silent = true, desc = "重启 LSP" })
 vim.keymap.set("n", "<leader>rl", function()
 	require("utils.lsp_util").stop_lsp()
 end, { silent = true, desc = "关闭 LSP" })
+
+local diagnostics = require("utils.lsp_util")
+vim.keymap.set("n", "<leader>ll", diagnostics.open_buffer_diagnostics, { desc = "查看 buffer 诊断（Loclist）" })
+vim.keymap.set("n", "<leader>lq", diagnostics.open_all_diagnostics, { desc = "打开所有诊断（Quickfix）" })
+vim.keymap.set("n", "<leader>yd", diagnostics.copy_diagnostics_under_cursor, { desc = "复制诊断信息" })
+
+vim.keymap.set(
+	"n",
+	"<leader>tod",
+	"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
+	{ desc = "打开/关闭 LSP 诊断" }
+)
 
 vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "重新加载当前buffer" })
 vim.keymap.set("n", "<leader>tor", "<cmd>restart<cr>", { silent = true, desc = "热重启nvim" })

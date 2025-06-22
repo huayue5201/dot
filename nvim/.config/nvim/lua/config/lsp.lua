@@ -16,7 +16,7 @@ M.diagnostic_config = function()
 			current_line = true,
 		},
 		severity_sort = true,
-		float = { source = "if_many", border = "shadow" },
+		-- float = { source = "if_many", border = "shadow" },
 		signs = {
 			text = {
 				[vim.diagnostic.severity.ERROR] = icons.ERROR,
@@ -34,7 +34,7 @@ end
 
 -- 高级诊断处理器：过滤掉非法（超出 buffer 行数）的诊断信息
 M.diagnostic_handler = function()
-	vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
+	vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx)
 		if not result then
 			return
 		end
@@ -56,7 +56,7 @@ M.diagnostic_handler = function()
 		-- 替换原始诊断结果
 		result.diagnostics = valid_diagnostics
 		-- 调用 Neovim 默认处理器
-		vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
+		vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx)
 	end
 end
 
@@ -111,18 +111,8 @@ M.inlay_hint_handler = function()
 end
 
 -- 按键映射
-local diagnostics = require("utils.lsp_util")
 local keymaps = {
-	{ "<leader>lq", diagnostics.open_all_diagnostics, "打开所有诊断（Quickfix）" },
-	{ "<leader>ll", diagnostics.open_buffer_diagnostics, "打开当前 buffer 诊断（Loclist）" },
-	-- { "<leader>ld", "<cmd>lua vim.diagnostic.setloclist()<cr>", "打开诊断列表" },
 	-- { "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
-	{ "<leader>yd", diagnostics.copy_diagnostics_under_cursor, "复制光标词的诊断信息" },
-	{
-		"<leader>tod",
-		"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
-		"打开/关闭 LSP 诊断",
-	},
 	{
 		"<leader>lw",
 		"<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>",
