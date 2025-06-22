@@ -66,7 +66,7 @@ function M.update_status()
 		local joined = table.concat(usb_status._devices, " | ")
 		usb_status.cached_status = "%#UsbConnected#󱊟 %*" .. joined
 	else
-		usb_status.cached_status = "%#UsbDisconnected#󱊟  %*"
+		usb_status.cached_status = "%#UsbDisconnected#󱊟 %*"
 	end
 	vim.schedule(function()
 		vim.cmd("redrawstatus")

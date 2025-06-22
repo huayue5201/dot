@@ -51,14 +51,13 @@ vim.defer_fn(function()
 				semanticTokens = { multilineTokenSupport = true },
 			},
 		},
-		on_attach = function(client, bufnr)
+		on_attach = function(client)
 			-- 确保 diagnostics 功能已启用
 			client.server_capabilities.publishDiagnostics = true
 		end,
 	})
 
-	-- 自动启用所有存在的配置
-	vim.g.lsp_enabled = true
+	require("utils.per_project_lsp").init()
 	if not vim.g.lsp_enabled then
 		vim.lsp.enable(require("utils.lsp_util").get_all_lsp_names(), false)
 	else

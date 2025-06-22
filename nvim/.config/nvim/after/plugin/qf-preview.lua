@@ -213,6 +213,7 @@ function QuickfixPreview:open()
 		focusable = false,
 		style = "minimal",
 		zindex = 100,
+		mouse = false,
 	}
 
 	local ok, win_id = pcall(vim.api.nvim_open_win, curr_item.bufnr, false, win_config)
