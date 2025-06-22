@@ -45,7 +45,7 @@ function Statusline.mode()
 	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
--- -- -------------------- 文件名和图标 --------------------
+-- -------------------- 文件名和图标 --------------------
 -- function Statusline.get_filename_with_icon()
 -- 	local filename = vim.fn.expand("%:t") -- 获取当前文件名
 -- 	local file_extension = vim.fn.expand("%:e") -- 获取文件扩展名
@@ -74,27 +74,64 @@ end
 -- -------------------- LSP 状态 --------------------
 function Statusline.lsp_diagnostics()
 	if lsp_status.is_loading() then
-		return "" -- 如果LSP正在加载，返回空字符串
+		return "" -- 如果 LSP 正在加载，返回空字符串
 	end
 
-	local count = vim.diagnostic.get(0)
-	local parts = {}
-	local icon = icons.diagnostic
-	local severity_map = {
-		[vim.diagnostic.severity.ERROR] = "ERROR",
-		[vim.diagnostic.severity.WARN] = "WARN",
-		[vim.diagnostic.severity.HINT] = "HINT",
-		[vim.diagnostic.severity.INFO] = "INFO",
+	local diagnostics = vim.diagnostic.get(0)
+	if #diagnostics == 0 then
+		return "" -- 没有诊断信息时返回空
+	end
+
+	-- 定义诊断级别的图标和颜色
+	local severity_info = {
+		[vim.diagnostic.severity.ERROR] = {
+			icon = " ", -- 错误图标
+			hl = "DiagnosticError",
+		},
+		[vim.diagnostic.severity.WARN] = {
+			icon = " ", -- 警告图标
+			hl = "DiagnosticWarn",
+		},
+		[vim.diagnostic.severity.INFO] = {
+			icon = " ", -- 信息图标
+			hl = "DiagnosticInfo",
+		},
+		[vim.diagnostic.severity.HINT] = {
+			icon = " ", -- 提示图标
+			hl = "DiagnosticHint",
+		},
 	}
-	for severity, key in pairs(severity_map) do
-		local num = #vim.tbl_filter(function(d)
-			return d.severity == severity
-		end, count)
-		if num > 0 then
-			local highlight_group = "Diagnostic" .. key
-			table.insert(parts, "%#" .. highlight_group .. "#" .. icon[key] .. "%*" .. "<" .. num .. ">")
+
+	-- 统计各严重级别的诊断数量
+	local counts = {
+		[vim.diagnostic.severity.ERROR] = 0,
+		[vim.diagnostic.severity.WARN] = 0,
+		[vim.diagnostic.severity.INFO] = 0,
+		[vim.diagnostic.severity.HINT] = 0,
+	}
+
+	for _, diag in ipairs(diagnostics) do
+		counts[diag.severity] = counts[diag.severity] + 1
+	end
+
+	-- 构建状态栏组件
+	local parts = {}
+
+	-- 按严重程度顺序添加组件：错误 → 警告 → 信息 → 提示
+	for severity, info in ipairs({
+		vim.diagnostic.severity.ERROR,
+		vim.diagnostic.severity.WARN,
+		vim.diagnostic.severity.INFO,
+		vim.diagnostic.severity.HINT,
+	}) do
+		local count = counts[severity]
+		if count > 0 then
+			local data = severity_info[severity]
+			-- 添加带颜色的图标和数字
+			table.insert(parts, "%#" .. data.hl .. "#" .. data.icon .. count .. "%*")
 		end
 	end
+
 	return table.concat(parts, " ")
 end
 
@@ -194,7 +231,7 @@ function Statusline.active()
 end
 
 -- -------------------- 自动更新状态栏 --------------------
-vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter" }, {
+vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter", "BufWritePost" }, {
 	group = vim.api.nvim_create_augroup("Statusline", { clear = true }),
 	callback = function()
 		vim.api.nvim_set_option_value(
