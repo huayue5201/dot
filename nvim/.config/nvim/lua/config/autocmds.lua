@@ -26,6 +26,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
 	callback = function(args)
 		if not vim.g.lsp_enabled then
+			lsp_config.set_keymaps() -- 设置按键映射
 			vim.lsp.stop_client(args.data.client_id, true)
 		else
 			local client = vim.lsp.get_client_by_id(args.data.client_id)

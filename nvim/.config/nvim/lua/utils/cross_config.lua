@@ -231,10 +231,8 @@ function M.ChipStatus()
 	local config = M.get_safe_config()
 	local colors = require("utils.utils").palette
 
-	if not vim.api.nvim_get_hl(0, { name = "chipIcon" }) then
-		vim.api.nvim_set_hl(0, "chipIcon", { fg = "#6B8E23", bold = true })
-		vim.api.nvim_set_hl(0, "chipNotSelected", { fg = colors.red, bold = true })
-	end
+	vim.api.nvim_set_hl(0, "chipIcon", { fg = "#6B8E23", bold = true })
+	vim.api.nvim_set_hl(0, "chipNotSelected", { fg = colors.red, bold = true })
 
 	if config == chip_configs.default then
 		return "%#chipNotSelected# %*" .. config.chip
