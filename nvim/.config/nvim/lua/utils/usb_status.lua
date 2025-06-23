@@ -11,7 +11,7 @@ local M = {}
 local CHECK_INTERVAL_MS = 30000
 
 local usb_status = {
-	cached_status = "%#UsbDisconnected#󱊟  %*",
+	cached_status = "%#UsbDisconnected# %*",
 	checking = false,
 	_output = "",
 	_devices = {},
@@ -64,9 +64,9 @@ end
 function M.update_status()
 	if #usb_status._devices > 0 then
 		local joined = table.concat(usb_status._devices, " | ")
-		usb_status.cached_status = "%#UsbConnected#󱊟 %*" .. joined
+		usb_status.cached_status = "%#UsbConnected# %*" .. joined
 	else
-		usb_status.cached_status = "%#UsbDisconnected#󱊟 %*"
+		usb_status.cached_status = "%#UsbDisconnected# %*"
 	end
 	vim.schedule(function()
 		vim.cmd("redrawstatus")
