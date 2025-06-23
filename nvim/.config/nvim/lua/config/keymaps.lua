@@ -28,18 +28,12 @@ vim.keymap.set("n", "<localleader>q", "<cmd>Toggle quickfix<cr>", { desc = "Togg
 
 vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
-vim.keymap.set("n", "<leader>ol", function()
-	require("utils.lsp_util").restart_lsp()
-end, { silent = true, desc = "重启 LSP" })
-
-vim.keymap.set("n", "<leader>rl", function()
-	require("utils.lsp_util").stop_lsp()
-end, { silent = true, desc = "关闭 LSP" })
-
-local diagnostics = require("utils.lsp_util")
-vim.keymap.set("n", "<leader>ll", diagnostics.open_buffer_diagnostics, { desc = "查看 buffer 诊断（Loclist）" })
-vim.keymap.set("n", "<leader>lq", diagnostics.open_all_diagnostics, { desc = "打开所有诊断（Quickfix）" })
-vim.keymap.set("n", "<leader>yd", diagnostics.copy_diagnostics_under_cursor, { desc = "复制诊断信息" })
+local lsp = require("config.lsp")
+vim.keymap.set("n", "<leader>ol", lsp.restart_lsp, { silent = true, desc = "重启 LSP" })
+vim.keymap.set("n", "<leader>rl", lsp.stop_lsp, { silent = true, desc = "关闭 LSP" })
+vim.keymap.set("n", "<leader>ll", lsp.open_buffer_diagnostics, { desc = "查看 buffer 诊断（Loclist）" })
+vim.keymap.set("n", "<leader>lq", lsp.open_all_diagnostics, { desc = "打开所有诊断（Quickfix）" })
+vim.keymap.set("n", "<leader>yd", lsp.CopyErrorMessage, { desc = "复制诊断信息" })
 
 vim.keymap.set(
 	"n",

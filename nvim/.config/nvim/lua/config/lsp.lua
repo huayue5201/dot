@@ -8,7 +8,6 @@ local M = {}
 local icons = require("utils.utils").icons.diagnostic
 M.diagnostic_config = function()
 	vim.diagnostic.config({
-		-- virtual_text = false,
 		virtual_text = {
 			current_line = false,
 		},
@@ -71,7 +70,6 @@ M.mode_changed_handler = function()
 			if diag_enabled then
 				-- 进入插入/选择模式时关闭诊断
 				vim.diagnostic.enable(false, { bufnr = bufnr })
-
 				-- 离开插入/选择模式后重新启用诊断，只启用一次自动命令
 				vim.api.nvim_create_autocmd("ModeChanged", {
 					pattern = { "i:n", "s:v" },
@@ -126,7 +124,7 @@ local keymaps = {
 }
 
 -- 设置按键映射
-M.set_keymaps = function()
+M.set_keymaps = function(bufnr)
 	for _, map in ipairs(keymaps) do
 		vim.keymap.set("n", map[1], map[2], { noremap = true, silent = true, desc = map[3], buffer = bufnr })
 	end
@@ -139,5 +137,99 @@ M.remove_keymaps = function(bufnr)
 	end
 end
 
--- 导出模块
+-- 获取所有 lsp/*.lua 文件的名称（不带后缀）
+function M.get_all_lsp_names()
+	local configs = {}
+	for _, path in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
+		local name = vim.fn.fnamemodify(path, ":t:r")
+		configs[name] = true
+	end
+	return vim.tbl_keys(configs)
+end
+
+-- 打开所有 buffer 的诊断（Quickfix 风格，适合全局排查）
+function M.open_all_diagnostics()
+	vim.diagnostic.setqflist({
+		open = true,
+		title = "Project Diagnostics",
+		severity = { min = vim.diagnostic.severity.WARN },
+		format = function(d)
+			return string.format(
+				"[%s] %s (%s:%d)",
+				vim.diagnostic.severity[d.severity],
+				d.message,
+				d.source or "?",
+				d.lnum + 1
+			)
+		end,
+	})
+end
+
+-- 复制光标处的错误信息（包括错误代码）
+function M.CopyErrorMessage()
+	local row = unpack(vim.api.nvim_win_get_cursor(0)) - 1
+	local diag = vim.diagnostic.get(0, { lnum = row })
+	if #diag > 0 then
+		local messages = {}
+		for _, diagnostic in ipairs(diag) do
+			local code = diagnostic.code or "No code available"
+			local message = diagnostic.message or "No message available"
+			table.insert(messages, message .. " [" .. code .. "]")
+		end
+		local all_messages = table.concat(messages, "\n")
+		vim.fn.setreg("+", all_messages)
+		print("Error messages copied to clipboard:\n" .. all_messages)
+	else
+		print("No error at the cursor!")
+	end
+end
+
+-- 仅当前 buffer 的诊断（Loclist 风格，适合局部修复）
+function M.open_buffer_diagnostics()
+	vim.diagnostic.setloclist({
+		open = true,
+		title = "Buffer Diagnostics",
+		severity = { min = vim.diagnostic.severity.HINT },
+		format = function(d)
+			return string.format("[%s] %s (%s)", vim.diagnostic.severity[d.severity], d.message, d.source or "?")
+		end,
+	})
+end
+
+-- 重启当前缓冲区的 LSP 客户端
+function M.restart_lsp()
+	local bufnr = vim.api.nvim_get_current_buf()
+	local clients = vim.lsp.get_clients({ bufnr = bufnr })
+	-- 停止现有客户端
+	for _, client in ipairs(clients) do
+		vim.lsp.stop_client(client.id, true)
+	end
+	-- 创建一次性 autocmd，在成功 attach 后再设置状态
+	local group = vim.api.nvim_create_augroup("RestartLspOnce", { clear = true })
+	vim.api.nvim_create_autocmd("LspAttach", {
+		group = group,
+		once = true,
+		callback = function(args)
+			if args.buf == bufnr then
+				vim.g.lsp_enabled = true
+				require("utils.per_project_lsp").set_lsp_state(true)
+			end
+		end,
+	})
+	-- 启动 LSP
+	vim.defer_fn(function()
+		vim.lsp.enable(M.get_all_lsp_names())
+	end, 100)
+end
+
+-- 关闭lsp
+function M.stop_lsp()
+	vim.lsp.stop_client(vim.lsp.get_clients(), true)
+	vim.g.lsp_enabled = false
+	require("utils.per_project_lsp").set_lsp_state(false)
+	vim.schedule(function()
+		vim.cmd.redrawstatus()
+	end)
+end
+
 return M

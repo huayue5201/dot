@@ -33,37 +33,14 @@ require("config.statusline").active()
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()
 	require("config.autocmds") -- 加载自动命令
-	require("config.usercmds") -- 加载用户命令
 	require("config.keymaps") -- 加载按键映射
-
-	-- 延迟 LSP 配置
-	vim.lsp.config("*", {
-		root_markers = { ".git" },
-		settings = {
-			workspace = {
-				didChangeWatchedFiles = {
-					enabled = true,
-				},
-			},
-		},
-		capabilities = {
-			textDocument = {
-				semanticTokens = { multilineTokenSupport = true },
-			},
-		},
-		on_attach = function(client)
-			-- 确保 diagnostics 功能已启用
-			client.server_capabilities.publishDiagnostics = true
-		end,
-	})
 
 	require("utils.per_project_lsp").init()
 	if not vim.g.lsp_enabled then
-		vim.lsp.enable(require("utils.lsp_util").get_all_lsp_names(), false)
+		vim.lsp.enable(require("config.lsp").get_all_lsp_names(), false)
 		require("lint").linters_by_ft = {
 			-- https://github.com/danmar/cppcheck/
 			c = { "cppcheck" },
-			-- c = { "cpplint" },
 		}
 		local icons = require("utils.utils").icons.diagnostic
 		local ns = require("lint").get_namespace("cppcheck")
@@ -86,11 +63,31 @@ vim.defer_fn(function()
 			end,
 		})
 	else
-		vim.lsp.enable(require("utils.lsp_util").get_all_lsp_names(), true)
+		vim.lsp.enable(require("config.lsp").get_all_lsp_names(), true)
 	end
 
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
+		-- 延迟 LSP 配置
+		vim.lsp.config("*", {
+			root_markers = { ".git" },
+			settings = {
+				workspace = {
+					didChangeWatchedFiles = {
+						enabled = true,
+					},
+				},
+			},
+			capabilities = {
+				textDocument = {
+					semanticTokens = { multilineTokenSupport = true },
+				},
+			},
+			on_attach = function(client)
+				-- 确保 diagnostics 功能已启用
+				client.server_capabilities.publishDiagnostics = true
+			end,
+		})
 		require("utils.dotenv").load() -- token加载模块
 	end)
 
