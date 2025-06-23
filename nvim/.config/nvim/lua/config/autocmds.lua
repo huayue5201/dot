@@ -20,24 +20,24 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	end,
 })
 
-local lsp_config = require("config.lsp")
+local lsp = require("config.lsp")
 -- ✨ LSP 启动时绑定快捷键与功能
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
 	callback = function(args)
 		if not vim.g.lsp_enabled then
-			lsp_config.set_keymaps() -- 设置按键映射
+			lsp.set_keymaps() -- 设置按键映射
 			vim.lsp.stop_client(args.data.client_id, true)
 		else
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
 			-- print("LspAttach", client.name)
 			-- local capabilities = vim.lsp.get_clients()[1].server_capabilities
 			-- print(vim.inspect(capabilities))
-			lsp_config.diagnostic_config() -- 设置诊断配置
-			lsp_config.diagnostic_handler() -- 设置诊断处理器
-			lsp_config.mode_changed_handler() -- 设置模式变化时禁用/启用诊断
-			lsp_config.inlay_hint_handler() -- 设置插入模式内联提示处理
-			lsp_config.set_keymaps() -- 设置按键映射
+			lsp.diagnostic_config() -- 设置诊断配置
+			lsp.diagnostic_handler() -- 设置诊断处理器
+			lsp.mode_changed_handler() -- 设置模式变化时禁用/启用诊断
+			lsp.inlay_hint_handler() -- 设置插入模式内联提示处理
+			lsp.set_keymaps() -- 设置按键映射
 			-- vim.lsp.document_color.enable(true, args.buf)
 
 			if client:supports_method("textDocument/foldingRange") then
@@ -77,7 +77,7 @@ vim.api.nvim_create_autocmd("LspDetach", {
 				end
 			end
 			-- 移除键映射
-			lsp_config.remove_keymaps()
+			lsp.remove_keymaps()
 		end
 	end,
 	desc = "Stop LSP client and remove keymaps when no buffer is attached",

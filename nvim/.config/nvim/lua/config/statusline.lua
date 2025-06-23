@@ -1,6 +1,9 @@
+-- TODO https://github.com/neovim/neovim/issues/34562
+
 local utils = require("utils.utils")
-local colors, icons = utils.palette, utils.icons
+local colors = utils.palette
 local lsp_status = require("utils.lsp_status")
+local spinner = require("utils.spinner")
 
 -- 定义高亮组
 local function set_highlights(highlight_defs)
@@ -45,15 +48,7 @@ function Statusline.mode()
 	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
--- -------------------- 文件名和图标 --------------------
--- function Statusline.get_filename_with_icon()
--- 	local filename = vim.fn.expand("%:t") -- 获取当前文件名
--- 	local file_extension = vim.fn.expand("%:e") -- 获取文件扩展名
--- 	local icon, _ = require("nvim-web-devicons").get_icon(filename, file_extension, { default = true })
--- 	return icon and icon .. " " .. filename or filename
--- end
-
--- nvim-lint
+-- -------------------- nvim-lint 进度 --------------------
 local lint_progress = function()
 	local linters = require("lint").get_running()
 	if #linters == 0 then
@@ -226,7 +221,6 @@ function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
 		string.format("%-46s", Statusline.mode()), -- 左对齐，13个字符
-		-- " " .. Statusline.get_filename_with_icon() .. "  ", -- 动态获取文件图标
 		Statusline.vcs() .. "  ", -- Git 状态
 		lint_progress() .. " ",
 		Statusline.lsp(), -- LSP 状态
@@ -240,16 +234,41 @@ function Statusline.active()
 	})
 end
 
--- -------------------- 自动更新状态栏 --------------------
+local function refresh_statusline()
+	vim.api.nvim_set_option_value("statusline", "%!v:lua.Statusline.active()", { win = vim.api.nvim_get_current_win() })
+end
+
+-- 创建状态栏组
+local statusline_group = vim.api.nvim_create_augroup("Statusline", { clear = true })
+
+-- 自动命令1：处理常规事件
 vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter", "BufWritePost" }, {
-	group = vim.api.nvim_create_augroup("Statusline", { clear = true }),
+	group = statusline_group,
 	callback = function()
-		vim.api.nvim_set_option_value(
-			"statusline",
-			"%!v:lua.Statusline.active()",
-			{ win = vim.api.nvim_get_current_win() }
-		)
+		refresh_statusline()
 	end,
 })
+
+-- 自动命令2：处理SpinnerUpdate事件
+vim.api.nvim_create_autocmd("User", {
+	group = statusline_group,
+	pattern = "SpinnerUpdate",
+	callback = function()
+		refresh_statusline()
+	end,
+})
+
+-- 测试命令（带最小持续时间）
+vim.api.nvim_create_user_command("SpinTest", function(opts)
+	local duration = tonumber(opts.args) or 3000
+	spinner.start(duration)
+	vim.notify("Loader started (min: " .. duration .. "ms)")
+
+	-- 实际任务很快完成，但动画会持续显示
+	vim.defer_fn(function()
+		spinner.stop()
+		vim.notify("Task completed but animation continues")
+	end, 500)
+end, { nargs = "?" })
 
 return Statusline

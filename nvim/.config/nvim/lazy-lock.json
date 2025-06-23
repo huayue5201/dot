@@ -1,6 +1,6 @@
 {
   "aerial.nvim": { "branch": "master", "commit": "5c0df1679bf7c814c924dc6646cc5291daca8363" },
-  "avante.nvim": { "branch": "main", "commit": "86743a1d7d6232a820709986e971b3c1de62d9a7" },
+  "avante.nvim": { "branch": "main", "commit": "6830f2d8b9986d5406f75fa14e725a9237456cd8" },
   "betterTerm.nvim": { "branch": "main", "commit": "0d1c4e122e32cee49ef48cdfb448ed0d4d2ba6e9" },
   "blink.cmp": { "branch": "main", "commit": "fe7c97455a375259a480c496fe3410c52ac004dc" },
   "blink.pairs": { "branch": "main", "commit": "d8bf802cca951f0a3b72ddeed21bc5a1d5353f65" },
@@ -23,7 +23,7 @@
   "lazy.nvim": { "branch": "main", "commit": "6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a" },
   "marks.nvim": { "branch": "master", "commit": "f353e8c08c50f39e99a9ed474172df7eddd89b72" },
   "mason.nvim": { "branch": "main", "commit": "8024d64e1330b86044fed4c8494ef3dcd483a67c" },
-  "mcphub.nvim": { "branch": "main", "commit": "85a7a659fc82da1429a2241ab61e9ce07b3db374" },
+  "mcphub.nvim": { "branch": "main", "commit": "f95d346668eb7ee39e1b714736a807449c2422c1" },
   "nightfox.nvim": { "branch": "main", "commit": "ba47d4b4c5ec308718641ba7402c143836f35aa9" },
   "nui.nvim": { "branch": "main", "commit": "de740991c12411b663994b2860f1a4fd0937c130" },
   "nvim-dap": { "branch": "master", "commit": "2edd6375692d9ac1053d50acfe415c1eb2ba92d0" },

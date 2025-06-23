@@ -114,4 +114,6 @@ function M.get_disabled_filetypes()
 	return DISABLED_FILETYPES
 end
 
+-- :lua print(vim.inspect(require("utils.per_project_lsp").get_disabled_filetypes()))
+
 return M

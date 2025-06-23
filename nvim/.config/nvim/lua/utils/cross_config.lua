@@ -7,8 +7,8 @@ local chip_configs = {
 	default = {
 		chip = "󰚦 ",
 		configFiles = {},
-		svdFile = "/path/to/default.svd",
-		openocd_template = "echo '请先选择芯片配置'",
+		svdFile = "",
+		openocd_template = "",
 		probe = "",
 	},
 	stm32f103c8t6 = {
@@ -176,7 +176,6 @@ function M.load_chip_config_on_startup()
 
 	-- 3. 使用默认配置
 	vim.g.selected_chip_config = chip_configs.default
-	vim.notify("使用默认芯片配置", vim.log.levels.INFO)
 end
 
 -- 安全获取芯片配置
@@ -229,14 +228,8 @@ end
 -- ChipStatus: 状态栏显示
 function M.ChipStatus()
 	local config = M.get_safe_config()
-	local colors = require("utils.utils").palette
 
 	vim.api.nvim_set_hl(0, "chipIcon", { fg = "#6B8E23", bold = true })
-	vim.api.nvim_set_hl(0, "chipNotSelected", { fg = colors.red, bold = true })
-
-	if config == chip_configs.default then
-		return "%#chipNotSelected# %*" .. config.chip
-	end
 
 	return "%#chipIcon# %*" .. config.chip
 end
