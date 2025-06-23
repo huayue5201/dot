@@ -1,3 +1,5 @@
+-- NOTE:https://github.com/neovim/neovim/issues/32537
+
 local M = {}
 
 local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }

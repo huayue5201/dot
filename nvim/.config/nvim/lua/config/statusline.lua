@@ -52,9 +52,9 @@ end
 local lint_progress = function()
 	local linters = require("lint").get_running()
 	if #linters == 0 then
-		return "󰦕"
+		return "󰦕" -- 可以换成其他你喜欢的图标或符号
 	end
-	return "󱉶 " .. table.concat(linters, ", ")
+	return "%#PinkHighlight#" .. "󱉶 " .. "%*" .. table.concat(linters, ", ")
 end
 
 -- 获取当前 buffer 附加的 LSP 客户端名称
@@ -221,12 +221,13 @@ function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
 		string.format("%-46s", Statusline.mode()), -- 左对齐，13个字符
+		spinner.get_frame() .. " ", -- 动态图标
 		Statusline.vcs() .. "  ", -- Git 状态
 		lint_progress() .. " ",
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
 		Statusline.dap_status() .. " ", -- dap调试信息
-		Statusline.chip() .. "  ",
+		Statusline.chip() .. " ",
 		Statusline.usb() .. " ",
 		"  %l%c ", -- 行列号
 		"%P", -- 文件百分比
@@ -234,6 +235,7 @@ function Statusline.active()
 	})
 end
 
+-- 刷新状态栏
 local function refresh_statusline()
 	vim.api.nvim_set_option_value("statusline", "%!v:lua.Statusline.active()", { win = vim.api.nvim_get_current_win() })
 end
