@@ -2,114 +2,40 @@
 
 local M = {}
 
--- 命名空间和样式
-local ns = vim.api.nvim_create_namespace("task_timestamp_highlight")
-vim.api.nvim_set_hl(0, "TaskTimestamp", { fg = "#888888", italic = true })
-
 -- 常量定义
-local CHECKBOX_PATTERNS = { "[ ]", "[x]", "[-]", "[~]" }
+local CHECKBOX_PATTERNS = { "[ ]", "[x]" } -- 只关注已完成和未完成的任务
 local STATE_LABELS = {
-	todo = { symbol = "[ ]", display = "󰄱 待完成" },
-	done = { symbol = "[x]", display = "󰱒 完成" },
-	postponed = { symbol = "[-]", display = " 搁置" },
-	pending = { symbol = "[~]", display = " 待定" },
+	todo = { symbol = "[ ]", display = "未完成" }, -- 未完成
+	done = { symbol = "[x]", display = "完成" }, -- 已完成
 }
-local TIMESTAMP_PATTERN = "%s+%a+:%d%d%d%d%-%d%d%-%d%d %d%d:%d%d"
 
--- ⏱️ 高亮时间戳
-function M.highlight_timestamp()
-	vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
-	for i, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do
-		local s, e = line:find(TIMESTAMP_PATTERN)
-		if s then
-			vim.api.nvim_buf_set_extmark(0, ns, i - 1, s - 1, {
-				end_col = e,
-				hl_group = "TaskTimestamp",
-				priority = 100,
-			})
-		end
-	end
-end
-
-vim.api.nvim_create_autocmd({ "BufReadPost", "InsertEnter" }, {
-	callback = M.highlight_timestamp,
-})
-
--- ✅ 判断是否含有任务复选框
-local function has_checkbox(line)
-	for _, pat in ipairs(CHECKBOX_PATTERNS) do
-		if line:find("%" .. pat) then
-			return true
-		end
-	end
-	return false
-end
-
--- ✅ 统计任务状态
+-- ✅ 统计任务状态，基于复选框过滤空行
 local function summarize_tasks(lines)
-	local count = { todo = 0, done = 0, postponed = 0, pending = 0 }
+	-- 初始化计数器
+	local count = { todo = 0, done = 0 }
+
+	-- 遍历每一行
 	for _, line in ipairs(lines) do
+		-- 只统计包含复选框的行
 		for label, info in pairs(STATE_LABELS) do
+			-- 如果当前行包含任务复选框符号
 			if line:match("%" .. info.symbol) then
+				-- 增加对应的任务状态计数
 				count[label] = count[label] + 1
 			end
 		end
 	end
+
+	-- 计算总计
+	count.total = count.todo + count.done
+
 	return count
 end
 
 -- ✅ 构造状态摘要
 local function format_summary(stat)
-	return string.format(
-		"󰄱 %d  󰱒 %d   %d   %d   总计: %d",
-		stat.todo,
-		stat.done,
-		stat.postponed,
-		stat.pending,
-		stat.todo + stat.done + stat.postponed + stat.pending
-	)
-end
-
--- 📦 切换任务状态
-function M.toggle_task_state()
-	local row = vim.api.nvim_win_get_cursor(0)[1]
-	local line = vim.api.nvim_get_current_line()
-	if not has_checkbox(line) then
-		return vim.notify("当前行没有任务复选框，无法切换状态。", vim.log.levels.INFO)
-	end
-
-	local options = {}
-	for key, info in pairs(STATE_LABELS) do
-		table.insert(options, { key = key, display = info.display, symbol = info.symbol })
-	end
-
-	vim.ui.select(options, {
-		prompt = "选择任务状态",
-		format_item = function(item)
-			return item.display
-		end,
-	}, function(choice)
-		if not choice then
-			return
-		end
-		local s, e = nil, nil
-		for _, pat in ipairs(CHECKBOX_PATTERNS) do
-			s, e = line:find(vim.pesc(pat))
-			if s then
-				break
-			end
-		end
-		if not s then
-			return
-		end
-
-		local new_line = line:sub(1, s - 1) .. choice.symbol .. line:sub(e + 1)
-		new_line = new_line:gsub(TIMESTAMP_PATTERN, ""):gsub("%s*(todo|done|postponed|pending)", "")
-			.. (" " .. choice.key .. os.date(":%Y-%m-%d %H:%M"))
-
-		vim.api.nvim_buf_set_lines(0, row - 1, row, false, { new_line })
-		M.highlight_timestamp()
-	end)
+	-- 格式化任务状态统计摘要
+	return string.format("未完成: %d  完成: %d  总计: %d", stat.todo, stat.done, stat.total)
 end
 
 -- 📁 获取当前项目名
@@ -117,7 +43,7 @@ local function get_project()
 	return vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
 end
 
--- 🪟 显示浮动窗口
+-- 🪟 显示浮动窗口，只显示统计信息
 local function show_todo_floating(path)
 	local width, height = 80, 20
 	local buf = vim.api.nvim_create_buf(false, true)
@@ -132,6 +58,7 @@ local function show_todo_floating(path)
 
 	local summary = format_summary(summarize_tasks(lines))
 
+	-- 打开浮动窗口并显示统计信息
 	vim.api.nvim_open_win(buf, true, {
 		relative = "editor",
 		width = width,
@@ -141,10 +68,11 @@ local function show_todo_floating(path)
 		border = "rounded",
 		title = " 󱑆 TODO清单 ",
 		style = "minimal",
-		footer = { { " " .. summary .. " ", "Number" } },
+		footer = { { " " .. summary .. " ", "Number" } }, -- 显示统计信息
 		footer_pos = "right",
 	})
 
+	-- 编辑文件内容，第一行不显示统计信息
 	vim.cmd("edit " .. vim.fn.fnameescape(path))
 end
 
@@ -258,32 +186,6 @@ function M.delete_project_todo()
 			vim.notify("取消删除项目", vim.log.levels.INFO)
 		end
 	end)
-end
-
--- 📝 转换为任务行
-function M.convert_line_to_task()
-	local row = vim.api.nvim_win_get_cursor(0)[1]
-	local line = vim.api.nvim_get_current_line()
-	if line:match("^%s*%- %[[ xX%-~]%]") then
-		return vim.notify("当前行已经是任务。", vim.log.levels.INFO)
-	end
-	local indent = line:match("^%s*") or ""
-	local content = line:gsub("^[-*•+%d+%.%s]+", ""):match("^%s*(.-)%s*$")
-	local new_line = indent .. "- [ ] " .. content
-	vim.api.nvim_buf_set_lines(0, row - 1, row, false, { new_line })
-	vim.api.nvim_win_set_cursor(0, { row, #new_line })
-end
-
--- ➕ 插入新任务行
-function M.new_task_item()
-	local row = vim.api.nvim_win_get_cursor(0)[1]
-	local indent = vim.fn.indent(row)
-	local line = string.rep(" ", indent) .. "- [ ]  "
-	vim.api.nvim_buf_set_lines(0, row, row, true, { line })
-	vim.api.nvim_win_set_cursor(0, { row + 1, #line + 1 })
-	vim.defer_fn(function()
-		vim.cmd("startinsert")
-	end, 10)
 end
 
 return M

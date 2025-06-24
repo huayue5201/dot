@@ -37,7 +37,7 @@ vim.defer_fn(function()
 
 	require("utils.per_project_lsp").init()
 	if not vim.g.lsp_enabled then
-		vim.lsp.enable(require("config.lsp").get_all_lsp_names(), false)
+		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), false)
 		require("lint").linters_by_ft = {
 			-- https://github.com/danmar/cppcheck/
 			c = { "cppcheck" },
@@ -63,7 +63,7 @@ vim.defer_fn(function()
 			end,
 		})
 	else
-		vim.lsp.enable(require("config.lsp").get_all_lsp_names(), true)
+		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), true)
 	end
 
 	-- 延迟修改 runtimepath，避免影响启动速度
