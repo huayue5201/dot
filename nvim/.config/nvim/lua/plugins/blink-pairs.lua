@@ -3,7 +3,7 @@
 return {
 	"saghen/blink.pairs",
 	version = "*", -- (recommended) only required with prebuilt binaries
-	event = "InsertEnter",
+	event = "VeryLazy",
 	-- OR build from source
 	build = "cargo build --release",
 	--- @module 'blink.pairs'

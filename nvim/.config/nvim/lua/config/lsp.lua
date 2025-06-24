@@ -204,28 +204,16 @@ function M.restart_lsp()
 	for _, client in ipairs(clients) do
 		vim.lsp.stop_client(client.id, true)
 	end
-	-- 创建一次性 autocmd，在成功 attach 后再设置状态
-	local group = vim.api.nvim_create_augroup("RestartLspOnce", { clear = true })
-	vim.api.nvim_create_autocmd("LspAttach", {
-		group = group,
-		once = true,
-		callback = function(args)
-			if args.buf == bufnr then
-				vim.g.lsp_enabled = true
-				require("utils.per_project_lsp").set_lsp_state(true)
-			end
-		end,
-	})
 	-- 启动 LSP
 	vim.defer_fn(function()
 		vim.lsp.enable(M.get_all_lsp_names())
+		require("utils.per_project_lsp").set_lsp_state(true)
 	end, 100)
 end
 
 -- 关闭lsp
 function M.stop_lsp()
 	vim.lsp.stop_client(vim.lsp.get_clients(), true)
-	vim.g.lsp_enabled = false
 	require("utils.per_project_lsp").set_lsp_state(false)
 	vim.schedule(function()
 		vim.cmd.redrawstatus()

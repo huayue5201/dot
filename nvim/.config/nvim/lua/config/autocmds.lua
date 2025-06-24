@@ -21,12 +21,12 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 })
 
 local lsp = require("config.lsp")
+lsp.mode_changed_handler() -- 设置模式变化时禁用/启用诊断
 -- ✨ LSP 启动时绑定快捷键与功能
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
 	callback = function(args)
 		if not vim.g.lsp_enabled then
-			lsp.set_keymaps() -- 设置按键映射
 			vim.lsp.stop_client(args.data.client_id, true)
 		else
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -35,7 +35,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			-- print(vim.inspect(capabilities))
 			lsp.diagnostic_config() -- 设置诊断配置
 			lsp.diagnostic_handler() -- 设置诊断处理器
-			lsp.mode_changed_handler() -- 设置模式变化时禁用/启用诊断
 			lsp.inlay_hint_handler() -- 设置插入模式内联提示处理
 			lsp.set_keymaps() -- 设置按键映射
 			-- vim.lsp.document_color.enable(true, args.buf)

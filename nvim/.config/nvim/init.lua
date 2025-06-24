@@ -89,6 +89,7 @@ vim.defer_fn(function()
 			end,
 		})
 		require("utils.dotenv").load() -- token加载模块
+		require("utils.info-dashboard") -- 信息展示版
 	end)
 
 	-- 颜色主题（如果需要的话）

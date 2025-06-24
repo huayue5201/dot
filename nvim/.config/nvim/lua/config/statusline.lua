@@ -2,7 +2,7 @@
 
 local utils = require("utils.utils")
 local colors = utils.palette
-local lsp_status = require("utils.lsp_status")
+local lsp_progress = require("utils.lsp_progress")
 local spinner = require("utils.spinner")
 
 -- 定义高亮组
@@ -77,7 +77,7 @@ end
 
 -- -------------------- LSP 状态 --------------------
 function Statusline.lsp_diagnostics()
-	if lsp_status.is_loading() then
+	if lsp_progress.is_loading() then
 		return "" -- 如果 LSP 正在加载，返回空字符串
 	end
 
@@ -143,7 +143,7 @@ end
 function Statusline.lsp()
 	return table.concat({
 		Statusline.lsp_clients(),
-		" " .. require("utils.lsp_status").status(),
+		" " .. require("utils.lsp_progress").status(),
 		Statusline.lsp_diagnostics(),
 	})
 end
