@@ -30,36 +30,6 @@ return {
 					desc = "切换任务项状态",
 					modes = { "n", "v" },
 				},
-				["<leader>tdn"] = {
-					rhs = "<cmd>Checkmate create<CR>",
-					desc = "创建新的任务项",
-					modes = { "n", "v" },
-				},
-				["<leader>tdR"] = {
-					rhs = "<cmd>Checkmate remove_all_metadata<CR>",
-					desc = "移除任务项的所有元数据",
-					modes = { "n", "v" },
-				},
-				["<leader>tda"] = {
-					rhs = "<cmd>Checkmate archive<CR>",
-					desc = "归档已完成的任务项 (移动到底部)",
-					modes = { "n" },
-				},
-				["<leader>tdv"] = {
-					rhs = "<cmd>Checkmate metadata select_value<CR>",
-					desc = "更新光标下的元数据标签的值",
-					modes = { "n" },
-				},
-				["<leader>t]"] = {
-					rhs = "<cmd>Checkmate metadata jump_next<CR>",
-					desc = "跳转到下一个元数据标签",
-					modes = { "n" },
-				},
-				["<leader>t["] = {
-					rhs = "<cmd>Checkmate metadata jump_previous<CR>",
-					desc = "跳转到上一个元数据标签",
-					modes = { "n" },
-				},
 			},
 			default_list_marker = "-",
 			todo_markers = {

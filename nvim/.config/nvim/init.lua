@@ -1,8 +1,6 @@
 -- https://neovim.io/
 -- https://devhints.io/vim
 -- https://github.com/neovim/neovim/releases/
--- https://github.com/neovim/neovim/pull/34009
--- https://github.com/neovim/neovim/issues/33914
 
 -- 启用 Lua 加载器加速启动
 vim.loader.enable()
@@ -29,7 +27,6 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 require("config.settings") -- 基础 Neovim 选项
 require("config.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
 require("config.statusline").active()
-
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()
 	require("config.autocmds") -- 加载自动命令
@@ -91,7 +88,4 @@ vim.defer_fn(function()
 		require("utils.dotenv").load() -- token加载模块
 		require("utils.info-dashboard") -- 信息展示版
 	end)
-
-	-- 颜色主题（如果需要的话）
-	-- vim.cmd("colorscheme ansi")
 end, 150) -- 延迟 100ms 执行

@@ -31,34 +31,6 @@ M.diagnostic_config = function()
 	})
 end
 
--- 高级诊断处理器：过滤掉非法（超出 buffer 行数）的诊断信息
-M.diagnostic_handler = function()
-	vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx)
-		if not result then
-			return
-		end
-
-		local uri = result.uri
-		local bufnr = vim.uri_to_bufnr(uri)
-
-		if not vim.api.nvim_buf_is_loaded(bufnr) then
-			return -- buffer 未加载，跳过处理
-		end
-
-		local max_line = vim.api.nvim_buf_line_count(bufnr)
-
-		-- 过滤出合法的诊断（行号不超过 buffer 最大行数）
-		local valid_diagnostics = vim.tbl_filter(function(diag)
-			local line = diag.range and diag.range.start and diag.range.start.line
-			return type(line) == "number" and line < max_line
-		end, result.diagnostics or {})
-		-- 替换原始诊断结果
-		result.diagnostics = valid_diagnostics
-		-- 调用 Neovim 默认处理器
-		vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx)
-	end
-end
-
 -- 插入/选择模式禁用/启用诊断
 M.mode_changed_handler = function()
 	vim.api.nvim_create_autocmd("ModeChanged", {
@@ -238,7 +210,7 @@ function M.restart_lsp()
 		local clients = vim.lsp.get_clients({ bufnr = bufnr })
 		-- 停止现有客户端
 		for _, client in ipairs(clients) do
-			vim.lsp.stop_client(client.id, true)
+			vim.lsp.stop_client(client.id)
 		end
 		-- 启动 LSP
 		vim.defer_fn(function()

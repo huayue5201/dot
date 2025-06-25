@@ -42,6 +42,7 @@ vim.keymap.set(
 	{ desc = "打开/关闭 LSP 诊断" }
 )
 
+vim.keymap.set("n", "<leader>p", ":lua require'utils.LineWrapPreview'.preview_long_line()<CR>", { desc = "预览" })
 vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "重新加载当前buffer" })
 vim.keymap.set("n", "<leader>tor", "<cmd>restart<cr>", { silent = true, desc = "热重启nvim" })
 

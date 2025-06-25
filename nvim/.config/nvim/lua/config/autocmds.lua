@@ -34,10 +34,10 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			-- local capabilities = vim.lsp.get_clients()[1].server_capabilities
 			-- print(vim.inspect(capabilities))
 			lsp.diagnostic_config() -- 设置诊断配置
-			lsp.diagnostic_handler() -- 设置诊断处理器
 			lsp.inlay_hint_handler() -- 设置插入模式内联提示处理
 			lsp.set_keymaps() -- 设置按键映射
-			-- vim.lsp.document_color.enable(true, args.buf)
+
+			vim.lsp.document_color.enable(true, args.buf)
 
 			if client:supports_method("textDocument/foldingRange") then
 				local win = vim.api.nvim_get_current_win()

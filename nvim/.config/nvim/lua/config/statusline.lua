@@ -227,7 +227,7 @@ function Statusline.active()
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
 		Statusline.dap_status() .. " ", -- dap调试信息
-		Statusline.chip() .. " ",
+		Statusline.chip() .. "  ",
 		Statusline.usb() .. " ",
 		"  %l%c ", -- 行列号
 		"%P", -- 文件百分比
