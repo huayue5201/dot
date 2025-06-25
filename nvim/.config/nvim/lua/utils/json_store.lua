@@ -1,4 +1,3 @@
--- lua/utils/json_store.lua
 local M = {}
 
 -- 初始化存储实例
@@ -39,13 +38,14 @@ function M:load()
 	return vim.deepcopy(self.default_data)
 end
 
--- 保存数据
+-- 保存数据并格式化为漂亮的 JSON
 function M:save(data)
 	ensure_dir(self.file_path)
 
 	local file = io.open(self.file_path, "w")
 	if file then
-		local json_str = vim.fn.json_encode(data)
+		-- 使用 vim.fn.json_encode 的 `pretty` 选项来格式化输出
+		local json_str = vim.fn.json_encode(data, { pretty = true })
 		file:write(json_str)
 		file:close()
 		return true
