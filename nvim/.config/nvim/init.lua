@@ -33,12 +33,15 @@ vim.defer_fn(function()
 	require("config.keymaps") -- 加载按键映射
 
 	require("utils.per_project_lsp").init()
+
 	if not vim.g.lsp_enabled then
 		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), false)
+
 		require("lint").linters_by_ft = {
 			-- https://github.com/danmar/cppcheck/
 			c = { "cppcheck" },
 		}
+
 		local icons = require("utils.utils").icons.diagnostic
 		local ns = require("lint").get_namespace("cppcheck")
 		vim.diagnostic.config({
@@ -85,7 +88,8 @@ vim.defer_fn(function()
 				client.server_capabilities.publishDiagnostics = true
 			end,
 		})
+
 		require("utils.dotenv").load() -- token加载模块
-		require("utils.info-dashboard") -- 信息展示版
+		require("utils.info-dashboard") -- 信息看版
 	end)
 end, 150) -- 延迟 100ms 执行

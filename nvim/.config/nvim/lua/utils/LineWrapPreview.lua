@@ -41,7 +41,7 @@ local function get_cursor_screen_position()
 
 	-- TODO: 部分窗口需要-1才能覆盖当前行，这点可以考虑用条件判断来修正该问题
 	-- 计算光标在屏幕上的绝对行位置
-	local screen_row = win_row + (cursor_pos[1] - win_topline) + 1 -- 此处+1才能正确覆盖当前行
+	local screen_row = win_row + (cursor_pos[1] - win_topline) -- 此处+1才能正确覆盖当前行
 
 	return {
 		row = screen_row,
@@ -118,11 +118,11 @@ local function show_preview(line)
 	end
 
 	-- 获取整个编辑器尺寸
-	local editor_width = get_editor_width()
+	-- local editor_width = get_editor_width()
 	local editor_height = get_editor_height()
 
 	-- 获取内容的最大宽度，调整浮动窗口宽度
-	local preview_width = get_max_line_width(line)
+	local preview_width = get_max_line_width(line) + 1
 
 	-- 处理换行
 	local wrapped_lines = wrap_line_if_needed(line, preview_width)
@@ -153,6 +153,10 @@ local function show_preview(line)
 	-- 确保位置在屏幕范围内
 	row = math.max(0, math.min(row, editor_height - max_height - 2))
 
+	-- 自定义高亮组
+	vim.cmd([[highlight MyNormal guibg=#2e2e2e guifg=#d1d1d1]]) -- 背景为深灰色，前景为浅灰色
+	vim.cmd([[highlight MyFloatBorder guibg=#1e1e1e guifg=#f4a261]]) -- 边框为暗黑色，边框为金色
+
 	-- 打开浮动窗口
 	float_win_id = vim.api.nvim_open_win(float_buf_id, false, {
 		relative = "editor", -- 相对于整个编辑器
@@ -160,10 +164,11 @@ local function show_preview(line)
 		height = max_height,
 		col = col,
 		row = row,
-		border = "none", -- 无边框
+		border = "shadow", -- 无边框
 		style = "minimal",
 		focusable = true,
 		mouse = false,
+		_cmdline_offset = table.new,
 	})
 
 	-- 设置浮动窗口样式（看起来像普通文本）
@@ -172,6 +177,8 @@ local function show_preview(line)
 	vim.api.nvim_win_set_option(float_win_id, "relativenumber", false)
 	vim.api.nvim_win_set_option(float_win_id, "wrap", false)
 	vim.api.nvim_win_set_option(float_win_id, "signcolumn", "no")
+	-- 在浮动窗口中应用这些高亮组
+	vim.api.nvim_win_set_option(float_win_id, "winhl", "Normal:MyNormal,FloatBorder:MyFloatBorder")
 
 	-- 记录当前预览的行号
 	local cursor_pos = vim.api.nvim_win_get_cursor(0)

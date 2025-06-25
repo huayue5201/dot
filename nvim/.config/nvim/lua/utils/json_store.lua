@@ -18,6 +18,13 @@ local function ensure_dir(path)
 	end
 end
 
+-- 自定义格式化函数
+local function pretty_json_encode(data)
+    local json_str = vim.fn.json_encode(data)
+    -- 通过加入换行符和缩进来简单地格式化
+    return vim.fn.substitute(json_str, ',', ',\n  ', 'g')  -- 每个逗号后加换行
+end
+
 -- 加载数据
 function M:load()
 	local file = io.open(self.file_path, "r")
@@ -44,8 +51,8 @@ function M:save(data)
 
 	local file = io.open(self.file_path, "w")
 	if file then
-		-- 使用 vim.fn.json_encode 的 `pretty` 选项来格式化输出
-		local json_str = vim.fn.json_encode(data, { pretty = true })
+		-- 使用自定义的 pretty_json_encode 来格式化输出
+		local json_str = pretty_json_encode(data)
 		file:write(json_str)
 		file:close()
 		return true
