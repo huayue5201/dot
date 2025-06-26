@@ -158,37 +158,60 @@ function M.open_buffer_diagnostics()
 	})
 end
 
--- 获取所有 lsp/*.lua 文件的名称（不带后缀）
 function M.get_lsp_config(field)
 	local result = {}
 	-- 获取所有 lsp/*.lua 文件的路径
 	for _, path in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
 		-- 获取文件名并去掉扩展名
 		local filename = vim.fn.fnamemodify(path, ":t:r")
-		-- 如果请求的字段是 "name"，直接返回文件名
-		if field == "name" then
-			result[filename] = true -- 使用表去重
-		else
-			-- 安全加载每个 LSP 配置文件
-			local ok, config = pcall(dofile, path)
-			if ok and type(config) == "table" then
-				-- 如果字段存在，返回该字段的值（假设是表类型）
-				if field and config[field] then
+		-- 安全加载每个 LSP 配置文件
+		local ok, config = pcall(dofile, path)
+		if ok and type(config) == "table" then
+			-- 处理无参数情况 - 返回完整配置表
+			if not field then
+				result[filename] = config
+			-- 处理 "name" 参数 - 返回文件名列表
+			elseif field == "name" then
+				table.insert(result, filename)
+			-- 处理其他字段
+			else
+				-- 如果字段存在，返回该字段的值
+				if config[field] then
 					if type(config[field]) == "table" then
+						-- 合并表值
 						for _, v in ipairs(config[field]) do
-							result[v] = true
+							if not vim.tbl_contains(result, v) then
+								table.insert(result, v)
+							end
 						end
 					else
-						vim.notify("Field '" .. field .. "' is not a table in config: " .. path)
+						-- 添加非表值（确保唯一性）
+						local value = config[field]
+						if not vim.tbl_contains(result, value) then
+							table.insert(result, value)
+						end
 					end
+				else
+					-- 如果字段不存在，给出警告信息
+					vim.notify("Field '" .. field .. "' not found in config: " .. path, vim.log.levels.WARN)
 				end
-			else
-				vim.notify("Failed to load config from: " .. path)
 			end
+		else
+			-- 加载配置文件失败时的错误信息
+			vim.notify("Failed to load config from: " .. path, vim.log.levels.ERROR)
 		end
 	end
-	-- 返回字段的去重后的所有值（例如 filetypes）或文件名
-	return vim.tbl_keys(result)
+	-- 根据参数类型返回不同的结果
+	if not field then
+		-- 无参数：返回完整配置表 {filename = config}
+		return result
+	elseif field == "name" then
+		-- "name" 参数：返回文件名列表
+		return result
+	else
+		-- 其他字段参数：返回字段值列表
+		return result
+	end
 end
 
 -- 重启当前缓冲区的 LSP 客户端
@@ -215,7 +238,7 @@ function M.restart_lsp()
 		-- 启动 LSP
 		vim.defer_fn(function()
 			vim.lsp.enable(M.get_lsp_config("name"))
-			require("utils.per_project_lsp").set_lsp_state(true)
+			require("utils.project_lsp_toggle").set_lsp_state(true)
 		end, 100)
 	else
 		vim.notify("No LSP found for current filetype: " .. current_filetype)
@@ -225,7 +248,7 @@ end
 -- 关闭lsp
 function M.stop_lsp()
 	vim.lsp.stop_client(vim.lsp.get_clients(), true)
-	require("utils.per_project_lsp").set_lsp_state(false)
+	require("utils.project_lsp_toggle").set_lsp_state(false)
 	vim.schedule(function()
 		vim.cmd.redrawstatus()
 	end)

@@ -168,17 +168,17 @@ local function show_preview(line)
 		style = "minimal",
 		focusable = true,
 		mouse = false,
-		_cmdline_offset = table.new,
 	})
 
 	-- 设置浮动窗口样式（看起来像普通文本）
-	vim.api.nvim_win_set_option(float_win_id, "winhl", "Normal:Normal")
-	vim.api.nvim_win_set_option(float_win_id, "number", false)
-	vim.api.nvim_win_set_option(float_win_id, "relativenumber", false)
-	vim.api.nvim_win_set_option(float_win_id, "wrap", false)
-	vim.api.nvim_win_set_option(float_win_id, "signcolumn", "no")
+	vim.api.nvim_set_option_value("winhl", "Normal:Normal", { win = float_win_id })
+	vim.api.nvim_set_option_value("number", false, { win = float_win_id })
+	vim.api.nvim_set_option_value("relativenumber", false, { win = float_win_id })
+	vim.api.nvim_set_option_value("wrap", false, { win = float_win_id })
+	vim.api.nvim_set_option_value("signcolumn", "no", { win = float_win_id })
+
 	-- 在浮动窗口中应用这些高亮组
-	vim.api.nvim_win_set_option(float_win_id, "winhl", "Normal:MyNormal,FloatBorder:MyFloatBorder")
+	vim.api.nvim_set_option_value("winhl", "Normal:MyNormal,FloatBorder:MyFloatBorder", { win = float_win_id })
 
 	-- 记录当前预览的行号
 	local cursor_pos = vim.api.nvim_win_get_cursor(0)
@@ -233,11 +233,17 @@ vim.api.nvim_create_autocmd("VimResized", {
 		end
 
 		resize_timer = vim.fn.timer_start(50, function()
-			if float_win_id and vim.api.nvim_win_is_valid(float_win_id) then
+			-- 双重检查：窗口和缓冲区都必须有效
+			if
+				float_win_id
+				and vim.api.nvim_win_is_valid(float_win_id)
+				and float_buf_id
+				and vim.api.nvim_buf_is_valid(float_buf_id) -- 新增缓冲区有效性检查
+			then
 				-- 获取当前行内容
 				local line = vim.api.nvim_get_current_line()
 
-				-- 重新计算窗口尺寸（基于整个编辑器）
+				-- 重新计算窗口尺寸
 				local editor_width = get_editor_width()
 				local preview_width = editor_width - 4
 
@@ -247,17 +253,30 @@ vim.api.nvim_create_autocmd("VimResized", {
 					max_height = 1
 				end
 
-				-- 获取光标在屏幕上的绝对位置
+				-- 获取光标位置
 				local cursor_screen_pos = get_cursor_screen_position()
 				local screen_row = cursor_screen_pos.row
 				local cursor_col = cursor_screen_pos.col
 
-				-- 更新位置（覆盖当前行）
-				local row = screen_row -- 直接使用屏幕行位置
-				local col = math.max(cursor_col, 2) -- 保持左边距
+				-- 更新位置
+				local row = screen_row
+				local col = math.max(cursor_col, 2)
 
-				-- 更新浮动窗口
-				vim.api.nvim_buf_set_lines(float_buf_id, 0, -1, false, wrapped_lines)
+				-- 安全设置缓冲区内容：添加缓冲区有效性检查
+				local success, err = pcall(function()
+					-- 先清空缓冲区再添加新内容
+					local line_count = vim.api.nvim_buf_line_count(float_buf_id)
+					vim.api.nvim_buf_set_lines(float_buf_id, 0, line_count, false, {})
+					vim.api.nvim_buf_set_lines(float_buf_id, 0, -1, false, wrapped_lines)
+				end)
+
+				if not success then
+					vim.notify("更新浮动窗口失败: " .. err, vim.log.levels.WARN)
+					close_preview() -- 失败时清理状态
+					return
+				end
+
+				-- 更新窗口配置
 				vim.api.nvim_win_set_config(float_win_id, {
 					relative = "editor",
 					width = preview_width,
@@ -270,5 +289,4 @@ vim.api.nvim_create_autocmd("VimResized", {
 		end)
 	end,
 })
-
 return M

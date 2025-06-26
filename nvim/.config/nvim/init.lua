@@ -32,7 +32,7 @@ vim.defer_fn(function()
 	require("config.autocmds") -- 加载自动命令
 	require("config.keymaps") -- 加载按键映射
 
-	require("utils.per_project_lsp").init()
+	require("utils.project_lsp_toggle").init()
 
 	if not vim.g.lsp_enabled then
 		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), false)

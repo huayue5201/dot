@@ -17,17 +17,27 @@ local DISABLED_FILETYPES = {
 	"makefile",
 }
 
--- 获取当前项目标识（与芯片配置一致）
+-- 获取当前项目标识（使用路径的哈希值）
 local function get_current_project_name()
+	local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+	local cwd = vim.fn.getcwd()
+	-- 使用 sha256 哈希函数
+	local hash = vim.fn.sha256(cwd)
+	-- 取前8位，足够唯一且较短
+	return project_name .. "-" .. hash:sub(1, 8)
+end
+
+-- 获取当前项目显示名称（用于通知）
+local function get_project_display_name()
 	return vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
 end
 
--- 读取项目状态缓存（使用 json_store 的 load 方法）
+-- 读取项目状态缓存
 local function load_project_states()
 	return state_store:load()
 end
 
--- 保存项目状态到缓存文件（使用 json_store 的 save 方法）
+-- 保存项目状态到缓存文件
 local function save_project_states(states)
 	return state_store:save(states)
 end
@@ -50,15 +60,15 @@ function M.get_lsp_state()
 		return false
 	end
 
-	local project_name = get_current_project_name()
+	local project_id = get_current_project_name()
 	local states = load_project_states()
 
 	-- 如果项目状态未设置，返回默认值（true）
-	if states[project_name] == nil then
+	if states[project_id] == nil then
 		return true
 	end
 
-	return states[project_name]
+	return states[project_id]
 end
 
 -- 设置当前项目的 LSP 状态
@@ -69,9 +79,16 @@ function M.set_lsp_state(enabled)
 		return
 	end
 
-	local project_name = get_current_project_name()
+	local project_id = get_current_project_name()
+	local project_name = get_project_display_name()
 	local states = load_project_states()
-	states[project_name] = enabled
+
+	-- 检查状态是否实际变化
+	if states[project_id] == enabled then
+		return
+	end
+
+	states[project_id] = enabled
 	save_project_states(states)
 
 	-- 更新全局状态
@@ -101,19 +118,17 @@ function M.init()
 		pattern = table.concat(DISABLED_FILETYPES, ","),
 		callback = function()
 			if not should_disable_by_filetype() then
-				local project_name = get_current_project_name()
+				local project_id = get_current_project_name()
 				local states = load_project_states()
-				vim.g.lsp_enabled = states[project_name] ~= false
+				vim.g.lsp_enabled = states[project_id] ~= false
 			end
 		end,
 	})
 end
 
--- 获取当前禁用的文件类型列表（可选，用于调试或状态显示）
+-- 获取当前禁用的文件类型列表
 function M.get_disabled_filetypes()
 	return DISABLED_FILETYPES
 end
-
--- :lua print(vim.inspect(require("utils.per_project_lsp").get_disabled_filetypes()))
 
 return M

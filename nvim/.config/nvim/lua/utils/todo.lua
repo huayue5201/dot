@@ -72,7 +72,6 @@ local function show_todo_floating(path)
 		footer_pos = "right",
 	})
 
-	-- 编辑文件内容，第一行不显示统计信息
 	vim.cmd("edit " .. vim.fn.fnameescape(path))
 end
 
