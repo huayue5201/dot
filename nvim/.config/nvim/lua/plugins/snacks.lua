@@ -28,7 +28,7 @@ return {
 			scroll = { enabled = false },
 			statuscolumn = { enabled = false },
 			words = { enabled = true },
-			terminal = { enabled = true },
+			terminal = { enabled = false },
 			win = { enabled = false },
 		})
 		vim.keymap.set("n", "<leader>ef", function()

@@ -70,9 +70,14 @@ local chip_store = json_store:new({
 	default_data = {},
 })
 
--- 获取当前项目名称（基于当前工作目录）
+-- 获取当前项目标识（使用路径的哈希值）
 local function get_current_project_name()
-	return vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+	local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
+	local cwd = vim.fn.getcwd()
+	-- 使用 sha256 哈希函数
+	local hash = vim.fn.sha256(cwd)
+	-- 取前8位，足够唯一且较短
+	return project_name .. "-" .. hash:sub(1, 8)
 end
 
 -- 保存芯片配置到文件
