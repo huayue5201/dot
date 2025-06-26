@@ -13,7 +13,6 @@ local DISABLED_FILETYPES = {
 	"gitcommit",
 	"markdown",
 	"help",
-	"qf",
 	"makefile",
 }
 

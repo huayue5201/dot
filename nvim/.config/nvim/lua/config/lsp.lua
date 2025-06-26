@@ -109,6 +109,21 @@ M.remove_keymaps = function(bufnr)
 	end
 end
 
+function M.lint()
+	require("lint").linters_by_ft = {
+		-- https://github.com/danmar/cppcheck/
+		c = { "cppcheck" },
+	}
+
+	M.diagnostic_config()
+
+	vim.api.nvim_create_autocmd({ "BufWritePost", "BufEnter", "InsertLeave" }, {
+		callback = function()
+			require("lint").try_lint()
+		end,
+	})
+end
+
 -- 打开所有 buffer 的诊断（Quickfix 风格，适合全局排查）
 function M.open_all_diagnostics()
 	vim.diagnostic.setqflist({
@@ -249,6 +264,7 @@ end
 function M.stop_lsp()
 	vim.lsp.stop_client(vim.lsp.get_clients(), true)
 	require("utils.project_lsp_toggle").set_lsp_state(false)
+	M.lint()
 	vim.schedule(function()
 		vim.cmd.redrawstatus()
 	end)

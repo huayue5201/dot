@@ -36,32 +36,7 @@ vim.defer_fn(function()
 
 	if not vim.g.lsp_enabled then
 		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), false)
-
-		require("lint").linters_by_ft = {
-			-- https://github.com/danmar/cppcheck/
-			c = { "cppcheck" },
-		}
-
-		local icons = require("utils.utils").icons.diagnostic
-		local ns = require("lint").get_namespace("cppcheck")
-		vim.diagnostic.config({
-			virtual_text = { current_line = false },
-			virtual_lines = { current_line = true },
-			signs = {
-				text = {
-					[vim.diagnostic.severity.ERROR] = icons.ERROR,
-					[vim.diagnostic.severity.WARN] = icons.WARN,
-					[vim.diagnostic.severity.HINT] = icons.HINT,
-					[vim.diagnostic.severity.INFO] = icons.INFO,
-				},
-			},
-		}, ns)
-
-		vim.api.nvim_create_autocmd({ "BufWritePost", "BufEnter", "InsertLeave" }, {
-			callback = function()
-				require("lint").try_lint()
-			end,
-		})
+		require("config.lsp").lint()
 	else
 		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), true)
 	end
