@@ -11,9 +11,7 @@ local state_store = json_store:new({
 -- 需要禁用 LSP 的文件类型列表
 local DISABLED_FILETYPES = {
 	"gitcommit",
-	"markdown",
 	"help",
-	"makefile",
 }
 
 -- 获取当前项目标识（使用路径的哈希值）
@@ -119,7 +117,10 @@ function M.init()
 			if not should_disable_by_filetype() then
 				local project_id = get_current_project_name()
 				local states = load_project_states()
-				vim.g.lsp_enabled = states[project_id] ~= false
+				-- 只有当项目处于禁用状态时才恢复
+				if states[project_id] ~= false then
+					vim.g.lsp_enabled = true
+				end
 			end
 		end,
 	})

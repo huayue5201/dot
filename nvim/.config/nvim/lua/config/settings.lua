@@ -21,8 +21,6 @@ vim.g.loaded_netrwFileHandlers = 1
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_ruby_provider = 0
 
--- 在 Neovim 启动时加载平台配置
-require("utils.cross_config").load_chip_config_on_startup()
 -- -------------- 基本设置 --------------
 vim.opt.mousemoveevent = true -- 启用鼠标移动事件
 vim.opt.fileencodings = { "utf-8", "gbk", "cp936", "ucs-bom", "latin1" }
@@ -97,7 +95,7 @@ vim.opt.winborder = "rounded" -- 浮动窗口边框
 -- -------------- 状态栏和标签页 --------------
 vim.opt.showmode = false -- 禁用模式显示
 vim.opt.laststatus = 3 -- 启用全局状态栏
-vim.opt.cmdheight = 0 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
+vim.opt.cmdheight = 1 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
 vim.opt.showtabline = 2 -- 始终显示标签页栏
 vim.opt.statuscolumn = "%!v:lua.require('config.statuscolumn').active()" -- 载入 statuscolumn 配置
 vim.opt.number = true --显示行号

@@ -21,7 +21,7 @@ return {
 			bufdelete = { enabled = true },
 			indent = { enabled = true },
 			input = { enabled = true },
-			picker = { enabled = false },
+			picker = { enabled = true },
 			notifier = { enabled = false },
 			quickfile = { enabled = true },
 			scope = { enabled = false },
@@ -31,8 +31,23 @@ return {
 			terminal = { enabled = false },
 			win = { enabled = false },
 		})
+
 		vim.keymap.set("n", "<leader>ef", function()
 			Snacks.explorer()
 		end, { silent = true, desc = "File Explorer" })
+
+		vim.keymap.set(
+			"n",
+			"<leader>es",
+			"<cmd>lua Snacks.picker.lsp_symbols({layout = {preset = 'vscode', preview = 'main'}})<cr>",
+			{ desc = "LSP Symbols" }
+		)
+
+		vim.keymap.set(
+			"n",
+			"<leader>ew",
+			"<cmd>lua Snacks.picker.lsp_workspace_symbols({layout = {preset = 'vscode', preview = 'main'}})<cr>",
+			{ desc = "LSP Symbols" }
+		)
 	end,
 }
