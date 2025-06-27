@@ -247,91 +247,121 @@ function M.open_buffer_diagnostics()
 	})
 end
 
-function M.get_lsp_config(field)
+-- 获取所有lsp配置
+function M.get_lsp_config(...)
+	local fields = { ... } -- 收集所有参数
 	local result = {}
-	-- 获取所有 lsp/*.lua 文件的路径
-	for _, path in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
-		-- 获取文件名并去掉扩展名
-		local filename = vim.fn.fnamemodify(path, ":t:r")
-		-- 安全加载每个 LSP 配置文件
-		local ok, config = pcall(dofile, path)
-		if ok and type(config) == "table" then
-			-- 处理无参数情况 - 返回完整配置表
-			if not field then
+	-- 处理无参数情况：返回完整配置表
+	if #fields == 0 then
+		for _, path in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
+			local filename = vim.fn.fnamemodify(path, ":t:r")
+			local ok, config = pcall(dofile, path)
+			if ok and type(config) == "table" then
 				result[filename] = config
-			-- 处理 "name" 参数 - 返回文件名列表
-			elseif field == "name" then
-				table.insert(result, filename)
-			-- 处理其他字段
 			else
-				-- 如果字段存在，返回该字段的值
-				if config[field] then
-					if type(config[field]) == "table" then
-						-- 合并表值
-						for _, v in ipairs(config[field]) do
-							if not vim.tbl_contains(result, v) then
-								table.insert(result, v)
+				vim.notify("Failed to load config from: " .. path, vim.log.levels.ERROR)
+			end
+		end
+		return result
+	end
+	-- 初始化结果结构
+	local multi_result = {}
+	local is_single_field = (#fields == 1)
+	-- 为每个字段创建结果容器
+	for _, field in ipairs(fields) do
+		if is_single_field then
+			result = {} -- 单参数时使用平面列表
+		else
+			multi_result[field] = {} -- 多参数时使用字段键值表
+		end
+	end
+	-- 遍历所有配置文件
+	for _, path in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
+		local filename = vim.fn.fnamemodify(path, ":t:r")
+		local ok, config = pcall(dofile, path)
+
+		if ok and type(config) == "table" then
+			for _, field in ipairs(fields) do
+				-- 处理特殊字段 "name"
+				if field == "name" then
+					if is_single_field then
+						table.insert(result, filename)
+					else
+						table.insert(multi_result[field], filename)
+					end
+				else
+					-- 处理其他字段
+					if config[field] then
+						local value = config[field]
+						-- 处理表值（合并）
+						if type(value) == "table" then
+							for _, v in ipairs(value) do
+								local target = is_single_field and result or multi_result[field]
+								if not vim.tbl_contains(target, v) then
+									table.insert(target, v)
+								end
+							end
+						-- 处理非表值（确保唯一性）
+						else
+							local target = is_single_field and result or multi_result[field]
+							if not vim.tbl_contains(target, value) then
+								table.insert(target, value)
 							end
 						end
 					else
-						-- 添加非表值（确保唯一性）
-						local value = config[field]
-						if not vim.tbl_contains(result, value) then
-							table.insert(result, value)
-						end
+						-- 字段不存在时发出警告
+						vim.notify("Field '" .. field .. "' not found in config: " .. path, vim.log.levels.WARN)
 					end
-				else
-					-- 如果字段不存在，给出警告信息
-					vim.notify("Field '" .. field .. "' not found in config: " .. path, vim.log.levels.WARN)
 				end
 			end
 		else
-			-- 加载配置文件失败时的错误信息
 			vim.notify("Failed to load config from: " .. path, vim.log.levels.ERROR)
 		end
 	end
-	-- 根据参数类型返回不同的结果
-	if not field then
-		-- 无参数：返回完整配置表 {filename = config}
-		return result
-	elseif field == "name" then
-		-- "name" 参数：返回文件名列表
-		return result
-	else
-		-- 其他字段参数：返回字段值列表
-		return result
+	-- 返回结果
+	return is_single_field and result or multi_result
+end
+
+-- 获取支持当前文件类型的 LSP 名称列表
+function M.get_lsp_name()
+	local bufnr = vim.api.nvim_get_current_buf()
+	local current_filetype = vim.bo[bufnr].filetype
+	current_filetype = string.lower(current_filetype)
+
+	local all_configs = M.get_lsp_config() -- 获取所有 LSP 配置
+	local matched_lsp_names = {}
+
+	for lsp_name, config in pairs(all_configs) do
+		local filetypes = config.filetypes
+		if filetypes then
+			-- 处理字符串类型的 filetypes
+			if type(filetypes) == "string" then
+				filetypes = { filetypes }
+			end
+			-- 检查当前文件类型是否在配置中
+			for _, ft in ipairs(filetypes) do
+				if string.lower(ft) == current_filetype then
+					table.insert(matched_lsp_names, lsp_name)
+					break -- 找到匹配后跳出内层循环
+				end
+			end
+		end
 	end
+
+	return matched_lsp_names
 end
 
 -- 重启当前缓冲区的 LSP 客户端
 function M.restart_lsp()
-	local bufnr = vim.api.nvim_get_current_buf()
-	local current_filetype = vim.fn.nvim_get_option_value("filetype", { buf = bufnr })
-	-- 将 current_filetype 转换为小写，以防大小写不匹配
-	current_filetype = string.lower(current_filetype)
-	-- 获取所有 LSP 配置的 filetypes 字段
-	local all_filetypes = M.get_lsp_config("filetypes")
-	-- 检查当前文件类型是否在所有 LSP 配置的 filetypes 中
-	local valid_lsp_found = false
-	-- 使用 vim.fn.index 检查当前文件类型是否在 filetypes 数组中
-	if vim.fn.index(all_filetypes, current_filetype) ~= -1 then
-		valid_lsp_found = true
-	end
-	-- 如果找到匹配的 LSP 配置文件类型，则重启 LSP 客户端
-	if valid_lsp_found then
-		local clients = vim.lsp.get_clients({ bufnr = bufnr })
-		-- 停止现有客户端
-		for _, client in ipairs(clients) do
-			vim.lsp.stop_client(client.id)
-		end
-		-- 启动 LSP
-		vim.defer_fn(function()
-			vim.lsp.enable(M.get_lsp_config("name"))
-			require("utils.project_lsp_toggle").set_lsp_state(true)
-		end, 100)
-	else
-		vim.notify("No LSP found for current filetype: " .. current_filetype)
-	end
+	vim.lsp.stop_client(vim.lsp.get_clients(), true)
+	-- 延迟启动 LSP
+	vim.defer_fn(function()
+		local lsp_name = M.get_lsp_name()
+
+		vim.lsp.enable(lsp_name, true)
+		-- 更新 LSP 状态
+		require("utils.project_lsp_toggle").set_lsp_state(true)
+	end, 500)
 end
 
 -- 关闭lsp
