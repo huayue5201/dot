@@ -4,7 +4,6 @@ return {
 	"junegunn/fzf.vim",
 	event = "VeryLazy",
 	dependencies = {
-		"stevearc/aerial.nvim",
 		"junegunn/fzf",
 		build = function()
 			vim.fn["fzf#install"]()
@@ -59,6 +58,5 @@ return {
 		vim.keymap.set("n", "<leader>fw", "<cmd>Windows<cr>", { desc = "窗口索引" })
 		vim.keymap.set("n", "<leader>fc", "<cmd>History:<cr>", { desc = "历史命令" })
 		vim.keymap.set("n", "<leader>fh", "<cmd>Helptags<cr>", { desc = "帮助文档" })
-		vim.cmd([[nmap <silent> <leader>fl <cmd>call aerial#fzf()<cr>]])
 	end,
 }
