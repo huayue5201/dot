@@ -18,10 +18,8 @@ local DISABLED_FILETYPES = {
 local function get_current_project_name()
 	local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
 	local cwd = vim.fn.getcwd()
-	-- 使用 sha256 哈希函数
-	local hash = vim.fn.sha256(cwd)
-	-- 取前8位，足够唯一且较短
-	return project_name .. "-" .. hash:sub(1, 8)
+	local hash = vim.fn.sha256(cwd):sub(1, 8) -- 直接取子串
+	return project_name .. "-" .. hash
 end
 
 -- 获取当前项目显示名称（用于通知）
@@ -52,7 +50,6 @@ end
 
 -- 获取当前项目的 LSP 状态
 function M.get_lsp_state()
-	-- 如果文件类型在禁用列表中，直接返回 false
 	if should_disable_by_filetype() then
 		return false
 	end
@@ -60,17 +57,10 @@ function M.get_lsp_state()
 	local project_id = get_current_project_name()
 	local states = load_project_states()
 
-	-- 如果项目状态未设置，返回默认值（true）
-	if states[project_id] == nil then
-		return true
-	end
-
-	return states[project_id]
+	return states[project_id] == nil or states[project_id].enabled
 end
 
--- 设置当前项目的 LSP 状态
 function M.set_lsp_state(enabled)
-	-- 文件类型禁用时不允许手动启用
 	if should_disable_by_filetype() then
 		vim.notify("LSP cannot be enabled for this file type", vim.log.levels.WARN)
 		return
@@ -79,30 +69,42 @@ function M.set_lsp_state(enabled)
 	local project_id = get_current_project_name()
 	local project_name = get_project_display_name()
 	local states = load_project_states()
+	local lsp_name = require("config.lsp").get_lsp_name()
 
-	-- 检查状态是否实际变化
-	if states[project_id] == enabled then
+	if not lsp_name then
+		vim.notify("No LSP client found for this buffer", vim.log.levels.WARN)
 		return
 	end
 
-	states[project_id] = enabled
-	save_project_states(states)
+	-- 统一处理 LSP 名称格式（确保是字符串）
+	lsp_name = type(lsp_name) == "table" and table.concat(lsp_name, ", ") or lsp_name
 
-	-- 更新全局状态
+	-- 检查状态是否需要更新
+	if states[project_id] and states[project_id].enabled == enabled then
+		return
+	end
+
+	-- 更新状态
+	states[project_id] = states[project_id] or {}
+	states[project_id].enabled = enabled
+	states[project_id].lsp_name = lsp_name
+
+	save_project_states(states)
 	vim.g.lsp_enabled = enabled
-	vim.notify("LSP " .. (enabled and "enabled" or "disabled") .. " for project: " .. project_name)
+
+	vim.notify(
+		"LSP " .. (enabled and "enabled" or "disabled") .. " for project: " .. project_name .. " using " .. lsp_name
+	)
 end
 
 -- 初始化 LSP 状态
 function M.init()
-	-- 根据文件类型或项目状态设置 LSP
 	vim.g.lsp_enabled = M.get_lsp_state()
+	local pattern = table.concat(DISABLED_FILETYPES, ",") -- 缓存模式字符串
 
-	-- 设置文件类型变化的自动命令
 	vim.api.nvim_create_autocmd("FileType", {
-		pattern = table.concat(DISABLED_FILETYPES, ","),
+		pattern = pattern,
 		callback = function()
-			-- 当切换到禁用文件类型时自动关闭 LSP
 			if vim.g.lsp_enabled then
 				vim.g.lsp_enabled = false
 				vim.notify("LSP disabled for filetype: " .. vim.bo.filetype, vim.log.levels.INFO)
@@ -110,23 +112,16 @@ function M.init()
 		end,
 	})
 
-	-- 当离开禁用文件类型时恢复项目状态
 	vim.api.nvim_create_autocmd("BufLeave", {
-		pattern = table.concat(DISABLED_FILETYPES, ","),
+		pattern = pattern,
 		callback = function()
 			if not should_disable_by_filetype() then
-				local project_id = get_current_project_name()
-				local states = load_project_states()
-				-- 只有当项目处于禁用状态时才恢复
-				if states[project_id] ~= false then
-					vim.g.lsp_enabled = true
-				end
+				vim.g.lsp_enabled = M.get_lsp_state()
 			end
 		end,
 	})
 end
 
--- 获取当前禁用的文件类型列表
 function M.get_disabled_filetypes()
 	return DISABLED_FILETYPES
 end

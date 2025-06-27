@@ -3,10 +3,8 @@ local M = {}
 local function get_lsp_name()
 	-- 获取当前文件类型
 	local filetype = vim.bo.filetype
-
 	-- 获取所有的 LSP 配置
 	local lsp_configs = require("config.lsp").get_lsp_config()
-
 	-- 遍历所有 LSP 配置
 	for lsp_name, config in pairs(lsp_configs) do
 		-- 如果当前文件类型在 LSP 配置的 filetypes 中
@@ -45,8 +43,8 @@ end
 
 local function get_elements()
 	local elements = {
-		get_lsp_info(),
 		get_file_type(),
+		get_lsp_info(),
 		get_lint_info(),
 	}
 
@@ -96,8 +94,8 @@ function M.show_statusboard()
 	vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
 
 	-- 设置窗口高亮和焦点
-	vim.api.nvim_win_set_option(win, "winhl", "Normal:NormalFloat")
-	vim.api.nvim_win_set_option(win, "winblend", 30) -- 添加半透明效果
+	vim.api.nvim_set_option_value("winhl", "Normal:NormalFloat", { win = win })
+	vim.api.nvim_set_option_value("winblend", 30, { win = win })
 
 	-- 添加退出键映射
 	vim.api.nvim_buf_set_keymap(buf, "n", "<Esc>", "<cmd>q<cr>", { silent = true, nowait = true })
