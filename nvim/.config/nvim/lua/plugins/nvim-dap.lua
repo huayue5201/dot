@@ -55,14 +55,9 @@ return {
 			dap.defaults.fallback[key] = value
 		end
 
-		-- 定义 _dap_continue 函数来调用 dap.continue
-		_G._dap_continue = function()
-			dap.continue() -- 调用 dap.continue 方法
-		end
-		vim.keymap.set("n", "<leader>dc", function()
-			vim.o.operatorfunc = "v:lua._dap_continue" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "继续/启动调试" })
+		local opts = { operator_opts = { motion = "l" }, silent = true }
+
+		vim.operator("n", "<leader>dc", dap.continue, { opts, desc = "继续/启动调试" })
 
 		vim.keymap.set("n", "<leader>dd", function()
 			dap.terminate({
@@ -74,13 +69,8 @@ return {
 			})
 		end, { silent = true, desc = "终止调试" })
 
-		_G._toggle_breakpoint = function()
-			dap.toggle_breakpoint()
-		end
-		vim.keymap.set("n", "<leader>b", function()
-			vim.o.operatorfunc = "v:lua._toggle_breakpoint" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "设置/取消断点" })
+		-- 使用 operator 创建操作符并映射
+		vim.operator("n", "<leader>b", dap.toggle_breakpoint, { opts, desc = "设置/取消断点" })
 
 		vim.keymap.set("n", "<leader>B", function()
 			dap.set_exception_breakpoints()
@@ -170,45 +160,15 @@ return {
 
 		vim.keymap.set("n", "<leader>dnl", dap.run_last, { silent = true, desc = "运行上次会话" })
 
-		_G._dap_step_over = function()
-			dap.step_over()
-		end
-		vim.keymap.set("n", "<leader>dno", function()
-			vim.o.operatorfunc = "v:lua._dap_step_over" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "单步跳过" })
+		vim.operator("n", "<leader>dno", dap.step_over, { opts, desc = "单步跳过" })
 
-		_G._dap_step_into = function()
-			dap.step_out()
-		end
-		vim.keymap.set("n", "<leader>dni", function()
-			vim.o.operatorfunc = "v:lua._dap_step_into" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "单步进入" })
+		vim.operator("n", "<leader>dni", dap.step_out, { opts, desc = "单步进入" })
 
-		_G._dap_step_out = function()
-			dap.step_out()
-		end
-		vim.keymap.set("n", "<leader>dnu", function()
-			vim.o.operatorfunc = "v:lua._dap_step_out" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "单步跳出" })
+		vim.operator("n", "<leader>dnu", dap.step_out, { opts, desc = "单步跳出" })
 
-		_G._dap_step_back = function()
-			dap.step_back()
-		end
-		vim.keymap.set("n", "<leader>dnb", function()
-			vim.o.operatorfunc = "v:lua._dap_step_back" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "逆向单步" })
+		vim.operator("n", "<leader>dnb", dap.step_back, { opts, desc = "逆向单步" })
 
-		_G._dap_run_to_cursor = function()
-			dap.run_to_cursor()
-		end
-		vim.keymap.set("n", "<leader>dnc", function()
-			vim.o.operatorfunc = "v:lua._dap_run_to_cursor" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "运行到光标位置" })
+		vim.operator("n", "<leader>dnc", dap.run_to_cursor, { opts, desc = "运行到光标位置" })
 
 		vim.keymap.set("n", "<leader>dnr", dap.reverse_continue, { silent = true, desc = "逆向继续" })
 
@@ -216,21 +176,9 @@ return {
 
 		vim.keymap.set("n", "<leader>ds", dap.pause, { silent = true, desc = "暂停线程" })
 
-		_G._dap_up = function()
-			dap.up()
-		end
-		vim.keymap.set("n", "<leader>dgk", function()
-			vim.o.operatorfunc = "v:lua._dap_up" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "上一个断点" })
+		vim.operator("n", "<leader>dgk", dap.up, { opts, desc = "上一个断点" })
 
-		_G._dap_down = function()
-			dap.down()
-		end
-		vim.keymap.set("n", "<leader>dgj", function()
-			vim.o.operatorfunc = "v:lua._dap_down" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "下一个断点" })
+		vim.operator("n", "<leader>dgj", dap.down, { opts, desc = "下一个断点" })
 
 		vim.keymap.set("n", "<leader>dgg", dap.focus_frame, { silent = true, desc = "跳转到当前帧" })
 
@@ -321,13 +269,9 @@ return {
 
 		local widgets = require("dap.ui.widgets")
 
-		_G._dap_hover = function()
+		vim.operator("n", "<leader>dlk", function()
 			widgets.hover(nil, { border = "rounded" })
-		end
-		vim.keymap.set("n", "<leader>dlk", function()
-			vim.o.operatorfunc = "v:lua._dap_hover" -- 使用一个正确的函数名
-			vim.cmd.normal("g@l") -- 执行操作符
-		end, { silent = true, desc = "查看变量" })
+		end, { opts, desc = "查看变量" })
 
 		vim.keymap.set("n", "<leader>dle", function()
 			widgets.preview(nil, {

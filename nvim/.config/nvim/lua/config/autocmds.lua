@@ -30,9 +30,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			vim.lsp.stop_client(args.data.client_id, true)
 		else
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
-			-- print("LspAttach", client.name)
-			-- local capabilities = vim.lsp.get_clients()[1].server_capabilities
-			-- print(vim.inspect(capabilities))
 			lsp.diagnostic_config() -- 设置诊断配置
 			lsp.inlay_hint_handler() -- 设置插入模式内联提示处理
 			lsp.set_keymaps() -- 设置按键映射
@@ -191,7 +188,7 @@ vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
 -- 				if clipboard_content ~= "" then
 -- 					vim.defer_fn(function()
 -- 						vim.fn.setreg("+", clipboard_content)
--- 					end, 20)
+-- 					end, 100)
 -- 				end
 -- 			end
 -- 		end
