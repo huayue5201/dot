@@ -42,7 +42,7 @@ vim.keymap.set(
 	{ desc = "打开/关闭 LSP 诊断" }
 )
 
-vim.keymap.set("n", "<c-/>", "<cmd>lua require'utils.LineWrapPreview'.preview_long_line()<CR>", { desc = "预览" })
+vim.keymap.set("n", "<c-/>", "<cmd>lua require'utils.line_wrap_preview'.preview_long_line()<CR>", { desc = "预览" })
 vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "重新加载当前buffer" })
 vim.keymap.set("n", "<leader>tor", "<cmd>restart<cr>", { silent = true, desc = "热重启nvim" })
 
@@ -60,13 +60,14 @@ vim.keymap.set(
 	{ silent = false, desc = "在当前视口中搜索" }
 )
 
-vim.keymap.set("n", "<leader>os", function()
+vim.keymap.set("n", "<leader>eo", function()
 	require("utils.cross_config").choose_chip()
 end, { desc = "配置切换" })
 
-vim.keymap.set("n", "<leader>or", function()
-	require("utils.neotask").build()
-end, { desc = "选择构建操作" })
+local task = require("utils.task_system")
+vim.keymap.set("n", "<leader>or", task.build, { desc = "选择任务" })
+vim.keymap.set("n", "<leader>os", task.cancel_task, { desc = "终止任务" })
+vim.keymap.set("n", "<leader>oc", task.clear_task_cache, { desc = "清理任务缓存" })
 
 vim.keymap.set("n", "<leader>yp", function()
 	vim.fn.setreg("+", vim.fn.expand("%:p"))
