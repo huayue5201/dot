@@ -1,36 +1,45 @@
 return {
-	name = "Load Date",
 	label = "Load Date (make + openocd)",
 	project_type = "make",
-	run = function()
-		local run_job = require("utils.neotask").run_job
-		return run_job("make", {
-			on_exit = function(_, code)
-				if code ~= 0 then
-					vim.notify("❌ make 构建失败，终止 Load Date", vim.log.levels.ERROR)
-					return
-				end
+	steps = {
+		{
+			label = "构建项目",
+			cmd = { "make" },
+			on_complete = function(output)
+				vim.notify("✔️ make 构建成功", vim.log.levels.INFO)
+			end,
+			on_fail = function(output)
+				vim.notify("❌ make 构建失败，终止 Load Date", vim.log.levels.ERROR)
+			end,
+		},
+		{
+			label = "加载程序",
+			cmd = function()
 				local program_binary = require("utils.program_binary")
 				local binary_file = program_binary.safe_get_program_binary("elf")
+
 				if not binary_file or binary_file == "" then
 					vim.notify("找不到 ELF 文件，终止 Load Date", vim.log.levels.ERROR)
-					return
+					return {} -- 返回空命令表示跳过此步骤
 				end
 
 				local openocd_template = vim.g.selected_chip_config.openocd_template
-				-- 替换模板中的 {binary_file} 为实际的文件路径
 				local openocd_cmd = openocd_template:gsub("{binary_file}", binary_file)
 
-				run_job(openocd_cmd, {
-					on_exit = function(_, ocd_code)
-						if ocd_code == 0 then
-							vim.notify("✔️ Load Date 任务完成", vim.log.levels.INFO)
-						else
-							vim.notify("❌ Load Date 任务失败", vim.log.levels.ERROR)
-						end
-					end,
-				})
+				-- 将命令字符串拆分为表
+				local cmd_parts = {}
+				for word in openocd_cmd:gmatch("%S+") do
+					table.insert(cmd_parts, word)
+				end
+
+				return cmd_parts
 			end,
-		})
-	end,
+			on_complete = function(output)
+				vim.notify("✔️ Load Date 任务完成", vim.log.levels.INFO)
+			end,
+			on_fail = function(output)
+				vim.notify("❌ Load Date 任务失败", vim.log.levels.ERROR)
+			end,
+		},
+	},
 }

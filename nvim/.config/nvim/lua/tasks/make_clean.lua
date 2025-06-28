@@ -1,17 +1,8 @@
 return {
-	name = "Make Clean",
-	label = "make clean",
+	label = "Make: 清理构建",
 	project_type = "make",
-	run = function()
-		local run_job = require("utils.neotask").run_job
-		return run_job("make clean", {
-			on_exit = function(_, code)
-				if code == 0 then
-					vim.notify("✔️ clean 成功", vim.log.levels.INFO)
-				else
-					vim.notify("❌ clean 失败", vim.log.levels.ERROR)
-				end
-			end,
-		})
+	cmd = { "make", "clean" },
+	on_complete = function(output)
+		vim.notify("✔️ 清理完成", vim.log.levels.INFO)
 	end,
 }
