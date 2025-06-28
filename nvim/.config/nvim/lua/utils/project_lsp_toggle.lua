@@ -8,12 +8,6 @@ local state_store = json_store:new({
 	default_data = {},
 })
 
--- 需要禁用 LSP 的文件类型列表
-local DISABLED_FILETYPES = {
-	"gitcommit",
-	"help",
-}
-
 -- 获取当前项目标识（使用路径的哈希值）
 local function get_current_project_name()
 	local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
@@ -37,23 +31,8 @@ local function save_project_states(states)
 	return state_store:save(states)
 end
 
--- 检查当前文件类型是否需要禁用 LSP
-local function should_disable_by_filetype()
-	local ft = vim.bo.filetype
-	for _, disabled_ft in ipairs(DISABLED_FILETYPES) do
-		if ft == disabled_ft then
-			return true
-		end
-	end
-	return false
-end
-
 -- 获取当前项目的 LSP 状态
 function M.get_lsp_state()
-	if should_disable_by_filetype() then
-		return false
-	end
-
 	local project_id = get_current_project_name()
 	local states = load_project_states()
 
@@ -61,11 +40,6 @@ function M.get_lsp_state()
 end
 
 function M.set_lsp_state(enabled)
-	if should_disable_by_filetype() then
-		vim.notify("LSP cannot be enabled for this file type", vim.log.levels.WARN)
-		return
-	end
-
 	local project_id = get_current_project_name()
 	local project_name = get_project_display_name()
 	local states = load_project_states()
@@ -100,30 +74,6 @@ end
 -- 初始化 LSP 状态
 function M.init()
 	vim.g.lsp_enabled = M.get_lsp_state()
-	local pattern = table.concat(DISABLED_FILETYPES, ",") -- 缓存模式字符串
-
-	vim.api.nvim_create_autocmd("FileType", {
-		pattern = pattern,
-		callback = function()
-			if vim.g.lsp_enabled then
-				vim.g.lsp_enabled = false
-				vim.notify("LSP disabled for filetype: " .. vim.bo.filetype, vim.log.levels.INFO)
-			end
-		end,
-	})
-
-	vim.api.nvim_create_autocmd("BufLeave", {
-		pattern = pattern,
-		callback = function()
-			if not should_disable_by_filetype() then
-				vim.g.lsp_enabled = M.get_lsp_state()
-			end
-		end,
-	})
-end
-
-function M.get_disabled_filetypes()
-	return DISABLED_FILETYPES
 end
 
 return M
