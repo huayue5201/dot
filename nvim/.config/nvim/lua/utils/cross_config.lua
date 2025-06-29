@@ -166,7 +166,7 @@ function M.load_chip_config_on_startup()
 	-- 1. 尝试加载缓存配置
 	if selected_chip and chip_configs[selected_chip] then
 		vim.g.selected_chip_config = chip_configs[selected_chip]
-		vim.notify(("加载芯片配置: %s -> %s"):format(project_name, selected_chip), vim.log.levels.INFO)
+		-- vim.notify(("加载芯片配置: %s -> %s"):format(project_name, selected_chip), vim.log.levels.INFO)
 		return
 	end
 
