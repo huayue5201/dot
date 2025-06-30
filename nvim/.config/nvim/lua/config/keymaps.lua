@@ -29,7 +29,7 @@ vim.keymap.set("n", "<localleader>q", "<cmd>Toggle quickfix<cr>", { desc = "Togg
 vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
 local lsp = require("config.lsp")
-vim.keymap.set("n", "<leader>ol", lsp.restart_lsp, { silent = true, desc = "重启 LSP" })
+vim.keymap.set("n", "<leader>tol", lsp.restart_lsp, { silent = true, desc = "重启 LSP" })
 vim.keymap.set("n", "<leader>rl", lsp.stop_lsp, { silent = true, desc = "关闭 LSP" })
 vim.keymap.set("n", "<leader>ll", lsp.open_buffer_diagnostics, { desc = "查看 buffer 诊断（Loclist）" })
 vim.keymap.set("n", "<leader>lq", lsp.open_all_diagnostics, { desc = "打开所有诊断（Quickfix）" })
@@ -63,11 +63,6 @@ vim.keymap.set(
 vim.keymap.set("n", "<leader>eo", function()
 	require("utils.cross_config").choose_chip()
 end, { desc = "配置切换" })
-
-local task = require("utils.task_system")
-vim.keymap.set("n", "<leader>or", task.build, { desc = "选择任务" })
-vim.keymap.set("n", "<leader>os", task.cancel_task, { desc = "终止任务" })
-vim.keymap.set("n", "<leader>oc", task.clear_task_cache, { desc = "清理任务缓存" })
 
 vim.keymap.set("n", "<leader>yp", function()
 	vim.fn.setreg("+", vim.fn.expand("%:p"))
