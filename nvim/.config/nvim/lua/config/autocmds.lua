@@ -1,3 +1,19 @@
+vim.api.nvim_create_autocmd("ModeChanged", {
+	pattern = "*:*",
+	callback = function()
+		local mode = vim.fn.mode()
+		if mode == "n" or mode == "\22" then
+			vim.opt.virtualedit = "all"
+		end
+		if mode == "i" then
+			vim.opt.virtualedit = "block"
+		end
+		if mode == "v" or mode == "V" then
+			vim.opt.virtualedit = "onemore"
+		end
+	end,
+})
+
 -- 自动删除尾随空格
 vim.api.nvim_create_autocmd("BufWritePre", {
 	pattern = "*",
