@@ -64,8 +64,7 @@ vim.defer_fn(function()
 				client.server_capabilities.publishDiagnostics = true
 			end,
 		})
-
-		require("TaskMaster").setup() -- 任务系统
+		require("BrickDAG").setup() -- 任务系统
 		require("utils.dotenv").load() -- token加载模块
 		require("utils.info-dashboard") -- 信息看版
 		require("utils.cross_config").load_chip_config_on_startup() -- 在 Neovim 启动时加载平台配置
