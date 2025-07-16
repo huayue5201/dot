@@ -103,48 +103,59 @@ function M.setup_navigation_keymaps(keymaps)
 	local default_keymaps = {
 		open_nav = "<leader>tn", -- 打开任务导航
 		close_nav = "<leader>tc", -- 关闭任务导航
-		nav_back = "<BS>", -- 导航返回
-		nav_up = "<Up>", -- 上移选择
-		nav_down = "<Down>", -- 下移选择
+		nav_back = "h", -- ← 返回上层
+		nav_enter = "l", -- → 进入依赖
+		nav_up = "k", -- ↑ 上移
+		nav_down = "j", -- ↓ 下移
 	}
 
 	local km = vim.tbl_extend("force", default_keymaps, keymaps or {})
 
 	-- 打开任务导航
 	vim.keymap.set("n", km.open_nav, function()
-		ui.show_all_tasks() -- 直接使用已加载的ui模块
+		ui.show_all_tasks()
 	end, { desc = "打开任务导航" })
 
 	-- 关闭任务导航
 	vim.keymap.set("n", km.close_nav, function()
-		ui.close_navigation() -- 直接使用已加载的ui模块
+		ui.close_navigation()
 	end, { desc = "关闭任务导航" })
 
-	-- 导航返回（仅在导航界面有效）
+	-- 返回上层（左移）
 	vim.keymap.set("n", km.nav_back, function()
 		if ui.is_in_navigation() then
-			require("BrickDAG.ui.task_display_controller").navigate_back()
-			return true -- 消费按键
+			ui.navigate_back()
+			return ""
 		end
-		return false -- 不消费按键
-	end, { desc = "任务导航返回", expr = true })
+		return "h"
+	end, { desc = "任务导航返回", expr = true, noremap = true })
 
-	-- 上下选择（仅在导航界面有效）
+	-- 进入依赖（右移）
+	vim.keymap.set("n", km.nav_enter, function()
+		if ui.is_in_navigation() then
+			ui.navigate_into()
+			return ""
+		end
+		return "l"
+	end, { desc = "任务导航进入", expr = true, noremap = true })
+
+	-- 上移选择
 	vim.keymap.set("n", km.nav_up, function()
 		if ui.is_in_navigation() then
-			require("BrickDAG.ui.task_display_controller").navigate_selection(-1)
-			return true -- 消费按键
+			ui.navigate_selection(-1)
+			return ""
 		end
-		return false -- 不消费按键
-	end, { desc = "任务导航上移", expr = true })
+		return "k"
+	end, { desc = "任务导航上移", expr = true, noremap = true })
 
+	-- 下移选择
 	vim.keymap.set("n", km.nav_down, function()
 		if ui.is_in_navigation() then
-			require("BrickDAG.ui.task_display_controller").navigate_selection(1)
-			return true -- 消费按键
+			ui.navigate_selection(1)
+			return ""
 		end
-		return false -- 不消费按键
-	end, { desc = "任务导航下移", expr = true })
+		return "j"
+	end, { desc = "任务导航下移", expr = true, noremap = true })
 end
 
 --- 选择任务并加入队列

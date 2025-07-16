@@ -25,31 +25,38 @@ function M.render(bufnr, ctx)
 end
 
 function M.attach_keymaps(bufnr)
-	-- 回车键：深入任务
-	vim.api.nvim_buf_set_keymap(bufnr, "n", "<CR>", "", {
+	local set = vim.api.nvim_buf_set_keymap
+
+	-- 向右进入：l
+	set(bufnr, "n", "l", "", {
 		callback = function()
 			display_ctrl.navigate_into_task()
 		end,
+		desc = "进入任务依赖",
 	})
 
-	-- 退格键：返回上层
-	vim.api.nvim_buf_set_keymap(bufnr, "n", "<BS>", "", {
+	-- 向左返回：h
+	set(bufnr, "n", "h", "", {
 		callback = function()
 			display_ctrl.navigate_back()
 		end,
+		desc = "返回上层任务",
 	})
 
-	-- 上下导航
-	vim.api.nvim_buf_set_keymap(bufnr, "n", "<Up>", "", {
-		callback = function()
-			display_ctrl.navigate_selection(-1)
-		end,
-	})
-
-	vim.api.nvim_buf_set_keymap(bufnr, "n", "<Down>", "", {
+	-- 向下选择：j
+	set(bufnr, "n", "j", "", {
 		callback = function()
 			display_ctrl.navigate_selection(1)
 		end,
+		desc = "选择下一个任务",
+	})
+
+	-- 向上选择：k
+	set(bufnr, "n", "k", "", {
+		callback = function()
+			display_ctrl.navigate_selection(-1)
+		end,
+		desc = "选择上一个任务",
 	})
 end
 

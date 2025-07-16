@@ -60,12 +60,6 @@ vim.keymap.set(
 	{ silent = false, desc = "在当前视口中搜索" }
 )
 
--- BrickDAG/ui/keymap_binder.lua
-local manager = require("BrickDAG.ui.tri_window_manager")
-
-vim.keymap.set("n", "<leader>oo", manager.open, { desc = "Open triple windows" })
-vim.keymap.set("n", "<leader>oc", manager.close_all, { desc = "Close triple windows" })
-
 vim.keymap.set("n", "<leader>eo", function()
 	require("utils.cross_config").choose_chip()
 end, { desc = "配置切换" })
