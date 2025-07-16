@@ -1,36 +1,79 @@
-local state = require("BrickDAG.ui.state")
-local display_ctrl = require("BrickDAG.ui.task_display_controller")
+local state = require("BrickDAG.ui.state_machine")
+local winman = require("BrickDAG.ui.window_manager")
 local task_loader = require("BrickDAG.core.task_loader")
-local winman = require("BrickDAG.ui.tri_window_manager")
 
 local M = {}
 
 function M.show_all_tasks()
-	-- 确保窗口关闭状态
-	winman.close_all()
-
-	-- 加载真实任务数据
 	local root_tasks = task_loader.load_tasks()
-
-	-- 初始化状态
 	state.init(root_tasks)
-
-	-- 打开三窗口布局
 	winman.open()
-
-	-- 渲染导航
-	display_ctrl.render_navigation()
+	winman.update_all()
+	M.attach_keymaps()
 end
 
--- 关闭任务导航界面
+function M.attach_keymaps()
+	vim.api.nvim_create_autocmd("WinEnter", {
+		callback = function()
+			if winman.is_in_navigation() then
+				-- 导航快捷键
+				vim.keymap.set("n", "l", M.navigate_into, { buffer = true, desc = "进入积木列表" })
+				vim.keymap.set("n", "h", M.navigate_back, { buffer = true, desc = "返回上层" })
+				vim.keymap.set("n", "j", function()
+					M.navigate_selection(1)
+				end, { buffer = true, desc = "下移选择" })
+				vim.keymap.set("n", "k", function()
+					M.navigate_selection(-1)
+				end, { buffer = true, desc = "上移选择" })
+				vim.keymap.set("n", "q", M.close_navigation, { buffer = true, desc = "关闭导航" })
+
+				-- 添加运行任务快捷键
+				vim.keymap.set("n", "<CR>", M.run_selected_task, { buffer = true, desc = "运行选中任务" })
+			end
+		end,
+	})
+end
+
+function M.run_selected_task()
+	local state_machine = require("BrickDAG.ui.state_machine")
+	local current_layer = state_machine.current_layer()
+	if not current_layer then
+		return
+	end
+
+	local selected = current_layer.current[current_layer.selected_index]
+	if not selected then
+		return
+	end
+
+	-- 只运行任务，不运行积木参数
+	if selected.type and not selected.brick_type then
+		require("BrickDAG").run_task(selected)
+		vim.notify("任务开始执行: " .. selected.name, vim.log.levels.INFO)
+	end
+end
+
 function M.close_navigation()
 	winman.close_all()
-	state.init({}) -- 重置状态
 end
 
--- 检查是否在任务导航界面
 function M.is_in_navigation()
-	return winman.is_open()
+	return winman.is_in_navigation()
+end
+
+function M.navigate_into()
+	state.navigate_into()
+	winman.update_all()
+end
+
+function M.navigate_back()
+	state.navigate_back()
+	winman.update_all()
+end
+
+function M.navigate_selection(delta)
+	state.update_selection(delta)
+	winman.update_all()
 end
 
 return M
