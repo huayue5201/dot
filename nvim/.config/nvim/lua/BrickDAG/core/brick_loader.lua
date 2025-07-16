@@ -1,65 +1,80 @@
--- bricks/brick_loader.lua
+-- lua/BrickDAG/core/brick_loader.lua
+
 local uv = vim.loop
 local registry = require("BrickDAG.core.bricks_registry")
 local interface = require("BrickDAG.core.interface")
 
 local M = {}
 
--- 排除列表：这些文件不是积木，不应注册
-local exclude_files = {
-	-- ["brick_loader.lua"] = true,
-	-- ["registry.lua"] = true,
-}
-
--- 加载所有积木模块
+--- 加载所有积木模块（基础积木和框架积木）
+--- 根据目录结构分别加载 `base` 和 `frame` 类型积木，
+--- 并调用对应的接口验证函数，确保模块符合契约，
+--- 验证通过后注册到积木注册表中
 function M.load_all()
-	-- 获取bricks目录路径
+	-- 获取积木根目录路径
 	local base_path = vim.fn.stdpath("config") .. "/lua/BrickDAG/bricks/"
 
-	local handle = uv.fs_scandir(base_path)
-	if not handle then
-		vim.notify("无法扫描bricks目录: " .. base_path, vim.log.levels.ERROR)
-		return
-	end
+	-- 积木目录和对应类型配置
+	local brick_dirs = {
+		{ type = "base", path = base_path .. "base/" },
+		{ type = "frame", path = base_path .. "frame/" },
+	}
 
-	while true do
-		local name, typ = uv.fs_scandir_next(handle)
-		if not name then
-			break
+	-- 遍历基础积木和框架积木目录
+	for _, dir_info in ipairs(brick_dirs) do
+		local brick_type = dir_info.type
+		local dir_path = dir_info.path
+
+		-- 扫描目录文件
+		local handle = uv.fs_scandir(dir_path)
+		if not handle then
+			vim.notify("无法扫描积木目录: " .. dir_path, vim.log.levels.ERROR)
+			goto continue
 		end
 
-		-- 只加载.lua文件，且不在排除列表
-		if name:match("%.lua$") and not exclude_files[name] then
-			local modname = "BrickDAG.bricks." .. name:gsub("%.lua$", "")
+		while true do
+			-- 读取目录下的文件名
+			local name, typ = uv.fs_scandir_next(handle)
+			if not name then
+				break
+			end
 
-			local ok, mod = pcall(require, modname)
-			if not ok then
-				vim.notify("加载积木失败: " .. modname, vim.log.levels.ERROR)
-			else
-				-- 接口契约验证
-				local valid, err
-				if mod.brick_type == "base" then
-					valid, err = interface.validate_base_brick(mod)
-				elseif mod.brick_type == "frame" then
-					valid, err = interface.validate_frame_brick(mod)
-				end
+			-- 只加载 lua 文件
+			if name:match("%.lua$") then
+				-- 构造模块名
+				local modname = "BrickDAG.bricks." .. brick_type .. "." .. name:gsub("%.lua$", "")
 
-				if valid then
-					if mod.brick_type == "base" then
-						registry.register_base_brick(mod)
-						vim.notify("已注册基础积木: " .. mod.name, vim.log.levels.INFO)
-					elseif mod.brick_type == "frame" then
-						registry.register_frame_brick(mod)
-						vim.notify("已注册框架积木: " .. mod.name, vim.log.levels.INFO)
-					end
+				-- 保护式加载模块，避免异常崩溃
+				local ok, mod = pcall(require, modname)
+				if not ok then
+					vim.notify("加载积木失败: " .. modname, vim.log.levels.ERROR)
 				else
-					vim.notify(
-						"积木接口验证失败: " .. modname .. " - " .. (err or "未知错误"),
-						vim.log.levels.ERROR
-					)
+					-- 根据积木类型调用对应的接口验证函数
+					local valid, err
+					if brick_type == "base" then
+						valid, err = interface.validate_base_brick(mod)
+					else
+						valid, err = interface.validate_frame_brick(mod)
+					end
+
+					-- 验证通过则注册积木
+					if valid then
+						if brick_type == "base" then
+							registry.register_base_brick(mod)
+						else
+							registry.register_frame_brick(mod)
+						end
+					else
+						vim.notify(
+							"积木接口验证失败: " .. modname .. " - " .. (err or "未知错误"),
+							vim.log.levels.ERROR
+						)
+					end
 				end
 			end
 		end
+
+		::continue::
 	end
 end
 

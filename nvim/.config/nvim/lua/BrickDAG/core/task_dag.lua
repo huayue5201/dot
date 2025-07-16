@@ -108,4 +108,77 @@ function TaskDAG:get_task(task_id)
 	return self.nodes[task_id]
 end
 
+--- 获取任务执行层级（用于并行分组）
+--- @return table[] 按执行层级分组的任务列表
+function TaskDAG:get_execution_levels()
+	local indegree = self:calculate_indegrees()
+	local levels = {}
+	local current_level = 1
+	levels[current_level] = {}
+
+	-- 初始化：入度为0的节点加入第一层
+	for node_id, deg in pairs(indegree) do
+		if deg == 0 then
+			table.insert(levels[current_level], {
+				id = node_id,
+				task = self:get_task(node_id),
+			})
+		end
+	end
+
+	-- 层级遍历
+	while #levels[current_level] > 0 do
+		levels[current_level + 1] = {}
+
+		-- 处理当前层级的每个任务
+		for _, task_info in ipairs(levels[current_level]) do
+			local node_id = task_info.id
+
+			-- 更新后继节点的入度
+			if self.reverse_edges[node_id] then
+				for successor in pairs(self.reverse_edges[node_id]) do
+					indegree[successor] = indegree[successor] - 1
+
+					-- 入度为0的任务加入下一层
+					if indegree[successor] == 0 then
+						table.insert(levels[current_level + 1], {
+							id = successor,
+							task = self:get_task(successor),
+						})
+					end
+				end
+			end
+		end
+
+		current_level = current_level + 1
+	end
+
+	-- 移除空的最后一层
+	if #levels[current_level] == 0 then
+		levels[current_level] = nil
+	end
+
+	return levels
+end
+
+--- 计算所有节点的入度
+--- @return table<string, number> 节点ID到入度的映射
+function TaskDAG:calculate_indegrees()
+	local in_degree = {}
+
+	-- 初始化所有节点入度为0
+	for node_id in pairs(self.nodes) do
+		in_degree[node_id] = 0
+	end
+
+	-- 计算实际入度
+	for _, deps in pairs(self.edges) do
+		for dep_id in pairs(deps) do
+			in_degree[dep_id] = (in_degree[dep_id] or 0) + 1
+		end
+	end
+
+	return in_degree
+end
+
 return TaskDAG

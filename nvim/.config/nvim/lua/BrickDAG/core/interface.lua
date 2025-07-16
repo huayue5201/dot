@@ -1,49 +1,38 @@
--- core/interface.lua
 local M = {}
 
---- @class BaseBrick
---- @field name string 积木名称
---- @field brick_type "base" 积木类型
---- @field resolve fun(value: any, context: table): any 参数解析方法
-
---- @class FrameBrick
---- @field name string 框架名称
---- @field brick_type "frame" 框架类型
---- @field execute fun(exec_context: table): boolean, string 执行方法
-
 --- 验证基础积木接口
---- @param brick table
---- @return boolean valid, string? error
-function M.validate_base_brick(brick)
-	if type(brick.name) ~= "string" then
-		return false, "Base brick must have a string 'name' field"
+--- @param mod table
+--- @return boolean, string?  是否有效，错误信息
+function M.validate_base_brick(mod)
+	if not mod.name or type(mod.name) ~= "string" then
+		return false, "基础积木必须包含字符串类型的 'name' 字段"
 	end
 
-	if brick.brick_type ~= "base" then
-		return false, "Base brick must have brick_type = 'base'"
+	if mod.brick_type ~= "base" then
+		return false, "基础积木的 brick_type 必须是 'base'"
 	end
 
-	if type(brick.resolve) ~= "function" then
-		return false, "Base brick must implement 'resolve' function"
+	if type(mod.resolve) ~= "function" then
+		return false, "基础积木必须实现 'resolve' 函数"
 	end
 
 	return true
 end
 
 --- 验证框架积木接口
---- @param frame table
---- @return boolean valid, string? error
-function M.validate_frame_brick(frame)
-	if type(frame.name) ~= "string" then
-		return false, "Frame brick must have a string 'name' field"
+--- @param mod table
+--- @return boolean, string? 是否有效，错误信息
+function M.validate_frame_brick(mod)
+	if not mod.name or type(mod.name) ~= "string" then
+		return false, "框架积木必须包含字符串类型的 'name' 字段"
 	end
 
-	if frame.brick_type ~= "frame" then
-		return false, "Frame brick must have brick_type = 'frame'"
+	if mod.brick_type ~= "frame" then
+		return false, "框架积木的 brick_type 必须是 'frame'"
 	end
 
-	if type(frame.execute) ~= "function" then
-		return false, "Frame brick must implement 'execute' function"
+	if type(mod.execute) ~= "function" then
+		return false, "框架积木必须实现 'execute' 函数"
 	end
 
 	return true

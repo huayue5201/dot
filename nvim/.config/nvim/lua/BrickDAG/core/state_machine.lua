@@ -65,4 +65,17 @@ function StateMachine:on_state_change(callback)
 	table.insert(self.listeners, callback)
 end
 
+--- 检查是否允许从当前状态转换到目标状态
+--- @param new_state string
+--- @return boolean
+function StateMachine:can_transition(new_state)
+	return valid_transitions[self.state] and valid_transitions[self.state][new_state] or false
+end
+
+--- 获取所有可能的状态转换
+--- @return table
+function StateMachine:get_possible_transitions()
+	return valid_transitions[self.state] and vim.tbl_keys(valid_transitions[self.state]) or {}
+end
+
 return StateMachine
