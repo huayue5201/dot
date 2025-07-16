@@ -1,16 +1,27 @@
--- core/task_runner.lua
+-- lua/BrickDAG/core/task_runner.lua
+
 local TaskDAG = require("BrickDAG.core.task_dag")
 local Context = require("BrickDAG.core.context")
 local Executor = require("BrickDAG.core.task_executor")
+local ParallelRunner = require("BrickDAG.core.parallel_runner")
+local StateMachine = require("BrickDAG.core.state_machine")
 
 local M = {}
 
--- 运行任务的核心方法
+-- 默认服务对象
+local default_services = {
+	logger = function(msg, level)
+		vim.notify("[BrickDAG] " .. msg, level or vim.log.levels.INFO)
+	end,
+	resolver = require("BrickDAG.core.value_resolver"),
+}
+
+-- 运行任务的核心方法 (异步版本)
 --- @param tasks table|table[] 任务或任务列表
 --- @param on_done fun(success: boolean, err?: string) 执行完成回调
---- @param services table? 依赖服务
+--- @param user_services table? 用户提供的依赖服务
 --- @return boolean 启动成功
-function M.run(tasks, on_done, services)
+function M.run(tasks, on_done, user_services)
 	-- 参数验证
 	if not on_done or type(on_done) ~= "function" then
 		vim.notify("必须提供on_done回调函数", vim.log.levels.ERROR)
@@ -22,6 +33,9 @@ function M.run(tasks, on_done, services)
 		tasks = { tasks }
 	end
 
+	-- 合并服务对象
+	local services = vim.tbl_deep_extend("force", {}, default_services, user_services or {})
+
 	-- 创建DAG
 	local dag = TaskDAG.new()
 	for _, task in ipairs(tasks) do
@@ -31,61 +45,70 @@ function M.run(tasks, on_done, services)
 	-- 创建执行上下文
 	local context = Context.new(dag)
 
-	-- 创建执行器（注入服务）
-	local executor = Executor.new(services)
-
-	-- 获取拓扑排序
-	local sorted_ids
+	-- 获取执行层级
+	local execution_levels
 	local ok, err = pcall(function()
-		sorted_ids = dag:topo_sort()
+		execution_levels = dag:get_execution_levels()
 	end)
 
 	if not ok then
-		on_done(false, "拓扑排序失败: " .. tostring(err))
+		on_done(false, "依赖分析失败: " .. tostring(err))
 		return false
 	end
 
-	-- 任务执行索引
-	local index = 1
+	-- 创建执行器（注入服务）
+	local executor = Executor.new(services)
 
-	-- 递归执行下一个任务
-	local function run_next()
-		if index > #sorted_ids then
-			-- 所有任务完成
-			if context:is_failed() then
-				local errors = {}
-				for task_id, err_msg in pairs(context.failed_tasks) do
-					local task = dag:get_task(task_id)
-					table.insert(errors, string.format("%s (%s): %s", task.name, task.type, err_msg))
+	-- 按层级执行任务
+	local level_index = 1
+	local any_failed = false
+	local all_errors = {}
+
+	local function run_next_level()
+		if level_index > #execution_levels then
+			-- 所有层级完成
+			on_done(not any_failed, any_failed and table.concat(all_errors, "\n") or nil)
+			return
+		end
+
+		local current_level = execution_levels[level_index]
+		services.logger("开始执行层级 " .. level_index, vim.log.levels.INFO)
+
+		if #current_level == 0 then
+			-- 空层级直接跳过
+			level_index = level_index + 1
+			vim.schedule(run_next_level)
+			return
+		end
+
+		if #current_level == 1 then
+			-- 单任务直接执行
+			local task_info = current_level[1]
+			context:get_task_state(task_info.id):transition(StateMachine.STATE_RUNNING)
+
+			executor:execute_task(context, task_info.id, task_info.task, function(success, err)
+				if not success then
+					any_failed = true
+					table.insert(all_errors, string.format("%s: %s", task_info.id, err))
 				end
-				on_done(false, "部分任务失败:\n" .. table.concat(errors, "\n"))
-			else
-				on_done(true, "所有任务成功完成")
-			end
-			return
+				level_index = level_index + 1
+				vim.schedule(run_next_level)
+			end)
+		else
+			-- 并行执行层级任务
+			ParallelRunner.run_parallel(current_level, executor, context, function(group_success, group_errors)
+				if not group_success then
+					any_failed = true
+					vim.list_extend(all_errors, group_errors)
+				end
+				level_index = level_index + 1
+				vim.schedule(run_next_level)
+			end)
 		end
-
-		local task_id = sorted_ids[index]
-		local task = dag.nodes[task_id]
-
-		if not task then
-			on_done(false, "找不到任务: " .. task_id)
-			return
-		end
-
-		-- 执行当前任务
-		local success, err = executor:execute_task(context, task_id, task)
-
-		-- 更新索引
-		index = index + 1
-
-		-- 无论成功失败都继续执行
-		vim.schedule(run_next)
 	end
 
 	-- 开始执行
-	vim.schedule(run_next)
-
+	vim.schedule(run_next_level)
 	return true
 end
 

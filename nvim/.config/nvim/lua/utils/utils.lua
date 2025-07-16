@@ -45,7 +45,7 @@ M.close_commands = {
 	git = "bdelete",
 
 	terminal = "bdelete", -- term 窗口通常是 buffer
-	nofile = "bdelete", -- `nofile` 可能是 dashboard 等 buffer
+	-- nofile = "bdelete", -- `nofile` 可能是 dashboard 等 buffer
 
 	["dap-repl"] = "close", -- 浮窗
 	["dap-float"] = "close", -- 浮窗

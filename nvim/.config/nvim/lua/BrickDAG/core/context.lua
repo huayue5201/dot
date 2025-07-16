@@ -1,4 +1,4 @@
--- core/context.lua
+-- core/execution_context.lua
 local StateMachine = require("BrickDAG.core.state_machine")
 
 --- @class Context
