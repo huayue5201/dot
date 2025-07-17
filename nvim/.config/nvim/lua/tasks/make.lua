@@ -3,7 +3,7 @@
 return {
 	name = "make",
 	type = "make",
-	-- filetypes = "c",
+	filetypes = "c",
 	make = {
 		cmd = "make",
 		args = { "all" },

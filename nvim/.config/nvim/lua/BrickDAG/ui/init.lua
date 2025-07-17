@@ -17,18 +17,30 @@ function M.attach_keymaps()
 		callback = function()
 			if winman.is_in_navigation() then
 				-- 导航快捷键
-				vim.keymap.set("n", "l", M.navigate_into, { buffer = true, desc = "进入积木列表" })
-				vim.keymap.set("n", "h", M.navigate_back, { buffer = true, desc = "返回上层" })
-				vim.keymap.set("n", "j", function()
-					M.navigate_selection(1)
-				end, { buffer = true, desc = "下移选择" })
-				vim.keymap.set("n", "k", function()
-					M.navigate_selection(-1)
-				end, { buffer = true, desc = "上移选择" })
-				vim.keymap.set("n", "q", M.close_navigation, { buffer = true, desc = "关闭导航" })
+				local maps = {
+					{ "l", M.navigate_into, "进入积木列表" },
+					{ "h", M.navigate_back, "返回上层" },
+					{
+						"j",
+						function()
+							M.navigate_selection(1)
+						end,
+						"下移选择",
+					},
+					{
+						"k",
+						function()
+							M.navigate_selection(-1)
+						end,
+						"上移选择",
+					},
+					{ "q", M.close_navigation, "关闭导航" },
+					{ "<CR>", M.run_selected_task, "运行选中任务" },
+				}
 
-				-- 添加运行任务快捷键
-				vim.keymap.set("n", "<CR>", M.run_selected_task, { buffer = true, desc = "运行选中任务" })
+				for _, map in ipairs(maps) do
+					vim.keymap.set("n", map[1], map[2], { buffer = true, desc = map[3] })
+				end
 			end
 		end,
 	})

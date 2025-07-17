@@ -6,20 +6,6 @@ local M = {
 	},
 }
 
--- 定义窗口高亮组
-local function define_highlight_groups()
-	local defs = {
-		left = { bg = "#3b4252", fg = "#b48ead" },
-		center = { bg = "#434c5e", fg = "#a3be8c" },
-		right = { bg = "#4c566a", fg = "#ebcb8b" },
-	}
-
-	for name, hl in pairs(defs) do
-		vim.api.nvim_set_hl(0, name .. "WinNormal", { bg = hl.bg })
-		vim.api.nvim_set_hl(0, name .. "WinBorder", { fg = hl.fg, bg = hl.bg })
-	end
-end
-
 -- 计算窗口布局 (3:5:2 比例)
 local function calculate_layout()
 	local total_width = vim.o.columns
@@ -35,9 +21,9 @@ local function calculate_layout()
 	local row = math.floor((total_height - height) / 2)
 
 	local content_width = usable_width - total_gap
-	local total_ratio = 3 + 5 + 2
+	local total_ratio = 3 + 3 + 3
 	local left_w = math.floor(content_width * 3 / total_ratio)
-	local center_w = math.floor(content_width * 5 / total_ratio)
+	local center_w = math.floor(content_width * 3 / total_ratio)
 	local right_w = content_width - left_w - center_w
 
 	return {
@@ -86,7 +72,6 @@ end
 
 -- 打开所有窗口
 function M.open()
-	define_highlight_groups()
 	M.close_all()
 
 	local layout = calculate_layout()
@@ -154,7 +139,8 @@ function M.update_all()
 	local state = require("BrickDAG.ui.state_machine")
 	local nav_stack = state.get_nav_stack()
 	local current_layer = state.current_layer()
-	if not current_layer then
+
+	if not current_layer or not nav_stack then
 		return
 	end
 
@@ -177,20 +163,162 @@ function M.update_all()
 		layer_type = current_layer.type,
 	})
 
-	-- 右侧窗口（始终显示源任务的积木参数值）
-	local source_task = current_layer.source_task or current_layer.current[current_layer.selected_index]
-	local detail_data = {}
-
-	-- 获取源任务的积木参数值
-	if source_task and source_task.type and source_task[source_task.type] then
-		detail_data = {
-			item = {
-				value = source_task[source_task.type],
-			},
-		}
+	-- 右侧窗口（预览下一层）
+	local selected = current_layer.current[current_layer.selected_index]
+	if not selected then
+		M.clear_window("right")
+		return
 	end
 
-	M.update_view("right", "detail", detail_data)
+	-- 根据当前层级和选中项决定预览内容
+	if current_layer.type == state.LAYER_TYPES.TASK_LIST then
+		-- 预览积木框架或基础积木
+		local preview_items = {}
+
+		if selected.type == "frame" then
+			-- 框架积木：预览其基础积木
+			if selected.frame then
+				for param, value in pairs(selected.frame) do
+					table.insert(preview_items, {
+						name = param,
+						value = value,
+						type = state.LAYER_TYPES.BASE_BRICK,
+					})
+				end
+			end
+		else
+			-- 基础积木：预览其参数
+			if selected[selected.type] then
+				for param, value in pairs(selected[selected.type]) do
+					table.insert(preview_items, {
+						name = param,
+						value = value,
+						type = state.LAYER_TYPES.BASE_BRICK,
+					})
+				end
+			end
+		end
+
+		-- 添加依赖任务
+		if selected.deps then
+			for _, dep_name in ipairs(selected.deps) do
+				for _, task in ipairs(state.root_tasks) do
+					if task.name == dep_name then
+						table.insert(preview_items, {
+							name = task.name,
+							value = task,
+							type = state.LAYER_TYPES.TASK_LIST,
+							is_dependency = true,
+						})
+						break
+					end
+				end
+			end
+		end
+
+		if #preview_items > 0 then
+			M.update_view("right", "list", {
+				items = preview_items,
+				selected_index = 1,
+				layer_type = state.LAYER_TYPES.FRAME_BRICK,
+			})
+		else
+			M.update_view("right", "detail", {
+				item = selected,
+			})
+		end
+	elseif current_layer.type == state.LAYER_TYPES.FRAME_BRICK then
+		if selected.type == state.LAYER_TYPES.BASE_BRICK then
+			-- 预览基础积木的参数值
+			if type(selected.value) == "table" then
+				local values = {}
+				if vim.tbl_islist(selected.value) then
+					-- 数组值
+					for _, v in ipairs(selected.value) do
+						table.insert(values, {
+							value = v,
+							type = state.LAYER_TYPES.VALUE,
+						})
+					end
+				else
+					-- 字典值
+					for k, v in pairs(selected.value) do
+						table.insert(values, {
+							name = k,
+							value = v,
+							type = state.LAYER_TYPES.VALUE,
+						})
+					end
+				end
+
+				if #values > 0 then
+					M.update_view("right", "list", {
+						items = values,
+						selected_index = 1,
+						layer_type = state.LAYER_TYPES.BASE_BRICK,
+					})
+				else
+					M.update_view("right", "detail", {
+						item = selected,
+					})
+				end
+			else
+				M.update_view("right", "detail", {
+					item = selected,
+				})
+			end
+		elseif selected.type == state.LAYER_TYPES.TASK_LIST then
+			-- 预览依赖任务
+			local preview_items = {}
+
+			if selected.value.type == "frame" then
+				-- 框架积木：预览其基础积木
+				if selected.value.frame then
+					for param, value in pairs(selected.value.frame) do
+						table.insert(preview_items, {
+							name = param,
+							value = value,
+							type = state.LAYER_TYPES.BASE_BRICK,
+						})
+					end
+				end
+			else
+				-- 基础积木：预览其参数
+				if selected.value[selected.value.type] then
+					for param, value in pairs(selected.value[selected.value.type]) do
+						table.insert(preview_items, {
+							name = param,
+							value = value,
+							type = state.LAYER_TYPES.BASE_BRICK,
+						})
+					end
+				end
+			end
+
+			if #preview_items > 0 then
+				M.update_view("right", "list", {
+					items = preview_items,
+					selected_index = 1,
+					layer_type = state.LAYER_TYPES.FRAME_BRICK,
+				})
+			else
+				M.update_view("right", "detail", {
+					item = selected,
+				})
+			end
+		else
+			M.update_view("right", "detail", {
+				item = selected,
+			})
+		end
+	elseif current_layer.type == state.LAYER_TYPES.BASE_BRICK then
+		-- 参数值层级不再预览
+		M.update_view("right", "detail", {
+			item = selected,
+		})
+	else
+		M.clear_window("right")
+	end
 end
 
 -- 更新特定视图

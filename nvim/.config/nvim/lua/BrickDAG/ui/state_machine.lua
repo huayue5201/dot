@@ -3,6 +3,14 @@ local M = {
 	root_tasks = {},
 }
 
+-- UI层级类型定义
+M.LAYER_TYPES = {
+	TASK_LIST = "task_list", -- 根任务列表
+	FRAME_BRICK = "frame_brick", -- 积木框架（包含基础积木）
+	BASE_BRICK = "base_brick", -- 基础积木（包含参数值）
+	VALUE = "value", -- 参数值
+}
+
 function M.init(tasks)
 	M.root_tasks = tasks
 	M.nav_stack = {
@@ -10,17 +18,17 @@ function M.init(tasks)
 			parent = nil,
 			current = tasks,
 			selected_index = 1,
-			type = "task_list",
+			type = M.LAYER_TYPES.TASK_LIST,
 		},
 	}
 end
 
-function M.get_nav_stack()
-	return M.nav_stack
-end
-
 function M.current_layer()
 	return M.nav_stack[#M.nav_stack]
+end
+
+function M.get_nav_stack()
+	return M.nav_stack
 end
 
 function M.navigate_into()
@@ -34,47 +42,124 @@ function M.navigate_into()
 		return
 	end
 
-	-- 任务列表 -> 进入积木列表
-	if current.type == "task_list" then
-		local brick_list = {}
+	if current.type == M.LAYER_TYPES.TASK_LIST then
+		-- 进入任务 -> 展示积木框架
+		if selected.type == "frame" then
+			-- 框架积木：显示其基础积木
+			local base_bricks = {}
 
-		-- 1. 查找积木参数
-		if selected.type and selected[selected.type] then
-			local brick_type = selected.type
-			local brick_params = selected[brick_type]
-
-			-- 将积木参数转换为任务格式
-			for param, value in pairs(brick_params) do
-				table.insert(brick_list, {
-					name = param,
-					value = value,
-					brick_type = "param",
-				})
+			if selected.frame and type(selected.frame) == "table" then
+				for param, value in pairs(selected.frame) do
+					table.insert(base_bricks, {
+						name = param,
+						value = value,
+						type = M.LAYER_TYPES.BASE_BRICK,
+					})
+				end
 			end
-		end
 
-		-- 2. 查找依赖任务
-		if selected.deps then
-			for _, dep_name in ipairs(selected.deps) do
-				for _, task in ipairs(M.root_tasks) do
-					if task.name == dep_name then
-						task.brick_type = "dep_task" -- 标记为依赖任务
-						table.insert(brick_list, task)
-						break
+			-- 添加依赖任务
+			if selected.deps then
+				for _, dep_name in ipairs(selected.deps) do
+					for _, task in ipairs(M.root_tasks) do
+						if task.name == dep_name then
+							table.insert(base_bricks, {
+								name = task.name,
+								value = task,
+								type = M.LAYER_TYPES.TASK_LIST,
+								is_dependency = true,
+							})
+							break
+						end
 					end
 				end
 			end
-		end
 
-		if #brick_list > 0 then
 			table.insert(M.nav_stack, {
 				parent = current,
-				current = brick_list,
+				current = base_bricks,
 				selected_index = 1,
-				type = "brick_list", -- 积木列表类型
-				source_task = selected, -- 保存源任务
+				type = M.LAYER_TYPES.FRAME_BRICK,
+				source_task = selected,
 			})
+		else
+			-- 非框架积木直接展示其参数
+			local values = {}
+
+			if selected[selected.type] then
+				for param, value in pairs(selected[selected.type]) do
+					table.insert(values, {
+						name = param,
+						value = value,
+						type = M.LAYER_TYPES.BASE_BRICK,
+					})
+				end
+			end
+
+			if #values > 0 then
+				table.insert(M.nav_stack, {
+					parent = current,
+					current = values,
+					selected_index = 1,
+					type = M.LAYER_TYPES.BASE_BRICK,
+					source_task = selected,
+				})
+			end
 		end
+	elseif current.type == M.LAYER_TYPES.FRAME_BRICK then
+		-- 积木框架 -> 展示基础积木的参数值
+		if selected.type == M.LAYER_TYPES.BASE_BRICK then
+			-- 基础积木 -> 展示参数值
+			if type(selected.value) == "table" then
+				local values = {}
+				if vim.tbl_islist(selected.value) then
+					-- 数组值
+					for _, v in ipairs(selected.value) do
+						table.insert(values, {
+							value = v,
+							type = M.LAYER_TYPES.VALUE,
+						})
+					end
+				else
+					-- 字典值
+					for k, v in pairs(selected.value) do
+						table.insert(values, {
+							name = k,
+							value = v,
+							type = M.LAYER_TYPES.VALUE,
+						})
+					end
+				end
+
+				table.insert(M.nav_stack, {
+					parent = current,
+					current = values,
+					selected_index = 1,
+					type = M.LAYER_TYPES.BASE_BRICK,
+					source_brick = selected,
+				})
+			else
+				-- 简单值直接显示
+				table.insert(M.nav_stack, {
+					parent = current,
+					current = {
+						{
+							value = selected.value,
+							type = M.LAYER_TYPES.VALUE,
+						},
+					},
+					selected_index = 1,
+					type = M.LAYER_TYPES.BASE_BRICK,
+					source_brick = selected,
+				})
+			end
+		elseif selected.type == M.LAYER_TYPES.TASK_LIST then
+			-- 依赖任务 -> 进入该任务的积木框架
+			M.navigate_into() -- 递归处理
+		end
+	elseif current.type == M.LAYER_TYPES.BASE_BRICK then
+		-- 参数值层级不再深入
+		return
 	end
 end
 
