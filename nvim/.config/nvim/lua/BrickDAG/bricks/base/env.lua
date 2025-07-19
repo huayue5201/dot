@@ -1,4 +1,4 @@
--- lua/BrickDAG/bricks/env.lua
+-- lua/brickdag/bricks/env.lua
 
 local EnvBrick = {
 	name = "env",

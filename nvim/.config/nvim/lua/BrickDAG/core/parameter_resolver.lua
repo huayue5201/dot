@@ -1,6 +1,6 @@
--- lua/BrickDAG/core/parameter_resolver.lua
+-- lua/brickdag/core/parameter_resolver.lua
 
-local bricks_registry = require("BrickDAG.core.bricks_registry")
+local bricks_registry = require("brickdag.core.bricks_registry")
 
 local M = {}
 

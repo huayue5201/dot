@@ -1,4 +1,4 @@
--- lua/BrickDAG/bricks/cwd.lua
+-- lua/brickdag/bricks/cwd.lua
 
 local CwdBrick = {
 	name = "cwd",

@@ -1,8 +1,8 @@
 local M = {
 	windows = {}, -- { left, center, right }
 	views = {
-		list = require("BrickDAG.ui.views.list_view"),
-		detail = require("BrickDAG.ui.views.detail_view"),
+		list = require("brickdag.ui.views.list_view"),
+		detail = require("brickdag.ui.views.detail_view"),
 	},
 }
 
@@ -136,7 +136,7 @@ function M.update_all()
 		return
 	end
 
-	local state = require("BrickDAG.ui.state_machine")
+	local state = require("brickdag.ui.state_machine")
 	local nav_stack = state.get_nav_stack()
 	local current_layer = state.current_layer()
 

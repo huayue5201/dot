@@ -1,18 +1,7 @@
- # BrickDAG 任务系统文档
-
-## 目录
-1. [系统概述](#系统概述)
-2. [核心概念](#核心概念)
-3. [架构设计](#架构设计)
-4. [安装与配置](#安装与配置)
-5. [使用指南](#使用指南)
-6. [扩展开发](#扩展开发)
-7. [API参考](#api参考)
-8. [最佳实践](#最佳实践)
-9. [故障排除](#故障排除)
+ # brickdag 任务系统文档
 
 ## 系统概述
-BrickDAG 是一个高度解耦的插件式任务系统，专为 Neovim 设计。系统采用**积木式架构**，允许用户通过组合基础积木和框架积木来创建复杂的工作流。
+brickdag 是一个高度解耦的插件式任务系统，专为 Neovim 设计。系统采用**积木式架构**，允许用户通过组合基础积木和框架积木来创建复杂的工作流。
 
 ### 核心特性
 - **极限解耦**：核心系统永不修改，扩展只需添加新文件
@@ -24,21 +13,25 @@ BrickDAG 是一个高度解耦的插件式任务系统，专为 Neovim 设计。
 ## 核心概念
 ### 1. 基础积木 (Base Bricks)
 负责参数解析和简单转换：
-- 文件位置：`bricks/` 目录
+- 文件位置：`bricks/base/` 目录
 - 接口要求：实现 `resolve(value, context)` 方法
-- 示例：`cmd.lua`, `args.lua`, `env.lua`
+- 核心积木：
+  - `cmd.lua`：解析命令参数
+  - `args.lua`：解析命令行参数
+  - `cwd.lua`：解析工作目录
+  - `env.lua`：解析环境变量
 
 ### 2. 框架积木 (Frame Bricks)
 负责业务逻辑和任务执行：
-- 文件位置：`bricks/` 目录
+- 文件位置：`bricks/frame/` 目录
 - 接口要求：实现 `execute(exec_context)` 方法
-- 示例：`make.lua`, `format.lua`, `build.lua`
+- 示例：`make.lua` - 异步执行Make任务
 
 ### 3. 任务配置 (Task Configurations)
 定义具体任务的执行参数：
 - 文件位置：`tasks/` 目录
 - 结构要求：包含 `name` 和 `type` 字段
-- 示例：`make_example.lua`
+- 示例：`make.lua`, `make_clean.lua`
 
 ## 架构设计
 ```mermaid
@@ -54,37 +47,46 @@ graph TD
     I --> F
 ```
 
-### 模块职责
-| 模块 | 职责 |
-|------|------|
-| **积木注册表** | 管理所有积木的注册和查询 |
-| **任务加载器** | 加载任务配置文件 |
-| **任务DAG** | 构建任务依赖图并拓扑排序 |
-| **任务执行器** | 执行单个任务并管理状态 |
-| **任务运行器** | 协调整个任务执行流程 |
-| **用户界面** | 提供任务选择和队列管理 |
+### 核心模块
+| 模块 | 文件 | 职责 |
+|------|------|------|
+| **积木注册表** | `bricks_registry.lua` | 管理所有积木的注册和查询 |
+| **任务加载器** | `task_loader.lua` | 加载任务配置文件 |
+| **任务DAG** | `task_dag.lua` | 构建任务依赖图并拓扑排序 |
+| **任务执行器** | `task_executor.lua` | 执行单个任务并管理状态 |
+| **任务运行器** | `task_runner.lua` | 协调整个任务执行流程 |
+| **用户界面** | `ui/` 目录 | 提供任务选择和队列管理 |
 
 ## 安装与配置
 
 ### 1. 安装
-将 `BrickDAG` 目录放入 Neovim 的 `lua/` 目录：
+将 `brickdag` 目录放入 Neovim 的 `lua/` 目录：
 ```
 ~/.config/nvim/
 └── lua/
-    └── BrickDAG/
+    └── brickdag/
         ├── bricks/
         ├── core/
         ├── ui/
         └── init.lua
 ```
 
-### 2. 初始化
+### 2. 初始化配置
 在 Neovim 配置中添加：
 ```lua
 -- init.lua
-require('BrickDAG').setup({
+require('brickdag').setup({
     runtime_tasks = {
         "custom.my_tasks"  -- 可选：自定义任务模块
+    },
+    parallel = {           -- 并行配置
+        max_workers = 4,   -- 最大并行任务数
+        max_errors = 2,    -- 最大容错数
+    },
+    keymaps = {            -- 自定义快捷键
+        run_task = "<leader>tr",
+        enqueue_task = "<leader>ta",
+        show_queue = "<leader>tq"
     }
 })
 ```
@@ -92,37 +94,88 @@ require('BrickDAG').setup({
 ### 3. 默认快捷键
 | 快捷键 | 功能 | 描述 |
 |--------|------|------|
-| `<leader>or` | 任务表 | 选择并执行任务 |
-| `<leader>oa` | 添加任务到队列 | 选择任务添加到队列 |
-| `<leader>oq` | 管理任务队列 | 查看和管理任务队列 |
+| `<leader>tr` | 运行任务 | 选择并执行任务 |
+| `<leader>ta` | 添加任务到队列 | 选择任务添加到队列 |
+| `<leader>tq` | 管理任务队列 | 查看和管理任务队列 |
+| `<leader>tn` | 打开任务导航 | 浏览任务层次结构 |
+| `<leader>tc` | 关闭任务导航 | 退出任务浏览界面 |
 
 ## 使用指南
 
 ### 1. 运行单个任务
 ```vim
-:lua require('BrickDAG.ui.interaction').pick_and_run()
+:lua require('brickdag').pick_and_run_task()
 ```
 
 ### 2. 管理任务队列
-```vim
-" 添加任务到队列
-:lua require('BrickDAG.ui.ui_queue').pick_task_and_enqueue()
+```lua
+-- 添加任务到队列
+require('brickdag').add_to_queue(task)
 
-" 管理任务队列
-:lua require('BrickDAG.ui.ui_queue').manage_queue()
+-- 查看队列
+require('brickdag').show_task_queue()
 
-" 执行队列中的所有任务
-:lua require('BrickDAG.ui.ui_queue').execute_all()
+-- 运行队列中的所有任务
+require('brickdag').run_queue()
+
+-- 清空队列
+require('brickdag').clear_queue()
 ```
 
-### 3. 创建简单任务
+### 3. 任务导航界面
+![任务导航界面](task_navigation.png)
+使用方向键在任务层次结构中导航：
+- `l` → 进入任务/积木详情
+- `h` ← 返回上层
+- `j/k` ↓↑ 上下移动选择
+- `<CR>` 运行选中任务
+
+### 4. 创建简单任务
 ```lua
 -- tasks/hello_world.lua
 return {
     name = "打印欢迎信息",
     type = "echo",
     echo = {
-        message = "欢迎使用 BrickDAG 任务系统!"
+        message = "欢迎使用 brickdag 任务系统!"
+    }
+}
+```
+
+### 5. 创建复杂任务链
+```lua
+-- tasks/full_build.lua
+return {
+    name = "完整构建流程",
+    deps = {"环境检查"},
+    tasks = {
+        {
+            name = "代码格式化",
+            type = "format",
+            format = {
+                cmd = "prettier",
+                args = {"--write", "${project_root}/src/**/*.{js,ts}"},
+                filetypes = {"javascript", "typescript"}
+            }
+        },
+        {
+            name = "运行测试",
+            type = "test",
+            test = {
+                cmd = "jest",
+                args = {"--coverage"},
+                timeout = "30s"
+            }
+        },
+        {
+            name = "构建生产包",
+            type = "build",
+            build = {
+                cmd = "webpack",
+                args = {"--mode", "production"},
+                output_dir = "${project_root}/dist"
+            }
+        }
     }
 }
 ```
@@ -131,10 +184,11 @@ return {
 
 ### 1. 添加基础积木
 ```lua
--- bricks/timeout.lua
+-- bricks/base/timeout.lua
 local TimeoutBrick = {
     name = "timeout",
-    brick_type = "base"
+    brick_type = "base",
+    description = "解析超时时间"
 }
 
 function TimeoutBrick.resolve(value, context)
@@ -153,10 +207,11 @@ return TimeoutBrick
 
 ### 2. 添加框架积木
 ```lua
--- bricks/format.lua
+-- bricks/frame/format.lua
 local FormatFrame = {
     name = "format",
-    brick_type = "frame"
+    brick_type = "frame",
+    description = "代码格式化框架"
 }
 
 function FormatFrame.execute(exec_context)
@@ -193,47 +248,16 @@ end
 return FormatFrame
 ```
 
-### 3. 创建复杂任务
+### 3. 运行时注册积木
 ```lua
--- tasks/full_pipeline.lua
-return {
-    name = "完整构建流程",
-    deps = {"环境检查"},
-    tasks = {
-        {
-            name = "代码格式化",
-            type = "format",
-            format = {
-                cmd = "prettier",
-                args = {"--write", "${project_root}/src/**/*.{js,ts}"},
-                filetypes = {"javascript", "typescript"}
-            }
-        },
-        {
-            name = "运行测试",
-            type = "test",
-            test = {
-                cmd = "jest",
-                args = {"--coverage"},
-                timeout = "30s"
-            }
-        },
-        {
-            name = "构建生产包",
-            type = "build",
-            build = {
-                cmd = "webpack",
-                args = {"--mode", "production"},
-                output_dir = "${project_root}/dist"
-            }
-        }
-    }
-}
+-- 在Neovim配置中动态注册积木
+require('brickdag').register_brick("base", require("custom.timeout_brick"))
+require('brickdag').register_brick("frame", require("custom.format_frame"))
 ```
 
 ## API参考
 
-### 核心模块
+### 核心模块API
 
 #### `bricks_registry.lua`
 ```lua
@@ -242,12 +266,6 @@ register_base_brick(brick)
 
 -- 注册框架积木
 register_frame_brick(frame)
-
--- 运行时注册基础积木
-runtime_register_base_brick(brick)
-
--- 运行时注册框架积木
-runtime_register_frame_brick(frame)
 
 -- 获取积木
 get(name)
@@ -332,14 +350,14 @@ get_var(key)
 
 2. 检查任务拓扑：
    ```lua
-   local dag = require("BrickDAG.core.task_dag").new()
+   local dag = require("brickdag.core.task_dag").new()
    dag:add_task(task)
    print(vim.inspect(dag:topo_sort()))
    ```
 
 3. 手动执行积木：
    ```lua
-   local brick = require("BrickDAG.core.bricks_registry").get("make")
+   local brick = require("brickdag.core.bricks_registry").get("make")
    brick.execute({cmd = "echo", args = {"测试"}})
    ```
 
@@ -353,6 +371,6 @@ get_var(key)
 
 ---
 
-> BrickDAG 任务系统遵循 **MIT 许可证**
-> 版本: 1.0.0 | 更新日期: 2023-10-01
+> brickdag 任务系统遵循 **MIT 许可证**
+> 版本: 1.1.0 | 更新日期: 2025-07-17
 > 保持核心简单，让扩展无限可能！

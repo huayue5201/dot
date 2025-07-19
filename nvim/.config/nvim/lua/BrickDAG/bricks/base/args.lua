@@ -1,4 +1,4 @@
--- lua/BrickDAG/bricks/args.lua
+-- lua/brickdag/bricks/args.lua
 local ArgsBrick = {
 	name = "args",
 	brick_type = "base",

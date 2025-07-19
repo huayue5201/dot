@@ -1,5 +1,5 @@
 -- core/execution_context.lua
-local StateMachine = require("BrickDAG.core.state_machine")
+local StateMachine = require("brickdag.core.state_machine")
 
 --- @class Context
 --- @field dag table 任务DAG图对象
