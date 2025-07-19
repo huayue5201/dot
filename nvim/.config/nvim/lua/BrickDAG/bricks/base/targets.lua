@@ -1,4 +1,4 @@
--- lua/BrickDAG/bricks/targets.lua
+-- lua/brickdag/bricks/targets.lua
 local TargetsBrick = {
 	name = "targets",
 	brick_type = "base",

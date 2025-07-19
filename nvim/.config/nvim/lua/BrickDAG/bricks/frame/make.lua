@@ -1,4 +1,4 @@
--- lua/BrickDAG/bricks/frame/make.lua
+-- lua/brickdag/bricks/frame/make.lua
 local MakeFramework = {
 	name = "make",
 	brick_type = "frame",

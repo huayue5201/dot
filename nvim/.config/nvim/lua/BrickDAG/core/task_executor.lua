@@ -1,10 +1,10 @@
--- lua/BrickDAG/core/task_executor.lua
+-- lua/brickdag/core/task_executor.lua
 
 local Executor = {}
 Executor.__index = Executor
 
-local StateMachine = require("BrickDAG.core.state_machine")
-local BricksRegistry = require("BrickDAG.core.bricks_registry")
+local StateMachine = require("brickdag.core.state_machine")
+local BricksRegistry = require("brickdag.core.bricks_registry")
 
 --- 创建新的执行器实例
 --- @param services table? 依赖服务
@@ -15,7 +15,7 @@ function Executor.new(user_services)
 
 	-- 默认服务
 	self.services = {
-		resolver = require("BrickDAG.core.value_resolver"),
+		resolver = require("brickdag.core.value_resolver"),
 		logger = function(msg, level)
 			vim.notify("[Executor] " .. msg, level or vim.log.levels.INFO)
 		end,

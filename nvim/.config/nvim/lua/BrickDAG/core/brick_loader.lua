@@ -1,8 +1,8 @@
--- lua/BrickDAG/core/brick_loader.lua
+-- lua/brickdag/core/brick_loader.lua
 
 local uv = vim.loop
-local registry = require("BrickDAG.core.bricks_registry")
-local interface = require("BrickDAG.core.interface")
+local registry = require("brickdag.core.bricks_registry")
+local interface = require("brickdag.core.interface")
 
 local M = {}
 
@@ -12,7 +12,7 @@ local M = {}
 --- 验证通过后注册到积木注册表中
 function M.load_all()
 	-- 获取积木根目录路径
-	local base_path = vim.fn.stdpath("config") .. "/lua/BrickDAG/bricks/"
+	local base_path = vim.fn.stdpath("config") .. "/lua/brickdag/bricks/"
 
 	-- 积木目录和对应类型配置
 	local brick_dirs = {
@@ -42,7 +42,7 @@ function M.load_all()
 			-- 只加载 lua 文件
 			if name:match("%.lua$") then
 				-- 构造模块名
-				local modname = "BrickDAG.bricks." .. brick_type .. "." .. name:gsub("%.lua$", "")
+				local modname = "brickdag.bricks." .. brick_type .. "." .. name:gsub("%.lua$", "")
 
 				-- 保护式加载模块，避免异常崩溃
 				local ok, mod = pcall(require, modname)

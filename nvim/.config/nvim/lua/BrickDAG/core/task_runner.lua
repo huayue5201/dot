@@ -1,19 +1,19 @@
--- lua/BrickDAG/core/task_runner.lua
+-- lua/brickdag/core/task_runner.lua
 
-local TaskDAG = require("BrickDAG.core.task_dag")
-local Context = require("BrickDAG.core.context")
-local Executor = require("BrickDAG.core.task_executor")
-local ParallelRunner = require("BrickDAG.core.parallel_runner")
-local StateMachine = require("BrickDAG.core.state_machine")
+local TaskDAG = require("brickdag.core.task_dag")
+local Context = require("brickdag.core.context")
+local Executor = require("brickdag.core.task_executor")
+local ParallelRunner = require("brickdag.core.parallel_runner")
+local StateMachine = require("brickdag.core.state_machine")
 
 local M = {}
 
 -- 默认服务对象
 local default_services = {
 	logger = function(msg, level)
-		vim.notify("[BrickDAG] " .. msg, level or vim.log.levels.INFO)
+		vim.notify("[brickdag] " .. msg, level or vim.log.levels.INFO)
 	end,
-	resolver = require("BrickDAG.core.value_resolver"),
+	resolver = require("brickdag.core.value_resolver"),
 }
 
 -- 运行任务的核心方法 (异步版本)

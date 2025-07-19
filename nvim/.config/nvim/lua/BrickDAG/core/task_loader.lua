@@ -1,6 +1,6 @@
--- lua/BrickDAG/core/task_loader.lua
+-- lua/brickdag/core/task_loader.lua
 local uv = vim.loop
-local task_filter = require("BrickDAG.utils.task_filter")
+local task_filter = require("brickdag.utils.task_filter")
 
 local M = {}
 

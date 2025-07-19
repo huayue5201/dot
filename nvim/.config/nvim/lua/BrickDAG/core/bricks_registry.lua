@@ -1,6 +1,6 @@
 -- core/bricks_registry.lua
 
-local Interface = require("BrickDAG.core.interface")
+local Interface = require("brickdag.core.interface")
 
 local BricksRegistry = {}
 BricksRegistry.__index = BricksRegistry

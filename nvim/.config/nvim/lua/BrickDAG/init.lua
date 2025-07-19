@@ -1,53 +1,53 @@
-local registry = require("BrickDAG.core.bricks_registry")
-local loader = require("BrickDAG.core.brick_loader")
-local task_loader = require("BrickDAG.core.task_loader")
-local runner = require("BrickDAG.core.task_runner")
-local task_queue = require("BrickDAG.core.task_queue")
-local ui = require("BrickDAG.ui.init") -- 引入UI模块
+-- lua/brickdag/init.lua
+-- 插件主入口文件，负责初始化，加载模块及设置快捷键
 
--- 默认并行配置
+local registry = require("brickdag.core.bricks_registry")
+local loader = require("brickdag.core.brick_loader")
+local task_loader = require("brickdag.core.task_loader")
+local runner = require("brickdag.core.task_runner")
+local task_queue = require("brickdag.core.task_queue")
+local keymaps = require("brickdag.keymaps") -- 新增，拆分的快捷键模块
+
+-- 默认的并行配置参数
 local default_parallel_config = {
-	enabled = true,
-	max_workers = 0, -- 0 = 自动检测
-	max_errors = 2,
-	strategy = "balanced",
-	cpu_threshold = 80,
-	mem_threshold = 90,
-	resource_monitoring = true,
+	enabled = true, -- 是否启用并行
+	max_workers = 0, -- 最大工作线程数，0代表自动检测CPU核心数
+	max_errors = 2, -- 最大容忍错误次数
+	strategy = "balanced", -- 并行策略
+	cpu_threshold = 80, -- CPU使用率阈值（百分比）
+	mem_threshold = 90, -- 内存使用率阈值（百分比）
+	resource_monitoring = true, -- 是否监控资源
 }
 
 local M = {
-	-- 配置状态
-	_initialized = false,
-	parallel_config = vim.deepcopy(default_parallel_config),
-
-	-- 运行时任务模块
-	runtime_tasks = {},
+	_initialized = false, -- 是否已初始化
+	parallel_config = vim.deepcopy(default_parallel_config), -- 当前并行配置（可被覆盖）
+	runtime_tasks = {}, -- 运行时加载的任务模块
 }
 
---- 设置任务系统
---- @param opts table? 配置选项
+--- 插件初始化入口
+--- @param opts table? 配置参数，可选
 function M.setup(opts)
 	opts = opts or {}
 
-	-- 只初始化一次
+	-- 防止重复初始化
 	if M._initialized then
-		vim.notify("BrickDAG 已经初始化", vim.log.levels.WARN)
+		vim.notify("brickdag 已经初始化", vim.log.levels.WARN)
 		return
 	end
 
-	-- 合并并行配置
+	-- 合并用户并行配置和默认配置
 	if opts.parallel then
 		M.parallel_config = vim.tbl_deep_extend("force", default_parallel_config, opts.parallel)
 	end
 
-	-- 清除之前的注册
+	-- 清理之前的积木注册，避免冲突
 	registry.clear()
 
-	-- 加载所有积木
+	-- 加载所有积木模块
 	loader.load_all()
 
-	-- 加载运行时任务模块
+	-- 加载运行时指定的任务模块
 	if opts.runtime_tasks then
 		M.runtime_tasks = opts.runtime_tasks
 		for _, task_module in ipairs(opts.runtime_tasks) do
@@ -58,105 +58,23 @@ function M.setup(opts)
 		end
 	end
 
-	-- 设置基本快捷键映射
-	M.setup_basic_keymaps(opts.keymaps)
+	-- 通过拆分的keymap模块设置快捷键
+	keymaps.setup_basic_keymaps(opts.keymaps, M)
+	keymaps.setup_navigation_keymaps(opts.nav_keymaps or {}, M)
 
-	-- 添加全局导航快捷键
-	M.setup_navigation_keymaps(opts.nav_keymaps or {})
-
-	-- 标记已初始化
+	-- 标记初始化完成
 	M._initialized = true
 
-	vim.notify("BrickDAG 初始化完成", vim.log.levels.INFO)
+	vim.notify("brickdag 初始化完成", vim.log.levels.INFO)
 end
 
 --- 设置基本快捷键映射
 --- @param keymaps table? 自定义键位映射
-function M.setup_basic_keymaps(keymaps)
-	local default_keymaps = {
-		enqueue_task = "<leader>ta", -- 添加任务到队列
-		run_task = "<leader>tr", -- 运行单个任务
-		show_queue = "<leader>tq", -- 显示任务队列
-	}
-
-	local km = vim.tbl_extend("force", default_keymaps, keymaps or {})
-
-	-- 添加任务到队列的映射
-	vim.keymap.set("n", km.enqueue_task, function()
-		M.pick_and_enqueue_task()
-	end, { desc = "添加任务到队列" })
-
-	-- 运行单个任务的映射
-	vim.keymap.set("n", km.run_task, function()
-		M.pick_and_run_task()
-	end, { desc = "选择并运行任务" })
-
-	-- 显示任务队列
-	vim.keymap.set("n", km.show_queue, function()
-		M.show_task_queue()
-	end, { desc = "显示任务队列" })
-end
+-- 已拆分至 keymaps.lua 中，无需保留
 
 --- 设置导航快捷键映射
 --- @param keymaps table? 自定义导航键位
-function M.setup_navigation_keymaps(keymaps)
-	local default_keymaps = {
-		open_nav = "<leader>tn", -- 打开任务导航
-		close_nav = "<leader>tc", -- 关闭任务导航
-		nav_back = "h", -- ← 返回上层
-		nav_enter = "l", -- → 进入依赖
-		nav_up = "k", -- ↑ 上移
-		nav_down = "j", -- ↓ 下移
-	}
-
-	local km = vim.tbl_extend("force", default_keymaps, keymaps or {})
-
-	-- 打开任务导航
-	vim.keymap.set("n", km.open_nav, function()
-		ui.show_all_tasks()
-	end, { desc = "打开任务导航" })
-
-	-- 关闭任务导航
-	vim.keymap.set("n", km.close_nav, function()
-		ui.close_navigation()
-	end, { desc = "关闭任务导航" })
-
-	-- 返回上层（左移）
-	vim.keymap.set("n", km.nav_back, function()
-		if ui.is_in_navigation() then
-			ui.navigate_back()
-			return ""
-		end
-		return "h"
-	end, { desc = "任务导航返回", expr = true, noremap = true })
-
-	-- 进入依赖（右移）
-	vim.keymap.set("n", km.nav_enter, function()
-		if ui.is_in_navigation() then
-			ui.navigate_into()
-			return ""
-		end
-		return "l"
-	end, { desc = "任务导航进入", expr = true, noremap = true })
-
-	-- 上移选择
-	vim.keymap.set("n", km.nav_up, function()
-		if ui.is_in_navigation() then
-			ui.navigate_selection(-1)
-			return ""
-		end
-		return "k"
-	end, { desc = "任务导航上移", expr = true, noremap = true })
-
-	-- 下移选择
-	vim.keymap.set("n", km.nav_down, function()
-		if ui.is_in_navigation() then
-			ui.navigate_selection(1)
-			return ""
-		end
-		return "j"
-	end, { desc = "任务导航下移", expr = true, noremap = true })
-end
+-- 已拆分至 keymaps.lua 中，无需保留
 
 --- 选择任务并加入队列
 function M.pick_and_enqueue_task()
@@ -203,7 +121,7 @@ end
 --- 运行单个任务
 --- @param task table 任务对象
 function M.run_task(task)
-	-- 运行任务
+	-- 运行任务，传入回调函数处理成功/失败通知
 	runner.run({ task }, function(success, err)
 		if success then
 			vim.notify("✅ 任务完成: " .. task.name, vim.log.levels.INFO)
@@ -232,7 +150,7 @@ function M.get_available_tasks()
 end
 
 --- 获取并行配置
---- @return table 并行配置
+--- @return table 并行配置表
 function M.get_parallel_config()
 	return M.parallel_config
 end
@@ -259,6 +177,7 @@ end
 --- @param name string 任务名称
 --- @param task_type string 任务类型
 --- @param config table 任务配置
+--- @return table 新创建的任务对象
 function M.create_task(name, task_type, config)
 	local task = {
 		name = name,
@@ -266,19 +185,19 @@ function M.create_task(name, task_type, config)
 		[task_type] = config,
 	}
 
-	-- 添加到运行时任务
+	-- 添加到运行时任务集合中
 	table.insert(M.runtime_tasks, task)
 	return task
 end
 
---- 检查是否已初始化
+--- 检查插件是否已初始化
 --- @return boolean
 function M.is_initialized()
 	return M._initialized
 end
 
---- 获取任务队列
---- @return table[] 当前队列中的所有任务
+--- 获取当前任务队列中所有任务
+--- @return table[] 任务列表
 function M.get_queue()
 	return task_queue.all()
 end
@@ -288,14 +207,14 @@ function M.clear_queue()
 	task_queue.clear()
 end
 
---- 移除队列中的任务
---- @param index integer 任务在队列中的位置
+--- 从任务队列中移除指定位置的任务
+--- @param index integer 任务索引位置
 function M.remove_from_queue(index)
 	task_queue.remove(index)
 end
 
---- 移动队列中的任务
---- @param index integer 任务位置
+--- 移动任务队列中的任务位置
+--- @param index integer 当前任务索引
 --- @param direction string "up" 或 "down"
 function M.move_in_queue(index, direction)
 	if direction == "up" then
@@ -305,7 +224,7 @@ function M.move_in_queue(index, direction)
 	end
 end
 
---- 运行队列中的所有任务
+--- 运行任务队列中所有任务
 function M.run_queue()
 	local queue = M.get_queue()
 	if #queue == 0 then
@@ -314,10 +233,11 @@ function M.run_queue()
 	end
 
 	M.run_tasks(queue)
+	-- 运行完毕后清空队列
 	M.clear_queue()
 end
 
---- 显示任务队列
+--- 显示当前任务队列
 function M.show_task_queue()
 	local queue = M.get_queue()
 	if #queue == 0 then
@@ -330,6 +250,7 @@ function M.show_task_queue()
 		table.insert(content, string.format("[%d] %s", i, task.name))
 	end
 
+	-- 使用 notify 显示队列内容，5秒后自动消失
 	vim.notify(table.concat(content, "\n"), vim.log.levels.INFO, {
 		title = "当前任务队列",
 		timeout = 5000,

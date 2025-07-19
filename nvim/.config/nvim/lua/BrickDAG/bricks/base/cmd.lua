@@ -1,4 +1,4 @@
--- lua/BrickDAG/bricks/cmd.lua
+-- lua/brickdag/bricks/cmd.lua
 
 local CmdBrick = {
 	name = "cmd",

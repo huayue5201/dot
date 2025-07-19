@@ -1,4 +1,4 @@
--- lua/BrickDAG/core/task_expander.lua
+-- lua/brickdag/core/task_expander.lua
 
 local M = {}
 

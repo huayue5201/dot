@@ -1,6 +1,6 @@
--- lua/BrickDAG/core/parallel_runner.lua
+-- lua/brickdag/core/parallel_runner.lua
 local uv = vim.loop
-local StateMachine = require("BrickDAG.core.state_machine")
+local StateMachine = require("brickdag.core.state_machine")
 
 local M = {}
 
@@ -18,7 +18,7 @@ end
 --- 计算最佳并行任务数
 --- @return integer
 function M.calculate_optimal_workers()
-	local config = require("BrickDAG").get_parallel_config()
+	local config = require("brickdag").get_parallel_config()
 	if config.max_workers > 0 then
 		return config.max_workers
 	end
@@ -35,7 +35,7 @@ end
 --- @param context table 全局上下文
 --- @param on_group_done function 任务组完成回调
 function M.run_parallel(task_group, executor, context, on_group_done)
-	local config = require("BrickDAG").get_parallel_config()
+	local config = require("brickdag").get_parallel_config()
 	local max_workers = M.calculate_optimal_workers()
 
 	local running = 0

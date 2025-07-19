@@ -1,4 +1,4 @@
--- lua/BrickDAG/core/task_queue.lua
+-- lua/brickdag/core/task_queue.lua
 local M = {}
 
 -- 内部任务队列表
