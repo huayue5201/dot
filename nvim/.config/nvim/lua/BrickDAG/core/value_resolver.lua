@@ -6,14 +6,14 @@ local M = {}
 --- @param context table
 --- @return any
 function M.resolve_value(value, context)
-	if type(value) == "function" then
-		return value(context)
-	elseif type(value) == "string" then
-		return value:gsub("%${([%w_]+)}", function(var)
-			return context[var] or "${" .. var .. "}"
-		end)
-	end
-	return value
+    if type(value) == "function" then
+        return value(context)
+    elseif type(value) == "string" then
+        return value:gsub("%${([%w_]+)}", function(var)
+            return context[var] or ("${" .. var .. "}")
+        end)
+    end
+    return value
 end
 
 --- 解析整个参数表
@@ -21,11 +21,12 @@ end
 --- @param context table
 --- @return table
 function M.resolve_parameters(params, context)
-	local resolved = {}
-	for key, value in pairs(params) do
-		resolved[key] = M.resolve_value(value, context)
-	end
-	return resolved
+    local resolved = {}
+    for key, value in pairs(params) do
+        resolved[key] = M.resolve_value(value, context)
+    end
+    return resolved
 end
 
 return M
+

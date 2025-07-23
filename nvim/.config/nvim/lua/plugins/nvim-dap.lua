@@ -365,7 +365,7 @@ return {
 		-- 加载模块
 		load_modules_from_dir("lua/dap")
 
-		vim.api.nvim_create_autocmd("VimLeave", {
+		vim.api.nvim_create_autocmd({"VimLeave"}, {
 			callback = function()
 				-- 通过系统命令关闭 OpenOCD
 				vim.fn.system("pkill openocd")
