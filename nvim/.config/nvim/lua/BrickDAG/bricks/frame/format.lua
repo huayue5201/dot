@@ -1,66 +1,85 @@
--- lua/brickdag/bricks/frame/format.lua
-
 local FormatFramework = {
 	name = "format",
 	brick_type = "frame",
-	description = "通用代码格式化框架（含内置增量格式化参数注入器）",
-	version = "1.1.0",
+	description = "通用代码格式化框架（支持临时文件方案）",
+	version = "2.0.0",
 }
 
-local function get_changed_ranges(file_path)
-	local result = {}
-	local lines = vim.fn.systemlist("git diff -U0 -- " .. vim.fn.shellescape(file_path))
-	for _, line in ipairs(lines) do
-		local m = string.match(line, "^@@ %-%d+,%d+ %+(%d+),?(%d*) @@")
-		if m then
-			local start_line = tonumber(m:match("^(%d+)"))
-			local count = tonumber(m:match(",(%d+)")) or 1
-			table.insert(result, { start_line = start_line, end_line = start_line + count - 1 })
-		end
+local uv = vim.loop
+
+--- 创建临时文件并写入 buffer 内容
+local function write_buffer_to_tempfile(bufnr)
+	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+	local tmpname = vim.fn.tempname()
+	local fd = uv.fs_open(tmpname, "w", 438) -- 438 = 0o666
+
+	if not fd then
+		return nil, "创建临时文件失败"
 	end
-	return result
+
+	local ok, err = pcall(function()
+		uv.fs_write(fd, table.concat(lines, "\n"))
+	end)
+
+	uv.fs_close(fd)
+
+	if not ok then
+		return nil, "写入临时文件失败: " .. err
+	end
+
+	return tmpname
 end
 
--- 内置注入器集合，key为格式化器模式名
-local builtin_range_arg_injectors = {
-	stylua = function(base_args, ranges)
-		for _, r in ipairs(ranges) do
-			table.insert(base_args, "--range-start")
-			table.insert(base_args, tostring(r.start_line))
-			table.insert(base_args, "--range-end")
-			table.insert(base_args, tostring(r.end_line))
-		end
-		return base_args
-	end,
-	clang_format = function(base_args, ranges)
-		for _, r in ipairs(ranges) do
-			table.insert(base_args, "-lines=" .. r.start_line .. ":" .. r.end_line)
-		end
-		return base_args
-	end,
-	prettier = function(base_args, ranges)
-		-- prettier 支持 --range-start 和 --range-end，但只支持单个范围，这里取第一个
-		if #ranges > 0 then
-			local r = ranges[1]
-			table.insert(base_args, "--range-start")
-			table.insert(base_args, tostring(r.start_line))
-			table.insert(base_args, "--range-end")
-			table.insert(base_args, tostring(r.end_line))
-		end
-		return base_args
-	end,
-	rustfmt = function(base_args, ranges)
-		-- rustfmt 目前不支持增量行范围，只能跳过注入
-		return base_args
-	end,
-	-- 可继续添加其它工具支持
-}
+--- 格式化主函数
+function FormatFramework.execute(exec_context)
+	local logger = exec_context.services.logger
+	local config = exec_context.config
 
-local function default_inject_range_args(base_args, ranges)
-	return base_args
+	local resolved = FormatFramework.resolve_config(config, exec_context)
+	local formatter = resolved.cmd
+	if not formatter then
+		return false, "未提供格式化命令"
+	end
+
+	local args = resolved.args or {}
+	local bufnr = vim.api.nvim_get_current_buf()
+	local temp_file, err = write_buffer_to_tempfile(bufnr)
+	if not temp_file then
+		return false, "临时文件创建失败: " .. err
+	end
+
+	table.insert(args, temp_file)
+
+	local full_cmd = formatter .. " " .. table.concat(args, " ")
+	logger(string.format("[FORMAT] 执行: %s", full_cmd), vim.log.levels.INFO)
+
+	local output = vim.fn.system(full_cmd)
+	local exit_code = vim.v.shell_error
+
+	if exit_code ~= 0 then
+		local msg = string.format("格式化失败 (退出码 %d): %s", exit_code, output)
+		logger(msg, vim.log.levels.ERROR)
+		return false, msg
+	end
+
+	local fd = uv.fs_open(temp_file, "r", 438)
+	local stat = uv.fs_fstat(fd)
+	local formatted = uv.fs_read(fd, stat.size, 0)
+	uv.fs_close(fd)
+	uv.fs_unlink(temp_file)
+
+	if formatted then
+		local lines = vim.split(formatted, "\n", { plain = true })
+		vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+		if resolved.notify ~= false then
+			vim.notify("✅ 格式化完成", vim.log.levels.INFO)
+		end
+		return true
+	else
+		return false, "读取格式化后内容失败"
+	end
 end
 
---- 解析配置参数
 function FormatFramework.resolve_config(config, context)
 	local services = context.services
 	local resolver = services.resolver
@@ -72,65 +91,6 @@ function FormatFramework.resolve_config(config, context)
 		file_type = vim.bo.filetype,
 		project_root = context.project_root or vim.fn.getcwd(),
 	})
-end
-
---- 格式化执行主函数
-function FormatFramework.execute(exec_context)
-	local logger = exec_context.services.logger
-	local config = exec_context.config
-
-	local resolved = FormatFramework.resolve_config(config, exec_context)
-	local formatter = resolved.cmd
-	if not formatter then
-		return false, "未提供格式化工具命令"
-	end
-
-	local args = resolved.args or {}
-	local files = resolved.files or { resolved.file_path }
-
-	if resolved.incremental and #files == 1 then
-		local file_path = files[1]
-		local ranges = get_changed_ranges(file_path)
-		if #ranges > 0 then
-			local inject_fn = resolved.inject_range_args
-			if not inject_fn and resolved.range_mode then
-				inject_fn = builtin_range_arg_injectors[resolved.range_mode]
-			end
-			if not inject_fn then
-				inject_fn = default_inject_range_args
-			end
-			args = inject_fn(args, ranges)
-		else
-			logger("未检测到改动区域，跳过格式化", vim.log.levels.INFO)
-			return true
-		end
-	end
-
-	local full_cmd = formatter
-	if #args > 0 then
-		full_cmd = full_cmd .. " " .. table.concat(args, " ")
-	end
-	full_cmd = full_cmd .. " " .. table.concat(vim.tbl_map(vim.fn.shellescape, files), " ")
-
-	logger(string.format("[FORMAT] 执行: %s", full_cmd), vim.log.levels.INFO)
-
-	local output = vim.fn.system(full_cmd)
-	local exit_code = vim.v.shell_error
-
-	if exit_code == 0 then
-		if resolved.reload ~= false then
-			vim.cmd("e!")
-			logger("文件已重新加载", vim.log.levels.INFO)
-		end
-		if resolved.notify ~= false then
-			vim.notify("✅ 格式化完成", vim.log.levels.INFO)
-		end
-		return true
-	else
-		local err_msg = "格式化失败 (退出码: " .. exit_code .. ")"
-		logger(err_msg .. "\n" .. output, vim.log.levels.ERROR)
-		return false, err_msg
-	end
 end
 
 return FormatFramework

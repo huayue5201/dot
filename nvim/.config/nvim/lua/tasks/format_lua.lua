@@ -1,23 +1,19 @@
 -- tasks/stylua_format.lua
 
-    return {
-	name = "styLua",
-	type = "format",
-	format = {
-		cmd = "stylua",
-		args = {
-			"--search-parent-directories",
-			"--indent-type=Spaces",
-			"--indent-width=4",
-		},
-		-- 明确指定文件参数位置 ▼▼▼
-		files = { "${file_path}" }, -- 使用上下文变量
-		-- 明确指定文件参数位置 ▲▲▲
-		incremental = true,
-		range_mode = "stylua",
-		reload = true,
-		notify = true,
-	},
-	filetypes = { "lua" },
-	description = "使用StyLua格式化当前Lua文件",
+return {
+    name = "styLua",
+    type = "format",
+    format = {
+        cmd = "stylua",
+        args = {
+            "--search-parent-directories",
+            "--indent-type=Spaces",
+            "--indent-width=4",
+        },
+        reload = false, -- 临时文件方案不需要 reload
+        notify = true,
+    },
+    filetypes = { "lua" },
+    description = "使用 StyLua 格式化当前 Lua 文件（使用临时文件方案）",
 }
+
