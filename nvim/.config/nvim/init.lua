@@ -27,6 +27,7 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 require("config.settings") -- 基础 Neovim 选项
 require("config.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
 require("config.statusline").active()
+
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()
 	require("config.autocmds") -- 加载自动命令
@@ -37,7 +38,7 @@ vim.defer_fn(function()
 	if not vim.g.lsp_enabled then
 		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), false)
 
-		require("config.lsp").no_lsp()
+		-- require("config.lsp").no_lsp()
 	else
 		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), true)
 	end
