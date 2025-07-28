@@ -22,15 +22,15 @@ return {
                 sections = { "watches", "scopes", "exceptions", "breakpoints", "threads", "repl", "console" },
                 -- 默认显示的视图
                 default_section = "watches",
-                -- headers = {
-                --     breakpoints = "%#ViewBreakpoints# %*" .. "Breakpoints [B]",
-                --     scopes = "%#ViewScopes#󰰡 %*" .. "Scopes [S]",
-                --     exceptions = "%#ViewExceptions# %*" .. "Exceptions [E]",
-                --     watches = "%#ViewWatch#󰖊 %*" .. "Watches [W]",
-                --     threads = "%#ViewThreads# %*" .. "Threads [T]",
-                --     repl = "%#ViewREPL# %*" .. "REPL [R]",
-                --     console = "%#ViewConsole# %*" .. "Console [C]",
-                -- },
+                headers = {
+                    breakpoints = "%#ViewBreakpoints# %*" .. "Breakpoints [B]",
+                    scopes = "%#ViewScopes#󰰡 %*" .. "Scopes [S]",
+                    exceptions = "%#ViewExceptions# %*" .. "Exceptions [E]",
+                    watches = "%#ViewWatch#󰖊 %*" .. "Watches [W]",
+                    threads = "%#ViewThreads# %*" .. "Threads [T]",
+                    repl = "%#ViewREPL# %*" .. "REPL [R]",
+                    console = "%#ViewConsole# %*" .. "Console [C]",
+                },
                 controls = {
                     enabled = true,
                     position = "right",
@@ -99,14 +99,10 @@ return {
         vim.keymap.set("n", "<localleader>c", "<cmd>DapViewJump console<cr>", { desc = "dap-view repl" })
 
         -- 配置添加/删除观察点
-        _G._add_expr = function()
-            vim.cmd("DapViewWatch")
-            dv.add_expr()
-        end
-        vim.keymap.set("n", "<leader>dav", function()
-            vim.o.operatorfunc = "v:lua._add_expr"
-            vim.cmd.normal("g@l") -- 执行操作符
-        end, { silent = true, desc = "添加/删除观察点" })
+        vim.operator("n", "<leader>dav", "<cmd>DapViewWatch<cr>", {
+            operator_opts = { motion = "l" },
+            desc = "添加/删除观察点",
+        })
     end,
 }
 

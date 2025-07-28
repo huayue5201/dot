@@ -32,12 +32,7 @@ return {
 				},
 			},
 			default_list_marker = "-",
-			todo_markers = {
-				unchecked = "□",
-				checked = "✔",
-			},
 			style = {}, -- override defaults
-			todo_action_depth = 1, --  Depth within a todo item's hierachy from which actions (e.g. toggle) will act on the parent todo item
 			enter_insert_after_new = true, -- Should enter INSERT mode after :CheckmateCreate (new todo)
 			smart_toggle = {
 				enabled = true,
