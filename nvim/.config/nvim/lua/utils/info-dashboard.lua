@@ -77,7 +77,7 @@ function M.show_statusboard()
 		height = #content - 1,
 		col = math.floor((vim.o.columns - max_width) / 2),
 		row = math.floor((vim.o.lines - (#content + 2)) / 2),
-		title = " Neovim Status ",
+		title = " Info ",
 		title_pos = "center",
 		style = "minimal",
 		border = "rounded",

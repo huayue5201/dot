@@ -80,6 +80,15 @@ function BricksRegistry.get_base_brick(name)
     return base_bricks[name]
 end
 
+-- 添加获取所有基础积木名称的方法
+function BricksRegistry.get_base_brick_names()
+    local names = {}
+    for name, _ in pairs(base_bricks) do
+        table.insert(names, name)
+    end
+    return names
+end
+
 return {
     register_base_brick = BricksRegistry.register_base_brick,
     register_frame_brick = BricksRegistry.register_frame_brick,
@@ -89,5 +98,6 @@ return {
     runtime_register_base_brick = BricksRegistry.runtime_register_base_brick,
     runtime_register_frame_brick = BricksRegistry.runtime_register_frame_brick,
     get_base_brick = BricksRegistry.get_base_brick,
+    get_base_brick_names = BricksRegistry.get_base_brick_names,
 }
 

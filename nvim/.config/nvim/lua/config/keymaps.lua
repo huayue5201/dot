@@ -103,7 +103,7 @@ end, { desc = "浮窗打开todo清单" })
 
 vim.keymap.set("n", "<leader>tdr", function()
 	todo.delete_project_todo()
-end, { desc = "打开todo清单" })
+end, { desc = "删除todo文件" })
 
 vim.keymap.set("i", "<c-l>", function()
 	local node = vim.treesitter.get_node()
