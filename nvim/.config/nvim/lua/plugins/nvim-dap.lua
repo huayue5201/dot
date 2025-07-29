@@ -1,4 +1,5 @@
 -- https://github.com/mfussenegger/nvim-dap
+-- NOTE : https://github.com/Jorenar/nvim-dap-disasm 提供反汇编（disassembly
 
 return {
 	"mfussenegger/nvim-dap",

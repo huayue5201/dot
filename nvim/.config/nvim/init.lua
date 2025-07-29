@@ -38,7 +38,7 @@ vim.defer_fn(function()
 	if not vim.g.lsp_enabled then
 		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), false)
 
-		-- require("config.lsp").no_lsp()
+		require("config.lsp").no_lsp()
 	else
 		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), true)
 	end
