@@ -17,7 +17,7 @@ function BricksRegistry.register_base_brick(brick)
     base_bricks[brick.name] = brick
 end
 
--- 注册框架积木（静态注册）
+-- 注册框架积木（静态注册）-- 新增：框架注册函数
 function BricksRegistry.register_frame_brick(frame)
     if not frame.name then
         error("Frame must have a name field")
@@ -91,7 +91,7 @@ end
 
 return {
     register_base_brick = BricksRegistry.register_base_brick,
-    register_frame_brick = BricksRegistry.register_frame_brick,
+    register_frame_brick = BricksRegistry.register_frame_brick, -- 导出框架注册
     get = BricksRegistry.get,
     get_frame = BricksRegistry.get_frame,
     clear = BricksRegistry.clear,

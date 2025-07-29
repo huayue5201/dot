@@ -1,4 +1,4 @@
--- lua/brickdag/init.lua
+ -- lua/brickdag/init.lua
 -- 插件主入口文件，负责初始化，加载模块及设置快捷键
 
 local registry = require("brickdag.core.bricks_registry")
@@ -6,75 +6,67 @@ local loader = require("brickdag.core.brick_loader")
 local task_loader = require("brickdag.core.task_loader")
 local runner = require("brickdag.core.task_runner")
 local task_queue = require("brickdag.core.task_queue")
-local keymaps = require("brickdag.keymaps") -- 新增，拆分的快捷键模块
+local keymaps = require("brickdag.keymaps")
 
 -- 默认的并行配置参数
 local default_parallel_config = {
-	enabled = true, -- 是否启用并行
-	max_workers = 0, -- 最大工作线程数，0代表自动检测CPU核心数
-	max_errors = 2, -- 最大容忍错误次数
-	strategy = "balanced", -- 并行策略
-	cpu_threshold = 80, -- CPU使用率阈值（百分比）
-	mem_threshold = 90, -- 内存使用率阈值（百分比）
-	resource_monitoring = true, -- 是否监控资源
+    enabled = true, -- 是否启用并行
+    max_workers = 0, -- 最大工作线程数，0代表自动检测CPU核心数
+    max_errors = 2, -- 最大容忍错误次数
+    strategy = "balanced", -- 并行策略
+    cpu_threshold = 80, -- CPU使用率阈值（百分比）
+    mem_threshold = 90, -- 内存使用率阈值（百分比）
+    resource_monitoring = true, -- 是否监控资源
 }
 
 local M = {
-	_initialized = false, -- 是否已初始化
-	parallel_config = vim.deepcopy(default_parallel_config), -- 当前并行配置（可被覆盖）
-	runtime_tasks = {}, -- 运行时加载的任务模块
+    _initialized = false, -- 是否已初始化
+    parallel_config = vim.deepcopy(default_parallel_config), -- 当前并行配置（可被覆盖）
+    runtime_tasks = {}, -- 运行时加载的任务模块
 }
 
 --- 插件初始化入口
 --- @param opts table? 配置参数，可选
 function M.setup(opts)
-	opts = opts or {}
+    opts = opts or {}
 
-	-- 防止重复初始化
-	if M._initialized then
-		vim.notify("brickdag 已经初始化", vim.log.levels.WARN)
-		return
-	end
+    -- 防止重复初始化
+    if M._initialized then
+        vim.notify("brickdag 已经初始化", vim.log.levels.WARN)
+        return
+    end
 
-	-- 合并用户并行配置和默认配置
-	if opts.parallel then
-		M.parallel_config = vim.tbl_deep_extend("force", default_parallel_config, opts.parallel)
-	end
+    -- 合并用户并行配置和默认配置
+    if opts.parallel then
+        M.parallel_config = vim.tbl_deep_extend("force", default_parallel_config, opts.parallel)
+    end
 
-	-- 清理之前的积木注册，避免冲突
-	registry.clear()
+    -- 清理之前的积木注册，避免冲突
+    registry.clear()
 
-	-- 加载所有积木模块
-	loader.load_all()
+    -- 加载所有积木模块 (先于任务加载)
+    loader.load_all()
 
-	-- 加载运行时指定的任务模块
-	if opts.runtime_tasks then
-		M.runtime_tasks = opts.runtime_tasks
-		for _, task_module in ipairs(opts.runtime_tasks) do
-			local ok, _ = pcall(require, task_module)
-			if not ok then
-				vim.notify("无法加载运行时任务模块: " .. task_module, vim.log.levels.WARN)
-			end
-		end
-	end
+    -- 加载运行时指定的任务模块
+    if opts.runtime_tasks then
+        M.runtime_tasks = opts.runtime_tasks
+        for _, task_module in ipairs(opts.runtime_tasks) do
+            local ok, _ = pcall(require, task_module)
+            if not ok then
+                vim.notify("无法加载运行时任务模块: " .. task_module, vim.log.levels.WARN)
+            end
+        end
+    end
 
-	-- 通过拆分的keymap模块设置快捷键
-	keymaps.setup_basic_keymaps(opts.keymaps, M)
-	keymaps.setup_navigation_keymaps(opts.nav_keymaps or {}, M)
+    -- 通过拆分的keymap模块设置快捷键
+    keymaps.setup_basic_keymaps(opts.keymaps, M)
+    keymaps.setup_navigation_keymaps(opts.nav_keymaps or {}, M)
 
-	-- 标记初始化完成
-	M._initialized = true
+    -- 标记初始化完成
+    M._initialized = true
 
-	vim.notify("brickdag 初始化完成", vim.log.levels.INFO)
+    vim.notify("brickdag 初始化完成", vim.log.levels.INFO)
 end
-
---- 设置基本快捷键映射
---- @param keymaps table? 自定义键位映射
--- 已拆分至 keymaps.lua 中，无需保留
-
---- 设置导航快捷键映射
---- @param keymaps table? 自定义导航键位
--- 已拆分至 keymaps.lua 中，无需保留
 
 --- 选择任务并加入队列
 function M.pick_and_enqueue_task()

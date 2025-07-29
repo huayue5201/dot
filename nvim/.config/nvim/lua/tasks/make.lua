@@ -12,6 +12,7 @@ return {
         },
         output = true, -- 捕获输出并返回
         timeout = 60, -- 可选：超时时间（秒）
+        priority = 1, -- 高优先级
     },
     description = "使用 Make 构建 C 项目",
 }
