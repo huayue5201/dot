@@ -1,22 +1,7 @@
-local icon_manager = require("brickdag.core.icon_manager")
+-- lua/brickdag/ui/views/list_view.lua
+local icon_manager = require("brickdag.ui.views.icon_manager")
 
 local M = {}
-
-local function get_item_icon(item)
-    if not item then
-        return "○"
-    end
-
-    if item.type == "dependency" then
-        return "←"
-    elseif item.type == "frame" then
-        return "⚙️"
-    elseif item.type == "description" then
-        return "📝"
-    end
-
-    return icon_manager.get_icon(item) or "○"
-end
 
 local function get_item_text(item)
     if item.name then
@@ -35,13 +20,12 @@ function M.render(buf, data)
     local selected_index = data.selected_index or 1
     local lines = {}
 
-    -- 添加项目
     for i, item in ipairs(items) do
-        local prefix = (i == selected_index) and "▶ " or "  "
-        local icon = get_item_icon(item)
+        local prefix = (i == selected_index) and "🟢 " or "  "
+        local icon = icon_manager.get_icon(item)
         local text = get_item_text(item)
 
-        -- 截断过长的文本
+        -- 截断过长文本
         if #text > 25 then
             text = text:sub(1, 22) .. "..."
         end
@@ -55,7 +39,6 @@ function M.render(buf, data)
 
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
-    -- 高亮选中项
     if #items > 0 and selected_index >= 1 and selected_index <= #items then
         vim.api.nvim_buf_add_highlight(buf, -1, "Visual", selected_index - 1, 0, -1)
     end
