@@ -1,5 +1,6 @@
 local uv = vim.loop
 
+--- 格式化框架积木定义
 local FormatFramework = {
     name = "format",
     brick_type = "frame",
@@ -7,27 +8,29 @@ local FormatFramework = {
     version = "2.0.0",
 }
 
--- 默认配置（写在这里，后面会合并）
+-- 默认配置项
 local default_format_config = {
-    method = "file", -- 默认临时文件方案
-    notify = true, -- 默认显示通知
-}
- local stdin_args = {
-  ["-"] = true,
-  ["--stdin"] = true,
-  -- 可拓展更多支持的参数
+    method = "file", -- 默认通过临时文件格式化
+    notify = true, -- 默认显示格式化完成通知
 }
 
+-- 支持通过 stdin 传输的参数列表
+local stdin_args = {
+    ["-"] = true,
+    ["--stdin"] = true,
+}
+
+-- 根据参数判断执行方法（stdin/file）
 local function infer_method_from_args(args)
-  for _, v in ipairs(args or {}) do
-    if stdin_args[v] then
-      return "stdin"
+    for _, v in ipairs(args or {}) do
+        if stdin_args[v] then
+            return "stdin"
+        end
     end
-  end
-  return "file"
+    return "file"
 end
 
--- 写临时文件
+-- 写当前缓冲区内容到临时文件
 local function write_buffer_to_tempfile(bufnr)
     local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
     local tmpname = vim.fn.tempname()
@@ -45,7 +48,7 @@ local function write_buffer_to_tempfile(bufnr)
     return tmpname
 end
 
--- 读临时文件
+-- 读取并删除临时文件内容
 local function read_tempfile(path)
     local fd = uv.fs_open(path, "r", 438)
     if not fd then
@@ -58,14 +61,15 @@ local function read_tempfile(path)
     return data
 end
 
+--- 框架执行入口
+--- @param exec_context table 执行上下文，包含配置和服务
 function FormatFramework.execute(exec_context)
     local logger = exec_context.services.logger
     local config = exec_context.config
 
-    -- 解析并合并默认配置
+    -- 解析配置，支持变量和函数
     local resolved = FormatFramework.resolve_config(config, exec_context)
     resolved.method = resolved.method or infer_method_from_args(resolved.args)
-    resolved.notify = resolved.notify
     if resolved.notify == nil then
         resolved.notify = default_format_config.notify
     end
@@ -82,6 +86,7 @@ function FormatFramework.execute(exec_context)
     local bufnr = vim.api.nvim_get_current_buf()
 
     if resolved.method == "stdin" then
+        -- 通过 stdin 方式格式化
         local text = table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), "\n")
         local full_cmd = formatter .. " " .. table.concat(args, " ")
         logger(string.format("[FORMAT] 执行(stdin): %s", full_cmd), vim.log.levels.INFO)
@@ -103,6 +108,7 @@ function FormatFramework.execute(exec_context)
         end
         return true
     else
+        -- 通过临时文件方式格式化
         local temp_file, err = write_buffer_to_tempfile(bufnr)
         if not temp_file then
             local msg = "临时文件创建失败: " .. err
@@ -148,6 +154,10 @@ function FormatFramework.execute(exec_context)
     end
 end
 
+--- 解析格式化配置，支持变量替换和函数调用
+--- @param config table 用户配置
+--- @param context table 执行上下文
+--- @return table 解析后的配置
 function FormatFramework.resolve_config(config, context)
     local services = context.services
     local resolver = services.resolver

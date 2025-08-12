@@ -99,7 +99,7 @@ function M.pick_and_run_task()
 	end
 
 	vim.ui.select(tasks, {
-		prompt = "选择要运行的任务:",
+		prompt = "运行任务 :",
 		format_item = function(task)
 			return task.name
 		end,

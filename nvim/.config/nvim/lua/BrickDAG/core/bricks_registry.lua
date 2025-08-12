@@ -1,5 +1,4 @@
 -- core/bricks_registry.lua
-
 local Interface = require("brickdag.core.interface")
 
 local BricksRegistry = {}
@@ -9,30 +8,75 @@ BricksRegistry.__index = BricksRegistry
 local base_bricks = {} -- 基础积木
 local frame_bricks = {} -- 框架积木
 
--- 注册基础积木（静态注册）
-function BricksRegistry.register_base_brick(brick)
+--- 内部注册通用方法
+--- @param store table 存储表
+--- @param brick table 积木对象
+--- @param validator? fun(brick: table): boolean, string 验证函数（可选）
+--- @param notify_prefix? string 通知前缀（可选）
+local function register_brick(store, brick, validator, notify_prefix)
     if not brick.name then
         error("Brick must have a name field")
     end
-    base_bricks[brick.name] = brick
-end
 
--- 注册框架积木（静态注册）-- 新增：框架注册函数
-function BricksRegistry.register_frame_brick(frame)
-    if not frame.name then
-        error("Frame must have a name field")
+    if validator then
+        local valid, err = validator(brick)
+        if not valid then
+            error("Invalid brick: " .. (err or "unknown error"))
+        end
     end
-    frame_bricks[frame.name] = frame
+
+    store[brick.name] = brick
+
+    if notify_prefix then
+        vim.notify(notify_prefix .. brick.name, vim.log.levels.INFO)
+    end
 end
 
--- 获取积木（优先返回框架积木）
-function BricksRegistry.get(name)
-    return frame_bricks[name] or base_bricks[name]
+-- 静态注册
+function BricksRegistry.register_base_brick(brick)
+    register_brick(base_bricks, brick)
+end
+
+function BricksRegistry.register_frame_brick(frame)
+    register_brick(frame_bricks, frame)
+end
+
+-- 运行时注册
+function BricksRegistry.runtime_register_base_brick(brick)
+    register_brick(base_bricks, brick, Interface.validate_base_brick, "运行时注册基础积木: ")
+end
+
+function BricksRegistry.runtime_register_frame_brick(frame)
+    register_brick(frame_bricks, frame, Interface.validate_frame_brick, "运行时注册框架积木: ")
+end
+
+-- 获取基础积木
+function BricksRegistry.get_base_brick(name)
+    return base_bricks[name]
 end
 
 -- 获取框架积木
 function BricksRegistry.get_frame(name)
     return frame_bricks[name]
+end
+
+-- 获取所有基础积木名称
+function BricksRegistry.get_base_brick_names()
+    local names = {}
+    for name in pairs(base_bricks) do
+        table.insert(names, name)
+    end
+    return names
+end
+
+-- 返回当前所有注册的基础积木（完整表）
+function BricksRegistry.get_all_base_bricks()
+    return base_bricks
+end
+
+-- 返回当前所有注册的框架积木（完整表）
+function BricksRegistry.get_all_frame_bricks()
+    return frame_bricks
 end
 
 -- 清除所有积木（用于测试）
@@ -41,63 +85,16 @@ function BricksRegistry.clear()
     frame_bricks = {}
 end
 
--- 运行时注册基础积木
---- @param brick table BaseBrick
-function BricksRegistry.runtime_register_base_brick(brick)
-    if not brick.name then
-        error("Brick must have a name field")
-    end
-
-    -- 验证基础积木接口
-    local valid, err = Interface.validate_base_brick(brick)
-    if not valid then
-        error("Invalid base brick: " .. (err or "unknown error"))
-    end
-
-    base_bricks[brick.name] = brick
-    vim.notify("运行时注册基础积木: " .. brick.name, vim.log.levels.INFO)
-end
-
--- 运行时注册框架积木
---- @param frame table FrameBrick
-function BricksRegistry.runtime_register_frame_brick(frame)
-    if not frame.name then
-        error("Frame must have a name field")
-    end
-
-    -- 验证框架积木接口
-    local valid, err = Interface.validate_frame_brick(frame)
-    if not valid then
-        error("Invalid frame brick: " .. (err or "unknown error"))
-    end
-
-    frame_bricks[frame.name] = frame
-    vim.notify("运行时注册框架积木: " .. frame.name, vim.log.levels.INFO)
-end
-
--- 获取基础积木
-function BricksRegistry.get_base_brick(name)
-    return base_bricks[name]
-end
-
--- 添加获取所有基础积木名称的方法
-function BricksRegistry.get_base_brick_names()
-    local names = {}
-    for name, _ in pairs(base_bricks) do
-        table.insert(names, name)
-    end
-    return names
-end
-
 return {
     register_base_brick = BricksRegistry.register_base_brick,
-    register_frame_brick = BricksRegistry.register_frame_brick, -- 导出框架注册
-    get = BricksRegistry.get,
-    get_frame = BricksRegistry.get_frame,
-    clear = BricksRegistry.clear,
+    register_frame_brick = BricksRegistry.register_frame_brick,
     runtime_register_base_brick = BricksRegistry.runtime_register_base_brick,
     runtime_register_frame_brick = BricksRegistry.runtime_register_frame_brick,
+    get_frame = BricksRegistry.get_frame,
     get_base_brick = BricksRegistry.get_base_brick,
     get_base_brick_names = BricksRegistry.get_base_brick_names,
+    get_all_base_bricks = BricksRegistry.get_all_base_bricks,
+    get_all_frame_bricks = BricksRegistry.get_all_frame_bricks,
+    clear = BricksRegistry.clear,
 }
 
