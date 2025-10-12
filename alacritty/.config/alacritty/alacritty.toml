@@ -12,7 +12,7 @@ osc52 = "CopyPaste"
 
 # 字体设置
 [font]
-size = 16 # 字体大小
+size = 15 # 字体大小
 
 [font.bold] # 粗体
 # family = "VictorMono Nerd Font"

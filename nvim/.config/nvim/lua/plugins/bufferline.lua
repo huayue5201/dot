@@ -44,6 +44,13 @@ return {
 						highlight = { sep = { link = "WinSeparator" } },
 						separator = "┃",
 					},
+					{
+						filetype = "neo-tree",
+						text = "File Explorer",
+						raw = " %{%v:lua.__get_selector()%} ",
+						highlight = { sep = { link = "WinSeparator" } },
+						separator = "┃",
+					},
 				},
 				hover = { -- 鼠标悬停设置
 					enabled = true, -- 开启鼠标悬停

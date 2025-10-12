@@ -25,14 +25,11 @@ brew install aria2 # 下载工具
 brew install --HEAD neovim
 brew tap laishulu/homebrew # neovim输入法切换依赖
 brew install macism
-brew install libgit2 # neovim SuperBo/fugit2.nvim插件依赖
-brew install superfile # 文件资源管理器
-brew install uv # python虚拟环境管理工具
+brew install yazi # 文件资源管理器
 brew install xray # 作为后台启动:brew services start xray
 brew install llvm
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # 安装rust
 brew install lsusb # usb设备查看工具
-brew install stylua # lua格式化工具
 
 # mcu 开发环境
 brew install --cask gcc-arm-embedded #gcc交叉编译工具
@@ -40,6 +37,18 @@ brew install openocd # debug.烧录工具
 brew install telnet # openocd依赖
 pipx install compiledb # compile_commands.json生成工具 compiledb make
 brew install node
+
+# lsp severs or 语言工具
+brew install taplo # toml lsp
+brew install stylua # lua格式化工具
+brew install uv # python虚拟环境管理工具
+uv tool install ty@latest # python lsp
+brew install rust-analyzer # rust lsp
+brew install emmylua_ls # lua lsp
+# https://github.com/ast-grep/ast-grep
+brew install ast-grep #
+# https://github.com/astral-sh/ruff
+brew install ruff # python格式化工具
 
 # brew 命令扩展
 brew tap buo/cask-upgrade # cask更新 brew cu [CASK name]

@@ -62,11 +62,11 @@ vim.api.nvim_create_autocmd("LspAttach", {
 				vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
 			end
 
-			if client:supports_method("textDocument/codeLens") then
-				vim.lsp.codelens.refresh({ bufnr = 0 })
-			end
+			-- if client:supports_method("textDocument/codeLens") then
+			-- 	vim.lsp.codelens.refresh({ bufnr = 0 })
+			-- end
 			-- 自动刷新 CodeLens
-			vim.cmd([[ autocmd BufEnter,CursorHold,InsertLeave <buffer> lua vim.lsp.codelens.refresh({ bufnr = 0 }) ]])
+			-- vim.cmd([[ autocmd BufEnter,CursorHold,InsertLeave <buffer> lua vim.lsp.codelens.refresh({ bufnr = 0 }) ]])
 		end
 	end,
 })
@@ -127,51 +127,6 @@ endfunction
 au TextYankPost * if v:event.operator == 'y' | call YankShift() | endif
 au TextYankPost * if v:event.operator == 'd' | call YankShift() | endif
 ]])
-
-vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
-	once = true,
-	callback = function()
-		if vim.fn.has("win32") == 1 or vim.fn.has("wsl") == 1 then
-			vim.g.clipboard = {
-				copy = {
-					["+"] = "win32yank.exe -i --crlf",
-					["*"] = "win32yank.exe -i --crlf",
-				},
-				paste = {
-					["+"] = "win32yank.exe -o --lf",
-					["*"] = "win32yank.exe -o --lf",
-				},
-			}
-		elseif vim.fn.has("unix") == 1 then
-			if vim.fn.executable("xclip") == 1 then
-				vim.g.clipboard = {
-					copy = {
-						["+"] = "xclip -selection clipboard",
-						["*"] = "xclip -selection clipboard",
-					},
-					paste = {
-						["+"] = "xclip -selection clipboard -o",
-						["*"] = "xclip -selection clipboard -o",
-					},
-				}
-			elseif vim.fn.executable("xsel") == 1 then
-				vim.g.clipboard = {
-					copy = {
-						["+"] = "xsel --clipboard --input",
-						["*"] = "xsel --clipboard --input",
-					},
-					paste = {
-						["+"] = "xsel --clipboard --output",
-						["*"] = "xsel --clipboard --output",
-					},
-				}
-			end
-		end
-
-		vim.opt.clipboard = "unnamedplus"
-	end,
-	desc = "Lazy load clipboard",
-})
 
 -- -- ✨ 复制前记录光标位置
 -- local cursorPreYank

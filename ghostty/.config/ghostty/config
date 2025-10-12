@@ -53,7 +53,7 @@ background-opacity = 0.8
 background-blur = 20
 
 # 设置主题为 AtelierSulphurpool
-theme = AtelierSulphurpool
+# theme = AtelierSulphurpool
 
 # 设置背景色为 #202746
 background = #202746

@@ -49,7 +49,6 @@ end
 local DETECTORS = {}
 
 --- 注册新的设备探测器
----@param detector { name: string, match: fun(output: string): boolean, display: string, source?: string }
 function M.register_device_detector(detector)
 	table.insert(DETECTORS, detector)
 end

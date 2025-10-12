@@ -42,7 +42,6 @@ vim.keymap.set(
 	{ desc = "打开/关闭 LSP 诊断" }
 )
 
-vim.keymap.set("n", "<c-/>", "<cmd>lua require'utils.line_wrap_preview'.preview_long_line()<CR>", { desc = "预览" })
 vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "重新加载当前buffer" })
 vim.keymap.set("n", "<leader>tor", "<cmd>restart<cr>", { silent = true, desc = "热重启nvim" })
 
@@ -59,6 +58,16 @@ vim.keymap.set(
 	'/\\%><C-r>=line("w0")-1<CR>l\\%<<C-r>=line("w$")+1<CR>l',
 	{ silent = false, desc = "在当前视口中搜索" }
 )
+-- vim.cmd("packadd nvim.difftool")
+-- vim.keymap.set("n", "<leader>gu", "<cmd>DiffTool<cr>", { desc = "打开diff" })
+
+-- 加载 undotree 插件
+vim.cmd("packadd nvim.undotree")
+vim.keymap.set("n", "<leader>eu", function()
+	require("undotree").open({
+		command = "set nosplitright | 40vnew | set splitright<",
+	})
+end, { desc = "打开撤销树" })
 
 vim.keymap.set("n", "<leader>eo", function()
 	require("utils.cross_config").choose_chip()

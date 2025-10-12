@@ -1,22 +1,4 @@
 -- -------------- Neovim 插件加载相关 --------------
--- 禁止加载 Neovim 自带插件
-vim.g.loaded_gzip = 1
-vim.g.loaded_tar = 1
-vim.g.loaded_tarPlugin = 1
-vim.g.loaded_zip = 1
-vim.g.loaded_zipPlugin = 1
-vim.g.loaded_getscript = 1
-vim.g.loaded_getscriptPlugin = 1
-vim.g.loaded_vimball = 1
-vim.g.loaded_vimballPlugin = 1
-vim.g.loaded_2html_plugin = 1
-vim.g.loaded_logiPat = 1
-vim.g.loaded_rrhelper = 1
-vim.g.loaded_netrw = 1
-vim.g.loaded_netrwPlugin = 1
-vim.g.loaded_netrwSettings = 1
-vim.g.loaded_netrwFileHandlers = 1
-
 -- 禁用 Perl 和 Ruby 提供者
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_ruby_provider = 0
@@ -25,7 +7,7 @@ vim.g.loaded_ruby_provider = 0
 vim.opt.mousemoveevent = true -- 启用鼠标移动事件
 vim.opt.fileencodings = { "utf-8", "gbk", "cp936", "ucs-bom", "latin1" }
 vim.opt.inccommand = "split" -- 启用增量命令模式（即时显示命令效果）
--- vim.opt.clipboard = "unnamedplus" -- 使用系统剪贴板
+vim.opt.clipboard = "unnamedplus" -- 使用系统剪贴板
 -- vim.g.clipboard = "osc52"
 vim.opt.modeline = false -- 禁用 modeline
 vim.opt.updatetime = 300 -- 设置更新延迟时间（毫秒）
@@ -97,7 +79,7 @@ vim.opt.showmode = false -- 禁用模式显示
 vim.opt.laststatus = 3 -- 启用全局状态栏
 vim.opt.cmdheight = 1 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
 vim.opt.showtabline = 2 -- 始终显示标签页栏
-vim.opt.statuscolumn = "%!v:lua.require('config.statuscolumn').active()" -- 载入 statuscolumn 配置
+vim.o.statuscolumn = "%s%=%l%=%C "
 vim.opt.number = true --显示行号
 vim.opt.relativenumber = true -- 启用相对行号
 vim.opt.signcolumn = "yes:3" -- 始终显示标志列
@@ -105,6 +87,9 @@ vim.opt.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换�
 
 -- -------------- 显示和符号设置 --------------
 vim.opt.list = true -- 显示不可见字符
+vim.o.foldcolumn = "1"
+vim.o.foldlevelstart = 99
+vim.wo.foldtext = ""
 vim.opt.fillchars = {
 	stl = " ", -- 当前窗口的状态栏区域字符
 	stlnc = " ", -- 非当前窗口的状态栏区域字符
@@ -119,10 +104,11 @@ vim.opt.fillchars = {
 	vertright = "┣", -- 向右的垂直分隔符
 	verthoriz = "╋", -- 垂直和水平重叠的分隔符
 	-- 折叠相关字符
-	fold = " ", -- 折叠文本填充字符
+	-- fold = "╱", -- 折叠文本填充字符
 	foldopen = "󰛲", -- 折叠打开时的标记字符
 	foldclose = "󰐖", -- 折叠关闭时的标记字符
 	foldsep = "│", -- 打开折叠时的中间分隔符
+	foldinner = " ",
 	-- 其他
 	diff = "╱", -- 显示差异时，已删除的行字符
 	msgsep = "󰖰", -- 消息分隔符字符（例如用于 `display`）

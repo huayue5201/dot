@@ -9,11 +9,17 @@ local Foldtext = {}
 local function expand_tabs(line)
 	return line:gsub("\t", string.rep(" ", vim.o.tabstop))
 end
+
 -- 获取诊断统计信息
 local function fold_diagnostics(start_lnum, end_lnum)
+	local ok, diagnostics = pcall(vim.diagnostic.get, 0)
+	if not ok then
+		return "", "" -- 如果获取诊断失败，返回空字符串
+	end
+
 	local icons = require("utils.utils").icons.diagnostic
 	local counts = { 0, 0, 0, 0 } -- ERROR, WARN, INFO, HINT
-	for _, d in ipairs(vim.diagnostic.get(0)) do
+	for _, d in ipairs(diagnostics) do
 		if d.lnum >= start_lnum and d.lnum <= end_lnum then
 			counts[d.severity] = counts[d.severity] + 1
 		end

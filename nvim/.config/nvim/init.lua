@@ -37,8 +37,6 @@ vim.defer_fn(function()
 
 	if not vim.g.lsp_enabled then
 		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), false)
-
-		-- require("config.lsp").no_lsp()
 	else
 		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), true)
 	end
@@ -65,7 +63,7 @@ vim.defer_fn(function()
 				client.server_capabilities.publishDiagnostics = true
 			end,
 		})
-		require("brickdag").setup() -- 任务系统
+
 		require("utils.dotenv").load() -- token加载模块
 		require("utils.info-dashboard") -- 信息看版
 		require("utils.cross_config").load_chip_config_on_startup() -- 在 Neovim 启动时加载平台配置
