@@ -3,7 +3,6 @@
 local utils = require("utils.utils")
 local colors = utils.palette
 local lsp_progress = require("utils.lsp_progress")
-local spinner = require("utils.spinner")
 
 -- 定义高亮组
 local function set_highlights(highlight_defs)
@@ -46,15 +45,6 @@ function Statusline.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
 	local mode_info = Statusline.modes[current_mode] or { label = current_mode, hl = "DefaultMode" }
 	return "%#StatuslineIcon#󰨾 %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
-end
-
--- -------------------- nvim-lint 进度 --------------------
-local lint_progress = function()
-	local linters = require("lint").get_running()
-	if #linters == 0 then
-		return "󰦕" -- 可以换成其他你喜欢的图标或符号
-	end
-	return "%#PinkHighlight#" .. "󱉶 " .. "%*" .. table.concat(linters, ", ")
 end
 
 -- 获取当前 buffer 附加的 LSP 客户端名称
@@ -221,12 +211,10 @@ function Statusline.active()
 	return table.concat({
 		"%#Normal#", -- 默认文本高亮组
 		string.format("%-46s", Statusline.mode()), -- 左对齐，13个字符
-		spinner.get_frame() .. " ", -- 动态图标
 		Statusline.vcs() .. "  ", -- Git 状态
-		lint_progress() .. " ",
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
-		-- Statusline.dap_status() .. " ", -- dap调试信息
+		Statusline.dap_status() .. " ", -- dap调试信息
 		Statusline.chip() .. "  ",
 		Statusline.usb() .. " ",
 		"  %l%c ", -- 行列号
@@ -250,27 +238,5 @@ vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter", "BufWritePost" }, {
 		refresh_statusline()
 	end,
 })
-
--- 自动命令2：处理SpinnerUpdate事件
-vim.api.nvim_create_autocmd("User", {
-	group = statusline_group,
-	pattern = "SpinnerUpdate",
-	callback = function()
-		refresh_statusline()
-	end,
-})
-
--- 测试命令（带最小持续时间）
-vim.api.nvim_create_user_command("SpinTest", function(opts)
-	local duration = tonumber(opts.args) or 3000
-	spinner.start(duration)
-	vim.notify("Loader started (min: " .. duration .. "ms)")
-
-	-- 实际任务很快完成，但动画会持续显示
-	vim.defer_fn(function()
-		spinner.stop()
-		vim.notify("Task completed but animation continues")
-	end, 500)
-end, { nargs = "?" })
 
 return Statusline

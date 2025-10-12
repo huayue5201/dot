@@ -8,7 +8,7 @@ return {
 			helpLine = {
 				enabled = false,
 			},
-			showCompactInputs = true,
+			-- showCompactInputs = true,
 			showInputsTopPadding = false,
 			showInputsBottomPadding = false,
 		})
