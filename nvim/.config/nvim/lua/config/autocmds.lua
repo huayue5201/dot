@@ -50,7 +50,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			lsp.inlay_hint_handler() -- 设置插入模式内联提示处理
 			lsp.set_keymaps() -- 设置按键映射
 
-			vim.lsp.document_color.enable(true, args.buf)
+			-- vim.lsp.document_color.enable(true, args.buf)
+			vim.lsp.document_color.enable(true, 0, { style = "virtual" })
 
 			if client:supports_method("textDocument/foldingRange") then
 				local win = vim.api.nvim_get_current_win()
@@ -65,7 +66,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			-- if client:supports_method("textDocument/codeLens") then
 			-- 	vim.lsp.codelens.refresh({ bufnr = 0 })
 			-- end
-			-- 自动刷新 CodeLens
+			-- -- 自动刷新 CodeLens
 			-- vim.cmd([[ autocmd BufEnter,CursorHold,InsertLeave <buffer> lua vim.lsp.codelens.refresh({ bufnr = 0 }) ]])
 		end
 	end,

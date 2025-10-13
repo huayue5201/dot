@@ -66,6 +66,7 @@ return {
 				"rust",
 				"qf",
 				"comment",
+				"typescript",
 			},
 			textobjects = {
 				swap = {

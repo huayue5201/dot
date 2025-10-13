@@ -2,8 +2,15 @@
 
 return {
 	"stevearc/overseer.nvim",
-	event = { "BufWritePre" },
+	event = "BufReadPost",
 	config = function()
-		require("overseer").setup()
+		local overseer = require("overseer")
+		overseer.setup({
+			dap = true,
+			templates = { "builtin", "python_uv_run" },
+		})
+
+		vim.keymap.set("n", "<leader>or", "<cmd>OverseerRun<cr>", { silent = true, desc = "启动任务" })
+		vim.keymap.set("n", "<leader>ol", "<cmd>OverseerToggle<cr>", { silent = true, desc = "任务列表" })
 	end,
 }

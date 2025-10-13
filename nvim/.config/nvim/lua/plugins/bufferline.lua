@@ -39,14 +39,14 @@ return {
 				-- items = {},
 				offsets = { -- 侧边栏偏移设置
 					{
-						filetype = "aerial",
-						text = "  Symbols",
+						filetype = "SymbolsSidebar",
+						text = " Symbols",
 						highlight = { sep = { link = "WinSeparator" } },
 						separator = "┃",
 					},
 					{
 						filetype = "neo-tree",
-						text = "File Explorer",
+						text = "󰪶 File Explorer",
 						raw = " %{%v:lua.__get_selector()%} ",
 						highlight = { sep = { link = "WinSeparator" } },
 						separator = "┃",

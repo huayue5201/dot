@@ -58,8 +58,6 @@ vim.keymap.set(
 	'/\\%><C-r>=line("w0")-1<CR>l\\%<<C-r>=line("w$")+1<CR>l',
 	{ silent = false, desc = "在当前视口中搜索" }
 )
--- vim.cmd("packadd nvim.difftool")
--- vim.keymap.set("n", "<leader>gu", "<cmd>DiffTool<cr>", { desc = "打开diff" })
 
 -- 加载 undotree 插件
 vim.cmd("packadd nvim.undotree")
