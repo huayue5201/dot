@@ -3,15 +3,15 @@
 -- https://github.com/folke/tokyonight.nvim
 
 return {
-	-- "oxfist/night-owl.nvim",
-	"EdenEast/nightfox.nvim",
+	"oxfist/night-owl.nvim",
+	-- "EdenEast/nightfox.nvim",
 	-- "folke/tokyonight.nvim",
 	lazy = false,
 	priority = 1000,
 	config = function()
-		-- require("night-owl").setup()
-		-- vim.cmd.colorscheme("night-owl")
-		vim.cmd("colorscheme Carbonfox")
+		require("night-owl").setup()
+		vim.cmd.colorscheme("night-owl")
+		-- vim.cmd("colorscheme Carbonfox")
 		-- vim.cmd([[colorscheme tokyonight-night]])
 	end,
 }
