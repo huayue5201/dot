@@ -137,7 +137,8 @@ return {
 						["<c-x>"] = "clear_filter",
 						["[g"] = "prev_git_modified",
 						["]g"] = "next_git_modified",
-						["o"] = "system_open", -- 打开系统文件浏览器
+						["O"] = "system_open", -- 打开系统文件浏览器
+						["<esc>"] = "open_and_clear_filter",
 					},
 				},
 
@@ -161,6 +162,18 @@ return {
 							vim.cmd("silent !start explorer " .. p)
 						else
 							vim.notify("当前系统不支持 system_open", vim.log.levels.WARN)
+						end
+					end,
+					open_and_clear_filter = function(state)
+						local node = state.tree:get_node()
+						if node and node.type == "file" then
+							local file_path = node:get_id()
+							-- reuse built-in commands to open and clear filter
+							local cmds = require("neo-tree.sources.filesystem.commands")
+							cmds.open(state)
+							cmds.clear_filter(state)
+							-- reveal the selected file without focusing the tree
+							require("neo-tree.sources.filesystem").navigate(state, state.path, file_path)
 						end
 					end,
 				},
