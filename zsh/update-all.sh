@@ -33,16 +33,6 @@ echo "Shell: $SHELL" | tee -a "$LOG_FILE"
 echo "用户: $(whoami)" | tee -a "$LOG_FILE"
 
 # ------------------------------
-# 当前 PATH 优先级
-# ------------------------------
-echo -e "\n🔍 当前 PATH 路径优先级：" | tee -a "$LOG_FILE"
-i=1
-for p in $(echo $PATH | tr ':' ' '); do
-    echo "  [$i] $p" | tee -a "$LOG_FILE"
-    ((i++))
-done
-
-# ------------------------------
 # 错误重试函数
 # ------------------------------
 retry_command() {

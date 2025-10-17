@@ -35,39 +35,44 @@ vim.defer_fn(function()
 
 	require("utils.project_lsp_toggle").init()
 
-	if not vim.g.lsp_enabled then
-		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), false)
-	else
-		vim.lsp.enable(require("config.lsp").get_lsp_config("name"), true)
-	end
-
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
-		-- 延迟 LSP 配置
-		vim.lsp.config("*", {
-			root_markers = { ".git" },
-			settings = {
-				workspace = {
-					didChangeWatchedFiles = {
-						enabled = true,
+		vim.api.nvim_create_autocmd("BufReadPost", {
+			pattern = "*",
+			callback = function()
+				local lsp = require("config.lsp")
+				local config = lsp.get_lsp_config("name")
+				if vim.g.lsp_enabled then
+					vim.lsp.enable(config)
+				else
+					vim.lsp.stop_client(config)
+				end
+				-- 全局 LSP 配置
+				vim.lsp.config("*", {
+					root_markers = { ".git" },
+					settings = {
+						workspace = {
+							didChangeWatchedFiles = {
+								enabled = true,
+							},
+						},
 					},
-				},
-			},
-			capabilities = {
-				textDocument = {
-					semanticTokens = { multilineTokenSupport = true },
-				},
-			},
-			on_attach = function(client)
-				-- 确保 diagnostics 功能已启用
-				client.server_capabilities.publishDiagnostics = true
+					capabilities = {
+						textDocument = {
+							semanticTokens = { multilineTokenSupport = true },
+						},
+					},
+					on_attach = function(client)
+						-- 确保 diagnostics 功能已启用
+						client.server_capabilities.publishDiagnostics = true
+					end,
+				})
 			end,
 		})
 
 		require("utils.dotenv").load() -- token加载模块
-		require("utils.info-dashboard") -- 信息看版
 		require("utils.cross_config").load_chip_config_on_startup() -- 在 Neovim 启动时加载平台配置
 		-- quickfixtextfunc
 		require("config.quickfixtext").setup()
 	end)
-end, 150) -- 延迟 100ms 执行
+end, 300) -- 延迟 100ms 执行
