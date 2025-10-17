@@ -116,7 +116,8 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	end,
 })
 
--- ✨ 优化剪贴板操作
+-- ✨ 剪贴板与寄存器增强
+-- 保存最近 10 次 yank/delete 的历史
 vim.cmd([[
 function! YankShift()
   call setreg(0, getreg('"'))
@@ -125,47 +126,49 @@ function! YankShift()
   endfor
 endfunction
 
-au TextYankPost * if v:event.operator == 'y' | call YankShift() | endif
-au TextYankPost * if v:event.operator == 'd' | call YankShift() | endif
+augroup YankHistory
+  autocmd!
+  au TextYankPost * if index(['y', 'd'], v:event.operator) >= 0 | call YankShift() | endif
+augroup END
 ]])
 
--- -- ✨ 复制前记录光标位置
--- local cursorPreYank
--- vim.keymap.set({ "n", "x" }, "y", function()
--- 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
--- 	return "y"
--- end, { expr = true })
--- vim.keymap.set("n", "Y", function()
--- 	cursorPreYank = vim.api.nvim_win_get_cursor(0)
--- 	return "y$"
--- end, { expr = true })
---
--- -- ✨ 高亮复制 & 光标恢复 & 剪贴板同步
--- vim.api.nvim_create_autocmd("TextYankPost", {
--- 	pattern = "*",
--- 	callback = function()
--- 		vim.hl.on_yank({ timeout = 330 })
---
--- 		if vim.v.event.operator == "y" and cursorPreYank then
--- 			vim.schedule(function()
--- 				vim.api.nvim_win_set_cursor(0, cursorPreYank)
--- 				cursorPreYank = nil
--- 			end)
--- 		end
---
--- 		if vim.fn.has("clipboard") == 1 then
--- 			local reg_type = vim.fn.getregtype('"')
--- 			if reg_type ~= "+" then
--- 				local clipboard_content = vim.fn.getreg('"')
--- 				if clipboard_content ~= "" then
--- 					vim.defer_fn(function()
--- 						vim.fn.setreg("+", clipboard_content)
--- 					end, 100)
--- 				end
--- 			end
--- 		end
--- 	end,
--- })
+-- ✨ 记录光标位置（在普通模式或可视模式复制前）
+local cursor_pre_yank = nil
+vim.keymap.set({ "n", "x" }, "y", function()
+	cursor_pre_yank = vim.api.nvim_win_get_cursor(0)
+	return "y"
+end, { expr = true })
+
+vim.keymap.set("n", "Y", function()
+	cursor_pre_yank = vim.api.nvim_win_get_cursor(0)
+	return "y$"
+end, { expr = true })
+
+-- ✨ 自动高亮复制、恢复光标、同步系统剪贴板
+vim.api.nvim_create_autocmd("TextYankPost", {
+	group = vim.api.nvim_create_augroup("EnhancedYank", { clear = true }),
+	callback = function()
+		vim.highlight.on_yank({ timeout = 250 })
+
+		local ev = vim.v.event
+		if ev.operator == "y" and cursor_pre_yank then
+			vim.schedule(function()
+				pcall(vim.api.nvim_win_set_cursor, 0, cursor_pre_yank)
+				cursor_pre_yank = nil
+			end)
+		end
+
+		if vim.fn.has("clipboard") == 1 then
+			local clipboard_content = vim.fn.getreg('"')
+			if clipboard_content ~= "" then
+				-- 延迟同步系统剪贴板，避免阻塞
+				vim.defer_fn(function()
+					pcall(vim.fn.setreg, "+", clipboard_content)
+				end, 80)
+			end
+		end
+	end,
+})
 
 -- 定义删除 quickfix 或 location list 项目的函数
 local function delete_qf_items()

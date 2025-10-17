@@ -5,6 +5,7 @@ return {
 	event = { "InsertEnter", "CmdlineEnter" },
 	-- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
 	build = "cargo build --release",
+	dependencies = "xzbdmw/colorful-menu.nvim",
 	---@module 'blink.cmp'
 	---@type blink.cmp.Config
 	config = function()
@@ -39,13 +40,26 @@ return {
 				menu = {
 					border = "rounded",
 					draw = {
-						columns = {
-							{ "kind_icon" }, -- 显示补全项的图标
-							{ "label", "label_description", gap = 1 }, -- 显示补全项的标签和描述，图标与文字之间留1个空格
-							{ "kind" }, -- 显示补全项的类型
+						-- We don't need label_description now because label and label_description are already
+						-- combined together in label by colorful-menu.nvim.
+						columns = { { "kind_icon" }, { "label", gap = 1 }, { "kind" } },
+						components = {
+							label = {
+								text = function(ctx)
+									return require("colorful-menu").blink_components_text(ctx)
+								end,
+								highlight = function(ctx)
+									return require("colorful-menu").blink_components_highlight(ctx)
+								end,
+							},
 						},
+						-- columns = {
+						-- 	{ "kind_icon" }, -- 显示补全项的图标
+						-- 	{ "label", "label_description", gap = 1 }, -- 显示补全项的标签和描述，图标与文字之间留1个空格
+						-- 	{ "kind" }, -- 显示补全项的类型
+						-- },
 						-- 启用基于 treesitter 的菜单文本高亮（依赖 LSP 高亮规则）
-						treesitter = { "lsp" },
+						-- treesitter = { "lsp" },
 					},
 				},
 				-- 文档预览设置：

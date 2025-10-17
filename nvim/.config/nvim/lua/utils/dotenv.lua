@@ -1,6 +1,6 @@
 local M = {}
 
--- 读取 KEY=VAL 格式的 .env 文件，支持 export 和注释
+-- 读取 KEY=VAL 格式的 .env 文件，支持 export、引号、注释
 local function load_env_file(file)
 	local f = io.open(file, "r")
 	if not f then
@@ -10,12 +10,14 @@ local function load_env_file(file)
 	for line in f:lines() do
 		-- 忽略注释或空行
 		if not line:match("^%s*#") and line:match("%S") then
-			-- 匹配 export KEY=VAL 或 KEY=VAL
-			local key, val = line:match("^%s*export%s+([%w_]+)%s*=%s*(.+)%s*$")
+			-- 匹配 export KEY=VAL 或 KEY=VAL（export 可无空格）
+			local key, val = line:match("^%s*export%s*([%w_]+)%s*=%s*(.+)%s*$")
 			if not key then
 				key, val = line:match("^%s*([%w_]+)%s*=%s*(.+)%s*$")
 			end
 			if key and val then
+				-- 去掉包裹的单引号或双引号
+				val = val:gsub("^[\"'](.-)[\"']$", "%1")
 				vim.env[key] = val
 			end
 		end
@@ -41,61 +43,67 @@ local function load_env_lua(file)
 	end
 end
 
--- 自动创建 .env 和 .env.lua 文件
+-- 自动创建默认 .env 和 .env.lua 文件
 local function create_default_env_files()
 	local home = vim.env.HOME
 	local config_path = vim.fn.stdpath("config")
 	local env_file = home .. "/.env"
 	local env_lua = config_path .. "/.env.lua"
 
-	-- 创建 .env 文件
-	local f = io.open(env_file, "r")
-	if not f then
-		f = io.open(env_file, "w")
-		if f then
-			-- 写入默认内容
-			f:write("# Default environment variables\n")
-			f:write("MY_VAR=value\n")
-			f:write("ANOTHER_VAR=123\n")
-			f:write("export FOO=bar\n")
-			f:close()
-			vim.notify(".env file created at " .. env_file, vim.log.levels.INFO)
-		end
+	-- 如果两者都存在就不创建
+	if vim.fn.filereadable(env_file) == 1 or vim.fn.filereadable(env_lua) == 1 then
+		return
 	end
 
-	-- 创建 .env.lua 文件
-	f = io.open(env_lua, "r")
-	if not f then
-		f = io.open(env_lua, "w")
-		if f then
-			-- 写入默认 Lua 内容
-			f:write("return {\n")
-			f:write("  MY_VAR = 'value',\n")
-			f:write("  ANOTHER_VAR = '123',\n")
-			f:write("  FOO = 'bar',\n")
-			f:write("}\n")
-			f:close()
-			vim.notify(".env.lua file created at " .. env_lua, vim.log.levels.INFO)
-		end
+	-- 创建 .env
+	local f = io.open(env_file, "w")
+	if f then
+		f:write("# Default environment variables\n")
+		f:write('MY_VAR="value"\n')
+		f:write("ANOTHER_VAR=123\n")
+		f:write("export FOO=bar\n")
+		f:close()
+		vim.notify(".env file created at " .. env_file, vim.log.levels.INFO)
+	end
+
+	-- 创建 .env.lua
+	f = io.open(env_lua, "w")
+	if f then
+		f:write("return {\n")
+		f:write("  MY_VAR = 'value',\n")
+		f:write("  ANOTHER_VAR = '123',\n")
+		f:write("  FOO = 'bar',\n")
+		f:write("}\n")
+		f:close()
+		vim.notify(".env.lua file created at " .. env_lua, vim.log.levels.INFO)
 	end
 end
 
--- 主入口函数：加载 ~/.env 和 ~/.config/nvim/.env.lua
-function M.load()
+-- 主入口：支持自定义路径列表
+-- M.load()             -> 默认加载 ~/.env 和 ~/.config/nvim/.env.lua
+-- M.load({ "path1", "path2" }) -> 自定义路径
+function M.load(paths)
 	local home = vim.env.HOME
 	local config_path = vim.fn.stdpath("config")
-	local env_file = home .. "/.env"
-	local env_lua = config_path .. "/.env.lua"
 
-	-- 如果文件不存在，自动创建
-	create_default_env_files()
+	paths = paths or {
+		home .. "/.env",
+		config_path .. "/.env.lua",
+	}
 
-	if vim.fn.filereadable(env_file) == 1 then
-		load_env_file(env_file)
+	-- 若默认文件都不存在，则创建默认模板
+	if vim.fn.filereadable(paths[1]) == 0 and vim.fn.filereadable(paths[2]) == 0 then
+		create_default_env_files()
 	end
 
-	if vim.fn.filereadable(env_lua) == 1 then
-		load_env_lua(env_lua)
+	for _, file in ipairs(paths) do
+		if vim.fn.filereadable(file) == 1 then
+			if file:match("%.lua$") then
+				load_env_lua(file)
+			else
+				load_env_file(file)
+			end
+		end
 	end
 end
 
