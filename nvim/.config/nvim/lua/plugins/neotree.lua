@@ -6,12 +6,16 @@ return {
 		"nvim-lua/plenary.nvim",
 		"MunifTanjim/nui.nvim",
 		"nvim-tree/nvim-web-devicons", -- 图标支持
+		"saifulapm/neotree-file-nesting-config",
 		"3rd/image.nvim", -- 图片预览支持（需要安装 ImageMagick）
 	},
 	lazy = false, -- 不延迟加载
 	config = function()
 		-- 🧩 主配置
 		require("neo-tree").setup({
+			nesting_rules = require("neotree-file-nesting-config").nesting_rules,
+			hide_root_node = true,
+			retain_hidden_root_indent = true,
 			sources = { "filesystem", "buffers", "git_status" },
 			source_selector = {
 				winbar = true,
@@ -38,11 +42,11 @@ return {
 					indent_size = 2,
 					padding = 1,
 					with_markers = true,
-					indent_marker = "│",
-					last_indent_marker = "└",
+					-- indent_marker = "│",
+					-- last_indent_marker = "└",
 					highlight = "NeoTreeIndentMarker",
-					expander_collapsed = "",
-					expander_expanded = "",
+					expander_collapsed = "",
+					expander_expanded = "",
 				},
 				icon = {
 					folder_closed = "",
@@ -118,6 +122,10 @@ return {
 					hide_dotfiles = true,
 					hide_gitignored = true,
 					hide_hidden = true,
+					show_hidden_count = false,
+					never_show = {
+						".DS_Store",
+					},
 				},
 				follow_current_file = {
 					enabled = false,

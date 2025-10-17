@@ -120,6 +120,54 @@ vim.keymap.set("i", "<c-l>", function()
 	end
 end, { desc = "insjump" })
 
+-- ✨ 粘贴内容选择器
+vim.keymap.set("n", "<leader>yl", function()
+	local entries = {}
+	-- 收集所有非空的剪贴板历史条目
+	for i = 0, 9 do
+		local content = vim.fn.getreg(i)
+		if content ~= "" then
+			-- 创建预览文本
+			local preview = content:gsub("\n", "\\n")
+			if #preview > 50 then
+				preview = preview:sub(1, 47) .. "..."
+			end
+
+			table.insert(entries, {
+				value = i,
+				display = string.format("[%d] %s", i, preview),
+				content = content,
+				ordinal = i,
+			})
+		end
+	end
+	if #entries == 0 then
+		vim.notify("📭 剪贴板历史为空", vim.log.levels.WARN)
+		return
+	end
+	-- 使用选择界面
+	vim.ui.select(entries, {
+		prompt = "📋 选择要粘贴的内容:",
+		format_item = function(entry)
+			return entry.display
+		end,
+	}, function(choice)
+		if choice then
+			-- 设置到默认寄存器
+			vim.fn.setreg('"', choice.content)
+			-- 同步到系统剪贴板
+			if vim.fn.has("clipboard") == 1 then
+				vim.fn.setreg("+", choice.content)
+			end
+			vim.notify(
+				string.format("✅ 已选择内容 [%d]，现在可以使用 p 粘贴", choice.value),
+				vim.log.levels.INFO,
+				{ timeout = 2000 }
+			)
+		end
+	end)
+end, { desc = "选择粘贴内容" })
+
 vim.keymap.set("n", "<Leader>raw", function()
 	local current_win = vim.api.nvim_get_current_win()
 	local current_buf = vim.api.nvim_win_get_buf(current_win)

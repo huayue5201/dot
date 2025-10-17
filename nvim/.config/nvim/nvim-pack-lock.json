@@ -1,8 +1,0 @@
-{
-  "plugins": {
-    "bufferline.nvim": {
-      "rev": "655133c",
-      "src": "https://github.com/akinsho/bufferline.nvim"
-    }
-  }
-}
