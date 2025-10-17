@@ -2,7 +2,7 @@
 
 return {
 	"r0nsha/multinput.nvim",
-	event = "UIEnter",
+	event = "BufReadPost",
 	config = function()
 		require("multinput").setup({
 			-- Your custom configuration goes here

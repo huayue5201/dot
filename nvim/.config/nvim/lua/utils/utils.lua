@@ -37,20 +37,18 @@ M.close_commands = {
 	man = "quit",
 	msgmore = "quit",
 	FunctionReferences = "quit",
-
 	checkhealth = "close", -- 通常是浮窗
+	gitgraph = "bdelete!",
 	-- qf = "close", -- quickfix 通常是浮窗
 	better_term = "close", -- term 为 buffer
 	["grug-far"] = "bdelete",
 	git = "bdelete",
-
 	terminal = "bdelete", -- term 窗口通常是 buffer
 	-- nofile = "bdelete", -- `nofile` 可能是 dashboard 等 buffer
-
 	["dap-repl"] = "close", -- 浮窗
 	["dap-float"] = "close", -- 浮窗
 	["dap-view-term"] = "close", -- 终端 view，浮窗
-
+	["gitsigns-blame"] = "bdelete!",
 	["dap-view"] = function()
 		vim.cmd("DapViewClose!")
 	end,
