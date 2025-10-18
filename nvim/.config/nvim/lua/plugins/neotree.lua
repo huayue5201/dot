@@ -9,7 +9,7 @@ return {
 		"saifulapm/neotree-file-nesting-config",
 		"3rd/image.nvim", -- 图片预览支持（需要安装 ImageMagick）
 	},
-	lazy = false, -- 不延迟加载
+	event = "VeryLazy",
 	config = function()
 		-- 🧩 主配置
 		require("neo-tree").setup({
