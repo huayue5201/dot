@@ -36,5 +36,8 @@ return {
 				},
 			},
 		})
+
+		vim.keymap.set("n", "<leader>glh", "<cmd>DiffviewFileHistory<cr>", { desc = "Diff History" })
+		vim.keymap.set("n", "<leader>glf", "<cmd>DiffviewOpen<cr>", { desc = "Diff" })
 	end,
 }

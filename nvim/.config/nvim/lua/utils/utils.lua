@@ -32,34 +32,69 @@ M.palette = {
 	hint = "#74c7ec", -- 提示
 }
 
-M.close_commands = {
-	help = "quit", -- 专属窗口
-	man = "quit",
-	msgmore = "quit",
-	FunctionReferences = "quit",
-	checkhealth = "close", -- 通常是浮窗
-	gitgraph = "bdelete!",
-	-- qf = "close", -- quickfix 通常是浮窗
-	better_term = "close", -- term 为 buffer
-	["grug-far"] = "bdelete",
-	git = "bdelete",
-	terminal = "bdelete", -- term 窗口通常是 buffer
-	-- nofile = "bdelete", -- `nofile` 可能是 dashboard 等 buffer
-	["dap-repl"] = "close", -- 浮窗
-	["dap-float"] = "close", -- 浮窗
-	["dap-view-term"] = "close", -- 终端 view，浮窗
-	["gitsigns-blame"] = "bdelete!",
-	["dap-view"] = function()
-		vim.cmd("DapViewClose!")
-	end,
+M.buf_keymaps = {
+	-- 统一使用按键作为顶级键
+	["q"] = {
+		help = { cmd = "quit" },
+		man = { cmd = "quit" },
+		msgmore = { cmd = "quit" },
+		FunctionReferences = { cmd = "quit" },
+		checkhealth = { cmd = "close" },
+		gitgraph = { cmd = "bdelete!" },
+		better_term = { cmd = "close" },
+		["grug-far"] = { cmd = "bdelete" },
+		git = { cmd = "bdelete" },
+		["dap-repl"] = { cmd = "close" },
+		["dap-float"] = { cmd = "close" },
+		["dap-view-term"] = { cmd = "close" },
+		["gitsigns-blame"] = { cmd = "bdelete!" },
+		terminal = { cmd = "bdelete" },
 
-	DiffviewFiles = function()
-		vim.cmd("DiffviewClose")
-	end,
+		-- 函数命令
+		DiffviewFileHistory = {
+			cmd = function()
+				vim.cmd("DiffviewClose")
+			end,
+		},
 
-	DiffviewFileHistory = function()
-		vim.cmd("DiffviewClose")
-	end,
+		["dap-view"] = {
+			cmd = function()
+				vim.cmd("DapViewClose!")
+			end,
+		},
+
+		DiffviewFiles = {
+			cmd = function()
+				vim.cmd("DiffviewClose")
+			end,
+		},
+		gitconfig = {
+			cmd = function()
+				vim.cmd("DiffviewClose")
+			end,
+		},
+	},
+
+	-- 切换
+	["<localleader>\\"] = {
+		DiffviewFiles = {
+			cmd = function()
+				vim.cmd("DiffviewToggleFiles")
+			end,
+		},
+
+		DiffviewFileHistory = {
+			cmd = function()
+				vim.cmd("DiffviewToggleFiles")
+			end,
+		},
+
+		gitconfig = {
+			cmd = function()
+				vim.cmd("DiffviewToggleFiles")
+			end,
+		},
+	},
 }
 
 return M

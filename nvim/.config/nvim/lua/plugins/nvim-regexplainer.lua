@@ -3,7 +3,6 @@
 return {
 	"bennypowers/nvim-regexplainer",
 	event = "BufReadPost",
-	-- lazy = false,
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter",
 		"MunifTanjim/nui.nvim",

@@ -3,7 +3,7 @@
 return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
-	lazy = false,
+	event = "VeryLazy",
 	-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter-textobjects",

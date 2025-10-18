@@ -125,3 +125,24 @@ vim.opt.listchars = {
 	nbsp = " ", -- 显示不间断空格
 	eol = " ", -- 换行符
 }
+
+-- 全局 LSP 配置
+vim.lsp.config("*", {
+	root_markers = { ".git" },
+	settings = {
+		workspace = {
+			didChangeWatchedFiles = {
+				enabled = true,
+			},
+		},
+	},
+	capabilities = {
+		textDocument = {
+			semanticTokens = { multilineTokenSupport = true },
+		},
+	},
+	on_attach = function(client)
+		-- 确保 diagnostics 功能已启用
+		client.server_capabilities.publishDiagnostics = true
+	end,
+})

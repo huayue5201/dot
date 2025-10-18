@@ -2,7 +2,7 @@
 
 return {
 	"mfussenegger/nvim-dap-python",
-	ft = "python",
+	event = "VeryLazy",
 	config = function()
 		require("dap-python").setup("uv")
 	end,

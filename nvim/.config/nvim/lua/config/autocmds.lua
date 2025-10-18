@@ -1,28 +1,35 @@
+-- =============================================
+-- 编辑器行为与模式配置
+-- =============================================
+
+-- 根据模式变化调整 virtualedit 设置
 vim.api.nvim_create_autocmd("ModeChanged", {
 	pattern = "*:*",
+	desc = "根据编辑模式调整 virtualedit 设置",
 	callback = function()
 		local mode = vim.fn.mode()
-		if mode == "n" or mode == "\22" then
+		if mode == "n" or mode == "\22" then -- 普通模式或 Ctrl-V
 			vim.opt.virtualedit = "all"
 		end
-		if mode == "i" then
+		if mode == "i" then -- 插入模式
 			vim.opt.virtualedit = "block"
 		end
-		if mode == "v" or mode == "V" then
+		if mode == "v" or mode == "V" then -- 可视模式或可视行模式
 			vim.opt.virtualedit = "onemore"
 		end
 	end,
 })
 
--- 自动删除尾随空格
+-- 保存时自动删除尾随空格
 vim.api.nvim_create_autocmd("BufWritePre", {
 	pattern = "*",
+	desc = "保存前自动删除行尾空格",
 	command = "%s/\\s\\+$//e",
 })
 
--- ✨ 光标恢复位置
+-- 恢复上次光标位置
 vim.api.nvim_create_autocmd("BufReadPost", {
-	desc = "记住最后的光标位置",
+	desc = "打开文件时恢复上次光标位置",
 	group = vim.api.nvim_create_augroup("LastPlace", { clear = true }),
 	pattern = "*",
 	callback = function()
@@ -36,46 +43,48 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 	end,
 })
 
-local lsp = require("config.lsp")
-lsp.mode_changed_handler() -- 设置模式变化时禁用/启用诊断
--- ✨ LSP 启动时绑定快捷键与功能
+-- =============================================
+-- LSP 语言服务器协议配置
+-- =============================================
+
+-- 初始化 LSP 配置
+local lsp_config = require("config.lsp")
+
+-- LSP 附加到缓冲区时的配置
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
+	desc = "LSP 客户端附加到缓冲区时的配置",
 	callback = function(args)
 		if not vim.g.lsp_enabled then
 			vim.lsp.stop_client(args.data.client_id, true)
 		else
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
-			lsp.diagnostic_config() -- 设置诊断配置
-			lsp.inlay_hint_handler() -- 设置插入模式内联提示处理
-			lsp.set_keymaps() -- 设置按键映射
-
-			-- vim.lsp.document_color.enable(true, args.buf)
+			lsp_config.diagnostic_config() -- 设置诊断配置
+			lsp_config.inlay_hint_handler() -- 设置插入模式内联提示处理
+			lsp_config.set_keymaps() -- 设置 LSP 按键映射
+			lsp_config.mode_changed_handler() -- 设置模式变化时禁用/启用诊断
+			-- 启用文档颜色高亮
 			vim.lsp.document_color.enable(true, 0, { style = "virtual" })
 
+			-- 启用 LSP 折叠
 			if client:supports_method("textDocument/foldingRange") then
 				local win = vim.api.nvim_get_current_win()
 				vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
 			end
 
+			-- 启用内联提示
 			if client:supports_method("textDocument/inlayHint") then
-				-- vim.lsp.inlay_hint.enable(true, { bufnr = 0 })
 				vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
 			end
-
-			-- if client:supports_method("textDocument/codeLens") then
-			-- 	vim.lsp.codelens.refresh({ bufnr = 0 })
-			-- end
-			-- -- 自动刷新 CodeLens
-			-- vim.cmd([[ autocmd BufEnter,CursorHold,InsertLeave <buffer> lua vim.lsp.codelens.refresh({ bufnr = 0 }) ]])
 		end
 	end,
 })
 
+-- LSP 从缓冲区分离时的清理
 vim.api.nvim_create_autocmd("LspDetach", {
 	group = vim.api.nvim_create_augroup("LspStopAndUnmap", { clear = true }),
+	desc = "LSP 客户端分离时停止客户端并移除键映射",
 	callback = function(args)
-		-- 获取 LSP 客户端
 		local client = vim.lsp.get_client_by_id(args.data.client_id)
 		if client then
 			-- 停止 LSP 客户端（当没有附加的缓冲区时）
@@ -90,34 +99,65 @@ vim.api.nvim_create_autocmd("LspDetach", {
 				end
 			end
 			-- 移除键映射
-			lsp.remove_keymaps()
+			lsp_config.remove_keymaps()
 		end
 	end,
-	desc = "Stop LSP client and remove keymaps when no buffer is attached",
 })
 
--- ✨ 通用 `q` 快捷键关闭窗口
-vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
-	desc = "用 q 关闭窗口或删除缓冲区",
+-- 根据文件类型启动 LSP
+local lsp_get = require("utils.lsp_utils")
+vim.api.nvim_create_autocmd("FileType", {
+	desc = "根据文件类型启动或停止 LSP",
+	pattern = lsp_get.get_lsp_config("filetypes"),
 	callback = function()
-		local close_commands = require("utils.utils").close_commands
+		if vim.g.lsp_enabled then
+			vim.lsp.enable(lsp_get.get_lsp_name())
+		else
+			vim.lsp.stop_client(lsp_get.get_lsp_name())
+		end
+	end,
+})
+
+-- =============================================
+-- 快捷键映射配置
+-- =============================================
+
+-- 文件类型特定的快捷键映射
+vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
+	desc = "为不同文件类型和缓冲区类型设置快捷键映射",
+	group = vim.api.nvim_create_augroup("CustomKeyMappings", { clear = true }),
+	callback = function()
+		local buf_keymaps = require("utils.utils").buf_keymaps
 		local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
-		local command = close_commands[current_type]
-		if command then
-			local opts = { buffer = true, noremap = true, silent = true }
-			if type(command) == "function" then
-				vim.keymap.set("n", "q", command, opts)
-			else
-				vim.keymap.set("n", "q", function()
-					vim.cmd(command)
-				end, opts)
+
+		if not buf_keymaps then
+			return
+		end
+
+		-- 遍历所有按键配置
+		for key, filetype_configs in pairs(buf_keymaps) do
+			local command_config = filetype_configs[current_type]
+
+			if command_config and command_config.cmd then
+				local opts = { buffer = true, noremap = true, silent = true, nowait = true }
+
+				if type(command_config.cmd) == "function" then
+					vim.keymap.set("n", key, command_config.cmd, opts)
+				else
+					vim.keymap.set("n", key, function()
+						vim.cmd(command_config.cmd)
+					end, opts)
+				end
 			end
 		end
 	end,
 })
 
--- ✨ 剪贴板与寄存器增强
--- 保存最近 10 次 yank/delete 的历史
+-- =============================================
+-- 剪贴板与寄存器增强
+-- =============================================
+
+-- 寄存器历史管理（保存最近 10 次 yank/delete 操作）
 vim.cmd([[
 function! YankShift()
   call setreg(0, getreg('"'))
@@ -132,7 +172,7 @@ augroup YankHistory
 augroup END
 ]])
 
--- ✨ 记录光标位置（在普通模式或可视模式复制前）
+-- 记录复制操作前的光标位置
 local cursor_pre_yank = nil
 vim.keymap.set({ "n", "x" }, "y", function()
 	cursor_pre_yank = vim.api.nvim_win_get_cursor(0)
@@ -144,13 +184,15 @@ vim.keymap.set("n", "Y", function()
 	return "y$"
 end, { expr = true })
 
--- ✨ 自动高亮复制、恢复光标、同步系统剪贴板
+-- 复制操作后的处理：高亮、恢复光标、同步系统剪贴板
 vim.api.nvim_create_autocmd("TextYankPost", {
 	group = vim.api.nvim_create_augroup("EnhancedYank", { clear = true }),
+	desc = "复制后高亮文本、恢复光标位置并同步到系统剪贴板",
 	callback = function()
-		vim.highlight.on_yank({ timeout = 250 })
+		vim.highlight.on_yank({ timeout = 250 }) -- 高亮复制的文本
 
 		local ev = vim.v.event
+		-- 恢复复制前的光标位置
 		if ev.operator == "y" and cursor_pre_yank then
 			vim.schedule(function()
 				pcall(vim.api.nvim_win_set_cursor, 0, cursor_pre_yank)
@@ -158,6 +200,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 			end)
 		end
 
+		-- 同步到系统剪贴板
 		if vim.fn.has("clipboard") == 1 then
 			local clipboard_content = vim.fn.getreg('"')
 			if clipboard_content ~= "" then
@@ -170,7 +213,33 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
--- 定义删除 quickfix 或 location list 项目的函数
+-- 从系统剪贴板同步到 Neovim
+vim.api.nvim_create_autocmd("FocusGained", {
+	group = vim.api.nvim_create_augroup("ClipboardSyncFocus", { clear = true }),
+	desc = "窗口获得焦点时从系统剪贴板同步到 Neovim",
+	callback = function()
+		if vim.fn.has("clipboard") == 1 then
+			vim.defer_fn(function()
+				local system_content = vim.fn.getreg("+")
+				-- 只在有内容且长度大于1时同步，避免同步单个字符
+				if system_content and system_content ~= "" and #system_content > 1 then
+					local current_content = vim.fn.getreg('"')
+					-- 只在内容不同时同步，避免不必要的操作
+					if system_content ~= current_content then
+						vim.fn.setreg('"', system_content)
+						vim.fn.setreg("0", system_content)
+					end
+				end
+			end, 80)
+		end
+	end,
+})
+
+-- =============================================
+-- Quickfix 和 Location List 增强
+-- =============================================
+
+-- 删除 quickfix 或 location list 项目的函数
 local function delete_qf_items()
 	local win_id = vim.api.nvim_get_current_win()
 	local win_info = vim.fn.getwininfo(win_id)[1]
@@ -230,11 +299,23 @@ local function delete_qf_items()
 	end
 end
 
--- FileType 自动命令，针对 quickfix 和 location list 做一些设置
+-- 检查指定类型窗口是否已打开
+local function is_window_open(win_type)
+	for _, win in ipairs(vim.fn.getwininfo()) do
+		if win_type == "quickfix" and win.quickfix == 1 then
+			return true
+		elseif win_type == "loclist" and win.loclist == 1 then
+			return true
+		end
+	end
+	return false
+end
+
+-- Quickfix 和 Location List 窗口的增强设置
 vim.api.nvim_create_autocmd("FileType", {
 	group = vim.api.nvim_create_augroup("QuickfixTweaks", { clear = true }),
 	pattern = "qf",
-	desc = "Quickfix and location list tweaks",
+	desc = "Quickfix 和 Location List 窗口的快捷键和设置",
 	callback = function()
 		local win_id = vim.api.nvim_get_current_win()
 		local win_info = vim.fn.getwininfo(win_id)[1]
@@ -269,20 +350,7 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
--- 检查指定类型窗口是否已打开
-local function is_window_open(win_type)
-	for _, win in ipairs(vim.fn.getwininfo()) do
-		-- 修复：使用正确的键名检查窗口类型
-		if win_type == "quickfix" and win.quickfix == 1 then
-			return true
-		elseif win_type == "loclist" and win.loclist == 1 then
-			return true
-		end
-	end
-	return false
-end
-
--- 创建一个切换窗口的通用命令
+-- 创建切换 Quickfix/Location List 的用户命令
 vim.api.nvim_create_user_command("Toggle", function(opts)
 	local win_type = opts.fargs[1] or "quickfix"
 	if win_type == "quickfix" then
@@ -303,4 +371,4 @@ vim.api.nvim_create_user_command("Toggle", function(opts)
 			end
 		end
 	end
-end, { desc = "切换窗口", nargs = "?" })
+end, { desc = "切换 Quickfix 或 Location List 窗口", nargs = "?" })
