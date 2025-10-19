@@ -214,7 +214,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 -- 从系统剪贴板同步到 Neovim
-vim.api.nvim_create_autocmd("FocusGained", {
+vim.api.nvim_create_autocmd({ "FocusGained", "BufRead" }, {
 	group = vim.api.nvim_create_augroup("ClipboardSyncFocus", { clear = true }),
 	desc = "窗口获得焦点时从系统剪贴板同步到 Neovim",
 	callback = function()

@@ -52,25 +52,65 @@ end
 
 -- 🪟 显示浮动窗口
 local function show_todo_floating(path)
-	local width, height = 80, 20
-	local buf = vim.api.nvim_create_buf(false, true)
-	local lines = read_file_lines(path)
+	-- 读取文件内容
+	local function get_lines()
+		local lines = read_file_lines(path)
+		if not lines then
+			vim.notify("无法读取文件: " .. path, vim.log.levels.ERROR)
+			return {}
+		end
+		return lines
+	end
+
+	-- 初始内容与 summary
+	local lines = get_lines()
 	local summary = format_summary(summarize_tasks(lines))
 
-	vim.api.nvim_open_win(buf, true, {
+	-- 自动调整宽高
+	local width = math.min(100, math.max(60, math.floor(vim.o.columns * 0.6)))
+	local height = math.min(30, math.max(10, #lines + 4))
+
+	-- 创建浮窗
+	local win = vim.api.nvim_open_win(0, true, {
 		relative = "editor",
 		width = width,
 		height = height,
 		col = math.floor((vim.o.columns - width) / 2),
 		row = math.floor((vim.o.lines - height) / 2),
-		border = "rounded",
+		border = vim.o.winborder ~= "" and vim.o.winborder or "rounded",
 		title = " 󱑆 TODO清单 ",
 		style = "minimal",
 		footer = { { " " .. summary .. " ", "Number" } },
 		footer_pos = "right",
 	})
 
+	-- 在浮窗中打开文件
 	vim.cmd("edit " .. vim.fn.fnameescape(path))
+
+	-- q 关闭浮窗
+	vim.keymap.set("n", "q", function()
+		if vim.api.nvim_win_is_valid(win) then
+			vim.api.nvim_win_close(win, true)
+		end
+	end, { buffer = 0, nowait = true, silent = true })
+
+	-- ✅ 监听文件保存，自动刷新 summary
+	vim.api.nvim_create_autocmd("BufWritePost", {
+		buffer = 0,
+		callback = function()
+			local updated = get_lines()
+			local new_summary = format_summary(summarize_tasks(updated))
+
+			-- 更新窗口 footer
+			if vim.api.nvim_win_is_valid(win) then
+				pcall(vim.api.nvim_win_set_config, win, {
+					footer = { { " " .. new_summary .. " ", "Number" } },
+					footer_pos = "right",
+				})
+			end
+		end,
+		desc = "刷新 TODO summary",
+	})
 end
 
 -- 📚 获取所有 TODO 项目
