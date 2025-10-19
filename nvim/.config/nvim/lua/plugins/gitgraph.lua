@@ -4,7 +4,6 @@ return {
 	"isakbm/gitgraph.nvim",
 	dependencies = { "sindrets/diffview.nvim" },
 	lazy = true,
-	---@type I.GGConfig
 	keys = {
 		{
 			"<leader>gd",

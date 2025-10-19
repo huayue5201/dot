@@ -68,33 +68,11 @@ M.buf_keymaps = {
 				vim.cmd("DiffviewClose")
 			end,
 		},
-		gitconfig = {
-			cmd = function()
-				vim.cmd("DiffviewClose")
-			end,
-		},
 	},
 
 	-- 切换
-	["<localleader>\\"] = {
-		DiffviewFiles = {
-			cmd = function()
-				vim.cmd("DiffviewToggleFiles")
-			end,
-		},
-
-		DiffviewFileHistory = {
-			cmd = function()
-				vim.cmd("DiffviewToggleFiles")
-			end,
-		},
-
-		gitconfig = {
-			cmd = function()
-				vim.cmd("DiffviewToggleFiles")
-			end,
-		},
-	},
+	-- ["<localleader>\\"] = {
+	-- },
 }
 
 return M
