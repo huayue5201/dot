@@ -93,7 +93,7 @@ local function show_todo_floating(path)
 	local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 	local stat = summarize_tasks(lines)
 
-	local width = math.min(100, math.max(60, math.floor(vim.o.columns * 0.6)))
+	local width = math.min(math.floor(vim.o.columns * 0.8), 160)
 	local height = math.min(30, math.max(10, #lines + 4))
 
 	local win = vim.api.nvim_open_win(buf, true, {
@@ -104,7 +104,7 @@ local function show_todo_floating(path)
 		row = math.floor((vim.o.lines - height) / 2),
 		border = "rounded",
 		title = "󱑆 TODO清单 - " .. get_project(),
-		style = "minimal",
+		-- style = "minimal",
 		footer = { { " " .. format_summary(stat) .. " ", "Number" } },
 		footer_pos = "right",
 	})

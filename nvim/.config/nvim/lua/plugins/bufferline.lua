@@ -45,7 +45,7 @@ return {
 						separator = "┃",
 					},
 					{
-						filetype = "neo-tree",
+						filetype = "NvimTree",
 						text = "󰪶 File Explorer",
 						raw = " %{%v:lua.__get_selector()%} ",
 						highlight = { sep = { link = "WinSeparator" } },
