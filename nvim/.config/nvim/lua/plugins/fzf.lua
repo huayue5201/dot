@@ -29,20 +29,12 @@ return {
 			["ctrl-v"] = "vsplit", -- 绑定 ctrl-v 到 "vsplit"
 		}
 
-		-- vim.g.fzf_layout = {
-		-- 	window = {
-		-- 		width = 0.9, -- 宽度占 90% 屏幕宽度
-		-- 		height = 0.6, -- 高度占 60% 屏幕高度
-		-- 		xoffset = 0.5, -- 水平方向偏移 50%
-		-- 		yoffset = 0.5, -- 垂直方向偏移 50%
-		-- 		relative = false, -- 位置相对于当前窗口
-		-- 		border = "rounded", -- 使用圆角边框
-		-- 	},
-		-- }
+		-- 单独控制UI项,删除该项会和zsher配置同步
+		vim.env.FZF_DEFAULT_OPTS = "--layout=reverse --border=none"
 
 		-- vim.api.nvim_create_autocmd("User", {
 		-- 	pattern = "FzfStatusLine",
-		-- 	callback = function()
+		-- 	callback = funecho bufname()ction()
 		-- 		vim.api.nvim_set_hl(0, "Fzf1", { fg = 161, bg = 251, ctermfg = 161, ctermbg = 251 })
 		-- 		vim.api.nvim_set_hl(0, "Fzf2", { fg = 23, bg = 251, ctermfg = 23, ctermbg = 251 })
 		-- 		vim.api.nvim_set_hl(0, "Fzf3", { fg = 237, bg = 251, ctermfg = 237, ctermbg = 251 })

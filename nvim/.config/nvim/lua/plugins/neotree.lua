@@ -213,20 +213,6 @@ return {
 
 			-- 🎯 事件处理
 			event_handlers = {
-				-- 进入 Neo-tree buffer 时隐藏光标
-				{
-					event = "neo_tree_buffer_enter",
-					handler = function()
-						vim.cmd("highlight! Cursor blend=100")
-					end,
-				},
-				-- 离开时恢复光标
-				{
-					event = "neo_tree_buffer_leave",
-					handler = function()
-						vim.cmd("highlight! Cursor guibg=#5f87af blend=0")
-					end,
-				},
 				-- 打开文件时自动关闭树
 				{
 					event = "file_open_requested",
