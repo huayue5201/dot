@@ -2,7 +2,7 @@
 
 return {
 	"3rd/image.nvim",
-	lazy = true,
+	event = "VeryLazy",
 	build = false, -- so that it doesn't build the rock https://github.com/3rd/image.nvim/issues/91#issuecomment-2453430239
 	config = function()
 		require("image").setup({
@@ -33,8 +33,6 @@ return {
 					enabled = false,
 				},
 			},
-			max_width = nil,
-			max_height = nil,
 			max_width_window_percentage = nil,
 			max_height_window_percentage = 50,
 			scale_factor = 1.0,

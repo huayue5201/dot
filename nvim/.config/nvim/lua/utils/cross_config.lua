@@ -2,10 +2,21 @@ local json_store = require("utils.json_store")
 
 local M = {}
 
+function OSIcon()
+	local osname = vim.loop.os_uname().sysname
+	if osname:match("Darwin") then
+		return "macOS"
+	elseif osname:match("Linux") then
+		return "Linux"
+	elseif osname:match("Windows") then
+		return "Windows"
+	end
+end
+
 -- 存储所有芯片配置（包含默认配置）
 local chip_configs = {
 	default = {
-		chip = "󰚦 ",
+		chip = OSIcon(),
 		configFiles = {},
 		svdFile = "",
 		openocd_template = "",
@@ -195,9 +206,9 @@ function M.choose_chip()
 
 	-- 从chip_configs中提取所有芯片名称（排除default）
 	for chip, _ in pairs(chip_configs) do
-		if chip ~= "default" then
-			table.insert(chips, chip)
-		end
+		-- if chip ~= "default" then
+		table.insert(chips, chip)
+		-- end
 	end
 
 	table.sort(chips)
