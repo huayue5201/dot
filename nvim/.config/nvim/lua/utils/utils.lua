@@ -49,6 +49,7 @@ M.buf_keymaps = {
 		["dap-view-term"] = { cmd = "close" },
 		["gitsigns-blame"] = { cmd = "bdelete!" },
 		terminal = { cmd = "bdelete" },
+		["nvim-undotree"] = { cmd = "close" },
 
 		-- 函数命令
 		DiffviewFileHistory = {
