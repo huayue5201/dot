@@ -112,14 +112,6 @@ vim.keymap.set("n", "<leader>tdr", function()
 	todo.delete_project_todo()
 end, { desc = "删除todo文件" })
 
-vim.keymap.set("i", "<c-l>", function()
-	local node = vim.treesitter.get_node()
-	if node ~= nil then
-		local row, col = node:end_()
-		pcall(vim.api.nvim_win_set_cursor, 0, { row + 1, col })
-	end
-end, { desc = "insjump" })
-
 -- ✨ 粘贴内容选择器
 vim.keymap.set("n", "<leader>yl", function()
 	local entries = {}
