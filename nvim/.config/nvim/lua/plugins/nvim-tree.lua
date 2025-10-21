@@ -1,17 +1,27 @@
--- https://github.com/A7Lavinraj/fyler.nvim
-
+-- ~/.config/nvim/lua/plugins/nvim-tree.lua
 return {
 	"nvim-tree/nvim-tree.lua",
 	dependencies = { "nvim-tree/nvim-web-devicons" },
 	lazy = false,
 	config = function()
-		-- 主题风格推荐：gruvbox / catppuccin / tokyonight / onedark
-		-- 如果你启用了 lualine，也会配色更协调。
+		local icon = require("utils.utils").icons.diagnostic
+		-- 🎨 Git 状态颜色
+		vim.api.nvim_set_hl(0, "NvimTreeGitDirty", { fg = "#e5c07b" }) -- 黄色
+		vim.api.nvim_set_hl(0, "NvimTreeGitStaged", { fg = "#98c379" }) -- 绿色
+		vim.api.nvim_set_hl(0, "NvimTreeGitMerge", { fg = "#e06c75" }) -- 红色
+		vim.api.nvim_set_hl(0, "NvimTreeGitNew", { fg = "#61afef" }) -- 蓝色
+		vim.api.nvim_set_hl(0, "NvimTreeGitRenamed", { fg = "#c678dd" }) -- 紫色
+		vim.api.nvim_set_hl(0, "NvimTreeGitDeleted", { fg = "#be5046" }) -- 深红
 
 		require("nvim-tree").setup({
-			-- 📁 同步工作目录（很实用）
+			-- 📁 同步工作目录
 			sync_root_with_cwd = true,
 			respect_buf_cwd = true,
+			update_focused_file = {
+				enable = true,
+				update_cwd = true,
+				ignore_list = {},
+			},
 
 			-- 📂 文件树行为
 			hijack_cursor = true,
@@ -19,23 +29,21 @@ return {
 
 			-- ✅ 侧边栏布局
 			view = {
-				width = 40, -- 稍宽一点，看得清
-				side = "left", -- 靠左显示
-				-- signcolumn = "no", -- 去掉左侧符号栏
+				width = 40,
+				side = "left",
 				preserve_window_proportions = true,
-				cursorline = true, -- 高亮当前文件
-				float = { enable = false }, -- 不用浮动窗口
+				cursorline = true,
+				float = { enable = false },
 			},
 
 			-- 🎨 渲染细节
 			renderer = {
 				highlight_git = true,
 				highlight_opened_files = "name",
-				root_folder_modifier = ":~", -- 显示 ~ 代替绝对路径
-
+				root_folder_modifier = ":~",
 				indent_width = 2,
 				indent_markers = {
-					enable = true, -- 显示缩进线
+					enable = true,
 					inline_arrows = false,
 				},
 
@@ -62,19 +70,17 @@ return {
 						bookmark = "",
 						modified = "",
 						git = {
-							unstaged = "✗",
+							unstaged = "󰱑",
 							staged = "✓",
 							unmerged = "",
 							untracked = "★",
-							renamed = "➜",
-							deleted = "",
 							ignored = "◌",
 						},
 					},
 				},
 			},
 
-			-- 🔍 文件过滤（显示隐藏文件）
+			-- 🔍 文件过滤
 			filters = {
 				dotfiles = true,
 				git_ignored = true,
@@ -97,14 +103,14 @@ return {
 				enable = true,
 				show_on_dirs = true,
 				icons = {
-					hint = "󰌵",
-					info = "",
-					warning = "",
-					error = "",
+					hint = icon.HINT,
+					info = icon.INFO,
+					warning = icon.WARN,
+					error = icon.ERROR,
 				},
 			},
 
-			-- 🔑 方便的行为
+			-- 🔑 打开文件行为
 			actions = {
 				open_file = {
 					resize_window = true,
@@ -112,25 +118,17 @@ return {
 				},
 			},
 		})
-		vim.api.nvim_create_autocmd("QuitPre", {
+
+		vim.api.nvim_create_autocmd("BufEnter", {
+			nested = true,
 			callback = function()
-				local invalid_win = {}
-				local wins = vim.api.nvim_list_wins()
-				for _, w in ipairs(wins) do
-					local bufname = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(w))
-					if bufname:match("NvimTree_") ~= nil then
-						table.insert(invalid_win, w)
-					end
-				end
-				if #invalid_win == #wins - 1 then
-					-- Should quit, so we close all invalid windows.
-					for _, w in ipairs(invalid_win) do
-						vim.api.nvim_win_close(w, true)
-					end
+				if #vim.api.nvim_list_wins() == 1 and vim.bo.filetype == "NvimTree" then
+					vim.cmd("quit")
 				end
 			end,
 		})
 
+		-- 🔑 快捷键
 		vim.keymap.set("n", "<leader>ef", "<cmd>NvimTreeToggle<cr>", { desc = "文件管理器" })
 	end,
 }

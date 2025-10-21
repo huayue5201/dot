@@ -169,7 +169,7 @@ function Statusline.vcs()
 	for key, icon in pairs({
 		added = "%#GitIconAdded#" .. "+" .. "%*",
 		removed = "%#GitIconRemoved#" .. "-" .. "%*",
-		changed = "%#GitIconChanged#" .. "󰱑" .. "%*",
+		changed = "%#GitIconChanged#" .. "󰱑 " .. "%*",
 	}) do
 		if git_info[key] and git_info[key] > 0 then
 			table.insert(parts, icon .. git_info[key])
@@ -212,6 +212,7 @@ function Statusline.active()
 		"%#Normal#", -- 默认文本高亮组
 		string.format("%-46s", Statusline.mode()), -- 左对齐，13个字符
 		Statusline.vcs() .. "  ", -- Git 状态
+		"%y ",
 		Statusline.lsp(), -- LSP 状态
 		"%=", -- 分隔符
 		Statusline.dap_status() .. " ", -- dap调试信息

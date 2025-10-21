@@ -139,4 +139,25 @@ function M.get_all_lsp_names()
 	return M.get_lsp_config("name")
 end
 
+-- 查看当前 buffer 的活跃 LSP
+function M.get_active_lsps(bufnr)
+	bufnr = bufnr or 0
+	local clients = vim.lsp.get_clients({ bufnr = bufnr })
+
+	if not clients or vim.tbl_isempty(clients) then
+		vim.notify("No active LSP clients for this buffer.", vim.log.levels.WARN)
+		return {}
+	end
+
+	local active = {}
+	for _, client in ipairs(clients) do
+		table.insert(active, {
+			id = client.id,
+			name = client.name,
+			root_dir = client.config.root_dir,
+		})
+	end
+	return active
+end
+
 return M

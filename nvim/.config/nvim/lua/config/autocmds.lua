@@ -118,6 +118,18 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
+vim.api.nvim_create_user_command("LspListActive", function()
+	local lsps = require("utils.lsp_utils").get_active_lsps(0)
+	if #lsps == 0 then
+		print("No active LSP clients for this buffer.")
+		return
+	end
+	print("Active LSPs:")
+	for _, lsp in ipairs(lsps) do
+		print(string.format("- %s (root: %s)", lsp.name, lsp.root_dir or "nil"))
+	end
+end, { desc = "List active LSP clients for current buffer" })
+
 -- =============================================
 -- 快捷键映射配置
 -- =============================================
@@ -134,11 +146,14 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 			return
 		end
 
-		-- 遍历所有按键配置
+		-- 初始化缓冲区标记表
+		local set_markers = vim.b.keymaps_set or {}
+
 		for key, filetype_configs in pairs(buf_keymaps) do
 			local command_config = filetype_configs[current_type]
 
-			if command_config and command_config.cmd then
+			-- 只设置尚未设置的映射
+			if command_config and command_config.cmd and not set_markers[key] then
 				local opts = { buffer = true, noremap = true, silent = true, nowait = true }
 
 				if type(command_config.cmd) == "function" then
@@ -148,8 +163,13 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 						vim.cmd(command_config.cmd)
 					end, opts)
 				end
+
+				-- 标记这个按键已经设置
+				set_markers[key] = true
 			end
 		end
+
+		vim.b.keymaps_set = set_markers
 	end,
 })
 
