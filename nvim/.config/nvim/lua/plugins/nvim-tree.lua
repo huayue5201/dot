@@ -76,8 +76,8 @@ return {
 
 			-- 🔍 文件过滤（显示隐藏文件）
 			filters = {
-				dotfiles = false,
-				git_ignored = false,
+				dotfiles = true,
+				git_ignored = true,
 			},
 
 			-- ✏️ 显示修改标记
