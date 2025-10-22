@@ -77,13 +77,9 @@ end
 local function show_todo_floating(path)
 	local abs_path = vim.fn.fnamemodify(path, ":p")
 
-	local buf = vim.fn.bufnr(abs_path)
-	if buf == -1 or buf == 0 then
-		buf = vim.api.nvim_create_buf(false, true)
-		vim.api.nvim_buf_set_name(buf, abs_path)
-		local lines = read_file_lines(abs_path)
-		vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-	end
+	-- 🔒 确保用真实路径 buffer，不闪屏加载
+	local buf = vim.fn.bufadd(abs_path)
+	vim.fn.bufload(buf)
 
 	vim.bo[buf].filetype = "markdown"
 	vim.bo[buf].bufhidden = "hide"
@@ -104,7 +100,6 @@ local function show_todo_floating(path)
 		row = math.floor((vim.o.lines - height) / 2),
 		border = "rounded",
 		title = "󱑆 TODO清单 - " .. get_project(),
-		-- style = "minimal",
 		footer = { { " " .. format_summary(stat) .. " ", "Number" } },
 		footer_pos = "right",
 	})
@@ -112,7 +107,6 @@ local function show_todo_floating(path)
 	local function update_summary()
 		local current_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 		local new_summary = format_summary(summarize_tasks(current_lines))
-
 		if vim.api.nvim_win_is_valid(win) then
 			vim.api.nvim_win_set_config(win, {
 				footer = { { " " .. new_summary .. " ", "Number" } },
@@ -121,7 +115,6 @@ local function show_todo_floating(path)
 		end
 	end
 
-	-- 快捷键
 	vim.keymap.set("n", "q", function()
 		if vim.api.nvim_win_is_valid(win) then
 			vim.api.nvim_win_close(win, true)
@@ -134,7 +127,6 @@ local function show_todo_floating(path)
 		vim.notify("✅ TODO 文件已保存并更新统计", vim.log.levels.INFO)
 	end, { buffer = buf, desc = "保存TODO文件" })
 
-	-- 自动更新统计
 	vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "BufWritePost" }, {
 		buffer = buf,
 		callback = update_summary,
