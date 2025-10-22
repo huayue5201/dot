@@ -79,7 +79,7 @@ vim.opt.showmode = false -- 禁用模式显示
 vim.opt.laststatus = 3 -- 启用全局状态栏
 vim.opt.cmdheight = 1 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
 vim.opt.showtabline = 2 -- 始终显示标签页栏
-vim.o.statuscolumn = "%s%=%l%=%C "
+vim.opt.statuscolumn = "%s%=%l%=%C "
 vim.opt.number = true --显示行号
 vim.opt.relativenumber = true -- 启用相对行号
 vim.opt.signcolumn = "yes:3" -- 始终显示标志列
