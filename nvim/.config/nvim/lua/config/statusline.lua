@@ -169,7 +169,7 @@ function Statusline.vcs()
 	for key, icon in pairs({
 		added = "%#GitIconAdded#" .. "+" .. "%*",
 		removed = "%#GitIconRemoved#" .. "-" .. "%*",
-		changed = "%#GitIconChanged#" .. "󰱑 " .. "%*",
+		changed = "%#GitIconChanged#" .. "󱅅 " .. "%*",
 	}) do
 		if git_info[key] and git_info[key] > 0 then
 			table.insert(parts, icon .. git_info[key])

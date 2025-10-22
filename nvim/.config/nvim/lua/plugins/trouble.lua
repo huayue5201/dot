@@ -49,12 +49,12 @@ return {
 			---@field sorters? table<string, trouble.SorterFn> 自定义排序器
 			auto_close = false, -- 没有项目时自动关闭
 			auto_open = false, -- 有项目时自动打开
-			auto_preview = true, -- 在项目上时自动打开预览
 			auto_refresh = true, -- 打开时自动刷新
-			auto_jump = false, -- 只有一个项目时自动跳转
-			focus = false, -- 打开时聚焦窗口
+			auto_jump = true, -- 只有一个项目时自动跳转
+			auto_preview = false, -- 在项目上时自动打开预览
+			focus = true, -- 打开时聚焦窗口
 			restore = true, -- 打开时恢复列表中的最后位置
-			follow = true, -- 跟随当前项目
+			follow = true, --  开启“光标跟随”
 			indent_guides = true, -- 显示缩进参考线
 			max_items = 200, -- 每个章节最多显示的项目数量限制
 			multiline = true, -- 渲染多行消息
@@ -107,8 +107,11 @@ return {
 				symbols = {
 					desc = "文档符号",
 					mode = "lsp_document_symbols",
-					focus = true,
-					win = { position = "right" }, -- 窗口位置在右侧
+					win = {
+						type = "split",
+						position = "right", -- 可选：bottom | top | left | right | float
+						size = 40, -- ← 窗口宽度（右侧）或高度（底部）
+					}, -- 窗口位置在右侧
 				},
 			},
 			-- 图标配置

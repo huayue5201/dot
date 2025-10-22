@@ -70,7 +70,9 @@ return {
 						bookmark = "",
 						modified = "",
 						git = {
-							unstaged = "󰱑",
+							deleted = "",
+							renamed = "➜",
+							unstaged = "󱅅",
 							staged = "✓",
 							unmerged = "",
 							untracked = "★",
