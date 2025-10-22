@@ -36,7 +36,8 @@ local function render_progress_bar(done, total, bar_length)
 	local ratio = done / total
 	local filled = math.floor(ratio * bar_length)
 	-- local bar = string.rep("█", filled) .. string.rep("░", bar_length - filled)
-	local bar = string.rep("▣", filled) .. string.rep("□", bar_length - filled)
+	-- local bar = string.rep("▣", filled) .. string.rep("□", bar_length - filled)
+	local bar = string.rep("▰", filled) .. string.rep("▱", bar_length - filled)
 	return string.format("%s %d%% (%d/%d)", bar, math.floor(ratio * 100), done, total)
 end
 
@@ -65,10 +66,10 @@ local function show_todo_floating(path)
 
 	local buf = vim.fn.bufadd(abs_path)
 	vim.fn.bufload(buf)
-	vim.bo[buf].filetype = "markdown"
-	vim.bo[buf].bufhidden = "hide"
-	vim.bo[buf].buftype = ""
-	vim.bo[buf].modifiable = true
+	vim.bo[buf].bufhidden = "hide" -- 缓冲区隐藏时自动删除
+	vim.bo[buf].buftype = "" -- 允许修改但标记为特殊缓冲区
+	vim.bo[buf].modifiable = true -- 允许修改
+	vim.bo[buf].readonly = false -- 非只读
 
 	local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 	local stat = summarize_tasks(lines)
