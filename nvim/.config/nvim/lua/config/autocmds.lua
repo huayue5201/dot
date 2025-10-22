@@ -136,35 +136,24 @@ end, { desc = "List active LSP clients for current buffer" })
 
 -- 文件类型特定的快捷键映射
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
-	desc = "为不同文件类型和缓冲区类型设置快捷键映射",
+	desc = "根据文件类型设置按键",
 	group = vim.api.nvim_create_augroup("CustomKeyMappings", { clear = true }),
 	callback = function()
 		local buf_keymaps = require("utils.utils").buf_keymaps
-		local current_type = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
-
-		if not buf_keymaps then
-			return
-		end
-
-		-- 初始化缓冲区标记表
+		local ft = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
 		local set_markers = vim.b.keymaps_set or {}
 
-		for key, filetype_configs in pairs(buf_keymaps) do
-			local command_config = filetype_configs[current_type]
-
-			-- 只设置尚未设置的映射
-			if command_config and command_config.cmd and not set_markers[key] then
-				local opts = { buffer = true, noremap = true, silent = true, nowait = true }
-
-				if type(command_config.cmd) == "function" then
-					vim.keymap.set("n", key, command_config.cmd, opts)
+		for key, configs in pairs(buf_keymaps) do
+			local conf = configs[ft]
+			if conf and not set_markers[key] then
+				local opts = { buffer = true, silent = true, noremap = true, nowait = true }
+				if type(conf.cmd) == "function" then
+					vim.keymap.set("n", key, conf.cmd, opts)
 				else
 					vim.keymap.set("n", key, function()
-						vim.cmd(command_config.cmd)
+						vim.cmd(conf.cmd)
 					end, opts)
 				end
-
-				-- 标记这个按键已经设置
 				set_markers[key] = true
 			end
 		end

@@ -1,33 +1,19 @@
 local M = {}
 
--- ✅ 状态标签定义（支持多种符号）
+-- ✅ 状态标签定义
 local STATE_LABELS = {
 	todo = { symbols = { "[ ]", "☐", "□" }, display = "未完成" },
 	done = { symbols = { "[x]", "✔", "☑", "✅" }, display = "完成" },
 }
-
--- ✅ 读取文件内容
-local function read_file_lines(path)
-	local lines = {}
-	local fd = io.open(path, "r")
-	if fd then
-		for line in fd:lines() do
-			table.insert(lines, line)
-		end
-		fd:close()
-	end
-	return lines
-end
 
 -- ✅ 转义 Lua 模式字符
 local function escape_lua_pattern(s)
 	return s:gsub("([^%w])", "%%%1")
 end
 
--- ✅ 统计任务状态（支持多种符号）
+-- ✅ 统计任务状态
 local function summarize_tasks(lines)
 	local count = { todo = 0, done = 0 }
-
 	for _, line in ipairs(lines) do
 		for label, info in pairs(STATE_LABELS) do
 			for _, symbol in ipairs(info.symbols) do
@@ -38,19 +24,19 @@ local function summarize_tasks(lines)
 			end
 		end
 	end
-
 	count.total = count.todo + count.done
 	return count
 end
 
 -- ✅ 绘制进度条
-local function render_progress_bar(done, total, width)
+local function render_progress_bar(done, total, bar_length)
 	if total == 0 then
 		return "暂无任务"
 	end
 	local ratio = done / total
-	local filled = math.floor(ratio * width)
-	local bar = string.rep("█", filled) .. string.rep("░", width - filled)
+	local filled = math.floor(ratio * bar_length)
+	-- local bar = string.rep("█", filled) .. string.rep("░", bar_length - filled)
+	local bar = string.rep("▣", filled) .. string.rep("□", bar_length - filled)
 	return string.format("%s %d%% (%d/%d)", bar, math.floor(ratio * 100), done, total)
 end
 
@@ -63,24 +49,22 @@ local function format_summary(stat)
 	return string.format("%s｜未完成: %d｜完成: %d｜总计: %d", bar, stat.todo, stat.done, stat.total)
 end
 
--- 📁 获取当前项目名
-local function get_project()
-	return vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
-end
-
 -- 📁 获取项目路径
 local function get_project_path(project)
 	return vim.fn.expand("~/.todo-files/" .. project .. "/todo.md")
+end
+
+-- 📁 获取当前项目名
+local function get_project()
+	return vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
 end
 
 -- 🪟 显示浮动窗口
 local function show_todo_floating(path)
 	local abs_path = vim.fn.fnamemodify(path, ":p")
 
-	-- 🔒 确保用真实路径 buffer，不闪屏加载
 	local buf = vim.fn.bufadd(abs_path)
 	vim.fn.bufload(buf)
-
 	vim.bo[buf].filetype = "markdown"
 	vim.bo[buf].bufhidden = "hide"
 	vim.bo[buf].buftype = ""
@@ -104,6 +88,7 @@ local function show_todo_floating(path)
 		footer_pos = "right",
 	})
 
+	-- 动态更新底部进度条
 	local function update_summary()
 		local current_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 		local new_summary = format_summary(summarize_tasks(current_lines))
@@ -115,27 +100,26 @@ local function show_todo_floating(path)
 		end
 	end
 
+	-- 快捷键：关闭与保存
 	vim.keymap.set("n", "q", function()
 		if vim.api.nvim_win_is_valid(win) then
 			vim.api.nvim_win_close(win, true)
 		end
-	end, { buffer = buf })
+	end, { buffer = buf, desc = "关闭窗口" })
 
 	vim.keymap.set("n", "<C-s>", function()
 		vim.cmd("write")
 		update_summary()
 		vim.notify("✅ TODO 文件已保存并更新统计", vim.log.levels.INFO)
-	end, { buffer = buf, desc = "保存TODO文件" })
+	end, { buffer = buf, desc = "保存并更新统计" })
 
 	vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "BufWritePost" }, {
 		buffer = buf,
 		callback = update_summary,
 	})
-
-	return win
 end
 
--- 📚 获取所有 TODO 项目
+-- 📂 获取所有 TODO 项目
 local function list_todo_projects()
 	local todo_root = vim.fn.expand("~/.todo-files")
 	local handle = vim.loop.fs_scandir(todo_root)
@@ -149,7 +133,6 @@ local function list_todo_projects()
 		if not name then
 			break
 		end
-
 		local path = get_project_path(name)
 		if typ == "directory" and vim.fn.filereadable(path) == 1 then
 			table.insert(choices, { project = name, path = path })
@@ -169,7 +152,6 @@ local function select_project(prompt, action)
 		return vim.notify(err, vim.log.levels.INFO)
 	end
 
-	-- 计算最大项目名长度
 	local max_len = 0
 	for _, item in ipairs(choices) do
 		max_len = math.max(max_len, #item.project)
@@ -232,11 +214,9 @@ function M.delete_project_todo()
 		if not choice then
 			return vim.notify("未选择任何项目文件夹", vim.log.levels.INFO)
 		end
-
 		if vim.fn.input("确定要删除: " .. choice.project .. " 吗？(y/n): "):lower() == "y" then
 			local dir_path = vim.fn.fnamemodify(choice.path, ":h")
 			local result = vim.fn.system("rm -rf " .. vim.fn.fnameescape(dir_path))
-
 			if vim.v.shell_error == 0 then
 				vim.notify("成功删除项目: " .. choice.project)
 			else
