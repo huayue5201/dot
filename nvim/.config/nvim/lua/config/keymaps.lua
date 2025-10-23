@@ -97,20 +97,26 @@ end, { desc = "打开位运算计算器" })
 
 local todo = require("utils.todo")
 vim.keymap.set("n", "<leader>tdl", function()
-	todo.select_and_open_todo_file(false)
+	todo.select_todo_file("current", function(choice)
+		if choice then
+			todo.open_todo_file(choice.path, true) -- 浮窗打开
+		end
+	end)
 end, { desc = "打开todo列表" })
 
-vim.keymap.set("n", "<leader>tde", function()
-	todo.open_or_create_todo_file(false)
-end, { desc = "常规打开todo清单" })
+-- 创建新 TODO 文件
+vim.keymap.set("n", "<leader>tdc", function()
+	todo.create_todo_file()
+end, { desc = "创建新 TODO 文件" })
 
-vim.keymap.set("n", "<leader>tdf", function()
-	todo.open_or_create_todo_file(true)
-end, { desc = "浮窗打开todo清单" })
-
-vim.keymap.set("n", "<leader>tdr", function()
-	todo.delete_project_todo()
-end, { desc = "删除todo文件" })
+-- 删除 TODO 文件
+vim.keymap.set("n", "<leader>tdd", function()
+	todo.select_todo_file("current", function(choice)
+		if choice then
+			todo.delete_todo_file(choice.path)
+		end
+	end)
+end, { desc = "删除 TODO 文件" })
 
 -- ✨ 粘贴内容选择器
 vim.keymap.set("n", "<leader>yl", function()

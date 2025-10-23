@@ -74,7 +74,7 @@ return {
 							renamed = "➜",
 							unstaged = "󱅅",
 							staged = "✓",
-							unmerged = "",
+							unmerged = "",
 							untracked = "★",
 							ignored = "◌",
 						},
