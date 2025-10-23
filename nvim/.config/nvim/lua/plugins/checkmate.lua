@@ -2,7 +2,7 @@
 
 return {
 	"bngarren/checkmate.nvim",
-	ft = "markdown", -- Lazy loads for Markdown files matching patterns in 'files'
+	ft = { "markdown", "todo", "TDDO" }, -- Lazy loads for Markdown files matching patterns in 'files'
 	config = function()
 		require("checkmate").setup({
 			---@type checkmate.Config
@@ -186,7 +186,6 @@ return {
 					sort_order = 30,
 				},
 			},
-
 			archive = { -- 归档设置
 				heading = {
 					title = "Archive", -- 归档标题
