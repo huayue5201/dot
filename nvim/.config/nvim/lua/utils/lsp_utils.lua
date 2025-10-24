@@ -5,6 +5,7 @@ M._lsp_config_cache = nil
 
 -- 内部函数：加载所有 LSP 配置
 function M._load_all_lsp_configs()
+	---@diagnostic disable-next-line: unnecessary-if
 	if M._lsp_config_cache then
 		return M._lsp_config_cache
 	end

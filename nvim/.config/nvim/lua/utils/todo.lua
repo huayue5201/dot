@@ -1,6 +1,28 @@
 local M = {}
 
 -- ==========================
+-- 通知美化
+-- ==========================
+local function notify(msg, level, opts)
+	local icons = {
+		[vim.log.levels.INFO] = "ℹ️ ",
+		[vim.log.levels.WARN] = "⚠️ ",
+		[vim.log.levels.ERROR] = "❌ ",
+		[vim.log.levels.DEBUG] = "🐛 ",
+		[vim.log.levels.TRACE] = "🔍 ",
+	}
+	local icon = icons[level] or "✅ "
+	vim.notify(
+		icon .. msg,
+		level,
+		vim.tbl_extend("force", {
+			title = "TODO 管理器",
+			timeout = 2000,
+		}, opts or {})
+	)
+end
+
+-- ==========================
 -- 状态标签定义
 -- ==========================
 local STATE_LABELS = {
@@ -62,8 +84,7 @@ local function get_todo_files(project)
 	if vim.fn.isdirectory(dir) == 0 then
 		return {}
 	end
-	local files = vim.fn.globpath(dir, "*.md", false, true)
-	return files
+	return vim.fn.globpath(dir, "*.md", false, true)
 end
 
 -- ==========================
@@ -84,7 +105,7 @@ local function show_todo_floating(path)
 		vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 	end
 
-	local width = math.min(math.floor(vim.o.columns * 0.8), 160)
+	local width = math.min(math.floor(vim.o.columns * 0.6), 140)
 	local height = math.min(30, math.max(10, #lines + 4))
 
 	local win = vim.api.nvim_open_win(buf, true, {
@@ -94,7 +115,7 @@ local function show_todo_floating(path)
 		col = math.floor((vim.o.columns - width) / 2),
 		row = math.floor((vim.o.lines - height) / 2),
 		border = "rounded",
-		title = "TODO - " .. vim.fn.fnamemodify(path, ":t"),
+		title = "📋 TODO - " .. vim.fn.fnamemodify(path, ":t"),
 		style = "minimal",
 	})
 
@@ -114,6 +135,7 @@ local function show_todo_floating(path)
 	vim.keymap.set("n", "q", function()
 		if vim.api.nvim_win_is_valid(win) then
 			vim.api.nvim_win_close(win, true)
+			notify("已关闭窗口", vim.log.levels.INFO)
 		end
 	end, { buffer = buf, desc = "关闭窗口" })
 
@@ -121,7 +143,7 @@ local function show_todo_floating(path)
 	vim.keymap.set("n", "<C-s>", function()
 		vim.fn.writefile(vim.api.nvim_buf_get_lines(buf, 0, -1, false), path)
 		update_summary()
-		vim.notify("✅ 文件已保存", vim.log.levels.INFO)
+		notify("文件已保存 ✅", vim.log.levels.INFO)
 	end, { buffer = buf, desc = "保存" })
 
 	vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "BufWritePost" }, {
@@ -133,16 +155,17 @@ local function show_todo_floating(path)
 end
 
 -- ==========================
--- 打开 TODO 文件（浮窗/普通）
+-- 打开 TODO 文件
 -- ==========================
 function M.open_todo_file(path, floating)
 	if not vim.fn.filereadable(path) then
-		return vim.notify("文件不存在: " .. path, vim.log.levels.WARN)
+		return notify("文件不存在: " .. path, vim.log.levels.WARN)
 	end
 	if floating then
 		show_todo_floating(path)
 	else
 		vim.cmd("edit " .. vim.fn.fnameescape(path))
+		notify("已打开文件：" .. vim.fn.fnamemodify(path, ":t"), vim.log.levels.INFO)
 	end
 end
 
@@ -154,23 +177,23 @@ function M.create_todo_file()
 	local dir = get_project_dir(project)
 	vim.fn.mkdir(dir, "p")
 
-	local filename = vim.fn.input("请输入 TODO 文件名: ")
+	local filename = vim.fn.input("📝 请输入 TODO 文件名: ")
 	if filename == "" then
-		return vim.notify("取消创建 TODO 文件", vim.log.levels.INFO)
+		return notify("取消创建 TODO 文件", vim.log.levels.INFO)
 	end
 
 	local path = dir .. "/" .. filename .. ".md"
 	if vim.fn.filereadable(path) == 1 then
-		return vim.notify("文件已存在: " .. filename .. ".md", vim.log.levels.WARN)
+		return notify("文件已存在: " .. filename .. ".md", vim.log.levels.WARN)
 	end
 
 	local fd = io.open(path, "w")
 	if fd then
 		fd:write("# TODO - " .. filename .. "\n\n")
 		fd:close()
-		vim.notify("创建 TODO 文件: " .. path)
+		notify("创建成功：" .. path, vim.log.levels.INFO)
 	else
-		vim.notify("无法创建文件: " .. path, vim.log.levels.ERROR)
+		notify("无法创建文件: " .. path, vim.log.levels.ERROR)
 	end
 end
 
@@ -179,16 +202,18 @@ end
 -- ==========================
 function M.delete_todo_file(path)
 	if not vim.fn.filereadable(path) then
-		return vim.notify("文件不存在: " .. path, vim.log.levels.WARN)
+		return notify("文件不存在: " .. path, vim.log.levels.WARN)
 	end
-	if vim.fn.input("确定删除 " .. vim.fn.fnamemodify(path, ":t") .. " 吗? (y/n): "):lower() == "y" then
+	if vim.fn.input("🗑️ 确定删除 " .. vim.fn.fnamemodify(path, ":t") .. " 吗? (y/n): "):lower() == "y" then
 		os.remove(path)
-		vim.notify("已删除: " .. path)
+		notify("已删除: " .. path, vim.log.levels.WARN)
+	else
+		notify("已取消删除", vim.log.levels.INFO)
 	end
 end
 
 -- ==========================
--- 选择 TODO 文件（当前项目 / 所有项目）
+-- 选择 TODO 文件
 -- ==========================
 function M.select_todo_file(scope, callback)
 	local choices = {}
@@ -216,13 +241,13 @@ function M.select_todo_file(scope, callback)
 	end
 
 	if #choices == 0 then
-		return vim.notify("没有可用的 TODO 文件", vim.log.levels.INFO)
+		return notify("没有可用的 TODO 文件", vim.log.levels.INFO)
 	end
 
 	vim.ui.select(choices, {
-		prompt = "选择 TODO 文件：",
+		prompt = "🗂️ 选择 TODO 文件：",
 		format_item = function(item)
-			return item.project .. " - " .. vim.fn.fnamemodify(item.path, ":t")
+			return string.format("%-20s • %s", item.project, vim.fn.fnamemodify(item.path, ":t"))
 		end,
 	}, callback)
 end
