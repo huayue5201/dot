@@ -3,33 +3,39 @@
 local utils = require("utils.utils")
 local colors = utils.palette
 local lsp_progress = require("utils.lsp_progress")
+local chip_config = require("utils.cross_config")
 
--- 定义高亮组
-local function set_highlights(highlight_defs)
+local M = {} -- 使用 M 作为模块的局部变量
+
+-- ================================
+-- 高亮组配置
+-- ================================
+local function setup_highlights()
+	local highlight_defs = {
+		DefaultMode = { bold = true },
+		NormalMode = { bold = true },
+		InsertMode = { bold = true },
+		VisualMode = { bold = true },
+		ReplaceMode = { bold = true },
+		PinkHighlight = { fg = "#ffde7d", bold = true },
+		StatuslineIcon = { fg = "#ffde7d", bold = true },
+		LspIcon = { fg = "#4876FF", bold = true },
+		DapIcon = { fg = "#FF0000", bold = true },
+		GitIcon = { fg = "#6639a6", bold = true },
+		GitIconChanged = { fg = colors.yellow, bold = true },
+		GitIconRemoved = { fg = colors.red, bold = true },
+		GitIconAdded = { fg = colors.green, bold = true },
+	}
+
 	for group, opts in pairs(highlight_defs) do
 		vim.api.nvim_set_hl(0, group, opts)
 	end
 end
-set_highlights({
-	DefaultMode = { bold = true },
-	NormalMode = { bold = true },
-	InsertMode = { bold = true },
-	VisualMode = { bold = true },
-	ReplaceMode = { bold = true },
-	PinkHighlight = { fg = "#ffde7d", bold = true },
-	StatuslineIcon = { fg = "#ffde7d", bold = true },
-	LspIcon = { fg = "#4876FF", bold = true },
-	DapIcon = { fg = "#FF0000", bold = true },
-	GitIcon = { fg = "#6639a6", bold = true },
-	GitIconChanged = { fg = colors.yellow, bold = true },
-	GitIconRemoved = { fg = colors.red, bold = true },
-	GitIconAdded = { fg = colors.green, bold = true },
-})
 
-Statusline = {}
-
--- -------------------- 模式定义 --------------------
-Statusline.modes = {
+-- ================================
+-- 模式配置
+-- ================================
+local MODES = {
 	["n"] = { label = "NORMAL", hl = "NormalMode" },
 	["i"] = { label = "INSERT", hl = "InsertMode" },
 	["v"] = { label = "VISUAL", hl = "VisualMode" },
@@ -40,61 +46,86 @@ Statusline.modes = {
 	["t"] = { label = "TERMINL", hl = "DefaultMode" },
 }
 
--- 获取当前模式并应用颜色高亮
-function Statusline.mode()
+-- ================================
+-- 滚动条图标
+-- ================================
+local PROGRESS_ICONS = {
+	" ",
+	" ",
+	" ",
+	" ",
+	" ",
+	" ",
+	" ",
+	" ",
+	" ",
+	" ",
+	" ",
+	" ",
+	" ",
+	" ",
+	" ",
+}
+
+-- ================================
+-- LSP 诊断级别配置
+-- ================================
+local DIAGNOSTIC_SEVERITY = {
+	[vim.diagnostic.severity.ERROR] = {
+		icon = " ",
+		hl = "DiagnosticError",
+	},
+	[vim.diagnostic.severity.WARN] = {
+		icon = " ",
+		hl = "DiagnosticWarn",
+	},
+	[vim.diagnostic.severity.INFO] = {
+		icon = " ",
+		hl = "DiagnosticInfo",
+	},
+	[vim.diagnostic.severity.HINT] = {
+		icon = " ",
+		hl = "DiagnosticHint",
+	},
+}
+
+-- ================================
+-- 核心功能函数
+-- ================================
+
+--- 获取当前模式并应用高亮
+function M.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
-	local mode_info = Statusline.modes[current_mode] or { label = current_mode, hl = "DefaultMode" }
+	local mode_info = MODES[current_mode] or { label = current_mode, hl = "DefaultMode" }
 	return "%#StatuslineIcon#󰨾 %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
--- 获取当前 buffer 附加的 LSP 客户端名称
-function Statusline.lsp_clients()
+--- 获取 LSP 客户端信息
+function M.lsp_clients()
 	local buf_clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
 
 	if vim.tbl_isempty(buf_clients) then
-		return "%#LspIcon#" .. "󰂵 " .. "%* "
+		return "%#LspIcon#󰂵 %* "
 	end
 
-	-- 给每个客户端加上编号
 	local client_names = {}
 	for idx, client in ipairs(buf_clients) do
 		table.insert(client_names, string.format("%d.%s", idx, client.name))
 	end
 
-	-- 拼接客户端名称，并返回
-	return "%#LspIcon#" .. "󰂵 " .. "%*" .. table.concat(client_names, " ") .. " 󱞩"
+	return "%#LspIcon#󰂵 %*" .. table.concat(client_names, " ") .. " 󱞩"
 end
 
--- -------------------- LSP 状态 --------------------
-function Statusline.lsp_diagnostics()
+--- 获取 LSP 诊断信息
+function M.lsp_diagnostics()
 	if lsp_progress.is_loading() then
-		return "" -- 如果 LSP 正在加载，返回空字符串
+		return ""
 	end
 
 	local diagnostics = vim.diagnostic.get(0)
 	if #diagnostics == 0 then
-		return "" -- 没有诊断信息时返回空
+		return ""
 	end
-
-	-- 定义诊断级别的图标和颜色
-	local severity_info = {
-		[vim.diagnostic.severity.ERROR] = {
-			icon = " ", -- 错误图标
-			hl = "DiagnosticError",
-		},
-		[vim.diagnostic.severity.WARN] = {
-			icon = " ", -- 警告图标
-			hl = "DiagnosticWarn",
-		},
-		[vim.diagnostic.severity.INFO] = {
-			icon = " ", -- 信息图标
-			hl = "DiagnosticInfo",
-		},
-		[vim.diagnostic.severity.HINT] = {
-			icon = " ", -- 提示图标
-			hl = "DiagnosticHint",
-		},
-	}
 
 	-- 统计各严重级别的诊断数量
 	local counts = {
@@ -108,20 +139,19 @@ function Statusline.lsp_diagnostics()
 		counts[diag.severity] = counts[diag.severity] + 1
 	end
 
-	-- 构建状态栏组件
+	-- 构建诊断组件
 	local parts = {}
-
-	-- 按严重程度顺序添加组件：错误 → 警告 → 信息 → 提示
-	for severity in ipairs({
+	local severity_order = {
 		vim.diagnostic.severity.ERROR,
 		vim.diagnostic.severity.WARN,
 		vim.diagnostic.severity.INFO,
 		vim.diagnostic.severity.HINT,
-	}) do
+	}
+
+	for _, severity in ipairs(severity_order) do
 		local count = counts[severity]
 		if count > 0 then
-			local data = severity_info[severity]
-			-- 添加带颜色的图标和数字
+			local data = DIAGNOSTIC_SEVERITY[severity]
 			table.insert(parts, "%#" .. data.hl .. "#" .. data.icon .. count .. "%*")
 		end
 	end
@@ -129,115 +159,118 @@ function Statusline.lsp_diagnostics()
 	return table.concat(parts, " ")
 end
 
--- LSP 状态（包含客户端名称、诊断和进度信息）
-function Statusline.lsp()
+--- 获取完整的 LSP 状态
+function M.lsp()
 	return table.concat({
-		Statusline.lsp_clients(),
-		" " .. require("utils.lsp_progress").status(),
-		Statusline.lsp_diagnostics(),
+		M.lsp_clients(),
+		" " .. lsp_progress.status(),
+		M.lsp_diagnostics(),
 	})
 end
 
--- -------------------- USB 连接状态（嵌入式设备） --------------------
-function Statusline.usb()
-	return require("utils.usb_status").UsbStatus()
-end
-
--- -------------------- 芯片状态（嵌入式设备） --------------------
-local chip_config = require("utils.cross_config")
--- 定义状态栏显示函数
-function Statusline.chip()
-	return chip_config.ChipStatus() -- 调用 ChipStatus 函数
-end
-
--- -------------------- 调试状态 --------------------
-function Statusline.dap_status()
+--- 获取调试器状态
+function M.dap_status()
 	local dap_status = require("dap").status()
 	if dap_status == "" then
-		return "" -- 如果没有调试会话，返回空字符串
+		return ""
 	end
-	return "%#DapIcon#" .. " " .. "%*" .. dap_status -- 有调试会话时，返回图标和状态
+	return "%#DapIcon# %*" .. dap_status
 end
 
--- -------------------- Git 状态 --------------------
-function Statusline.vcs()
+--- 获取 Git 状态
+function M.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or not git_info.head then
-		return "%#GitIcon#" .. " " .. "%*" .. "[ ]"
+		return "%#GitIcon# %*[ ]"
 	end
-	local parts = { "%#GitIcon#" .. " " .. "%*" .. "[" .. git_info.head .. "]" }
-	for key, icon in pairs({
-		added = "%#GitIconAdded#" .. "+" .. "%*",
-		removed = "%#GitIconRemoved#" .. "-" .. "%*",
-		changed = "%#GitIconChanged#" .. "󱅅 " .. "%*",
-	}) do
+
+	local parts = { "%#GitIcon# %*[" .. git_info.head .. "]" }
+
+	local git_icons = {
+		added = "%#GitIconAdded#+%*",
+		removed = "%#GitIconRemoved#-%*",
+		changed = "%#GitIconChanged#󱅅 %*",
+	}
+
+	for key, icon in pairs(git_icons) do
 		if git_info[key] and git_info[key] > 0 then
 			table.insert(parts, icon .. git_info[key])
 		end
 	end
+
 	return " " .. table.concat(parts, " ") .. " "
 end
 
--- -------------------- 动态滚动条 --------------------
-function Statusline.get_scrollbar()
-	local progress_icons = {
-		" ",
-		" ",
-		" ",
-		" ",
-		" ",
-		" ",
-		" ",
-		" ",
-		" ",
-		" ",
-		" ",
-		" ",
-		" ",
-		" ",
-		" ",
-	}
-	local total_lines, cur_line = vim.api.nvim_buf_line_count(0), vim.api.nvim_win_get_cursor(0)[1]
+--- 获取动态滚动条
+function M.get_scrollbar()
+	local total_lines = vim.api.nvim_buf_line_count(0)
+	local cur_line = vim.api.nvim_win_get_cursor(0)[1]
+
 	if total_lines <= 1 then
-		return "%#PinkHighlight#" .. progress_icons[#progress_icons] .. "%*" -- 只有一行时，显示满格图标
+		return "%#PinkHighlight#" .. PROGRESS_ICONS[#PROGRESS_ICONS] .. "%*"
 	end
+
 	local progress = (cur_line - 1) / (total_lines - 1)
-	local icon_index = math.ceil(progress * (#progress_icons - 1)) + 1
-	return "%#PinkHighlight#" .. progress_icons[icon_index] .. "%*"
+	local icon_index = math.ceil(progress * (#PROGRESS_ICONS - 1)) + 1
+	return "%#PinkHighlight#" .. PROGRESS_ICONS[icon_index] .. "%*"
 end
 
--- -------------------- 状态栏内容 --------------------
-function Statusline.active()
+--- 获取芯片状态
+function M.chip()
+	return chip_config.ChipStatus()
+end
+
+--- 获取 USB 状态
+function M.usb()
+	return require("utils.usb_status").UsbStatus()
+end
+
+-- ================================
+-- 状态栏组装
+-- ================================
+
+--- 组装活动状态栏
+function M.active()
 	return table.concat({
-		"%#Normal#", -- 默认文本高亮组
-		string.format("%-46s", Statusline.mode()), -- 左对齐，13个字符
-		Statusline.vcs() .. "  ", -- Git 状态
+		"%#Normal#",
+		string.format("%-46s", M.mode()), -- 模式显示区域
+		M.vcs() .. "  ",
 		"%y ",
-		Statusline.lsp(), -- LSP 状态
+		M.lsp(),
 		"%=", -- 分隔符
-		Statusline.dap_status() .. " ", -- dap调试信息
-		Statusline.chip() .. "  ",
-		Statusline.usb() .. " ",
-		"  %l%c ", -- 行列号
-		"%P", -- 文件百分比
-		Statusline.get_scrollbar(), -- 动态图标
+		M.dap_status() .. " ",
+		M.chip() .. "  ",
+		M.usb() .. " ",
+		"  %l%c ",
+		"%P",
+		M.get_scrollbar(),
 	})
 end
 
--- 刷新状态栏
+-- ================================
+-- 初始化
+-- ================================
+
+--- 刷新状态栏
 local function refresh_statusline()
-	vim.api.nvim_set_option_value("statusline", "%!v:lua.Statusline.active()", { win = vim.api.nvim_get_current_win() })
+	vim.api.nvim_set_option_value("statusline", "%!v:lua.Statusline.active()", {
+		win = vim.api.nvim_get_current_win(),
+	})
 end
 
--- 创建状态栏组
+-- 设置高亮组
+setup_highlights()
+
+-- 创建自动命令组
 local statusline_group = vim.api.nvim_create_augroup("Statusline", { clear = true })
 
--- 自动命令1：处理常规事件
+-- 注册自动命令
 vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter", "BufWritePost" }, {
 	group = statusline_group,
-	callback = function()
-		refresh_statusline()
-	end,
+	callback = refresh_statusline,
 })
 
-return Statusline
+-- 将模块设置为全局变量，确保状态栏可以访问
+_G.Statusline = M
+
+return M
