@@ -35,7 +35,7 @@ return {
 				offsets = { -- 侧边栏偏移设置
 					{
 						filetype = "trouble",
-						text = " Symbols",
+						text = " Trouble",
 						highlight = { sep = { link = "WinSeparator" } },
 						separator = "┃",
 					},

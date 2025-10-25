@@ -175,9 +175,9 @@ return {
 
 		vim.keymap.set("n", "<leader>ds", dap.pause, { silent = true, desc = "暂停线程" })
 
-		vim.keymap.set("n", "<leader>dgk", dap.up, { silent = true, desc = "上一个断点" })
+		vim.keymap.set("n", "[e", dap.up, { silent = true, desc = "上一个断点" })
 
-		vim.keymap.set("n", "<leader>dgj", dap.down, { silent = true, desc = "下一个断点" })
+		vim.keymap.set("n", "]e", dap.down, { silent = true, desc = "下一个断点" })
 
 		vim.keymap.set("n", "<leader>dgg", dap.focus_frame, { silent = true, desc = "跳转到当前帧" })
 
