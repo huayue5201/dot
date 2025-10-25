@@ -5,11 +5,6 @@ return {
 	event = "UIEnter",
 	dependencies = "nvim-tree/nvim-web-devicons",
 	config = function()
-		_G.__cached_neo_tree_selector = nil
-		_G.__get_selector = function()
-			return _G.__cached_neo_tree_selector
-		end
-
 		local icons = require("utils.utils").icons.diagnostic
 
 		require("bufferline").setup({
@@ -39,7 +34,7 @@ return {
 				-- items = {},
 				offsets = { -- 侧边栏偏移设置
 					{
-						filetype = "SymbolsSidebar",
+						filetype = "trouble",
 						text = " Symbols",
 						highlight = { sep = { link = "WinSeparator" } },
 						separator = "┃",

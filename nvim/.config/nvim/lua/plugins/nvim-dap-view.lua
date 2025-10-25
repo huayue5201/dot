@@ -28,11 +28,7 @@ return {
 		vim.keymap.set("n", "<localleader>t", "<cmd>DapViewJump threads<cr>", { desc = "dap-view threads" })
 		vim.keymap.set("n", "<localleader>r", "<cmd>DapViewJump repl<cr>", { desc = "dap-view repl" })
 		vim.keymap.set("n", "<localleader>c", "<cmd>DapViewJump console<cr>", { desc = "dap-view repl" })
-
 		-- 配置添加/删除观察点
-		vim.operator("n", "<leader>dav", "<cmd>DapViewWatch<cr>", {
-			operator_opts = { motion = "l" },
-			desc = "添加/删除观察点",
-		})
+		vim.keymap.set("n", "<leader>dav", "<cmd>DapViewWatch<cr>", { desc = "添加/删除观察点" })
 	end,
 }

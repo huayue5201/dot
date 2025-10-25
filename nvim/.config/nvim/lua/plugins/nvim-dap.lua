@@ -56,9 +56,7 @@ return {
 			dap.defaults.fallback[key] = value
 		end
 
-		local opts = { operator_opts = { motion = "l" }, silent = true }
-
-		vim.operator("n", "<leader>dc", dap.continue, { opts, desc = "继续/启动调试" })
+		vim.keymap.set("n", "<leader>dc", dap.continue, { silent = true, desc = "继续/启动调试" })
 
 		vim.keymap.set("n", "<leader>dd", function()
 			dap.terminate({
@@ -71,7 +69,7 @@ return {
 		end, { silent = true, desc = "终止调试" })
 
 		-- 使用 operator 创建操作符并映射
-		vim.operator("n", "<leader>b", dap.toggle_breakpoint, { opts, desc = "设置/取消断点" })
+		vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "设置/取消断点" })
 
 		vim.keymap.set("n", "<leader>B", function()
 			dap.set_exception_breakpoints()
@@ -161,15 +159,15 @@ return {
 
 		vim.keymap.set("n", "<leader>dnl", dap.run_last, { silent = true, desc = "运行上次会话" })
 
-		vim.operator("n", "<leader>dno", dap.step_over, { opts, desc = "单步跳过" })
+		vim.keymap.set("n", "<leader>dno", dap.step_over, { silent = true, desc = "单步跳过" })
 
-		vim.operator("n", "<leader>dni", dap.step_out, { opts, desc = "单步进入" })
+		vim.keymap.set("n", "<leader>dni", dap.step_out, { silent = true, desc = "单步进入" })
 
-		vim.operator("n", "<leader>dnu", dap.step_out, { opts, desc = "单步跳出" })
+		vim.keymap.set("n", "<leader>dnu", dap.step_out, { silent = true, desc = "单步跳出" })
 
-		vim.operator("n", "<leader>dnb", dap.step_back, { opts, desc = "逆向单步" })
+		vim.keymap.set("n", "<leader>dnb", dap.step_back, { silent = true, desc = "逆向单步" })
 
-		vim.operator("n", "<leader>dnc", dap.run_to_cursor, { opts, desc = "运行到光标位置" })
+		vim.keymap.set("n", "<leader>dnc", dap.run_to_cursor, { silent = true, desc = "运行到光标位置" })
 
 		vim.keymap.set("n", "<leader>dnr", dap.reverse_continue, { silent = true, desc = "逆向继续" })
 
@@ -177,9 +175,9 @@ return {
 
 		vim.keymap.set("n", "<leader>ds", dap.pause, { silent = true, desc = "暂停线程" })
 
-		vim.operator("n", "<leader>dgk", dap.up, { opts, desc = "上一个断点" })
+		vim.keymap.set("n", "<leader>dgk", dap.up, { silent = true, desc = "上一个断点" })
 
-		vim.operator("n", "<leader>dgj", dap.down, { opts, desc = "下一个断点" })
+		vim.keymap.set("n", "<leader>dgj", dap.down, { silent = true, desc = "下一个断点" })
 
 		vim.keymap.set("n", "<leader>dgg", dap.focus_frame, { silent = true, desc = "跳转到当前帧" })
 
@@ -270,9 +268,9 @@ return {
 
 		local widgets = require("dap.ui.widgets")
 
-		vim.operator("n", "<leader>dlk", function()
+		vim.keymap.set("n", "<leader>dlk", function()
 			widgets.hover(nil, { border = "rounded" })
-		end, { opts, desc = "查看变量" })
+		end, { silent = true, desc = "查看变量" })
 
 		vim.keymap.set("n", "<leader>dle", function()
 			widgets.preview(nil, {
