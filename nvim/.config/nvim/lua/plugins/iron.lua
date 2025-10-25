@@ -38,55 +38,98 @@ return {
 			},
 		})
 
-		-- 在普通模式下：发送当前顶层非 module 语法节点
-		-- 在可视模式下：发送选中代码块
-		vim.keymap.set({ "n", "v" }, "<c-c><c-c>", function()
+		-- 创建专门用于“发送到 REPL”高亮的样式
+		vim.api.nvim_set_hl(0, "IronSendHighlight", {
+			bg = "#3b4252", -- 背景色，可以改成更亮的颜色
+			fg = "#88c0d0", -- 前景色（一般无效，因为是整块高亮）
+			bold = true,
+		})
+
+		vim.keymap.set({ "n", "v" }, "<C-c>", function()
 			local ts_utils = require("nvim-treesitter.ts_utils")
 			local bufnr = vim.api.nvim_get_current_buf()
 			local mode = vim.fn.mode()
 
-			-- 如果是可视模式（'v' 或 'V'），取选中区域内容
+			-- 🔹 高亮辅助函数
+			local function highlight_range(start_row, start_col, end_row, end_col)
+				local ns = vim.api.nvim_create_namespace("iron_send_highlight")
+				for i = start_row, end_row do
+					local s_col = (i == start_row) and start_col or 0
+					local e_col = (i == end_row) and end_col or -1
+					pcall(vim.api.nvim_buf_add_highlight, bufnr, ns, "IronSendHighlight", i, s_col, e_col)
+				end
+				vim.defer_fn(function()
+					vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+				end, 800)
+			end
+
+			-- 🔹 Visual 模式发送选中内容
 			if mode == "v" or mode == "V" then
-				-- 获取选区范围
 				local start_row = vim.fn.getpos("'<")[2] - 1
 				local start_col = vim.fn.getpos("'<")[3] - 1
 				local end_row = vim.fn.getpos("'>")[2] - 1
 				local end_col = vim.fn.getpos("'>")[3] - 1
-
-				-- 获取选中文本
 				local lines = vim.api.nvim_buf_get_text(bufnr, start_row, start_col, end_row, end_col, {})
 				local text = table.concat(lines, "\n")
+				highlight_range(start_row, start_col, end_row, end_col)
 				iron.send(nil, text)
 				vim.notify("Sent visual selection to REPL", vim.log.levels.INFO)
 				return
 			end
 
-			-- 否则（普通模式），按 Tree-sitter 找语法节点
-			local cursor_node = ts_utils.get_node_at_cursor()
-			if not cursor_node then
-				vim.notify("No node under cursor", vim.log.levels.WARN)
+			-- 🔹 Normal 模式下：即时选择 l/b
+			vim.api.nvim_echo({
+				{ "󰄛  Send to REPL → ", "Title" },
+				{ "[l]", "Identifier" },
+				{ " line ", "Normal" },
+				{ "| ", "Normal" },
+				{ "[b]", "Function" },
+				{ " block", "Normal" },
+			}, false, {})
+
+			local ok, key = pcall(vim.fn.getcharstr)
+			vim.api.nvim_echo({}, false, {}) -- 清理提示行
+			if not ok then
 				return
 			end
 
-			local top_non_module = nil
-			local node = cursor_node
-			while node do
-				local type = node:type()
-				if type ~= "module" then
-					top_non_module = node
+			if key == "l" then
+				local row = vim.api.nvim_win_get_cursor(0)[1] - 1
+				local line = vim.api.nvim_buf_get_lines(bufnr, row, row + 1, false)[1]
+				highlight_range(row, 0, row, #line)
+				iron.send(nil, line)
+				vim.notify("Sent current line to REPL", vim.log.levels.INFO)
+			elseif key == "b" then
+				local cursor_node = ts_utils.get_node_at_cursor()
+				if not cursor_node then
+					vim.notify("No node under cursor", vim.log.levels.WARN)
+					return
 				end
-				node = node:parent()
-			end
 
-			if not top_non_module then
-				vim.notify("No non-module node found", vim.log.levels.WARN)
-				return
-			end
+				local top_non_module = nil
+				local node = cursor_node
+				while node do
+					local type = node:type()
+					if type ~= "module" then
+						top_non_module = node
+					end
+					node = node:parent()
+				end
 
-			local text = vim.treesitter.get_node_text(top_non_module, bufnr)
-			iron.send(nil, text)
-			vim.notify("Sent syntax block to REPL", vim.log.levels.INFO)
-		end, { desc = "Send node or visual selection to REPL" })
+				if not top_non_module then
+					vim.notify("No non-module node found", vim.log.levels.WARN)
+					return
+				end
+
+				local start_row, start_col, end_row, end_col = top_non_module:range()
+				local text = vim.treesitter.get_node_text(top_non_module, bufnr)
+				highlight_range(start_row, start_col, end_row, end_col)
+				iron.send(nil, text)
+				vim.notify("Sent syntax block to REPL", vim.log.levels.INFO)
+			else
+				vim.notify("Cancelled", vim.log.levels.WARN)
+			end
+		end, { desc = "Send line, block, or visual selection to REPL" })
 
 		vim.keymap.set("n", "<space>mr", "<cmd>IronRepl<cr>")
 		vim.keymap.set("n", "<space>mo", "<cmd>IronHide<cr>")
