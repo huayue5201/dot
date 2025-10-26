@@ -38,7 +38,6 @@ vim.defer_fn(function()
 	vim.schedule(function()
 		require("utils.dotenv").load() -- token加载模块
 		require("utils.cross_config").load_chip_config_on_startup() -- 在 Neovim 启动时加载平台配置
-		require("utils.project_manager").setup()
 		-- quickfixtextfunc
 		require("config.quickfixtext").setup()
 	end)
