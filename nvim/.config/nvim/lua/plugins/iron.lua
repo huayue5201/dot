@@ -60,7 +60,7 @@ return {
 				end
 				vim.defer_fn(function()
 					vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-				end, 800)
+				end, 2000)
 			end
 
 			-- 🔹 Visual 模式发送选中内容
