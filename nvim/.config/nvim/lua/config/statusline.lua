@@ -72,19 +72,19 @@ local PROGRESS_ICONS = {
 -- ================================
 local DIAGNOSTIC_SEVERITY = {
 	[vim.diagnostic.severity.ERROR] = {
-		icon = " ",
+		icon = utils.icons.diagnostic.ERROR,
 		hl = "DiagnosticError",
 	},
 	[vim.diagnostic.severity.WARN] = {
-		icon = " ",
+		icon = utils.icons.diagnostic.WARN,
 		hl = "DiagnosticWarn",
 	},
 	[vim.diagnostic.severity.INFO] = {
-		icon = " ",
+		icon = utils.icons.diagnostic.INFO,
 		hl = "DiagnosticInfo",
 	},
 	[vim.diagnostic.severity.HINT] = {
-		icon = " ",
+		icon = utils.icons.diagnostic.HINT,
 		hl = "DiagnosticHint",
 	},
 }
@@ -105,15 +105,46 @@ function M.lsp_clients()
 	local buf_clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
 
 	if vim.tbl_isempty(buf_clients) then
-		return "%#LspIcon#󰂵 %* "
+		return "󰼎 "
 	end
 
-	local client_names = {}
-	for idx, client in ipairs(buf_clients) do
-		table.insert(client_names, string.format("%d.%s", idx, client.name))
+	-- 忽略列表，只是不显示名字，但数量要算
+	local ignore_list = {
+		"null-ls",
+		"ruff",
+		"ruff_lsp",
+		"eslint",
+		"GitHub Copilot",
+		"copilot",
+		"lua_ls",
+	}
+
+	-- 找主客户端（第一个不在 ignore 的）
+	local main_client = buf_clients[1]
+	for _, client in ipairs(buf_clients) do
+		if not vim.tbl_contains(ignore_list, client.name) then
+			main_client = client
+			break
+		end
 	end
 
-	return "%#LspIcon#󰂵 %*" .. table.concat(client_names, " ") .. " 󱞩"
+	local total_clients = #buf_clients -- 总数量，包括忽略的
+
+	local num_icons = {
+		[1] = "󰼏",
+		[2] = "󰎨",
+		[3] = "󰎫",
+		[4] = "󰼒",
+		[5] = "󰎯",
+		[6] = "󰼔",
+		[7] = "󰼕",
+		[8] = "󰼖",
+		[9] = "󰼗",
+		[10] = "󰿪",
+	}
+	local icon = num_icons[total_clients] or "󰿪"
+
+	return string.format("%s %s 󱞩", icon, main_client.name)
 end
 
 --- 获取 LSP 诊断信息
@@ -181,10 +212,10 @@ end
 function M.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or not git_info.head then
-		return "%#GitIcon# %*[ ]"
+		return "%#GitIcon# %*"
 	end
 
-	local parts = { "%#GitIcon# %*[" .. git_info.head .. "]" }
+	local parts = { "%#GitIcon# %*" .. git_info.head }
 
 	local git_icons = {
 		added = "%#GitIconAdded#+%*",

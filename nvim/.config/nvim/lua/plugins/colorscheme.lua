@@ -4,14 +4,14 @@
 
 return {
 	-- "oxfist/night-owl.nvim",
-	-- "EdenEast/nightfox.nvim",
-	"folke/tokyonight.nvim",
+	"EdenEast/nightfox.nvim",
+	-- "folke/tokyonight.nvim",
 	lazy = false,
 	priority = 1000,
 	config = function()
 		-- require("night-owl").setup()
 		-- vim.cmd.colorscheme("night-owl")
-		-- vim.cmd("colorscheme Carbonfox")
-		vim.cmd([[colorscheme tokyonight-night]])
+		vim.cmd("colorscheme Carbonfox")
+		-- vim.cmd([[colorscheme tokyonight-night]])
 	end,
 }
