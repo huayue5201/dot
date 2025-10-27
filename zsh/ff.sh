@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ===================================================
-# ff.sh - 项目快速切换器（直接执行）
+# ff.sh - 项目快速切换器（直接执行，刷新优化）
 # ===================================================
 
 CACHE_FILE="$HOME/.cache/ff_projects.txt"
@@ -28,15 +28,21 @@ if [[ -f "$HISTORY_FILE" ]]; then
 fi
 
 # -------------------------------
-# 2️⃣ 项目缓存
+# 2️⃣ 项目缓存（每次刷新）
 # -------------------------------
-if [[ ! -f "$CACHE_FILE" || $(find "$CACHE_FILE" -mtime +1 -print) ]]; then
-  fd . "${SEARCH_DIRS[@]}" -t d \
-    -E "*/target/*" -E "*/build/*" -E "*/.git/*" -d "$MAX_DEPTH" > "$CACHE_FILE"
+fd . "${SEARCH_DIRS[@]}" -t d \
+  -E "*/target/*" -E "*/build/*" -E "*/.git/*" -d "$MAX_DEPTH" > "$CACHE_FILE"
+
+# -------------------------------
+# 3️⃣ 清理历史中已删除的项目
+# -------------------------------
+if [[ -f "$HISTORY_FILE" ]]; then
+  awk '{ if (system("[ -d \"" $1 "\" ]") == 0) print $0 }' "$HISTORY_FILE" > "${HISTORY_FILE}.tmp"
+  mv "${HISTORY_FILE}.tmp" "$HISTORY_FILE"
 fi
 
 # -------------------------------
-# 3️⃣ 合并历史权重
+# 4️⃣ 合并历史权重
 # -------------------------------
 projects_with_weight=$(
   awk -v hist="$HISTORY_FILE" '
@@ -51,7 +57,7 @@ projects_with_weight=$(
 )
 
 # -------------------------------
-# 4️⃣ fzf 选择
+# 5️⃣ fzf 选择
 # -------------------------------
 selected_repo=$(
   echo "$projects_with_weight" |
@@ -71,7 +77,7 @@ selected_repo=$(
 )
 
 # -------------------------------
-# 5️⃣ 进入项目并更新历史权重
+# 6️⃣ 进入项目并更新历史权重
 # -------------------------------
 if [[ -n "$selected_repo" ]]; then
   cd "$selected_repo" || exit

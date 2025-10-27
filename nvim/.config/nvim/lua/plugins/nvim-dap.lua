@@ -9,6 +9,7 @@ return {
 		"igorlfs/nvim-dap-view",
 		-- https://github.com/theHamsta/nvim-dap-virtual-text
 		"theHamsta/nvim-dap-virtual-text",
+		"nvimtools/hydra.nvim", -- 添加 hydra 依赖
 	},
 	config = function()
 		-- repl 自动补全支持
@@ -56,6 +57,65 @@ return {
 			dap.defaults.fallback[key] = value
 		end
 
+		local Hydra = require("hydra")
+
+		-- 主调试 Hydra
+		Hydra({
+			name = "DAP 调试",
+			mode = "n",
+			body = "<localleader>d",
+			config = {
+				color = "pink",
+				invoke_on_body = false,
+				hint = {
+					type = "window",
+					position = "bottom",
+					show_name = true,
+				},
+				on_enter = function()
+					vim.notify("🚀 进入调试模式", vim.log.levels.INFO)
+				end,
+				on_exit = function()
+					vim.notify("退出调试模式", vim.log.levels.INFO)
+				end,
+			},
+			heads = {
+				-- 基础控制
+				{ "s", dap.pause, { desc = "暂停线程" } },
+
+				-- 步进控制
+				{ "o", dap.step_over, { desc = "单步跳过" } },
+				{ "i", dap.step_into, { desc = "单步进入" } },
+				{ "u", dap.step_out, { desc = "单步跳出" } },
+				{ "b", dap.step_back, { desc = "逆向单步" } },
+				{ "g", dap.run_to_cursor, { desc = "运行到光标" } },
+				{ "r", dap.reverse_continue, { desc = "逆向继续" } },
+
+				-- 断点管理
+				{ "b", dap.toggle_breakpoint, { desc = "切换断点" } },
+				{
+					"B",
+					function()
+						dap.set_exception_breakpoints()
+					end,
+					{ desc = "异常断点" },
+				},
+
+				-- 会话管理
+				{ "l", dap.run_last, { desc = "运行上次帧" } },
+				{ "f", dap.restart_frame, { desc = "重启当前帧" } },
+
+				-- 导航
+				{ "[", dap.up, { desc = "上一个断点" } },
+				{ "]", dap.down, { desc = "下一个断点" } },
+				{ "G", dap.focus_frame, { desc = "跳转到当前帧" } },
+
+				-- 退出
+				{ "q", nil, { exit = true, desc = "退出" } },
+				{ "<Esc>", nil, { exit = true, desc = false } },
+			},
+		})
+
 		vim.keymap.set("n", "<leader>dc", dap.continue, { silent = true, desc = "继续/启动调试" })
 
 		vim.keymap.set("n", "<leader>dd", function()
@@ -68,118 +128,13 @@ return {
 			})
 		end, { silent = true, desc = "终止调试" })
 
-		-- 使用 operator 创建操作符并映射
-		vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "设置/取消断点" })
+		-- vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { silent = true, desc = "设置/取消断点" })
 
-		vim.keymap.set("n", "<leader>B", function()
-			dap.set_exception_breakpoints()
-		end, { silent = true, desc = "异常断点" })
-
-		vim.keymap.set("n", "<leader>dib", function()
-			vim.ui.select({ "条件断点", "命中次数", "日志点", "多条件断点" }, {
-				prompt = "选择断点类型:",
-			}, function(choice)
-				if choice == "条件断点" then
-					vim.ui.input({ prompt = "󰌓 输入条件: " }, function(condition)
-						-- 自动将输入转换为字符串
-						local str_condition = tostring(condition)
-						if str_condition ~= "" then
-							dap.toggle_breakpoint(str_condition) -- 设置条件断点
-						else
-							vim.notify("条件不能为空！", vim.log.levels.ERROR)
-						end
-					end)
-				elseif choice == "命中次数" then
-					vim.ui.input({ prompt = "󰌓 输入次数: " }, function(hit_count)
-						-- 自动将输入转换为数字并检查
-						local str_hit_count = tonumber(hit_count)
-						if str_hit_count then
-							dap.toggle_breakpoint(nil, str_hit_count) -- 设置命中次数断点
-						else
-							vim.notify("无效输入次数！请输入有效的数字。", vim.log.levels.ERROR)
-						end
-					end)
-				elseif choice == "日志点" then
-					vim.ui.input({ prompt = "󰌓 输入日志内容: " }, function(message)
-						-- 自动将输入转换为字符串
-						local str_message = tostring(message)
-						if str_message ~= "" then
-							dap.toggle_breakpoint(nil, nil, str_message) -- 设置日志点
-						else
-							vim.notify("日志内容不能为空！", vim.log.levels.ERROR)
-						end
-					end)
-				elseif choice == "多条件断点" then
-					vim.ui.input(
-						{ prompt = "󰌓 输入多条件（逗号分隔，支持转义字符）: " },
-						function(input)
-							-- 处理输入，按逗号分割，并确保正确识别 nil
-							local conditions = {}
-							if input then
-								-- 移除两端空白字符
-								input = input:match("^%s*(.-)%s*$")
-								-- 处理转义符号：替换转义的逗号（\）为特殊字符标记
-								input = input:gsub("\\,", "COMMA")
-								-- 通过逗号分割输入
-								for condition in string.gmatch(input, "([^,]+)") do
-									-- 恢复转义的逗号
-									condition = condition:gsub("COMMA", ",")
-									table.insert(conditions, condition:match("^%s*(.-)%s*$")) -- 去除空白字符
-								end
-								-- 解析为3个参数：条件，命中次数，日志消息
-								local condition = conditions[1]
-								local hit_count = conditions[2]
-								local log_message = conditions[3]
-
-								-- 特别处理 nil 部分，确保 nil 作为一个有效的参数
-								if condition == "nil" then
-									condition = nil
-								end
-								if hit_count == "nil" then
-									hit_count = nil
-								end
-								if log_message == "nil" then
-									log_message = nil
-								end
-								-- 检查命中次数参数是否有效
-								if hit_count ~= nil and not tonumber(hit_count) then
-									vim.notify("命中次数只能是数字或nil！", vim.log.levels.ERROR)
-									return
-								end
-								-- 调用 dap.toggle_breakpoint，根据参数数量设置不同类型的断点
-								dap.toggle_breakpoint(condition, hit_count, log_message)
-							end
-						end
-					)
-				end
-			end)
-		end, { desc = "设置断点" })
-
-		vim.keymap.set("n", "<leader>drb", dap.clear_breakpoints, { silent = true, desc = "清除所有断点" })
-
-		vim.keymap.set("n", "<leader>dnl", dap.run_last, { silent = true, desc = "运行上次会话" })
-
-		vim.keymap.set("n", "<leader>dno", dap.step_over, { silent = true, desc = "单步跳过" })
-
-		vim.keymap.set("n", "<leader>dni", dap.step_out, { silent = true, desc = "单步进入" })
-
-		vim.keymap.set("n", "<leader>dnu", dap.step_out, { silent = true, desc = "单步跳出" })
-
-		vim.keymap.set("n", "<leader>dnb", dap.step_back, { silent = true, desc = "逆向单步" })
-
-		vim.keymap.set("n", "<leader>dnc", dap.run_to_cursor, { silent = true, desc = "运行到光标位置" })
-
-		vim.keymap.set("n", "<leader>dnr", dap.reverse_continue, { silent = true, desc = "逆向继续" })
-
-		vim.keymap.set("n", "<leader>dnf", dap.restart_frame, { silent = true, desc = "重启当前帧" })
-
-		vim.keymap.set("n", "<leader>ds", dap.pause, { silent = true, desc = "暂停线程" })
-
-		vim.keymap.set("n", "[e", dap.up, { silent = true, desc = "上一个断点" })
-
-		vim.keymap.set("n", "]e", dap.down, { silent = true, desc = "下一个断点" })
-
-		vim.keymap.set("n", "<leader>dgg", dap.focus_frame, { silent = true, desc = "跳转到当前帧" })
+		-- vim.keymap.set("n", "<leader>B", function()
+		-- 	dap.set_exception_breakpoints()
+		-- end, { silent = true, desc = "异常断点" })
+		local bp = require("utils.dap_utils")
+		vim.keymap.set("n", "<leader>dib", bp.set_breakpoint, { desc = "设置断点" })
 
 		vim.keymap.set("n", "<leader>dgn", function()
 			vim.ui.input({ prompt = " 󰙎 输入行号: " }, function(input)
@@ -311,7 +266,7 @@ return {
 			desc = "Fix and add insert-mode keymaps for dap-repl",
 			callback = function()
 				vim.cmd("syntax on") -- 启用语法高亮（保险）
-				vim.cmd("runtime! syntax/rust.vim") -- 手动加载 Rust 的语法文件
+				-- vim.cmd("runtime! syntax/rust.vim") -- 手动加载 Rust 的语法文件
 				vim.opt.signcolumn = "no" -- 禁用标志列
 				-- 向下浏览补全项
 				vim.keymap.set("i", "<tab>", function()
@@ -372,3 +327,30 @@ return {
 		})
 	end,
 }
+
+-- TODO:备选映射方式
+-- vim.keymap.set("n", "<leader>drb", dap.clear_breakpoints, { silent = true, desc = "清除所有断点" })
+
+-- vim.keymap.set("n", "<leader>dnl", dap.run_last, { silent = true, desc = "运行上次会话" })
+
+-- vim.keymap.set("n", "<leader>dno", dap.step_over, { silent = true, desc = "单步跳过" })
+
+-- vim.keymap.set("n", "<leader>dni", dap.step_out, { silent = true, desc = "单步进入" })
+
+-- vim.keymap.set("n", "<leader>dnu", dap.step_out, { silent = true, desc = "单步跳出" })
+
+-- vim.keymap.set("n", "<leader>dnb", dap.step_back, { silent = true, desc = "逆向单步" })
+
+-- vim.keymap.set("n", "<leader>dnc", dap.run_to_cursor, { silent = true, desc = "运行到光标位置" })
+
+-- vim.keymap.set("n", "<leader>dnr", dap.reverse_continue, { silent = true, desc = "逆向继续" })
+
+-- vim.keymap.set("n", "<leader>dnf", dap.restart_frame, { silent = true, desc = "重启当前帧" })
+
+-- vim.keymap.set("n", "<leader>ds", dap.pause, { silent = true, desc = "暂停线程" })
+
+-- vim.keymap.set("n", "<leader>d[", dap.up, { silent = true, desc = "上一个断点" })
+
+-- vim.keymap.set("n", "<leader>d]", dap.down, { silent = true, desc = "下一个断点" })
+
+-- vim.keymap.set("n", "<leader>dgg", dap.focus_frame, { silent = true, desc = "跳转到当前帧" })

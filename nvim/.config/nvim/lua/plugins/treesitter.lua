@@ -7,6 +7,8 @@ return {
 	-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter-textobjects",
+		-- https://github.com/LiadOz/nvim-dap-repl-highlights
+		"LiadOz/nvim-dap-repl-highlights",
 	},
 	config = function()
 		local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
@@ -17,6 +19,7 @@ return {
 				branch = "main",
 			},
 		}
+		require("nvim-dap-repl-highlights").setup()
 		require("nvim-treesitter.configs").setup({
 			-- 是否同步安装解析器
 			sync_install = true,
@@ -67,6 +70,7 @@ return {
 				"qf",
 				"comment",
 				"typescript",
+				"dap_repl",
 			},
 			textobjects = {
 				swap = {

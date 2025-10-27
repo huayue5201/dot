@@ -18,7 +18,7 @@ return {
 			sync_root_with_cwd = true,
 			respect_buf_cwd = true,
 			update_focused_file = {
-				enable = true,
+				enable = false,
 				update_cwd = true,
 				ignore_list = {},
 			},

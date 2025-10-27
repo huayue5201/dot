@@ -1,6 +1,31 @@
 -- =============================================
 -- 编辑器行为与模式配置
 -- =============================================
+-- 定义一个自动命令组，方便管理
+vim.api.nvim_create_augroup("ExitErrorLogger", { clear = true })
+-- 在退出事件中设置日志记录
+vim.api.nvim_create_autocmd({ "VimLeave", "VimLeavePre" }, {
+	group = "ExitErrorLogger",
+	pattern = "*",
+	desc = "在退出时记录消息历史，用于排查错误",
+	callback = function()
+		-- 获取最近的消息
+		-- local messages = vim.api.nvim_exec("messages", true) -- 执行 :messages 命令并捕获输出
+		-- 或者你也可以尝试获取 v:errmsg 等状态变量
+		local errmsg = vim.v.errmsg
+
+		-- 指定日志文件路径，你可以修改为任何你有写权限的位置
+		local log_file = vim.fn.stdpath("cache") .. "/exit_error.log"
+
+		-- 将消息写入文件
+		local file = io.open(log_file, "w")
+		if file then
+			file:write("=== Neovim Exit Messages at " .. os.date("%Y-%m-%d %H:%M:%S") .. " ===\n")
+			file:write(errmsg .. "\n")
+			file:close()
+		end
+	end,
+})
 
 -- 根据模式变化调整 virtualedit 设置
 vim.api.nvim_create_autocmd("ModeChanged", {
@@ -207,39 +232,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 				pcall(vim.api.nvim_win_set_cursor, 0, cursor_pre_yank)
 				cursor_pre_yank = nil
 			end)
-		end
-
-		-- 同步到系统剪贴板
-		if vim.fn.has("clipboard") == 1 then
-			local clipboard_content = vim.fn.getreg('"')
-			if clipboard_content ~= "" then
-				-- 延迟同步系统剪贴板，避免阻塞
-				vim.defer_fn(function()
-					pcall(vim.fn.setreg, "+", clipboard_content)
-				end, 80)
-			end
-		end
-	end,
-})
-
--- 从系统剪贴板同步到 Neovim
-vim.api.nvim_create_autocmd({ "FocusGained", "BufRead" }, {
-	group = vim.api.nvim_create_augroup("ClipboardSyncFocus", { clear = true }),
-	desc = "窗口获得焦点时从系统剪贴板同步到 Neovim",
-	callback = function()
-		if vim.fn.has("clipboard") == 1 then
-			vim.defer_fn(function()
-				local system_content = vim.fn.getreg("+")
-				-- 只在有内容且长度大于1时同步，避免同步单个字符
-				if system_content and system_content ~= "" and #system_content > 1 then
-					local current_content = vim.fn.getreg('"')
-					-- 只在内容不同时同步，避免不必要的操作
-					if system_content ~= current_content then
-						vim.fn.setreg('"', system_content)
-						vim.fn.setreg("0", system_content)
-					end
-				end
-			end, 80)
 		end
 	end,
 })
