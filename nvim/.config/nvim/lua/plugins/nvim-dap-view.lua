@@ -12,23 +12,5 @@ return {
 		vim.api.nvim_set_hl(0, "ViewThreads", { fg = "#8B4789" }) -- 紫红色
 		vim.api.nvim_set_hl(0, "ViewREPL", { fg = "#228B22" }) -- 绿色
 		vim.api.nvim_set_hl(0, "ViewConsole", { fg = "#FF7F00" }) -- 淡紫色
-
-		-- 引入 nvim-dap-view 插件并配置
-		local dv = require("dap-view")
-
-		-- 配置快捷键切换 nvim-dap-view
-		vim.keymap.set("n", "<leader>dv", function()
-			dv.toggle(true)
-		end, { desc = "切换 nvim-dap-view" })
-
-		vim.keymap.set("n", "<localleader>w", "<cmd>DapViewJump watches<cr>", { desc = "dap-view watches" })
-		vim.keymap.set("n", "<localleader>s", "<cmd>DapViewJump scopes<cr>", { desc = "dap-view scopes" })
-		vim.keymap.set("n", "<localleader>e", "<cmd>DapViewJump exceptions<cr>", { desc = "dap-view exceptions" })
-		vim.keymap.set("n", "<localleader>b", "<cmd>DapViewJump breakpoints<cr>", { desc = "dap-view breakpoints" })
-		vim.keymap.set("n", "<localleader>t", "<cmd>DapViewJump threads<cr>", { desc = "dap-view threads" })
-		vim.keymap.set("n", "<localleader>r", "<cmd>DapViewJump repl<cr>", { desc = "dap-view repl" })
-		vim.keymap.set("n", "<localleader>c", "<cmd>DapViewJump console<cr>", { desc = "dap-view repl" })
-		-- 配置添加/删除观察点
-		vim.keymap.set("n", "<leader>dav", "<cmd>DapViewWatch<cr>", { desc = "添加/删除观察点" })
 	end,
 }

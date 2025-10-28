@@ -1,8 +1,32 @@
 local M = {}
 
-function M.set_breakpoint()
-	local dap = require("dap")
+local dap = require("dap")
 
+function M.set_debuglog()
+	local levels = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR" }
+	vim.ui.select(levels, {
+		prompt = "选择 DAP 日志级别:",
+		format_item = function(item)
+			local desc = {
+				TRACE = "追踪，最详细的日志信息",
+				DEBUG = "调试信息",
+				INFO = "一般信息，默认级别",
+				WARN = "警告信息",
+				ERROR = "错误信息",
+			}
+			return item .. " — " .. desc[item]
+		end,
+	}, function(choice)
+		if choice then
+			dap.set_log_level(choice)
+			print("DAP 日志级别设置为: " .. choice)
+		else
+			print("未选择日志级别，操作取消")
+		end
+	end)
+end
+
+function M.set_breakpoint()
 	vim.ui.select({ "条件断点", "命中次数", "日志点", "多条件断点" }, {
 		prompt = "选择断点类型:",
 	}, function(choice)

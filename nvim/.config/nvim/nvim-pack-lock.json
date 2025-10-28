@@ -1,8 +1,0 @@
-{
-  "plugins": {
-    "filler-begone.nvim": {
-      "rev": "8e1171b",
-      "src": "https://github.com/Saghen/filler-begone.nvim"
-    }
-  }
-}
