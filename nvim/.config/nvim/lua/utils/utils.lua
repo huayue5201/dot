@@ -59,9 +59,7 @@ M.buf_keymaps = {
 		},
 
 		["dap-view"] = {
-			cmd = function()
-				vim.cmd("DapViewClose!")
-			end,
+			cmd = "DapViewClose",
 		},
 
 		DiffviewFiles = {

@@ -24,9 +24,9 @@ vim.keymap.set("n", "<leader>rat", "<cmd>tabonly<cr>", { silent = true, desc = "
 
 vim.keymap.set("n", "<leader>lm", "<cmd>messages<cr>", { silent = true, desc = "查看历史消息" })
 
-vim.keymap.set("n", "<localleader>q", "<cmd>Toggle quickfix<cr>", { desc = "Toggle Quickfix" })
+vim.keymap.set("n", "<a-q>", "<cmd>Toggle quickfix<cr>", { desc = "Toggle Quickfix" })
 
-vim.keymap.set("n", "<localleader>l", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
+vim.keymap.set("n", "<a-l>", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
 local lsp = require("config.lsp")
 vim.keymap.set("n", "<leader>tol", lsp.restart_lsp, { silent = true, desc = "重启 LSP" })
