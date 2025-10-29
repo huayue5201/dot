@@ -57,7 +57,7 @@ return {
 			dap.defaults.fallback[key] = value
 		end
 
-		require("utils.dap_key").setup()
+		require("utils.dap_keys").setup()
 
 		-- 扩展 REPL 命令
 		local repl = require("dap.repl")

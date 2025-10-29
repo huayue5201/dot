@@ -10,7 +10,7 @@ function M.setup()
 
 	-- 🪄 主调试 Hydra
 	Hydra({
-		name = "🪄 DAP 调试主菜单",
+		name = "🪄DAP模式",
 		mode = "n",
 		body = "<leader>d",
 		config = {
@@ -120,105 +120,64 @@ function M.setup()
 		},
 	})
 
-	-- 🧭 视图 Hydra
-	Hydra({
-		name = "🧭 DAP视图模式",
-		mode = "n",
-		body = "<localleader>d",
-		config = {
-			color = "teal",
-			invoke_on_body = false,
-			hint = { type = "window", position = "bottom", show_name = true, wrap = true },
-		},
-		heads = {
-			-- REPL / Eval
-			{ "e", "<cmd>DapEval<cr>", { desc = "Eval 表达式" } },
-			{
-				"r",
-				function()
-					dap.repl.toggle()
-				end,
-				{ desc = "切换 REPL 窗口" },
-			},
+	-- REPL / Eval 相关映射
+	vim.keymap.set("n", "<localleader>de", "<cmd>DapEval<cr>", { desc = "DAP: Eval 表达式" })
+	vim.keymap.set("n", "<localleader>dr", function()
+		dap.repl.toggle()
+	end, { desc = "DAP: 切换 REPL 窗口" })
 
-			-- 🔧 作用域 / 堆栈 / 会话 / 线程
-			{
-				"s",
-				function()
-					if not sidebar then
-						sidebar = widgets.sidebar(widgets.scopes, { width = 40, winblend = 15, signcolumn = "no" })
-					end
-					sidebar.toggle()
-				end,
-				{ desc = "查看作用域" },
-			},
-			{
-				"f",
-				function()
-					widgets.cursor_float(widgets.frames, { border = "rounded" })
-				end,
-				{ desc = "查看堆栈" },
-			},
-			{
-				"t",
-				function()
-					widgets.cursor_float(widgets.threads, { border = "rounded" })
-				end,
-				{ desc = "查看线程" },
-			},
-			{
-				",",
-				function()
-					widgets.cursor_float(widgets.sessions, { border = "rounded" })
-				end,
-				{ desc = "查看会话" },
-			},
+	-- 🔧 作用域 / 堆栈 / 会话 / 线程
+	vim.keymap.set("n", "<localleader>ds", function()
+		if not sidebar then
+			sidebar = widgets.sidebar(widgets.scopes, { width = 40, winblend = 15, signcolumn = "no" })
+		end
+		sidebar.toggle()
+	end, { desc = "DAP: 查看作用域" })
 
-			{ "l", "<cmd>DapShowLog<cr>", { desc = "查看日志" } },
-			{
-				"L",
-				bp.set_debuglog,
-				{ desc = "设置日志级别" },
-			},
-			-- 🟢 dap-view 映射
-			{
-				"v",
-				function()
-					dv.toggle(true)
-				end,
-				{ desc = "切换 dap-view" },
-			},
-			{ "w", "<cmd>DapViewWatch<cr>", { desc = "添加/删除观察点" } },
-			{ "S", "<cmd>DapViewJump scopes<cr>", { desc = "dap-view Scopes" } },
-			{ "X", "<cmd>DapViewJump exceptions<cr>", { desc = "dap-view Exceptions" } },
-			{ "b", "<cmd>DapViewJump breakpoints<cr>", { desc = "dap-view Breakpoints" } },
-			{ "T", "<cmd>DapViewJump threads<cr>", { desc = "dap-view Threads" } },
-			{ "R", "<cmd>DapViewJump repl<cr>", { desc = "dap-view REPL" } },
-			{ "C", "<cmd>DapViewJump console<cr>", { desc = "dap-view Console" } },
+	vim.keymap.set("n", "<localleader>df", function()
+		widgets.cursor_float(widgets.frames, { border = "rounded" })
+	end, { desc = "DAP: 查看堆栈" })
 
-			-- 查看光标下变量 / 自动刷新表达式
-			{
-				"E",
-				function()
-					widgets.preview(nil, {
-						listener = {
-							"event_stopped",
-							"event_continued",
-							"event_terminated",
-							"event_initialized",
-							"event_thread",
-							"event_breakpoint",
-						},
-					})
-				end,
-				{ desc = "查看光标下表达式并自动刷新" },
-			},
-			{ "x", "<cmd>DapVirtualTextToggle<cr>", { desc = "切换虚拟文本" } },
+	vim.keymap.set("n", "<localleader>dt", function()
+		widgets.cursor_float(widgets.threads, { border = "rounded" })
+	end, { desc = "DAP: 查看线程" })
 
-			-- ❌ 退出
-			{ "<c-c>", nil, { exit = true, desc = "返回主菜单" } },
-		},
-	})
+	vim.keymap.set("n", "<localleader>d,", function()
+		widgets.cursor_float(widgets.sessions, { border = "rounded" })
+	end, { desc = "DAP: 查看会话" })
+
+	-- 日志相关
+	vim.keymap.set("n", "<localleader>dl", "<cmd>DapShowLog<cr>", { desc = "DAP: 查看日志" })
+	vim.keymap.set("n", "<localleader>dL", bp.set_debuglog, { desc = "DAP: 设置日志级别" })
+
+	-- 🟢 dap-view 映射
+	vim.keymap.set("n", "<localleader>dv", function()
+		dv.toggle(true)
+	end, { desc = "DAP: 切换 dap-view" })
+
+	vim.keymap.set("n", "<localleader>dw", "<cmd>DapViewWatch<cr>", { desc = "DAP: 添加/删除观察点" })
+	vim.keymap.set("n", "<localleader>dS", "<cmd>DapViewJump scopes<cr>", { desc = "DAP: dap-view Scopes" })
+	vim.keymap.set("n", "<localleader>dX", "<cmd>DapViewJump exceptions<cr>", { desc = "DAP: dap-view Exceptions" })
+	vim.keymap.set("n", "<localleader>db", "<cmd>DapViewJump breakpoints<cr>", { desc = "DAP: dap-view Breakpoints" })
+	vim.keymap.set("n", "<localleader>dT", "<cmd>DapViewJump threads<cr>", { desc = "DAP: dap-view Threads" })
+	vim.keymap.set("n", "<localleader>dR", "<cmd>DapViewJump repl<cr>", { desc = "DAP: dap-view REPL" })
+	vim.keymap.set("n", "<localleader>dC", "<cmd>DapViewJump console<cr>", { desc = "DAP: dap-view Console" })
+
+	-- 查看光标下变量 / 自动刷新表达式
+	vim.keymap.set("n", "<localleader>dE", function()
+		widgets.preview(nil, {
+			listener = {
+				"event_stopped",
+				"event_continued",
+				"event_terminated",
+				"event_initialized",
+				"event_thread",
+				"event_breakpoint",
+			},
+		})
+	end, { desc = "DAP: 查看光标下表达式并自动刷新" })
+
+	vim.keymap.set("n", "<localleader>dx", "<cmd>DapVirtualTextToggle<cr>", { desc = "DAP: 切换虚拟文本" })
 end
 
 return M
