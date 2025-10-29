@@ -72,26 +72,26 @@ return {
 			-- keymap 配置：定义补全键映射及其行为
 			keymap = {
 				preset = "enter",
-				-- ["<Tab>"] = {
-				-- 	function(cmp)
-				-- 		if cmp.is_menu_visible() then
-				-- 			return require("blink.cmp").select_next()
-				-- 		elseif cmp.snippet_active() then
-				-- 			return cmp.snippet_forward()
-				-- 		end
-				-- 	end,
-				-- 	"fallback",
-				-- },
-				-- ["<S-Tab>"] = {
-				-- 	function(cmp)
-				-- 		if cmp.is_menu_visible() then
-				-- 			return require("blink.cmp").select_prev()
-				-- 		elseif cmp.snippet_active() then
-				-- 			return cmp.snippet_backward()
-				-- 		end
-				-- 	end,
-				-- 	"fallback",
-				-- },
+				["<Tab>"] = {
+					function(cmp)
+						if cmp.is_menu_visible() then
+							return require("blink.cmp").select_next()
+						elseif cmp.snippet_active() then
+							return cmp.snippet_forward()
+						end
+					end,
+					"fallback",
+				},
+				["<S-Tab>"] = {
+					function(cmp)
+						if cmp.is_menu_visible() then
+							return require("blink.cmp").select_prev()
+						elseif cmp.snippet_active() then
+							return cmp.snippet_backward()
+						end
+					end,
+					"fallback",
+				},
 				["<C-e>"] = { "hide", "show" },
 			},
 			-- appearance 配置：界面外观及图标显示设置

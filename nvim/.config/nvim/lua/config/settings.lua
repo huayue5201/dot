@@ -40,7 +40,6 @@ vim.o.foldmethod = "expr"
 vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 vim.opt.foldlevelstart = 99 -- 默认展开所有内容
 vim.opt.foldcolumn = "1" -- 显示折叠列
--- require("config.foldtext").custom_foldtext()
 
 -- -------------- 编辑行为设置 --------------
 vim.opt.expandtab = true -- 将 Tab 转为空格
@@ -107,9 +106,9 @@ vim.opt.fillchars = {
 	verthoriz = "╋", -- 垂直和水平重叠的分隔符
 	-- 折叠相关字符
 	fold = " ", -- 折叠文本填充字符
-	-- foldopen = "󰛲", -- 折叠打开时的标记字符
-	-- foldclose = "󰐖", -- 折叠关闭时的标记字符
-	-- foldsep = "│", -- 打开折叠时的中间分隔符
+	foldopen = "◌", -- 折叠打开时的标记字符
+	foldclose = "◉", -- 折叠关闭时的标记字符
+	foldsep = "│", -- 打开折叠时的中间分隔符
 	foldinner = " ",
 	-- 其他
 	diff = "╱", -- 显示差异时，已删除的行字符
