@@ -45,7 +45,7 @@ return {
 			bold = true,
 		})
 
-		vim.keymap.set({ "n", "v" }, "<C-c>", function()
+		vim.keymap.set({ "n", "v" }, "<C-,>", function()
 			local ts_utils = require("nvim-treesitter.ts_utils")
 			local bufnr = vim.api.nvim_get_current_buf()
 			local mode = vim.fn.mode()

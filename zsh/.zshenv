@@ -10,7 +10,7 @@ export EDITOR=nvim
 export VISUAL=nvim
 
 # 设置代理（适用于 VPS 环境）
-export http_proxy=http://127.0.0.1:8889
+export http_proxy=http://127.0.0.1:2080
 export https_proxy=$http_proxy
 
 # 设置 LLVM 路径
