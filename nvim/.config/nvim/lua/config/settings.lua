@@ -3,7 +3,7 @@
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_ruby_provider = 0
 -- 设置 Python3 提供者路径
-vim.g.python3_host_prog = "/Users/lijia/python_project/re_choushibaike/.venv/bin/python3"
+-- vim.g.python3_host_prog = "/Users/lijia/python_project/re_choushibaike/.venv/bin/python3"
 
 -- -------------- 基本设置 --------------
 vim.opt.mousemoveevent = true -- 启用鼠标移动事件
@@ -78,7 +78,7 @@ vim.opt.winborder = "rounded" -- 浮动窗口边框
 -- -------------- 状态栏和标签页 --------------
 vim.opt.showmode = false -- 禁用模式显示
 vim.opt.laststatus = 3 -- 启用全局状态栏
-vim.opt.cmdheight = 1 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
+vim.opt.cmdheight = 0 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
 vim.opt.showtabline = 2 -- 始终显示标签页栏
 vim.opt.statuscolumn = "%s%=%l%=%C "
 vim.opt.number = true --显示行号

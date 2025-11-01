@@ -1,3 +1,7 @@
+-- ============================================================================
+-- Neovim 环境变量加载器 (优化版)
+-- 支持 .env / .env.lua / PATH 自动补全 / 安全加载
+-- ============================================================================
 local M = {}
 
 -- 读取 KEY=VAL 格式的 .env 文件，支持 export、引号、注释
@@ -8,15 +12,12 @@ local function load_env_file(file)
 	end
 
 	for line in f:lines() do
-		-- 忽略注释或空行
 		if not line:match("^%s*#") and line:match("%S") then
-			-- 匹配 export KEY=VAL 或 KEY=VAL（export 可无空格）
 			local key, val = line:match("^%s*export%s*([%w_]+)%s*=%s*(.+)%s*$")
 			if not key then
 				key, val = line:match("^%s*([%w_]+)%s*=%s*(.+)%s*$")
 			end
 			if key and val then
-				-- 去掉包裹的单引号或双引号
 				val = val:gsub("^[\"'](.-)[\"']$", "%1")
 				vim.env[key] = val
 			end
@@ -26,11 +27,17 @@ local function load_env_file(file)
 	f:close()
 end
 
--- 读取 .env.lua 文件，支持返回 table 自动注入 vim.env
+-- 安全加载 .env.lua 文件
 local function load_env_lua(file)
-	local ok, result = pcall(dofile, file)
+	local func, err = loadfile(file)
+	if not func then
+		vim.notify("Failed to parse " .. file .. ": " .. err, vim.log.levels.WARN)
+		return
+	end
+
+	local ok, result = pcall(func)
 	if not ok then
-		vim.notify("Failed to load " .. file .. ": " .. result, vim.log.levels.WARN)
+		vim.notify("Failed to execute " .. file .. ": " .. result, vim.log.levels.WARN)
 		return
 	end
 
@@ -50,7 +57,6 @@ local function create_default_env_files()
 	local env_file = home .. "/.env"
 	local env_lua = config_path .. "/.env.lua"
 
-	-- 如果两者都存在就不创建
 	if vim.fn.filereadable(env_file) == 1 or vim.fn.filereadable(env_lua) == 1 then
 		return
 	end
@@ -63,7 +69,6 @@ local function create_default_env_files()
 		f:write("ANOTHER_VAR=123\n")
 		f:write("export FOO=bar\n")
 		f:close()
-		vim.notify(".env file created at " .. env_file, vim.log.levels.INFO)
 	end
 
 	-- 创建 .env.lua
@@ -75,13 +80,32 @@ local function create_default_env_files()
 		f:write("  FOO = 'bar',\n")
 		f:write("}\n")
 		f:close()
-		vim.notify(".env.lua file created at " .. env_lua, vim.log.levels.INFO)
+	end
+end
+
+-- 自动补全 PATH，保证常用命令可被 LSP/DAP 找到
+local function ensure_common_paths()
+	local home = vim.env.HOME
+	local paths = {
+		-- "/opt/homebrew/bin",                                           -- macOS Homebrew
+		-- home .. "/.local/bin",                                         -- 用户本地 bin
+		vim.fn.system("npm config get prefix"):gsub("\n", "") .. "/bin", -- npm global
+	}
+
+	local valid_paths = {}
+	for _, p in ipairs(paths) do
+		if p and vim.fn.isdirectory(p) == 1 then
+			table.insert(valid_paths, p)
+		end
+	end
+
+	-- 拼接到现有 PATH 前面
+	if #valid_paths > 0 then
+		vim.env.PATH = table.concat(valid_paths, ":") .. ":" .. (vim.env.PATH or "")
 	end
 end
 
 -- 主入口：支持自定义路径列表
--- M.load()             -> 默认加载 ~/.env 和 ~/.config/nvim/.env.lua
--- M.load({ "path1", "path2" }) -> 自定义路径
 function M.load(paths)
 	local home = vim.env.HOME
 	local config_path = vim.fn.stdpath("config")
@@ -91,7 +115,6 @@ function M.load(paths)
 		config_path .. "/.env.lua",
 	}
 
-	-- 若默认文件都不存在，则创建默认模板
 	if vim.fn.filereadable(paths[1]) == 0 and vim.fn.filereadable(paths[2]) == 0 then
 		create_default_env_files()
 	end
@@ -105,6 +128,9 @@ function M.load(paths)
 			end
 		end
 	end
+
+	-- 确保 PATH 正确
+	ensure_common_paths()
 end
 
 return M

@@ -1,4 +1,6 @@
-#!/usr/bin/env zsh
+export PATH="/opt/homebrew/bin:$PATH"
+
+#!/usr/bin/env bash
 set -euo pipefail
 
 # ------------------------------

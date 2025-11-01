@@ -68,10 +68,6 @@ M.buf_keymaps = {
 			end,
 		},
 	},
-
-	-- 切换
-	-- ["<localleader>\\"] = {
-	-- },
 }
 
 return M

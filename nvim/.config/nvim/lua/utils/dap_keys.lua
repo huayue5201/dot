@@ -17,8 +17,8 @@ function M.setup()
 			color = "pink",
 			invoke_on_body = false,
 			hint = {
-				type = "window",
-				position = "bottom-right",
+				type = "cmdline",
+				-- position = "",
 				show_name = true,
 				float_opts = { border = "rounded" },
 			},
@@ -38,7 +38,7 @@ function M.setup()
 						end,
 					})
 				end,
-				{ desc = "终止调试" },
+				{ exit = true, desc = "终止调试" },
 			},
 
 			-- 🪜 步进控制

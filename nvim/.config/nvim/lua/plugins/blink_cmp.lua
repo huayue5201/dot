@@ -69,6 +69,7 @@ return {
 					window = { border = "rounded" },
 				},
 			},
+
 			-- keymap 配置：定义补全键映射及其行为
 			keymap = {
 				preset = "enter",
@@ -111,30 +112,28 @@ return {
 			-- 补全源配置：定义默认启用的补全提供者
 			sources = {
 				default = { "lsp", "path", "snippets", "buffer", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
-				-- transform_items = function(ctx, items)
-				-- 	local line = ctx.cursor[1] - 1
-				-- 	local col = ctx.cursor[2]
-				--
-				-- 	for _, item in ipairs(items) do
-				-- 		if item.textEdit then
-				-- 			if item.textEdit.range then
-				-- 				-- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textEdit
-				-- 				-- trim edit range after cursor
-				-- 				local range_end = item.textEdit.range["end"]
-				-- 				if range_end.line == line and range_end.character > col then
-				-- 					range_end.character = col
-				-- 				end
-				-- 			elseif item.textEdit.insert then
-				-- 				-- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#insertReplaceEdit
-				-- 				-- always use insert range
-				-- 				item.textEdit.range = item.textEdit.insert
-				-- 				item.textEdit.replace = nil
-				-- 			end
-				-- 		end
-				-- 	end
-				--
-				-- 	return items
-				-- end,
+				transform_items = function(ctx, items)
+					local line = ctx.cursor[1] - 1
+					local col = ctx.cursor[2]
+					for _, item in ipairs(items) do
+						if item.textEdit then
+							if item.textEdit.range then
+								-- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textEdit
+								-- trim edit range after cursor
+								local range_end = item.textEdit.range["end"]
+								if range_end.line == line and range_end.character > col then
+									range_end.character = col
+								end
+							elseif item.textEdit.insert then
+								-- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#insertReplaceEdit
+								-- always use insert range
+								item.textEdit.range = item.textEdit.insert
+								item.textEdit.replace = nil
+							end
+						end
+					end
+					return items
+				end,
 			},
 			cmdline = {
 				enabled = false, -- 命令行补全
