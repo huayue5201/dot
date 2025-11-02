@@ -3,7 +3,6 @@
 local utils = require("utils.utils")
 local colors = utils.palette
 local lsp_progress = require("utils.lsp_progress")
-local chip_config = require("utils.cross_config")
 
 local M = {} -- 使用 M 作为模块的局部变量
 
@@ -230,7 +229,7 @@ end
 function M.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or not git_info.head then
-		return "%#GitIcon# %*"
+		return "%#GitIcon#   %*"
 	end
 
 	local parts = { "%#GitIcon# %*" .. git_info.head }
@@ -247,7 +246,7 @@ function M.vcs()
 		end
 	end
 
-	return " " .. table.concat(parts, " ") .. " "
+	return table.concat(parts, " ") .. " "
 end
 
 --- 获取动态滚动条
@@ -265,8 +264,8 @@ function M.get_scrollbar()
 end
 
 --- 获取芯片状态
-function M.chip()
-	return chip_config.ChipStatus()
+function M.env()
+	return require("env.core").EnvStatus() or ""
 end
 
 --- 获取 USB 状态
@@ -282,14 +281,14 @@ end
 function M.active()
 	return table.concat({
 		"%#Normal#",
-		string.format("%-46s", M.mode()), -- 模式显示区域
-		M.hydra_icon() .. " ",
-		M.vcs() .. "  ",
+		string.format("%-45s", M.mode()), -- 模式显示区域
+		M.hydra_icon() .. "  ",
+		M.env() .. "  ",
 		-- "%y ",
 		M.lsp(),
 		"%=", -- 分隔符
 		M.dap_status() .. " ",
-		M.chip() .. "  ",
+		M.vcs() .. " ",
 		M.usb() .. " ",
 		"  %l%c ",
 		"%P",
