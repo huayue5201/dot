@@ -67,9 +67,7 @@ vim.keymap.set("n", "<leader>eu", function()
 	})
 end, { desc = "打开撤销树" })
 
-vim.keymap.set("n", "<leader>eo", function()
-	require("utils.cross_config").choose_chip()
-end, { desc = "配置切换" })
+vim.keymap.set("n", "<leader>eo", "<cmd>ChooseEnv<cr>", { desc = "配置切换" })
 
 vim.keymap.set("n", "<leader>yp", function()
 	vim.fn.setreg("+", vim.fn.expand("%:p"))

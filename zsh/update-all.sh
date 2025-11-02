@@ -1,12 +1,28 @@
-export PATH="/opt/homebrew/bin:$PATH"
-
 #!/usr/bin/env bash
+export PATH="/opt/homebrew/bin:$PATH"
 set -euo pipefail
+
+# ==============================================================
+# 🌈 全能更新脚本 (增强版)
+# 支持 Homebrew / npm / yarn / bun / uv / cargo / git clone 仓库
+# 可按模块执行： ./update-all.sh git | system | all
+# ==============================================================
+
+# ------------------------------
+# 模式选择
+# ------------------------------
+MODE="${1:-all}"  # 默认 all，可选：system / git
+
+should_run() {
+    local section="$1"
+    [[ "$MODE" == "all" || "$MODE" == "$section" ]]
+}
 
 # ------------------------------
 # 配置
 # ------------------------------
 LOG_FILE="$HOME/update-all.log"
+GIT_CONF="$HOME/.update-all-git.conf"
 START_TIME=$(date +%s)
 
 # ------------------------------
@@ -22,17 +38,18 @@ RESET="\033[0m"
 # ------------------------------
 # 初始化日志
 # ------------------------------
-echo "🧩 开始更新所有包管理器..." | tee "$LOG_FILE"
-echo "🧾 日志文件: $LOG_FILE" | tee -a "$LOG_FILE"
-echo "🕐 开始时间: $(date)" | tee -a "$LOG_FILE"
-
-# ------------------------------
-# 系统信息
-# ------------------------------
-echo -e "\n💻 系统信息:" | tee -a "$LOG_FILE"
-echo "系统: $(uname -a)" | tee -a "$LOG_FILE"
-echo "Shell: $SHELL" | tee -a "$LOG_FILE"
-echo "用户: $(whoami)" | tee -a "$LOG_FILE"
+{
+    echo -e "\n=============================================="
+    echo "🧩 开始更新所有模块..."
+    echo "🕐 开始时间: $(date)"
+    echo "📁 日志文件: $LOG_FILE"
+    echo "=============================================="
+    echo "💻 系统信息:"
+    echo "系统: $(uname -a)"
+    echo "Shell: $0 ($SHELL)"
+    echo "用户: $(whoami)"
+    echo
+} | tee -a "$LOG_FILE"
 
 # ------------------------------
 # 错误重试函数
@@ -54,107 +71,149 @@ retry_command() {
     return 1
 }
 
-# ------------------------------
-# Homebrew
-# ------------------------------
-echo -e "\n${BLUE}🧠 🍺 更新 Homebrew...${RESET}" | tee -a "$LOG_FILE"
-if command -v brew &>/dev/null; then
-    retry_command "brew update" | tee -a "$LOG_FILE" || true
-    retry_command "brew upgrade" | tee -a "$LOG_FILE" || true
-    retry_command "brew cleanup -s" | tee -a "$LOG_FILE" || true
-    retry_command "brew autoremove" | tee -a "$LOG_FILE" || true
-    echo -e "${GREEN}✅ Homebrew 更新与清理完成${RESET}" | tee -a "$LOG_FILE"
-else
-    echo -e "${YELLOW}⚠️ Homebrew 未安装${RESET}" | tee -a "$LOG_FILE"
-fi
+# ==============================================================
+# 🍺 系统类更新
+# ==============================================================
+if should_run system; then
+    echo -e "\n${BOLD}${BLUE}🧠 [系统模块] 更新系统包管理器...${RESET}" | tee -a "$LOG_FILE"
 
-# ------------------------------
-# npm
-# ------------------------------
-echo -e "\n${BLUE}🧠 📦 更新 npm...${RESET}" | tee -a "$LOG_FILE"
-if command -v npm &>/dev/null; then
-    retry_command "npm update -g" | tee -a "$LOG_FILE" || true
-    retry_command "npm cache clean --force" | tee -a "$LOG_FILE" || true
-    echo -e "${GREEN}✅ npm 更新与缓存清理完成${RESET}" | tee -a "$LOG_FILE"
-else
-    echo -e "${YELLOW}⚠️ npm 未安装${RESET}" | tee -a "$LOG_FILE"
-fi
-
-# ------------------------------
-# yarn
-# ------------------------------
-echo -e "\n${BLUE}🧠 🧶 更新 yarn...${RESET}" | tee -a "$LOG_FILE"
-if command -v yarn &>/dev/null; then
-    retry_command "corepack prepare yarn@stable --activate" | tee -a "$LOG_FILE" || true
-    retry_command "yarn cache clean" | tee -a "$LOG_FILE" || true
-    echo -e "${GREEN}✅ yarn 更新与缓存清理完成${RESET}" | tee -a "$LOG_FILE"
-else
-    echo -e "${YELLOW}⚠️ yarn 未安装${RESET}" | tee -a "$LOG_FILE"
-fi
-
-# ------------------------------
-# bun
-# ------------------------------
-echo -e "\n${BLUE}🧠 🥯 更新 bun...${RESET}" | tee -a "$LOG_FILE"
-if command -v bun &>/dev/null; then
-    retry_command "bun upgrade" | tee -a "$LOG_FILE" || true
-    retry_command "bun pm cache clean" | tee -a "$LOG_FILE" || true
-    echo -e "${GREEN}✅ bun 更新与缓存清理完成${RESET}" | tee -a "$LOG_FILE"
-else
-    echo -e "${YELLOW}⚠️ bun 未安装${RESET}" | tee -a "$LOG_FILE"
-fi
-
-# ------------------------------
-# Python (uv 优先)
-# ------------------------------
-echo -e "\n${BLUE}🧠 ⚡ 更新 Python 包 (使用 uv)...${RESET}" | tee -a "$LOG_FILE"
-if command -v uv &>/dev/null; then
-    echo "📊 uv 版本: $(uv --version)" | tee -a "$LOG_FILE"
-    retry_command "uv tool upgrade --all" | tee -a "$LOG_FILE" || true
-    retry_command "uv cache prune" | tee -a "$LOG_FILE" || true
-    echo -e "${GREEN}✅ uv 更新与缓存清理完成${RESET}" | tee -a "$LOG_FILE"
-else
-    echo -e "${YELLOW}⚠️ uv 未找到，跳过 Python 包更新${RESET}" | tee -a "$LOG_FILE"
-fi
-
-# ------------------------------
-# Rust (cargo + rustup)
-# ------------------------------
-echo -e "\n${BLUE}🧠 🦀 更新 Rust...${RESET}" | tee -a "$LOG_FILE"
-if command -v rustup &>/dev/null; then
-    retry_command "rustup update" | tee -a "$LOG_FILE" || true
-    echo -e "${GREEN}✅ rustup 更新与清理完成${RESET}" | tee -a "$LOG_FILE"
-else
-    echo -e "${YELLOW}⚠️ rustup 未安装${RESET}" | tee -a "$LOG_FILE"
-fi
-
-if command -v cargo &>/dev/null; then
-    echo "🔄 更新 cargo 包..." | tee -a "$LOG_FILE"
-    if cargo install-update --help &>/dev/null; then
-        retry_command "cargo install-update -a" | tee -a "$LOG_FILE" || true
-        if cargo cache -a &>/dev/null; then
-            retry_command "cargo cache -a" | tee -a "$LOG_FILE" || true
-        fi
-        echo -e "${GREEN}✅ cargo 包更新与缓存清理完成${RESET}" | tee -a "$LOG_FILE"
+    # --- Homebrew ---
+    if command -v brew &>/dev/null; then
+        echo -e "\n${BLUE}🍺 更新 Homebrew...${RESET}" | tee -a "$LOG_FILE"
+        retry_command "brew update" | tee -a "$LOG_FILE" || true
+        retry_command "brew upgrade" | tee -a "$LOG_FILE" || true
+        retry_command "brew cleanup -s" | tee -a "$LOG_FILE" || true
+        retry_command "brew autoremove" | tee -a "$LOG_FILE" || true
+        echo -e "${GREEN}✅ Homebrew 更新与清理完成${RESET}" | tee -a "$LOG_FILE"
     else
-        echo -e "${YELLOW}ℹ️ 未安装 cargo-update，可执行: cargo install cargo-update${RESET}" | tee -a "$LOG_FILE"
+        echo -e "${YELLOW}⚠️ Homebrew 未安装${RESET}" | tee -a "$LOG_FILE"
+    fi
+
+    # --- npm ---
+    if command -v npm &>/dev/null; then
+        echo -e "\n${BLUE}📦 更新 npm...${RESET}" | tee -a "$LOG_FILE"
+        retry_command "npm update -g" | tee -a "$LOG_FILE" || true
+        retry_command "npm cache clean --force" | tee -a "$LOG_FILE" || true
+        echo -e "${GREEN}✅ npm 更新与缓存清理完成${RESET}" | tee -a "$LOG_FILE"
+    else
+        echo -e "${YELLOW}⚠️ npm 未安装${RESET}" | tee -a "$LOG_FILE"
+    fi
+
+    # --- yarn ---
+    if command -v yarn &>/dev/null; then
+        echo -e "\n${BLUE}🧶 更新 yarn...${RESET}" | tee -a "$LOG_FILE"
+        retry_command "corepack prepare yarn@stable --activate" | tee -a "$LOG_FILE" || true
+        retry_command "yarn cache clean" | tee -a "$LOG_FILE" || true
+        echo -e "${GREEN}✅ yarn 更新与缓存清理完成${RESET}" | tee -a "$LOG_FILE"
+    else
+        echo -e "${YELLOW}⚠️ yarn 未安装${RESET}" | tee -a "$LOG_FILE"
+    fi
+
+    # --- bun ---
+    if command -v bun &>/dev/null; then
+        echo -e "\n${BLUE}🥯 更新 bun...${RESET}" | tee -a "$LOG_FILE"
+        retry_command "bun upgrade" | tee -a "$LOG_FILE" || true
+        retry_command "bun pm cache clean" | tee -a "$LOG_FILE" || true
+        echo -e "${GREEN}✅ bun 更新与缓存清理完成${RESET}" | tee -a "$LOG_FILE"
+    else
+        echo -e "${YELLOW}⚠️ bun 未安装${RESET}" | tee -a "$LOG_FILE"
+    fi
+
+    # --- Python (uv 优先) ---
+    if command -v uv &>/dev/null; then
+        echo -e "\n${BLUE}⚡ 更新 Python 包 (uv)...${RESET}" | tee -a "$LOG_FILE"
+        retry_command "uv tool upgrade --all" | tee -a "$LOG_FILE" || true
+        retry_command "uv cache prune" | tee -a "$LOG_FILE" || true
+        echo -e "${GREEN}✅ uv 更新与缓存清理完成${RESET}" | tee -a "$LOG_FILE"
+    else
+        echo -e "${YELLOW}⚠️ uv 未找到，跳过 Python 包更新${RESET}" | tee -a "$LOG_FILE"
+    fi
+
+    # --- Rust ---
+    if command -v rustup &>/dev/null; then
+        echo -e "\n${BLUE}🦀 更新 Rust...${RESET}" | tee -a "$LOG_FILE"
+        retry_command "rustup update" | tee -a "$LOG_FILE" || true
+        echo -e "${GREEN}✅ rustup 更新完成${RESET}" | tee -a "$LOG_FILE"
+    fi
+
+    if command -v cargo &>/dev/null; then
+        if cargo install-update --help &>/dev/null; then
+            retry_command "cargo install-update -a" | tee -a "$LOG_FILE" || true
+        fi
+        echo -e "${GREEN}✅ cargo 包更新完成${RESET}" | tee -a "$LOG_FILE"
+    fi
+
+    echo -e "\n${BOLD}${GREEN}✅ 系统包管理器更新完成${RESET}" | tee -a "$LOG_FILE"
+fi
+
+# ==============================================================
+# 🌀 Git 仓库更新 (配置驱动)
+# ==============================================================
+if should_run git; then
+    echo -e "\n${BOLD}${BLUE}🧠 [Git 模块] 更新手动 clone 的仓库...${RESET}" | tee -a "$LOG_FILE"
+
+    if [ ! -f "$GIT_CONF" ]; then
+        echo -e "${YELLOW}⚠️ 未找到配置文件: $GIT_CONF${RESET}" | tee -a "$LOG_FILE"
+    else
+        echo "📘 使用配置文件: $GIT_CONF" | tee -a "$LOG_FILE"
+
+        SUCCESS_COUNT=0
+        SKIP_COUNT=0
+        FAIL_COUNT=0
+
+        # 并行执行 Git 更新
+        export LOG_FILE
+        cat "$GIT_CONF" | grep -v '^#' | grep -v '^[[:space:]]*$' | \
+        xargs -I {} -P 4 bash -c '
+            line="{}"
+            repo=$(echo "$line" | tr -d "\r")
+
+            # 支持 "url -> path" 格式自动 clone
+            if [[ "$repo" == *"->"* ]]; then
+                src=$(echo "$repo" | cut -d ">" -f1 | tr -d " ")
+                dest=$(echo "$repo" | cut -d ">" -f2 | tr -d " ")
+                repo="$dest"
+                if [ ! -d "$dest/.git" ]; then
+                    echo "🚧 克隆新仓库: $src -> $dest" | tee -a "$LOG_FILE"
+                    git clone "$src" "$dest" >> "$LOG_FILE" 2>&1 || exit 1
+                fi
+            fi
+
+            repo=$(eval echo "$repo")  # 展开 ~
+
+            if [ ! -d "$repo/.git" ]; then
+                echo "⚠️ 跳过 $repo (非 Git 仓库)" | tee -a "$LOG_FILE"
+                exit 10
+            fi
+
+            cd "$repo"
+            if [ -n "$(git status --porcelain)" ]; then
+                echo "⚠️ 跳过 $repo (有未提交修改)" | tee -a "$LOG_FILE"
+                exit 10
+            fi
+
+            if git pull --rebase --autostash >> "$LOG_FILE" 2>&1; then
+                echo "✅ 成功更新 $repo" | tee -a "$LOG_FILE"
+                exit 0
+            else
+                echo "❌ 更新失败 $repo" | tee -a "$LOG_FILE"
+                exit 1
+            fi
+        ' || true
+
+        echo -e "\n${BOLD}${BLUE}📊 Git 仓库更新完成${RESET}" | tee -a "$LOG_FILE"
     fi
 fi
 
-# ------------------------------
-# 完成统计
-# ------------------------------
+# ==============================================================
+# ✅ 结束统计
+# ==============================================================
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 
-echo -e "\n${BOLD}${GREEN}🎉 所有更新完成！${RESET}" | tee -a "$LOG_FILE"
+echo -e "\n${BOLD}${GREEN}🎉 所有更新任务完成${RESET}" | tee -a "$LOG_FILE"
 echo "⏱️ 总耗时: ${DURATION}秒" | tee -a "$LOG_FILE"
-echo "📁 日志文件: $LOG_FILE" | tee -a "$LOG_FILE"
 echo "🕐 完成时间: $(date)" | tee -a "$LOG_FILE"
 
-# ------------------------------
-# 显示日志文件位置
-# ------------------------------
 echo -e "\n${BLUE}🔍 查看完整日志:${RESET}"
 echo "   tail -f $LOG_FILE"
-

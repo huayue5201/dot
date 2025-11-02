@@ -25,6 +25,7 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
 -- 立即加载基础配置
 require("config.settings") -- 基础 Neovim 选项
+require("env") -- 环境变量配置
 require("config.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
 require("config.statusline").active()
 
@@ -37,7 +38,6 @@ vim.defer_fn(function()
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
 		require("utils.dotenv").load() -- token加载模块
-		require("utils.cross_config").load_chip_config_on_startup() -- 在 Neovim 启动时加载平台配置
 		-- quickfixtextfunc
 		require("config.quickfixtext").setup()
 	end)
