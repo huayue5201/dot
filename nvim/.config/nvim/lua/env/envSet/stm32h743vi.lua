@@ -4,7 +4,7 @@ registry.register_env("stm32h743vi", {
 	name = "STM32H743VI",
 	type = "chip",
 
-	svdFile = "/Users/lijia/MCU-Project/cmsis-svd-data/data/STMicro/STM32H743x.svd",
+	svdFile = os.getenv("HOME") .. "/MCU-Project/cmsis-svd-data/data/STMicro/STM32H743x.svd",
 	openocd_template = "openocd -f interface/stlink.cfg -f target/stm32h7x.cfg -c 'program {binary_file} verify reset exit'",
 	probe = "0483:3754:0032003E3532510A31333430",
 	configFiles = { "interface/stlink.cfg", "target/stm32h7x.cfg" },

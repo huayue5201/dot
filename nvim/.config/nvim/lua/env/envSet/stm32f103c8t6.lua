@@ -4,7 +4,7 @@ registry.register_env("stm32f103c8t6", {
 	name = "STM32F103C8",
 	type = "chip",
 
-	svdFile = "/Users/lijia/MCU-Project/cmsis-svd-data/data/STMicro/STM32F103xx.svd",
+	svdFile = os.getenv("HOME") .. "/MCU-Project/cmsis-svd-data/data/STMicro/STM32F103xx.svd",
 	openocd_template = "openocd -f interface/stlink.cfg -f target/stm32f1x.cfg -c 'program {binary_file} verify reset exit'",
 	probe = "0483:3752:066AFF494982654867254648",
 	configFiles = { "interface/stlink.cfg", "target/stm32f1x.cfg" },

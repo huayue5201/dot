@@ -24,8 +24,8 @@ vim.g.mapleader = vim.keycode("<space>")
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
 -- 立即加载基础配置
-require("config.settings") -- 基础 Neovim 选项
 require("env") -- 环境变量配置
+require("config.settings") -- 基础 Neovim 选项
 require("config.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
 require("config.statusline").active()
 
