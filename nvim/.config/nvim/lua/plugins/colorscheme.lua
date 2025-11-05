@@ -3,16 +3,16 @@
 -- https://github.com/folke/tokyonight.nvim
 
 return {
-	-- "oxfist/night-owl.nvim",
+	"oxfist/night-owl.nvim",
 	-- "EdenEast/nightfox.nvim",
 	-- "folke/tokyonight.nvim",
-	"rebelot/kanagawa.nvim",
+	-- "rebelot/kanagawa.nvim",
 	-- "Mofiqul/vscode.nvim",
 	lazy = false,
 	priority = 1000,
 	config = function()
-		-- require("night-owl").setup()
-		-- vim.cmd.colorscheme("night-owl")
+		require("night-owl").setup()
+		vim.cmd.colorscheme("night-owl")
 		-- vim.cmd("colorscheme Carbonfox")
 
 		-- local c = require("vscode.colors").get_colors()
@@ -53,7 +53,7 @@ return {
 		-- require('vscode').load()
 
 		-- 加载主题，但不影响 devicon 的颜色
-		vim.cmd.colorscheme("kanagawa")
+		-- vim.cmd.colorscheme("kanagawa")
 		-- vim.cmd.colorscheme("vscode")
 		-- vim.cmd([[colorscheme tokyonight-night]])
 	end,

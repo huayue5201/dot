@@ -11,7 +11,7 @@ local env_store = json_store:new({
 })
 
 -- 初始化状态栏高亮
-vim.api.nvim_set_hl(0, "EnvIcon", { fg = "#6B8E23", bold = true })
+vim.api.nvim_set_hl(0, "env_icon", { fg = "#6B8E23", bold = true })
 
 -- 获取 env_config 目录路径
 local function get_env_config_path()
@@ -112,7 +112,7 @@ end
 function M.EnvStatus()
 	local env = vim.g.envCofnig
 	local name = (env and env.name) or "Unknown"
-	return "%#EnvIcon# %*" .. name
+	return "%#env_icon# %*" .. name
 end
 
 return M

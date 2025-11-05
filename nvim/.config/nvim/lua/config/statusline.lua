@@ -268,11 +268,6 @@ function M.env()
 	return require("env.core").EnvStatus() or ""
 end
 
---- 获取 USB 状态
-function M.usb()
-	return require("utils.usb_status").UsbStatus()
-end
-
 -- ================================
 -- 状态栏组装
 -- ================================
@@ -289,7 +284,6 @@ function M.active()
 		"%=", -- 分隔符
 		M.dap_status() .. " ",
 		M.vcs() .. " ",
-		M.usb() .. " ",
 		"  %l%c ",
 		"%P",
 		M.get_scrollbar(),

@@ -40,5 +40,6 @@ vim.defer_fn(function()
 		require("utils.dotenv").load() -- token加载模块
 		-- quickfixtextfunc
 		require("config.quickfixtext").setup()
+		require("utils.compile")
 	end)
 end, 300) -- 延迟 100ms 执行
