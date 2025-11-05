@@ -33,6 +33,9 @@ return {
 			{ silent = true, desc = "打开寄存器列表" }
 		)
 
+		vim.keymap.set("n", "<c-p>", "<Plug>(YankyPreviousEntry)")
+		vim.keymap.set("n", "<c-n>", "<Plug>(YankyNextEntry)")
+
 		local Hydra = require("hydra")
 
 		local function t(str)
@@ -45,8 +48,6 @@ return {
 			heads = {
 				{ "p", "<Plug>(YankyPutAfter)", { desc = "After" } },
 				{ "P", "<Plug>(YankyPutBefore)", { desc = "Before" } },
-				{ "<c-p>", "<Plug>(YankyPreviousEntry)", { private = true, desc = "↑" } },
-				{ "<c-n>", "<Plug>(YankyNextEntry)", { private = true, desc = "↓" } },
 			},
 		})
 

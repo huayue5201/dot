@@ -15,10 +15,24 @@ return {
 			new_tab_icon = " ",
 		})
 
-		-- toggle firts term
-		vim.keymap.set({ "n", "t" }, "<C-\\>", betterTerm.open, { desc = "Open terminal" })
-		-- Select term focus
-		vim.keymap.set({ "n", "t" }, "<A-\\>", betterTerm.select, { desc = "Select terminal" })
+		-- Toggle the first terminal (ID defaults to index_base, which is 0)
+		vim.keymap.set({ "n", "t" }, "<C-;>", function()
+			betterTerm.open()
+		end, { desc = "Toggle terminal" })
+
+		-- -- Open a specific terminal
+		-- vim.keymap.set({ "n", "t" }, "<C-/>", function()
+		-- 	betterTerm.open(1)
+		-- end, { desc = "Toggle terminal 1" })
+
+		-- Select a terminal to focus
+		vim.keymap.set("n", "<localleader>tt", betterTerm.select, { desc = "Select terminal" })
+
+		-- Rename the current terminal
+		vim.keymap.set("n", "<localleader>tr", betterTerm.rename, { desc = "Rename terminal" })
+
+		-- Toggle the tabs bar
+		vim.keymap.set("n", "<localleader>tb", betterTerm.toggle_tabs, { desc = "Toggle terminal tabs" })
 
 		function _G.set_terminal_keymaps()
 			local opts = { buffer = 0 }
@@ -29,6 +43,7 @@ return {
 			vim.keymap.set("t", "<C-l>", [[<Cmd>wincmd l<CR>]], opts)
 			vim.keymap.set("t", "<C-w>", [[<C-\><C-n><C-w>]], opts)
 		end
+
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = "better_term",
 			callback = function()

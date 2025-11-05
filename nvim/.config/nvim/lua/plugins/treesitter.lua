@@ -51,7 +51,7 @@ return {
 					init_selection = "<tab>", -- set to `false` to disable one of the mappings
 					node_incremental = "<tab>",
 					scope_incremental = "<cr>",
-					node_decremental = "<s-tab>",
+					node_decremental = "<Backspace>",
 				},
 			},
 			-- 确保所需的语言解析器被安装
