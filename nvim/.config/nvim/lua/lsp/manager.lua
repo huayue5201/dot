@@ -1,52 +1,8 @@
 -- LSP 状态管理模块
--- 整合项目状态管理、进度显示、状态信息展示等功能
+-- 整合项目状态管理、状态信息展示等功能
 local json_store = require("utils.json_store")
 
 local M = {}
-
--- =============================================
--- 进度显示功能
--- =============================================
-
-local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
-local spinner_index = 1
-local lsp_status_msg = ""
-local is_lsp_loading = false
-local redraw_scheduled = false
-
-local function update_spinner()
-	spinner_index = (spinner_index % #spinner_frames) + 1
-end
-
-local function schedule_redraw()
-	if redraw_scheduled then
-		return
-	end
-	redraw_scheduled = true
-	vim.schedule(function()
-		vim.cmd("redrawstatus")
-		redraw_scheduled = false
-	end)
-end
-
--- 获取当前进度状态文本（供 statusline 使用）
-function M.get_progress_status()
-	if lsp_status_msg == "" then
-		return ""
-	end
-	local spinner = spinner_frames[spinner_index]
-	local max_len = 40 -- 最长保留的 LSP 消息长度
-	local msg = lsp_status_msg
-	if #msg > max_len then
-		msg = msg:sub(1, max_len - 3) .. "..."
-	end
-	return spinner .. " " .. msg
-end
-
--- 返回是否正在加载 LSP
-function M.is_lsp_loading()
-	return is_lsp_loading
-end
 
 -- =============================================
 -- 项目状态管理
@@ -137,17 +93,11 @@ function M.set_lsp_state(enabled)
 	)
 end
 
--- 切换当前项目的 LSP 状态
-function M.toggle_lsp_state()
-	local current_state = M.get_lsp_state()
-	M.set_lsp_state(not current_state)
-end
-
 -- =============================================
 -- 状态信息显示
 -- =============================================
 
--- 增强的 LSP 状态显示函数（合并两个命令的功能）
+-- 显示 LSP 状态信息
 function M.show_lsp_status()
 	local enabled = M.get_lsp_state()
 	local status = enabled and "启用" or "禁用"
@@ -206,12 +156,6 @@ function M.show_lsp_info()
 		print("当前缓冲区没有 LSP 客户端")
 	end
 
-	-- 显示进度状态
-	local progress_status = M.get_progress_status()
-	if progress_status ~= "" then
-		print(string.format("LSP 进度: %s", progress_status))
-	end
-
 	-- 显示项目信息
 	local project_states = load_project_states()
 	print(string.format("项目状态缓存: %d 个项目", vim.tbl_count(project_states)))
@@ -254,50 +198,6 @@ end
 -- =============================================
 
 function M.setup()
-	-- 设置 LSP 进度处理器
-	vim.api.nvim_create_autocmd("LspProgress", {
-		callback = function(args)
-			local val = args.data.params.value
-			local kind = val.kind or ""
-			local token = val.token or ""
-			local title = val.title or ""
-			local message = val.message or ""
-
-			-- 过滤掉不需要显示的通知
-			if token == "rustAnalyzer/cargoWatcher" then
-				return
-			end
-
-			local msg = title
-			if message ~= "" then
-				msg = msg .. ": " .. message
-			end
-
-			if kind == "begin" or kind == "report" then
-				lsp_status_msg = msg
-				is_lsp_loading = true
-			elseif kind == "end" then
-				lsp_status_msg = ""
-				is_lsp_loading = false
-			end
-
-			schedule_redraw()
-		end,
-	})
-
-	-- 定时更新 spinner 动画
-	local spinner_timer = vim.loop.new_timer()
-	spinner_timer:start(
-		0,
-		120,
-		vim.schedule_wrap(function()
-			update_spinner()
-			if lsp_status_msg ~= "" then
-				schedule_redraw()
-			end
-		end)
-	)
-
 	-- 初始化项目 LSP 状态
 	M.init()
 end

@@ -14,8 +14,6 @@ function M.setup()
 
 	-- 注册用户命令
 	M._register_commands()
-
-	vim.notify("LSP 模块加载完成", vim.log.levels.INFO)
 end
 
 -- =============================================
@@ -29,7 +27,6 @@ function M._register_commands()
 	-- LSP 客户端管理命令
 	vim.api.nvim_create_user_command("LspRestart", config.restart_lsp, { desc = "重启 LSP 客户端" })
 	vim.api.nvim_create_user_command("LspStop", config.stop_lsp, { desc = "停止 LSP 客户端" })
-	vim.api.nvim_create_user_command("LspToggle", manager.toggle_lsp_state, { desc = "切换 LSP 启用状态" })
 
 	-- 诊断相关命令
 	vim.api.nvim_create_user_command(
@@ -59,12 +56,6 @@ M.diagnostics = {
 	open_all = require("lsp.config").open_all_diagnostics,
 	open_buffer = require("lsp.config").open_buffer_diagnostics,
 	copy_error = require("lsp.config").copy_error_message,
-}
-
-M.status = {
-	show = require("lsp.manager").show_lsp_status,
-	info = require("lsp.manager").show_lsp_info,
-	stats = require("lsp.manager").show_diagnostics_stats,
 }
 
 M.utils = {

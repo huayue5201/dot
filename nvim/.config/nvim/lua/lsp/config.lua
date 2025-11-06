@@ -251,14 +251,14 @@ function M.restart_lsp()
 		local utils = require("lsp.utils")
 		local lsp_name = utils.get_lsp_name()
 		vim.lsp.enable(lsp_name, true)
-		require("lsp.manager").set_lsp_state(true)
+		require("lsp.manager").set_lsp_state(true) -- ✅ 修复：恢复状态设置
 	end, 500)
 end
 
 -- 停止 LSP 客户端
 function M.stop_lsp()
 	vim.lsp.stop_client(vim.lsp.get_clients(), true)
-	require("lsp.manager").set_lsp_state(false)
+	require("lsp.manager").set_lsp_state(false) -- ✅ 修复：恢复状态设置
 	vim.schedule(function()
 		vim.cmd.redrawstatus()
 	end)
