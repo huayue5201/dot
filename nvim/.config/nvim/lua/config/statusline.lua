@@ -2,7 +2,6 @@
 
 local utils = require("utils.utils")
 local colors = utils.palette
-local lsp_progress = require("utils.lsp_progress")
 
 local M = {} -- 使用 M 作为模块的局部变量
 
@@ -211,8 +210,7 @@ end
 function M.lsp()
 	return table.concat({
 		M.lsp_clients(),
-		" " .. lsp_progress.status(),
-		M.lsp_diagnostics(),
+		-- " " .. require("lsp").M.lsp_diagnostics(),
 	})
 end
 
