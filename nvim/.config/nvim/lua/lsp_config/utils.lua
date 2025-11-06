@@ -155,24 +155,28 @@ function M.client_supports_method(client, method)
 end
 
 -- 获取当前缓冲区的 LSP 功能支持状态
+-- 在 utils.lua 中修复 get_buffer_capabilities 函数
 function M.get_buffer_capabilities(bufnr)
 	bufnr = bufnr or 0
 	local clients = vim.lsp.get_clients({ bufnr = bufnr })
 	local capabilities = {}
 
 	for _, client in ipairs(clients) do
-		capabilities[client.name] = {
-			document_formatting = M.client_supports_method(client, "textDocument/formatting"),
-			document_range_formatting = M.client_supports_method(client, "textDocument/rangeFormatting"),
-			code_action = M.client_supports_method(client, "textDocument/codeAction"),
-			completion = M.client_supports_method(client, "textDocument/completion"),
-			hover = M.client_supports_method(client, "textDocument/hover"),
-			signature_help = M.client_supports_method(client, "textDocument/signatureHelp"),
-			definition = M.client_supports_method(client, "textDocument/definition"),
-			references = M.client_supports_method(client, "textDocument/references"),
-			implementation = M.client_supports_method(client, "textDocument/implementation"),
-			rename = M.client_supports_method(client, "textDocument/rename"),
-		}
+		local caps = client.server_capabilities
+		if caps then
+			capabilities[client.name] = {
+				document_formatting = not not caps.documentFormattingProvider,
+				document_range_formatting = not not caps.documentRangeFormattingProvider,
+				code_action = not not caps.codeActionProvider,
+				completion = not not caps.completionProvider,
+				hover = not not caps.hoverProvider,
+				signature_help = not not caps.signatureHelpProvider,
+				definition = not not caps.definitionProvider,
+				references = not not caps.referencesProvider,
+				implementation = not not caps.implementationProvider,
+				rename = not not caps.renameProvider,
+			}
+		end
 	end
 
 	return capabilities
