@@ -38,8 +38,8 @@ require("vim._extui").enable({
 -- 设置折叠表达式
 vim.o.foldmethod = "expr"
 vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-vim.opt.foldlevelstart = 99 -- 默认展开所有内容
-vim.opt.foldcolumn = "1" -- 显示折叠列
+-- vim.opt.foldlevelstart = 99 -- 默认展开所有内容
+-- vim.opt.foldcolumn = "1" -- 显示折叠列
 
 -- -------------- 编辑行为设置 --------------
 vim.opt.expandtab = true -- 将 Tab 转为空格
@@ -116,7 +116,7 @@ vim.opt.fillchars = {
 	eob = " ", -- 空行字符（用于表示缓冲区末尾）
 	lastline = "@", -- 最后一行或截断字符
 }
-vim.opt.foldtext = "v:lua.require('config.foldtext').custom_foldtext()"
+-- vim.opt.foldtext = "v:lua.require('config.foldtext').custom_foldtext()"
 
 vim.opt.listchars = {
 	tab = "│ ", -- 显示 Tab 字符
@@ -127,23 +127,28 @@ vim.opt.listchars = {
 	eol = " ", -- 换行符
 }
 
--- 全局 LSP 配置
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+
+-- 添加 foldingRange 支持（UFO 用）
+capabilities.textDocument.foldingRange = {
+	dynamicRegistration = false,
+	lineFoldingOnly = true,
+}
+
+-- 添加 semanticTokens 支持
+capabilities.textDocument.semanticTokens = {
+	multilineTokenSupport = true,
+}
+
+-- ===============================
+-- 🌟 全局配置：所有 LSP 都会继承
+-- ===============================
+---@diagnostic disable-next-line
 vim.lsp.config("*", {
-	root_markers = { ".git" },
-	settings = {
-		workspace = {
-			didChangeWatchedFiles = {
-				enabled = true,
-			},
-		},
-	},
-	capabilities = {
-		textDocument = {
-			semanticTokens = { multilineTokenSupport = true },
-		},
-	},
-	on_attach = function(client)
-		-- 确保 diagnostics 功能已启用
+	capabilities = capabilities, -- foldingRange + semanticTokens
+	root_markers = { ".git" }, -- 项目根目录标记
+	on_attach = function(client, bufnr)
+		-- 确保 diagnostics 启用
 		client.server_capabilities.publishDiagnostics = true
 	end,
 })
