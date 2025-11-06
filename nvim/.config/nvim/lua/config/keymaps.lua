@@ -22,18 +22,69 @@ vim.keymap.set("n", "<leader>rt", "<cmd>tabclose<cr>", { silent = true, desc = "
 
 vim.keymap.set("n", "<leader>rat", "<cmd>tabonly<cr>", { silent = true, desc = "仅保留当前标签页" })
 
-vim.keymap.set("n", "<leader>lm", "<cmd>messages<cr>", { silent = true, desc = "查看历史消息" })
+vim.keymap.set("n", "<leader>ml", "<cmd>messages<cr>", { silent = true, desc = "查看历史消息" })
 
 vim.keymap.set("n", "<a-q>", "<cmd>Toggle quickfix<cr>", { desc = "Toggle Quickfix" })
 
 vim.keymap.set("n", "<a-l>", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
--- local lsp = require("config.lsp")
--- vim.keymap.set("n", "<leader>tol", lsp.restart_lsp, { silent = true, desc = "重启 LSP" })
--- vim.keymap.set("n", "<leader>rl", lsp.stop_lsp, { silent = true, desc = "关闭 LSP" })
--- vim.keymap.set("n", "<leader>ll", lsp.open_buffer_diagnostics, { desc = "查看 buffer 诊断（Loclist）" })
--- vim.keymap.set("n", "<leader>lq", lsp.open_all_diagnostics, { desc = "打开所有诊断（Quickfix）" })
--- vim.keymap.set("n", "<leader>yd", lsp.CopyErrorMessage, { desc = "复制诊断信息" })
+-- LSP 相关键映射
+vim.api.nvim_set_keymap(
+	"n",
+	"<leader>ld",
+	":LspDiagnostics<CR>",
+	{ noremap = true, silent = true, desc = "打开项目诊断列表" }
+)
+vim.api.nvim_set_keymap(
+	"n",
+	"<leader>lD",
+	":LspBufferDiagnostics<CR>",
+	{ noremap = true, silent = true, desc = "打开当前缓冲区诊断列表" }
+)
+vim.api.nvim_set_keymap(
+	"n",
+	"<leader>lc",
+	":LspCopyError<CR>",
+	{ noremap = true, silent = true, desc = "复制当前光标处的错误信息" }
+)
+
+vim.api.nvim_set_keymap(
+	"n",
+	"<leader>lr",
+	":LspRestart<CR>",
+	{ noremap = true, silent = true, desc = "重启LSP客户端" }
+)
+vim.api.nvim_set_keymap(
+	"n",
+	"<leader>ls",
+	":LspStop<CR>",
+	{ noremap = true, silent = true, desc = "停止LSP客户端" }
+)
+vim.api.nvim_set_keymap(
+	"n",
+	"<leader>lS",
+	":LspStart<CR>",
+	{ noremap = true, silent = true, desc = "启动LSP客户端" }
+)
+
+vim.api.nvim_set_keymap(
+	"n",
+	"<leader>lI",
+	":LspInfo<CR>",
+	{ noremap = true, silent = true, desc = "显示详细的LSP信息" }
+)
+vim.api.nvim_set_keymap(
+	"n",
+	"<leader>lt",
+	":LspStatus<CR>",
+	{ noremap = true, silent = true, desc = "显示LSP状态信息" }
+)
+vim.api.nvim_set_keymap(
+	"n",
+	"<leader>lT",
+	":LspStats<CR>",
+	{ noremap = true, silent = true, desc = "显示诊断统计" }
+)
 
 vim.keymap.set(
 	"n",
