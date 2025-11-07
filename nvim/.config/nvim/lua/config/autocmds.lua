@@ -1,3 +1,14 @@
+-- 使用 autocmd 对大文件禁用折叠
+vim.api.nvim_create_autocmd("BufRead", {
+	callback = function(args)
+		local line_count = vim.api.nvim_buf_line_count(args.buf)
+		if line_count > 5000 then -- 超过5000行就禁用折叠
+			vim.opt_local.foldmethod = "manual"
+			vim.opt_local.foldenable = false
+		end
+	end,
+})
+
 -- 保存时自动删除尾随空格
 vim.api.nvim_create_autocmd("BufWritePre", {
 	pattern = { "*.txt", "*.lua", "*.js", "*.py" },

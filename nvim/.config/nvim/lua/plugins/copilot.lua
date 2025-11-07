@@ -10,7 +10,8 @@ return {
 		end,
 	},
 	cmd = "Copilot",
-	event = "InsertEnter",
+	-- event = "InsertEnter",
+	ft = { "lua", "python", "rust", "c", "go" },
 	config = function()
 		-- =====================================
 		-- Copilot 配置

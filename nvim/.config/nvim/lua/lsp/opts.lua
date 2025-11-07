@@ -27,10 +27,9 @@ end
 -- =============================================
 -- 自动命令配置
 -- =============================================
-
 function M.setup_autocmds()
-	local utils = require("lsp_config.utils")
-	local manager = require("lsp_config.manager")
+	local utils = require("lsp.utils")
+	local manager = require("lsp.manager")
 	local supported_filetypes = utils.get_supported_filetypes()
 
 	vim.api.nvim_create_autocmd("FileType", {
@@ -42,21 +41,41 @@ function M.setup_autocmds()
 		end,
 	})
 
-	-- LSP 附加到缓冲区时的配置
+	-- LSP 附加到缓冲区时的配置（主要检测点）
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
 		desc = "LSP 客户端附加到缓冲区时的配置",
 		callback = function(args)
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
-			local manager = require("lsp_config.manager")
+			local manager = require("lsp.manager")
 
-			-- 检查该 LSP 是否在项目中被禁用
+			-- 首先检查该 LSP 是否在项目中被禁用（JSON存储中的状态）
 			if not manager.is_lsp_enabled(client.name) then
-				vim.lsp.stop_client(args.data.client_id, true)
+				-- 使用通用停止函数
+				local success, err = manager.stop_lsp(client.name, args.buf)
+				if success then
+					vim.notify(string.format("LSP %s 在项目中已禁用", client.name), vim.log.levels.INFO)
+				else
+					vim.notify(string.format("禁用 LSP %s 失败: %s", client.name, err), vim.log.levels.ERROR)
+				end
 				return
 			end
 
-			M.setup_keymaps(args.buf) -- 设置 LSP 按键映射
+			-- 然后检查文件大小，如果过大则禁用该 LSP（仅对配置列表中的 LSP 生效）
+			if manager.should_disable_lsp_due_to_size(client.name, args.buf) then
+				-- 使用通用停止函数
+				local success, err = manager.stop_lsp(client.name, args.buf)
+				if not success then
+					vim.notify(
+						string.format("禁用大文件 LSP %s 失败: %s", client.name, err),
+						vim.log.levels.ERROR
+					)
+				end
+				return
+			end
+
+			-- 如果通过了所有检查，正常设置 LSP
+			M.setup_keymaps(args.buf)
 
 			-- 启用文档颜色高亮
 			vim.lsp.document_color.enable(true, 0, { style = "virtual" })
@@ -72,6 +91,22 @@ function M.setup_autocmds()
 			end
 		end,
 	})
+
+	-- 简化：只在文件读取时进行一次大文件检测
+	vim.api.nvim_create_autocmd("BufReadPost", {
+		group = vim.api.nvim_create_augroup("LspLargeFileRead", { clear = true }),
+		desc = "文件读取后检查文件大小",
+		pattern = supported_filetypes,
+		callback = function(args)
+			vim.defer_fn(function()
+				if vim.api.nvim_buf_is_valid(args.buf) then
+					manager.stop_lsps_for_large_file(args.buf)
+				end
+			end, 100)
+		end,
+	})
+
+	-- 移除有问题的 BufEnter 自动命令，避免循环
 
 	-- LSP 从缓冲区分离时的清理
 	vim.api.nvim_create_autocmd("LspDetach", {
@@ -225,9 +260,17 @@ end
 
 -- 重启当前缓冲区的 LSP 客户端
 function M.restart_lsp()
-	vim.lsp.stop_client(vim.lsp.get_clients(), true)
+	local manager = require("lsp.manager")
+
+	-- 首先停止所有客户端（使用通用方法）
+	local clients = vim.lsp.get_clients()
+	for _, client in ipairs(clients) do
+		manager.stop_lsp(client.name)
+	end
+
+	-- 延迟重启
 	vim.defer_fn(function()
-		require("lsp_config.manager").start_eligible_lsps()
+		manager.start_eligible_lsps()
 	end, 500)
 end
 
@@ -246,7 +289,7 @@ function M.stop_lsp()
 		return client.name
 	end, clients)
 
-	local manager = require("lsp_config.manager")
+	local manager = require("lsp.manager")
 
 	vim.ui.select(lsp_names, {
 		prompt = "  LSP server ",
@@ -256,18 +299,22 @@ function M.stop_lsp()
 			return
 		end
 
-		-- 停止客户端并更新项目状态
-		manager.stop_lsp_client(choice)
-		manager.set_lsp_state(choice, false)
-
-		vim.notify("已停止 LSP: " .. choice, vim.log.levels.INFO)
+		-- 使用通用停止函数
+		local success, err = manager.stop_lsp(choice, bufnr)
+		if success then
+			-- 更新项目状态
+			manager.set_lsp_state(choice, false)
+			vim.notify("已停止 LSP: " .. choice, vim.log.levels.INFO)
+		else
+			vim.notify("停止 LSP 失败: " .. choice .. " - " .. tostring(err), vim.log.levels.ERROR)
+		end
 	end)
 end
 
 -- 启动 LSP 客户端（简化美化版）
 function M.start_lsp()
-	local manager = require("lsp_config.manager")
-	local utils = require("lsp_config.utils")
+	local manager = require("lsp.manager")
+	local utils = require("lsp.utils")
 
 	-- 获取当前文件类型支持的 LSP
 	local supported_lsps = utils.get_lsp_name()
@@ -293,11 +340,11 @@ function M.start_lsp()
 			return
 		end
 
-		-- 更新状态并启动
-		manager.set_lsp_state(choice, true)
-		local success, err = pcall(vim.lsp.enable, choice, true)
-
+		-- 使用通用启动函数
+		local success, err = manager.start_lsp(choice)
 		if success then
+			-- 更新状态
+			manager.set_lsp_state(choice, true)
 			vim.notify("已启动 LSP: " .. choice, vim.log.levels.INFO)
 		else
 			vim.notify("启动 LSP 失败: " .. choice .. " - " .. tostring(err), vim.log.levels.ERROR)
