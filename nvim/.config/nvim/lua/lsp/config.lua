@@ -1,4 +1,5 @@
--- LSP 核心配置模块
+-- LSP 配置管理模块
+-- 负责诊断配置、自动命令、按键映射等配置相关功能
 local M = {}
 
 -- =============================================
@@ -27,11 +28,13 @@ end
 -- =============================================
 -- 自动命令配置
 -- =============================================
+
 function M.setup_autocmds()
 	local utils = require("lsp.utils")
 	local manager = require("lsp.manager")
 	local supported_filetypes = utils.get_supported_filetypes()
 
+	-- 文件类型自动命令：根据文件类型启动 LSP
 	vim.api.nvim_create_autocmd("FileType", {
 		group = vim.api.nvim_create_augroup("LspFileTypeAuto", { clear = true }),
 		desc = "根据文件类型和项目状态启动 LSP",
@@ -48,9 +51,11 @@ function M.setup_autocmds()
 		callback = function(args)
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
 			local manager = require("lsp.manager")
+			local project_state = require("lsp.project_state")
+			local large_file = require("lsp.large_file")
 
-			-- 首先检查该 LSP 是否在项目中被禁用（JSON存储中的状态）
-			if not manager.is_lsp_enabled(client.name) then
+			-- 首先检查该 LSP 是否在项目中被禁用
+			if not project_state.is_lsp_enabled(client.name) then
 				-- 使用通用停止函数
 				local success, err = manager.stop_lsp(client.name, args.buf)
 				if success then
@@ -61,8 +66,8 @@ function M.setup_autocmds()
 				return
 			end
 
-			-- 然后检查文件大小，如果过大则禁用该 LSP（仅对配置列表中的 LSP 生效）
-			if manager.should_disable_lsp_due_to_size(client.name, args.buf) then
+			-- 然后检查文件大小，如果过大则禁用该 LSP
+			if large_file.should_disable_lsp_due_to_size(client.name, args.buf) then
 				-- 使用通用停止函数
 				local success, err = manager.stop_lsp(client.name, args.buf)
 				if not success then
@@ -92,7 +97,7 @@ function M.setup_autocmds()
 		end,
 	})
 
-	-- 简化：只在文件读取时进行一次大文件检测
+	-- 文件读取时进行大文件检测
 	vim.api.nvim_create_autocmd("BufReadPost", {
 		group = vim.api.nvim_create_augroup("LspLargeFileRead", { clear = true }),
 		desc = "文件读取后检查文件大小",
@@ -105,8 +110,6 @@ function M.setup_autocmds()
 			end, 100)
 		end,
 	})
-
-	-- 移除有问题的 BufEnter 自动命令，避免循环
 
 	-- LSP 从缓冲区分离时的清理
 	vim.api.nvim_create_autocmd("LspDetach", {
@@ -187,6 +190,7 @@ local keymaps = {
 	},
 }
 
+-- 设置按键映射
 function M.setup_keymaps(bufnr)
 	for _, map in ipairs(keymaps) do
 		vim.keymap.set("n", map[1], map[2], {
@@ -198,6 +202,7 @@ function M.setup_keymaps(bufnr)
 	end
 end
 
+-- 移除按键映射
 function M.remove_keymaps(bufnr)
 	for _, map in ipairs(keymaps) do
 		pcall(vim.keymap.del, "n", map[1], { buffer = bufnr })
@@ -208,6 +213,7 @@ end
 -- 诊断工具函数
 -- =============================================
 
+-- 打开所有诊断信息
 function M.open_all_diagnostics()
 	vim.diagnostic.setqflist({
 		open = true,
@@ -225,6 +231,7 @@ function M.open_all_diagnostics()
 	})
 end
 
+-- 打开当前缓冲区诊断信息
 function M.open_buffer_diagnostics()
 	vim.diagnostic.setloclist({
 		open = true,
@@ -236,6 +243,7 @@ function M.open_buffer_diagnostics()
 	})
 end
 
+-- 复制错误信息到剪贴板
 function M.copy_error_message()
 	local row = unpack(vim.api.nvim_win_get_cursor(0)) - 1
 	local diag = vim.diagnostic.get(0, { lnum = row })
@@ -262,7 +270,7 @@ end
 function M.restart_lsp()
 	local manager = require("lsp.manager")
 
-	-- 首先停止所有客户端（使用通用方法）
+	-- 首先停止所有客户端
 	local clients = vim.lsp.get_clients()
 	for _, client in ipairs(clients) do
 		manager.stop_lsp(client.name)
@@ -274,7 +282,7 @@ function M.restart_lsp()
 	end, 500)
 end
 
--- 停止 LSP 客户端（简化美化版）
+-- 停止 LSP 客户端
 function M.stop_lsp()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local clients = vim.lsp.get_clients({ bufnr = bufnr })
@@ -292,7 +300,7 @@ function M.stop_lsp()
 	local manager = require("lsp.manager")
 
 	vim.ui.select(lsp_names, {
-		prompt = "  LSP server ",
+		prompt = "  停止lsp ",
 	}, function(choice)
 		if not choice then
 			vim.notify("已取消停止操作", vim.log.levels.INFO)
@@ -311,7 +319,7 @@ function M.stop_lsp()
 	end)
 end
 
--- 启动 LSP 客户端（简化美化版）
+-- 启动 LSP 客户端
 function M.start_lsp()
 	local manager = require("lsp.manager")
 	local utils = require("lsp.utils")
@@ -333,7 +341,7 @@ function M.start_lsp()
 	end
 
 	vim.ui.select(disabled_lsps, {
-		prompt = "  LSP server ",
+		prompt = " 󰀚 启动lsp ",
 	}, function(choice)
 		if not choice then
 			vim.notify("已取消启动操作", vim.log.levels.INFO)
@@ -358,6 +366,7 @@ end
 
 function M.setup()
 	M.setup_diagnostics()
+	M.setup_autocmds()
 end
 
 return M

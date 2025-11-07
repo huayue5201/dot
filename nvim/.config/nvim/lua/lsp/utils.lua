@@ -155,7 +155,6 @@ function M.client_supports_method(client, method)
 end
 
 -- 获取当前缓冲区的 LSP 功能支持状态
--- 在 utils.lua 中修复 get_buffer_capabilities 函数
 function M.get_buffer_capabilities(bufnr)
 	bufnr = bufnr or 0
 	local clients = vim.lsp.get_clients({ bufnr = bufnr })
