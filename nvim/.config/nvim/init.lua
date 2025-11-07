@@ -34,7 +34,7 @@ vim.defer_fn(function()
   require("config.autocmds") -- 加载自动命令
   require("config.keymaps") -- 加载按键映射
   -- require("utils.project_lsp_toggle").init()
-  require("lsp_config").setup()
+  require("lsp").setup()
 
   -- 延迟修改 runtimepath，避免影响启动速度
   vim.schedule(function()
