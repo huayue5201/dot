@@ -31,19 +31,19 @@ vim.keymap.set("n", "<a-l>", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist
 -- LSP 相关键映射
 vim.api.nvim_set_keymap(
 	"n",
-	"<leader>ld",
+	"<leader>lD",
 	":LspDiagnostics<CR>",
 	{ noremap = true, silent = true, desc = "打开项目诊断列表" }
 )
 vim.api.nvim_set_keymap(
 	"n",
-	"<leader>lD",
+	"<leader>ld",
 	":LspBufferDiagnostics<CR>",
 	{ noremap = true, silent = true, desc = "打开当前缓冲区诊断列表" }
 )
 vim.api.nvim_set_keymap(
 	"n",
-	"<leader>lc",
+	"<leader>yd",
 	":LspCopyError<CR>",
 	{ noremap = true, silent = true, desc = "复制当前光标处的错误信息" }
 )

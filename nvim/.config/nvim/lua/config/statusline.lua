@@ -165,10 +165,6 @@ end
 
 --- 获取 LSP 诊断信息
 function M.lsp_diagnostics()
-	if lsp_progress.is_loading() then
-		return ""
-	end
-
 	local diagnostics = vim.diagnostic.get(0)
 	if #diagnostics == 0 then
 		return ""
@@ -210,7 +206,6 @@ end
 function M.lsp()
 	return table.concat({
 		M.lsp_clients(),
-		-- " " .. require("lsp").M.lsp_diagnostics(),
 	})
 end
 
