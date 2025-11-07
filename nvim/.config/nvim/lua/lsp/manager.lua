@@ -1,14 +1,17 @@
--- LSP 状态管理模块
--- 整合项目状态管理、状态信息展示等功能
-local json_store = require("utils.json_store")
-
+-- LSP 管理器模块
+-- 负责 LSP 客户端生命周期管理、状态显示等核心业务逻辑
 local M = {}
+
+-- 引入独立模块
+local large_file = require("lsp.large_file")
+local project_state = require("lsp.project_state")
+
 -- =============================================
--- 通用特殊 LSP 管理（精简版）
+-- 特殊 LSP 处理配置
 -- =============================================
 
 M.special_lsps = {
-	-- GitHub Copilot (使用 copilot.vim)
+	-- GitHub Copilot 特殊处理
 	["copilot"] = {
 		stop = function(bufnr)
 			-- 尝试多种停止方式
@@ -27,16 +30,20 @@ M.special_lsps = {
 	},
 }
 
+-- =============================================
+-- LSP 客户端生命周期管理
+-- =============================================
+
 -- 检查是否为特殊 LSP
 function M.is_special_lsp(lsp_name)
 	return M.special_lsps[lsp_name] ~= nil
 end
 
--- 通用 LSP 停止函数
+-- 停止 LSP 客户端
 function M.stop_lsp(lsp_name, bufnr)
 	bufnr = bufnr or 0
 
-	-- 如果是特殊 LSP，使用特殊处理
+	-- 特殊 LSP 使用特殊处理
 	if M.is_special_lsp(lsp_name) then
 		local handler = M.special_lsps[lsp_name]
 		if handler and handler.stop then
@@ -45,7 +52,7 @@ function M.stop_lsp(lsp_name, bufnr)
 		return false, "特殊 LSP 没有定义停止方法"
 	end
 
-	-- 标准 LSP，使用标准停止方法
+	-- 标准 LSP 使用标准停止方法
 	local clients = vim.lsp.get_clients({ name = lsp_name, bufnr = bufnr })
 	for _, client in ipairs(clients) do
 		pcall(client.stop, client)
@@ -53,11 +60,11 @@ function M.stop_lsp(lsp_name, bufnr)
 	return true
 end
 
--- 通用 LSP 启动函数
+-- 启动 LSP 客户端
 function M.start_lsp(lsp_name, bufnr)
 	bufnr = bufnr or 0
 
-	-- 如果是特殊 LSP，使用特殊处理
+	-- 特殊 LSP 使用特殊处理
 	if M.is_special_lsp(lsp_name) then
 		local handler = M.special_lsps[lsp_name]
 		if handler and handler.start then
@@ -66,7 +73,7 @@ function M.start_lsp(lsp_name, bufnr)
 		return false, "特殊 LSP 没有定义启动方法"
 	end
 
-	-- 标准 LSP，使用标准启动方法
+	-- 标准 LSP 使用标准启动方法
 	return pcall(vim.lsp.enable, lsp_name, true)
 end
 
@@ -74,7 +81,7 @@ end
 function M.is_lsp_running(lsp_name, bufnr)
 	bufnr = bufnr or 0
 
-	-- 如果是特殊 LSP，使用特殊检查方法
+	-- 特殊 LSP 使用特殊检查方法
 	if M.is_special_lsp(lsp_name) then
 		local handler = M.special_lsps[lsp_name]
 		if handler and handler.is_running then
@@ -84,118 +91,16 @@ function M.is_lsp_running(lsp_name, bufnr)
 		return true
 	end
 
-	-- 标准 LSP，使用标准检查方法
+	-- 标准 LSP 使用标准检查方法
 	local clients = vim.lsp.get_clients({ name = lsp_name, bufnr = bufnr })
 	return #clients > 0
 end
 
 -- =============================================
--- 大文件检测配置
+-- 大文件检测代理函数
 -- =============================================
-M.large_file_config = {
-	-- 启用大文件检测的 LSP 列表
-	enabled_lsps = {
-		"vtsls", -- TypeScript/JavaScript 语言服务器
-	},
 
-	-- 默认文件大小阈值 (3MB)
-	default_threshold = 3 * 1024 * 1024,
-
-	-- 默认行数阈值 (50000 行)
-	default_line_threshold = 50000,
-}
-
--- 当前已检测到的大文件状态
-M._large_file_state = {
-	current_buffer = nil,
-	large_files = {}, -- 存储已检测到的大文件路径和对应的 LSP 状态
-}
-
--- 获取行数阈值
-function M.get_line_threshold()
-	return M.large_file_config.default_line_threshold
-end
-
--- 检查当前缓冲区行数
-function M.check_buffer_line_count(bufnr)
-	bufnr = bufnr or vim.api.nvim_get_current_buf()
-	if not vim.api.nvim_buf_is_valid(bufnr) then
-		return nil
-	end
-	return vim.api.nvim_buf_line_count(bufnr)
-end
-
--- 在 manager.lua 中添加以下缺失的函数
-
--- 检查特定 LSP 是否启用大文件检测
-function M.should_check_file_size(lsp_name)
-	return vim.tbl_contains(M.large_file_config.enabled_lsps, lsp_name)
-end
-
--- 获取文件大小阈值
-function M.get_file_threshold()
-	return M.large_file_config.default_threshold
-end
-
--- 检查当前缓冲区文件大小
-function M.check_buffer_file_size(bufnr)
-	bufnr = bufnr or vim.api.nvim_get_current_buf()
-	local filename = vim.api.nvim_buf_get_name(bufnr)
-
-	if filename == "" or not vim.loop.fs_stat then
-		return nil -- 新文件或无法获取文件信息
-	end
-
-	local stat = vim.loop.fs_stat(filename)
-	return stat and stat.size or nil
-end
-
--- 判断特定 LSP 是否因文件过大需要禁用（同时考虑大小和行数）
-function M.should_disable_lsp_due_to_size(lsp_name, bufnr)
-	-- 首先检查该 LSP 是否在项目中被禁用（JSON存储中的状态）
-	if not M.is_lsp_enabled(lsp_name) then
-		return false -- 已经在JSON中被禁用，不需要大文件检测
-	end
-
-	-- 然后检查该 LSP 是否启用大文件检测
-	if not M.should_check_file_size(lsp_name) then
-		return false
-	end
-
-	local file_size = M.check_buffer_file_size(bufnr)
-	local line_count = M.check_buffer_line_count(bufnr)
-
-	-- 如果无法获取文件大小和行数，默认启用
-	if not file_size and not line_count then
-		return false
-	end
-
-	local size_threshold = M.get_file_threshold()
-	local line_threshold = M.get_line_threshold()
-
-	local is_large_by_size = file_size and file_size > size_threshold
-	local is_large_by_lines = line_count and line_count > line_threshold
-	local is_large_file = is_large_by_size or is_large_by_lines
-
-	if is_large_file then
-		local reasons = {}
-		if is_large_by_size then
-			table.insert(reasons, string.format("大小(%dMB)", math.floor(file_size / 1024 / 1024)))
-		end
-		if is_large_by_lines then
-			table.insert(reasons, string.format("行数(%d行)", line_count))
-		end
-
-		vim.notify(
-			string.format("检测到大文件 (%s)，已禁用 %s LSP", table.concat(reasons, ", "), lsp_name),
-			vim.log.levels.WARN
-		)
-	end
-
-	return is_large_file
-end
-
--- 停止缓冲区中的大文件 LSP（增强版）
+-- 停止大文件相关的 LSP
 function M.stop_lsps_for_large_file(bufnr)
 	bufnr = bufnr or vim.api.nvim_get_current_buf()
 	local filename = vim.api.nvim_buf_get_name(bufnr)
@@ -205,24 +110,24 @@ function M.stop_lsps_for_large_file(bufnr)
 	end
 
 	-- 检查文件大小和行数
-	local file_size = M.check_buffer_file_size(bufnr)
-	local line_count = M.check_buffer_line_count(bufnr)
+	local file_size = large_file.check_buffer_file_size(bufnr)
+	local line_count = large_file.check_buffer_line_count(bufnr)
 
 	if not file_size and not line_count then
 		return
 	end
 
-	local size_threshold = M.get_file_threshold()
-	local line_threshold = M.get_line_threshold()
+	local size_threshold = large_file.get_file_threshold()
+	local line_threshold = large_file.get_line_threshold()
 
 	local is_large_by_size = file_size and file_size > size_threshold
 	local is_large_by_lines = line_count and line_count > line_threshold
 	local is_large_file = is_large_by_size or is_large_by_lines
 
 	-- 更新状态
-	M._large_file_state.current_buffer = bufnr
-	if not M._large_file_state.large_files[filename] then
-		M._large_file_state.large_files[filename] = {
+	large_file.state.current_buffer = bufnr
+	if not large_file.state.large_files[filename] then
+		large_file.state.large_files[filename] = {
 			size = file_size,
 			lines = line_count,
 			lsps_disabled = {},
@@ -230,18 +135,18 @@ function M.stop_lsps_for_large_file(bufnr)
 	end
 
 	if is_large_file then
-		-- 停止该缓冲区中所有需要检测的 LSP（但只处理在JSON中启用的LSP）
+		-- 停止该缓冲区中所有需要检测的 LSP（但只处理在项目中启用的 LSP）
 		local clients = vim.lsp.get_active_clients({ bufnr = bufnr })
 		local stopped_clients = {}
 
 		for _, client in ipairs(clients) do
-			-- 只有在JSON中启用且配置了大文件检测的LSP才处理
-			if M.is_lsp_enabled(client.name) and M.should_check_file_size(client.name) then
+			-- 只有在项目中启用且配置了大文件检测的 LSP 才处理
+			if project_state.is_lsp_enabled(client.name) and large_file.should_check_file_size(client.name) then
 				-- 使用通用停止函数
 				local success, err = M.stop_lsp(client.name, bufnr)
 				if success then
 					table.insert(stopped_clients, client.name)
-					table.insert(M._large_file_state.large_files[filename].lsps_disabled, client.name)
+					table.insert(large_file.state.large_files[filename].lsps_disabled, client.name)
 				else
 					vim.notify(string.format("停止 LSP %s 失败: %s", client.name, err), vim.log.levels.ERROR)
 				end
@@ -268,60 +173,15 @@ function M.stop_lsps_for_large_file(bufnr)
 		end
 	else
 		-- 如果是小文件，清除禁用状态
-		local file_state = M._large_file_state.large_files[filename]
+		local file_state = large_file.state.large_files[filename]
 		if file_state and #file_state.lsps_disabled > 0 then
 			-- 尝试重新启用之前禁用的 LSP
 			for _, lsp_name in ipairs(file_state.lsps_disabled) do
 				M.start_lsp(lsp_name, bufnr)
 			end
-			M._large_file_state.large_files[filename].lsps_disabled = {}
+			large_file.state.large_files[filename].lsps_disabled = {}
 		end
 	end
-end
-
--- 获取大文件状态信息（增强版）
-function M.get_large_file_status(bufnr)
-	bufnr = bufnr or vim.api.nvim_get_current_buf()
-	local filename = vim.api.nvim_buf_get_name(bufnr)
-	local file_size = M.check_buffer_file_size(bufnr)
-	local line_count = M.check_buffer_line_count(bufnr)
-
-	if not file_size and not line_count then
-		return { status = "unknown" }
-	end
-
-	local size_threshold = M.get_file_threshold()
-	local line_threshold = M.get_line_threshold()
-
-	local is_large_by_size = file_size and file_size > size_threshold
-	local is_large_by_lines = line_count and line_count > line_threshold
-	local is_large_file = is_large_by_size or is_large_by_lines
-
-	local file_state = M._large_file_state.large_files[filename]
-	local disabled_lsps = file_state and file_state.lsps_disabled or {}
-
-	local status_details = {}
-	if is_large_by_size then
-		table.insert(status_details, "文件大小过大")
-	end
-	if is_large_by_lines then
-		table.insert(status_details, "文件行数过多")
-	end
-
-	return {
-		status = is_large_file and "large" or "normal",
-		size = file_size,
-		lines = line_count,
-		size_mb = file_size and string.format("%.2fMB", file_size / 1024 / 1024) or "未知",
-		lines_count = line_count and tostring(line_count) or "未知",
-		threshold_mb = string.format("%.2fMB", size_threshold / 1024 / 1024),
-		threshold_lines = tostring(line_threshold),
-		disabled_lsps = disabled_lsps,
-		is_large_file = is_large_file,
-		status_details = status_details,
-		is_large_by_size = is_large_by_size,
-		is_large_by_lines = is_large_by_lines,
-	}
 end
 
 -- 重新启用大文件的 LSP（如果文件变小了）
@@ -334,15 +194,15 @@ function M.restart_lsps_for_small_file(bufnr)
 	end
 
 	-- 同时检查文件大小和行数
-	local file_size = M.check_buffer_file_size(bufnr)
-	local line_count = M.check_buffer_line_count(bufnr)
+	local file_size = large_file.check_buffer_file_size(bufnr)
+	local line_count = large_file.check_buffer_line_count(bufnr)
 
 	if not file_size and not line_count then
 		return
 	end
 
-	local size_threshold = M.get_file_threshold()
-	local line_threshold = M.get_line_threshold()
+	local size_threshold = large_file.get_file_threshold()
+	local line_threshold = large_file.get_line_threshold()
 
 	local is_large_by_size = file_size and file_size > size_threshold
 	local is_large_by_lines = line_count and line_count > line_threshold
@@ -350,95 +210,43 @@ function M.restart_lsps_for_small_file(bufnr)
 
 	-- 如果文件不再是大文件，清除状态记录
 	if not is_large_file then
-		local file_state = M._large_file_state.large_files[filename]
+		local file_state = large_file.state.large_files[filename]
 		if file_state then
-			M._large_file_state.large_files[filename].lsps_disabled = {}
+			large_file.state.large_files[filename].lsps_disabled = {}
 		end
 	end
 end
 
+-- 大文件检测相关代理函数
+function M.should_check_file_size(lsp_name)
+	return large_file.should_check_file_size(lsp_name)
+end
+
+function M.get_large_file_status(bufnr)
+	return large_file.get_large_file_status(bufnr)
+end
+
 -- =============================================
--- 项目状态管理
+-- 项目状态代理函数
 -- =============================================
 
--- 创建 JSON 存储实例（用于项目级 LSP 状态）
-local state_store = json_store:new({
-	file_path = vim.fn.stdpath("cache") .. "/project_lsp_states.json",
-	default_data = {},
-	auto_save = false,
-})
-
--- 获取当前项目唯一标识
-function M.get_current_project_id()
-	local cwd = vim.fn.getcwd()
-	local name = vim.fn.fnamemodify(cwd, ":t")
-	local hash = vim.fn.sha256(cwd):sub(1, 8)
-	return name .. "-" .. hash
-end
-
--- 获取项目显示名
-local function get_project_display_name()
-	return vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
-end
-
--- 安全加载状态
-function M.load_project_states()
-	if state_store.get_all then
-		return state_store:get_all()
-	end
-	return state_store:load()
-end
-
--- 延迟保存状态
-function M.save_project_states(states)
-	state_store:save(states)
-	vim.defer_fn(function()
-		if state_store.flush then
-			state_store:flush()
-		end
-	end, 100)
-end
-
--- 检查特定 LSP 是否启用
 function M.is_lsp_enabled(lsp_name)
-	local project_id = M.get_current_project_id()
-	local states = M.load_project_states()
-	local project_states = states[project_id]
-
-	if not project_states or not project_states[lsp_name] then
-		return true -- 默认启用
-	end
-
-	return project_states[lsp_name].enabled
+	return project_state.is_lsp_enabled(lsp_name)
 end
 
--- 设置 LSP 启用状态
 function M.set_lsp_state(lsp_name, enabled)
-	local project_id = M.get_current_project_id()
-	local states = M.load_project_states()
-
-	states[project_id] = states[project_id] or {}
-	states[project_id][lsp_name] = {
-		enabled = enabled,
-		timestamp = os.time(),
-	}
-
-	M.save_project_states(states)
-
-	vim.notify(string.format("LSP %s: %s", lsp_name, enabled and "已启用" or "已禁用"), vim.log.levels.INFO)
+	project_state.set_lsp_state(lsp_name, enabled)
 end
 
--- 获取当前项目所有 LSP 状态
 function M.get_project_lsp_states()
-	local project_id = M.get_current_project_id()
-	local states = M.load_project_states()
-	return states[project_id] or {}
+	return project_state.get_project_lsp_states()
 end
 
 -- =============================================
--- LSP 客户端管理
+-- LSP 启动管理
 -- =============================================
--- 启动符合条件的 LSP（增强版）
+
+-- 启动符合条件的 LSP
 function M.start_eligible_lsps()
 	local utils = require("lsp.utils")
 	local lsp_names = utils.get_lsp_name()
@@ -459,7 +267,7 @@ end
 
 -- 显示 LSP 状态信息
 function M.show_lsp_status()
-	local project_name = get_project_display_name()
+	local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
 	local project_states = M.get_project_lsp_states()
 	local utils = require("lsp.utils")
 	local active_clients = utils.get_active_lsps()
@@ -567,7 +375,8 @@ end
 -- =============================================
 
 function M.setup()
-	-- 初始化完成，不需要设置全局标志
+	-- 管理器模块初始化
+	-- 目前不需要特殊初始化操作
 end
 
 return M
