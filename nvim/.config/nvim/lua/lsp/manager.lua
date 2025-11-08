@@ -4,6 +4,7 @@ local M = {}
 
 -- 引入项目状态模块
 local project_state = require("lsp.project_state")
+local utils = require("lsp.utils")
 
 -- =============================================
 -- 特殊 LSP 处理配置
@@ -89,7 +90,7 @@ function M.is_lsp_running(lsp_name, bufnr)
 end
 
 -- =============================================
--- 项目状态代理函数
+-- 项目状态管理（直接使用 project_state，避免冗余代理）
 -- =============================================
 
 function M.is_lsp_enabled(lsp_name)
@@ -110,7 +111,6 @@ end
 
 -- 启动符合条件的 LSP
 function M.start_eligible_lsps()
-	local utils = require("lsp.utils")
 	local lsp_names = utils.get_lsp_name()
 
 	for _, lsp_name in ipairs(lsp_names) do
@@ -131,7 +131,6 @@ end
 function M.show_lsp_status()
 	local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":t")
 	local project_states = M.get_project_lsp_states()
-	local utils = require("lsp.utils")
 	local active_clients = utils.get_active_lsps()
 
 	print("=== LSP 状态概览 ===")
@@ -166,7 +165,6 @@ end
 
 -- 显示详细的 LSP 信息
 function M.show_lsp_info()
-	local utils = require("lsp.utils")
 	local bufnr = vim.api.nvim_get_current_buf()
 	local filetype = vim.bo[bufnr].filetype
 
@@ -186,10 +184,6 @@ function M.show_lsp_info()
 	else
 		print("当前缓冲区没有 LSP 客户端")
 	end
-end
-
-function M.setup()
-	-- 管理器模块初始化，无需大文件逻辑
 end
 
 return M

@@ -50,6 +50,12 @@ vim.api.nvim_set_keymap(
 
 vim.api.nvim_set_keymap(
 	"n",
+	"<leader>lr",
+	":LspRestart<CR>",
+	{ noremap = true, silent = true, desc = "重启LSP客户端" }
+)
+vim.api.nvim_set_keymap(
+	"n",
 	"<leader>ls",
 	":LspStop<CR>",
 	{ noremap = true, silent = true, desc = "停止LSP客户端" }
@@ -72,6 +78,12 @@ vim.api.nvim_set_keymap(
 	"<leader>lt",
 	":LspStatus<CR>",
 	{ noremap = true, silent = true, desc = "显示LSP状态信息" }
+)
+vim.api.nvim_set_keymap(
+	"n",
+	"<leader>lT",
+	":LspStats<CR>",
+	{ noremap = true, silent = true, desc = "显示诊断统计" }
 )
 
 vim.keymap.set(
