@@ -2,8 +2,9 @@
 -- 整合所有工具函数，包括 LSP 配置查询、功能支持检测等
 local M = {}
 
--- 缓存 LSP 配置，避免重复加载
+-- 缓存管理
 M._lsp_config_cache = nil
+M._filetype_lsp_cache = nil
 
 -- =============================================
 -- LSP 配置管理
@@ -14,6 +15,7 @@ function M._load_all_lsp_configs()
 	if M._lsp_config_cache then
 		return M._lsp_config_cache
 	end
+
 	local configs = {}
 	for _, path in ipairs(vim.api.nvim_get_runtime_file("after/lsp/*.lua", true)) do
 		local filename = vim.fn.fnamemodify(path, ":t:r")
@@ -24,8 +26,28 @@ function M._load_all_lsp_configs()
 			vim.notify("加载配置失败: " .. path, vim.log.levels.ERROR)
 		end
 	end
+
 	M._lsp_config_cache = configs
 	return configs
+end
+
+-- 构建文件类型到 LSP 的映射缓存
+function M._build_filetype_lsp_cache()
+	local all_configs = M._load_all_lsp_configs()
+	local cache = {}
+
+	for lsp_name, config in pairs(all_configs) do
+		if config.filetypes then
+			local filetypes = type(config.filetypes) == "string" and { config.filetypes } or config.filetypes
+			for _, ft in ipairs(filetypes) do
+				ft = string.lower(ft)
+				cache[ft] = cache[ft] or {}
+				table.insert(cache[ft], lsp_name)
+			end
+		end
+	end
+
+	M._filetype_lsp_cache = cache
 end
 
 -- 检查配置是否匹配文件类型
@@ -33,10 +55,12 @@ function M._config_matches_filetype(config, filetype)
 	if not config.filetypes then
 		return false
 	end
+
 	local filetypes = config.filetypes
 	if type(filetypes) == "string" then
 		filetypes = { filetypes }
 	end
+
 	for _, ft in ipairs(filetypes) do
 		if string.lower(ft) == filetype then
 			return true
@@ -83,20 +107,17 @@ function M.get_lsp_config(...)
 	return result
 end
 
--- 获取支持当前文件类型的 LSP 名称
+-- 获取支持当前文件类型的 LSP 名称（使用缓存优化）
 function M.get_lsp_name()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local current_filetype = string.lower(vim.bo[bufnr].filetype)
-	local all_configs = M._load_all_lsp_configs()
-	local matched_lsp_names = {}
 
-	for lsp_name, config in pairs(all_configs) do
-		if M._config_matches_filetype(config, current_filetype) then
-			table.insert(matched_lsp_names, lsp_name)
-		end
+	-- 如果缓存不存在，则构建缓存
+	if not M._filetype_lsp_cache then
+		M._build_filetype_lsp_cache()
 	end
 
-	return matched_lsp_names
+	return M._filetype_lsp_cache[current_filetype] or {}
 end
 
 -- =============================================

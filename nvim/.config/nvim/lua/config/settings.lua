@@ -36,8 +36,9 @@ require("vim._extui").enable({
 
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式
-vim.o.foldmethod = "expr"
-vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+-- ufo插件接管
+-- vim.o.foldmethod = "expr"
+-- vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 -- vim.opt.foldlevelstart = 99 -- 默认展开所有内容
 -- vim.opt.foldcolumn = "1" -- 显示折叠列
 
