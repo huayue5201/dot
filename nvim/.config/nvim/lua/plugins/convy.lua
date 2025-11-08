@@ -13,14 +13,14 @@ return {
 	keys = {
 		-- example keymaps
 		{
-			"<leader>cc",
+			"<leader>oc",
 			":Convy<CR>",
 			desc = "Convert (interactive selection)",
 			mode = { "n", "v" },
 			silent = true,
 		},
 		{
-			"<leader>cd",
+			"<leader>od",
 			":Convy auto dec<CR>",
 			desc = "Convert to decimal",
 			mode = { "n", "v" },

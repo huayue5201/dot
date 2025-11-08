@@ -50,12 +50,6 @@ vim.api.nvim_set_keymap(
 
 vim.api.nvim_set_keymap(
 	"n",
-	"<leader>lr",
-	":LspRestart<CR>",
-	{ noremap = true, silent = true, desc = "重启LSP客户端" }
-)
-vim.api.nvim_set_keymap(
-	"n",
 	"<leader>ls",
 	":LspStop<CR>",
 	{ noremap = true, silent = true, desc = "停止LSP客户端" }
@@ -78,12 +72,6 @@ vim.api.nvim_set_keymap(
 	"<leader>lt",
 	":LspStatus<CR>",
 	{ noremap = true, silent = true, desc = "显示LSP状态信息" }
-)
-vim.api.nvim_set_keymap(
-	"n",
-	"<leader>lT",
-	":LspStats<CR>",
-	{ noremap = true, silent = true, desc = "显示诊断统计" }
 )
 
 vim.keymap.set(
@@ -118,7 +106,7 @@ vim.keymap.set("n", "<leader>eu", function()
 	})
 end, { desc = "打开撤销树" })
 
-vim.keymap.set("n", "<leader>eo", "<cmd>ChooseEnv<cr>", { desc = "配置切换" })
+vim.keymap.set("n", "<leader>eo", "<cmd>SwitchEnv<cr>", { desc = "配置切换" })
 
 vim.keymap.set("n", "<leader>yp", function()
 	vim.fn.setreg("+", vim.fn.expand("%:p"))

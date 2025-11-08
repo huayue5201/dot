@@ -20,15 +20,6 @@ end
 function M._register_commands()
 	local config = require("lsp.config")
 	local manager = require("lsp.manager")
-	local large_file = require("lsp.large_file")
-
-	-- LSP 客户端管理命令
-	vim.api.nvim_create_user_command("LspRestart", function()
-		-- 先检查文件大小状态
-		manager.restart_lsps_for_small_file()
-		-- 然后重启 LSP
-		config.restart_lsp()
-	end, { desc = "重启 LSP 客户端（会重新检查文件大小）" })
 
 	vim.api.nvim_create_user_command("LspStop", config.stop_lsp, { desc = "停止 LSP 客户端" })
 	vim.api.nvim_create_user_command("LspStart", config.start_lsp, { desc = "启动 LSP 客户端" })
@@ -53,33 +44,6 @@ function M._register_commands()
 	-- 状态查询命令
 	vim.api.nvim_create_user_command("LspStatus", manager.show_lsp_status, { desc = "显示 LSP 状态信息" })
 	vim.api.nvim_create_user_command("LspInfo", manager.show_lsp_info, { desc = "显示详细的 LSP 信息" })
-	vim.api.nvim_create_user_command("LspStats", manager.show_diagnostics_stats, { desc = "显示诊断统计" })
-
-	-- 大文件检测相关命令
-	vim.api.nvim_create_user_command("LspFileSizeInfo", function()
-		local status = large_file.get_large_file_status()
-		if status.status == "unknown" then
-			print("无法获取文件信息")
-		else
-			local large_file_msg = status.is_large_file and " (大文件 - LSP 已禁用)" or ""
-			print(string.format("文件大小: %s, 行数: %s%s", status.size_mb, status.lines_count, large_file_msg))
-
-			if status.is_large_file then
-				local reasons = {}
-				if status.is_large_by_size then
-					table.insert(reasons, string.format("超过大小阈值(%s)", status.threshold_mb))
-				end
-				if status.is_large_by_lines then
-					table.insert(reasons, string.format("超过行数阈值(%s行)", status.threshold_lines))
-				end
-				print(string.format("原因: %s", table.concat(reasons, ", ")))
-			end
-
-			if #status.disabled_lsps > 0 then
-				print(string.format("已禁用的 LSP: %s", table.concat(status.disabled_lsps, ", ")))
-			end
-		end
-	end, { desc = "显示当前文件大小、行数和 LSP 状态" })
 end
 
 -- =============================================
