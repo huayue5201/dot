@@ -34,14 +34,6 @@ return {
 			-- 高亮模块配置
 			highlight = {
 				enable = true,
-				-- 或者使用一个函数来灵活配置，例如，对于大文件禁用 Treesitter 高亮以提高性能
-				-- disable = function(_, buf)
-				-- 	local max_filesize = 1 * 1024 * 1024 -- 1 MB
-				-- 	local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-				-- 	if ok and stats and stats.size > max_filesize then
-				-- 		return true
-				-- 	end
-				-- end,
 				-- 关闭 vim 自带语法高亮引擎，只使用 Treesitter
 				-- additional_vim_regex_highlighting = false,
 			},

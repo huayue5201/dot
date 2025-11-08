@@ -4,6 +4,7 @@
 return {
 	"toppair/peek.nvim",
 	ft = { "markdown" },
+	cmd = { "PeekOpen", "PeekClose" },
 	build = "deno task --quiet build:fast",
 	config = function()
 		require("peek").setup({
@@ -28,8 +29,16 @@ return {
 			throttle_time = "auto", -- minimum amount of time in milliseconds
 			-- that has to pass before starting new render
 		})
-		vim.keymap.set("n", "<leader>omo", require("peek").open, { desc = "Open Peek" })
-		vim.keymap.set("n", "<leader>omc", require("peek").close, { desc = "Close Peek" })
+
+		vim.api.nvim_create_autocmd("FileType", {
+			pattern = "markdown",
+			callback = function(args)
+				local buf = args.buf
+				-- 设置缓冲区本地映射
+				vim.keymap.set("n", "<leader>omo", require("peek").open, { desc = "Open Peek", buffer = buf })
+				vim.keymap.set("n", "<leader>omc", require("peek").close, { desc = "Close Peek", buffer = buf })
+			end,
+		})
 		vim.api.nvim_create_user_command("PeekOpen", require("peek").open, {})
 		vim.api.nvim_create_user_command("PeekClose", require("peek").close, {})
 	end,
