@@ -30,12 +30,37 @@ return {
 			-- 启用缩进模块
 			indent = {
 				enable = true,
+				disable = function(lang, buf)
+					local max_lines = 10000
+					local line_count = vim.api.nvim_buf_line_count(buf)
+					if line_count > max_lines then
+						vim.schedule(function()
+							vim.notify("🧹 Disabled Treesitter indent for large file (" .. line_count .. " lines)")
+						end)
+						return true
+					end
+				end,
 			},
 			-- 高亮模块配置
 			highlight = {
 				enable = true,
+				disable = function(lang, buf)
+					local max_filesize = 5 * 1024 * 1024 -- 5 MB
+					local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+					if ok and stats and stats.size > max_filesize then
+						vim.schedule(function()
+							vim.notify(
+								string.format(
+									"🌲 Disabled Treesitter highlight for large file (%.2f MB)",
+									stats.size / (1024 * 1024)
+								)
+							)
+						end)
+						return true
+					end
+				end,
 				-- 关闭 vim 自带语法高亮引擎，只使用 Treesitter
-				-- additional_vim_regex_highlighting = false,
+				additional_vim_regex_highlighting = false,
 			},
 			incremental_selection = {
 				enable = true,

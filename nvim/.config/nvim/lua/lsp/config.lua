@@ -65,11 +65,11 @@ function M.setup_autocmds()
 		callback = function(args)
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
 
-			-- 检查该 LSP 是否在项目中被禁用
-			if not project_state.is_lsp_enabled(client.name) then
+			-- 使用组合状态检查（项目级 + 缓冲区级）
+			if not project_state.is_lsp_enabled_for_buffer(client.name, args.buf) then
 				local success, err = manager.stop_lsp(client.name, args.buf)
 				if success then
-					vim.notify(string.format("LSP %s 在项目中已禁用", client.name), vim.log.levels.INFO)
+					vim.notify(string.format("LSP %s 已禁用", client.name), vim.log.levels.INFO)
 				else
 					vim.notify(string.format("禁用 LSP %s 失败: %s", client.name, err), vim.log.levels.ERROR)
 				end
