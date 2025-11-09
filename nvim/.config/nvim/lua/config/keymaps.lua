@@ -22,7 +22,7 @@ vim.keymap.set("n", "<leader>rt", "<cmd>tabclose<cr>", { silent = true, desc = "
 
 vim.keymap.set("n", "<leader>rat", "<cmd>tabonly<cr>", { silent = true, desc = "仅保留当前标签页" })
 
-vim.keymap.set("n", "<leader>ml", "<cmd>messages<cr>", { silent = true, desc = "查看历史消息" })
+vim.keymap.set("n", "<leader>i", "<cmd>messages<cr>", { silent = true, desc = "查看历史消息" })
 
 vim.keymap.set("n", "<a-q>", "<cmd>Toggle quickfix<cr>", { desc = "Toggle Quickfix" })
 

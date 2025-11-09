@@ -35,7 +35,7 @@ return {
 					local line_count = vim.api.nvim_buf_line_count(buf)
 					if line_count > max_lines then
 						vim.schedule(function()
-							vim.notify("🧹 Disabled Treesitter indent for large file (" .. line_count .. " lines)")
+							vim.notify("🧹 Treesitter: Disabled indent for large file (" .. line_count .. " lines)")
 						end)
 						return true
 					end
@@ -51,7 +51,7 @@ return {
 						vim.schedule(function()
 							vim.notify(
 								string.format(
-									"🌲 Disabled Treesitter highlight for large file (%.2f MB)",
+									"🌲 Treesitter: Disabled highlight for large file (%.2f MB)",
 									stats.size / (1024 * 1024)
 								)
 							)

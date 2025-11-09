@@ -21,11 +21,24 @@ return {
 
 	on_attach = function(client, bufnr)
 		local line_count = vim.api.nvim_buf_line_count(bufnr)
-		if line_count > 10000 then
+		local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(bufnr))
+		local file_size_mb = (ok and stats and stats.size or 0) / (1024 * 1024) -- 转换成 MB
+
+		local BIGFILE_LINES = 10000
+		local BIGFILE_SIZE = 3 -- MB
+
+		if line_count > BIGFILE_LINES or file_size_mb > BIGFILE_SIZE then
 			vim.schedule(function()
 				if vim.lsp.buf_is_attached(bufnr, client.id) then
 					vim.lsp.buf_detach_client(bufnr, client.id)
-					vim.notify("LSP detached for large file (safe delay): " .. vim.api.nvim_buf_get_name(bufnr))
+					vim.notify(
+						string.format(
+							"🌐vtsls: LSP detached for large file: %s (%d lines, %.2f MB)",
+							vim.api.nvim_buf_get_name(bufnr),
+							line_count,
+							file_size_mb
+						)
+					)
 				end
 			end)
 		end
