@@ -1,36 +1,25 @@
--- LSP 配置管理模块
--- 负责诊断配置、自动命令、按键映射等配置相关功能
 local M = {}
 
--- 延迟加载模块引用
-local manager, project_state, utils
+local icons = require("utils.utils").icons.diagnostic
+local lsp_get = require("lsp.utils")
 
-local function ensure_modules()
-	if not manager then
-		manager = require("lsp.manager")
-	end
-	if not project_state then
-		project_state = require("lsp.project_state")
-	end
-	if not utils then
-		utils = require("lsp.utils")
-	end
-end
-
--- =============================================
--- 诊断配置
--- =============================================
-
-function M.setup_diagnostics()
+M.diagnostic_config = function()
 	vim.diagnostic.config({
-		virtual_text = false,
+		virtual_text = false, -- 设置false，诊断ui交给插件rachartier/tiny-inline-diagnostic.nvim
+		-- virtual_text = {
+		-- 	current_line = false,
+		-- },
+		-- virtual_lines = {
+		-- 	current_line = true,
+		-- },
 		severity_sort = true,
+		-- float = { source = "if_many", border = "shadow" },
 		signs = {
 			text = {
-				[vim.diagnostic.severity.ERROR] = "󰅚 ",
-				[vim.diagnostic.severity.WARN] = "󰀪 ",
-				[vim.diagnostic.severity.HINT] = " ",
-				[vim.diagnostic.severity.INFO] = " ",
+				[vim.diagnostic.severity.ERROR] = icons.ERROR,
+				[vim.diagnostic.severity.WARN] = icons.WARN,
+				[vim.diagnostic.severity.HINT] = icons.HINT,
+				[vim.diagnostic.severity.INFO] = icons.INFO,
 			},
 			linehl = { [vim.diagnostic.severity.ERROR] = "ErrorMsg" },
 			numhl = { [vim.diagnostic.severity.WARN] = "WarningMsg" },
@@ -40,213 +29,16 @@ function M.setup_diagnostics()
 	})
 end
 
--- =============================================
--- 自动命令配置
--- =============================================
-
-function M.setup_autocmds()
-	ensure_modules()
-	local supported_filetypes = utils.get_supported_filetypes()
-
-	-- 文件类型自动命令：根据文件类型启动 LSP
+-- 根据文件类型启动 LSP
+M.lsp_Start = function()
 	vim.api.nvim_create_autocmd("FileType", {
-		group = vim.api.nvim_create_augroup("LspFileTypeAuto", { clear = true }),
-		desc = "根据文件类型和项目状态启动 LSP",
-		pattern = supported_filetypes,
+		desc = "根据文件类型启动或停止 LSP",
+		pattern = lsp_get.get_lsp_config("filetypes"),
 		callback = function()
-			manager.start_eligible_lsps()
+			vim.lsp.enable(lsp_get.get_lsp_name(), true)
+			-- vim.lsp.stop_client(lsp_get.get_lsp_name())
 		end,
 	})
-
-	-- LSP 附加到缓冲区时的配置
-	vim.api.nvim_create_autocmd("LspAttach", {
-		group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
-		desc = "LSP 客户端附加到缓冲区时的配置",
-		callback = function(args)
-			local client = vim.lsp.get_client_by_id(args.data.client_id)
-
-			-- 使用组合状态检查（项目级 + 缓冲区级）
-			if not project_state.is_lsp_enabled_for_buffer(client.name, args.buf) then
-				local success, err = manager.stop_lsp(client.name, args.buf)
-				if success then
-					vim.notify(string.format("LSP %s 已禁用", client.name), vim.log.levels.INFO)
-				else
-					vim.notify(string.format("禁用 LSP %s 失败: %s", client.name, err), vim.log.levels.ERROR)
-				end
-				return
-			end
-
-			-- 设置按键映射
-			M.setup_keymaps(args.buf)
-
-			-- 启用文档颜色高亮
-			vim.lsp.document_color.enable(true, 0, { style = "virtual" })
-
-			-- 启用 LSP 折叠
-			-- 已交给ufo插件
-			-- if client:supports_method("textDocument/foldingRange") then
-			--   vim.wo.foldexpr = "v:lua.vim.lsp.foldexpr()"
-			-- end
-
-			-- 启用内联提示
-			if client:supports_method("textDocument/inlayHint") then
-				vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-			end
-		end,
-	})
-
-	-- LSP 从缓冲区分离时的清理
-	vim.api.nvim_create_autocmd("LspDetach", {
-		group = vim.api.nvim_create_augroup("LspStopAndUnmap", { clear = true }),
-		desc = "LSP 客户端分离时移除键映射",
-		callback = function(args)
-			M.remove_keymaps(args.buf)
-		end,
-	})
-
-	-- 模式切换处理
-	M.setup_mode_handlers()
-end
-
--- =============================================
--- 模式切换处理
--- =============================================
-
-function M.setup_mode_handlers()
-	-- 插入/选择模式禁用/启用诊断
-	vim.api.nvim_create_autocmd("ModeChanged", {
-		pattern = { "n:i", "v:s", "i:n" },
-		desc = "插入/选择模式禁用/启用诊断",
-		callback = function()
-			local bufnr = vim.api.nvim_get_current_buf()
-			local diag_enabled = vim.diagnostic.is_enabled({ bufnr = bufnr })
-			if diag_enabled then
-				vim.diagnostic.enable(false, { bufnr = bufnr })
-				vim.api.nvim_create_autocmd("ModeChanged", {
-					pattern = { "i:n", "s:v" },
-					once = true,
-					desc = "离开插入/选择模式后重新启用诊断",
-					callback = function()
-						local current_buf = vim.api.nvim_get_current_buf()
-						if vim.api.nvim_buf_is_valid(current_buf) then
-							vim.diagnostic.enable(true, { bufnr = current_buf })
-						end
-					end,
-				})
-			end
-		end,
-	})
-
-	-- 插入模式下禁用内联提示
-	vim.api.nvim_create_autocmd("InsertEnter", {
-		desc = "插入模式禁用内联提示",
-		callback = function(args)
-			local filter = { bufnr = args.buf }
-			local inlay_hint = vim.lsp.inlay_hint
-			if inlay_hint.is_enabled(filter) then
-				inlay_hint.enable(false, filter)
-				vim.api.nvim_create_autocmd("InsertLeave", {
-					once = true,
-					desc = "离开插入模式重新启用内联提示",
-					callback = function()
-						inlay_hint.enable(true, filter)
-					end,
-				})
-			end
-		end,
-	})
-end
-
--- =============================================
--- 按键映射配置
--- =============================================
-
-local keymaps = {
-	{
-		"<leader>lw",
-		"<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>",
-		"列出工作区文件夹",
-	},
-	{
-		"<leader>toi",
-		"<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>",
-		"打开/关闭内联提示",
-	},
-}
-
-function M.setup_keymaps(bufnr)
-	for _, map in ipairs(keymaps) do
-		vim.keymap.set("n", map[1], map[2], {
-			noremap = true,
-			silent = true,
-			desc = map[3],
-			buffer = bufnr,
-		})
-	end
-end
-
-function M.remove_keymaps(bufnr)
-	for _, map in ipairs(keymaps) do
-		pcall(vim.keymap.del, "n", map[1], { buffer = bufnr })
-	end
-end
-
--- =============================================
--- 诊断工具函数
--- =============================================
-
-function M.open_all_diagnostics()
-	vim.diagnostic.setqflist({
-		open = true,
-		title = "项目诊断",
-		severity = { min = vim.diagnostic.severity.WARN },
-		format = function(d)
-			return string.format(
-				"[%s] %s (%s:%d)",
-				vim.diagnostic.severity[d.severity],
-				d.message,
-				d.source or "?",
-				d.lnum + 1
-			)
-		end,
-	})
-end
-
-function M.open_buffer_diagnostics()
-	vim.diagnostic.setloclist({
-		open = true,
-		title = "缓冲区诊断",
-		severity = { min = vim.diagnostic.severity.HINT },
-		format = function(d)
-			return string.format("[%s] %s (%s)", vim.diagnostic.severity[d.severity], d.message, d.source or "?")
-		end,
-	})
-end
-
-function M.copy_error_message()
-	local row = unpack(vim.api.nvim_win_get_cursor(0)) - 1
-	local diag = vim.diagnostic.get(0, { lnum = row })
-	if #diag > 0 then
-		local messages = {}
-		for _, diagnostic in ipairs(diag) do
-			local code = diagnostic.code or "无错误代码"
-			local message = diagnostic.message or "无错误信息"
-			table.insert(messages, message .. " [" .. code .. "]")
-		end
-		vim.fn.setreg("+", table.concat(messages, "\n"))
-		print("错误信息已复制到剪贴板:\n" .. table.concat(messages, "\n"))
-	else
-		print("光标位置没有错误!")
-	end
-end
-
--- =============================================
--- 模块初始化
--- =============================================
-
-function M.setup()
-	M.setup_diagnostics()
-	M.setup_autocmds()
 end
 
 return M

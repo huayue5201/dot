@@ -1,66 +1,42 @@
--- LSP 工具函数模块
--- 整合所有工具函数，包括 LSP 配置查询、功能支持检测等
 local M = {}
 
--- 缓存管理
+-- 缓存 LSP 配置，避免重复加载
 M._lsp_config_cache = nil
-M._filetype_lsp_cache = nil
 
--- =============================================
--- LSP 配置管理
--- =============================================
-
--- 加载所有 LSP 配置
+-- 内部函数：加载所有 LSP 配置
 function M._load_all_lsp_configs()
+	---@diagnostic disable-next-line: unnecessary-if
 	if M._lsp_config_cache then
 		return M._lsp_config_cache
 	end
-
 	local configs = {}
-	for _, path in ipairs(vim.api.nvim_get_runtime_file("after/lsp/*.lua", true)) do
+	for _, path in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
 		local filename = vim.fn.fnamemodify(path, ":t:r")
 		local ok, config = pcall(dofile, path)
 		if ok and type(config) == "table" then
 			configs[filename] = config
 		else
-			vim.notify("加载配置失败: " .. path, vim.log.levels.ERROR)
+			vim.notify("Failed to load config from: " .. path, vim.log.levels.ERROR)
 		end
 	end
-
 	M._lsp_config_cache = configs
 	return configs
 end
 
--- 构建文件类型到 LSP 的映射缓存
-function M._build_filetype_lsp_cache()
-	local all_configs = M._load_all_lsp_configs()
-	local cache = {}
-
-	for lsp_name, config in pairs(all_configs) do
-		if config.filetypes then
-			local filetypes = type(config.filetypes) == "string" and { config.filetypes } or config.filetypes
-			for _, ft in ipairs(filetypes) do
-				ft = string.lower(ft)
-				cache[ft] = cache[ft] or {}
-				table.insert(cache[ft], lsp_name)
-			end
-		end
-	end
-
-	M._filetype_lsp_cache = cache
+-- 清空缓存（在配置重载时调用）
+function M.clear_lsp_config_cache()
+	M._lsp_config_cache = nil
 end
 
--- 检查配置是否匹配文件类型
+-- 内部函数：检查配置是否匹配文件类型
 function M._config_matches_filetype(config, filetype)
 	if not config.filetypes then
 		return false
 	end
-
 	local filetypes = config.filetypes
 	if type(filetypes) == "string" then
 		filetypes = { filetypes }
 	end
-
 	for _, ft in ipairs(filetypes) do
 		if string.lower(ft) == filetype then
 			return true
@@ -69,67 +45,109 @@ function M._config_matches_filetype(config, filetype)
 	return false
 end
 
--- 获取 LSP 配置
+-- 通用 LSP 配置查询函数
 function M.get_lsp_config(...)
 	local fields = { ... }
 	local all_configs = M._load_all_lsp_configs()
-
+	local result = {}
+	-- 处理无参数情况：返回完整配置表
 	if #fields == 0 then
 		return all_configs
 	end
-
-	local result = {}
+	-- 初始化结果结构
+	local multi_result = {}
+	local is_single_field = (#fields == 1)
+	-- 为每个字段创建结果容器
 	for _, field in ipairs(fields) do
-		if field == "name" then
-			for filename in pairs(all_configs) do
-				table.insert(result, filename)
-			end
+		if is_single_field then
+			result = {} -- 单参数时使用平面列表
 		else
-			for _, config in pairs(all_configs) do
+			multi_result[field] = {} -- 多参数时使用字段键值表
+		end
+	end
+	-- 遍历所有配置文件
+	for filename, config in pairs(all_configs) do
+		for _, field in ipairs(fields) do
+			-- 处理特殊字段 "name"
+			if field == "name" then
+				if is_single_field then
+					table.insert(result, filename)
+				else
+					table.insert(multi_result[field], filename)
+				end
+			else
+				-- 处理其他字段
 				if config[field] then
 					local value = config[field]
+					-- 处理表值（合并）
 					if type(value) == "table" then
 						for _, v in ipairs(value) do
-							if not vim.tbl_contains(result, v) then
-								table.insert(result, v)
+							local target = is_single_field and result or multi_result[field]
+							if not vim.tbl_contains(target, v) then
+								table.insert(target, v)
 							end
 						end
+					-- 处理非表值（确保唯一性）
 					else
-						if not vim.tbl_contains(result, value) then
-							table.insert(result, value)
+						local target = is_single_field and result or multi_result[field]
+						if not vim.tbl_contains(target, value) then
+							table.insert(target, value)
 						end
 					end
+				else
+					-- 字段不存在时发出警告
+					vim.notify("Field '" .. field .. "' not found in config: " .. filename, vim.log.levels.WARN)
 				end
 			end
 		end
 	end
-
-	return result
+	-- 返回结果
+	return is_single_field and result or multi_result
 end
 
--- 获取支持当前文件类型的 LSP 名称（使用缓存优化）
+-- 获取支持当前文件类型的 LSP 名称列表
 function M.get_lsp_name()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local current_filetype = string.lower(vim.bo[bufnr].filetype)
 
-	-- 如果缓存不存在，则构建缓存
-	if not M._filetype_lsp_cache then
-		M._build_filetype_lsp_cache()
+	local all_configs = M._load_all_lsp_configs()
+	local matched_lsp_names = {}
+
+	for lsp_name, config in pairs(all_configs) do
+		if M._config_matches_filetype(config, current_filetype) then
+			table.insert(matched_lsp_names, lsp_name)
+		end
 	end
 
-	return M._filetype_lsp_cache[current_filetype] or {}
+	return matched_lsp_names
 end
 
--- =============================================
--- LSP 客户端状态检查
--- =============================================
+-- 可选：获取指定文件类型的 LSP 名称
+function M.get_lsp_by_filetype(filetype)
+	filetype = string.lower(filetype)
+	local all_configs = M._load_all_lsp_configs()
+	local matched_lsp_names = {}
+	for lsp_name, config in pairs(all_configs) do
+		if M._config_matches_filetype(config, filetype) then
+			table.insert(matched_lsp_names, lsp_name)
+		end
+	end
 
--- 获取当前缓冲区的活跃 LSP 客户端列表
+	return matched_lsp_names
+end
+
+-- 可选：获取所有 LSP 名称（快捷方式）
+function M.get_all_lsp_names()
+	return M.get_lsp_config("name")
+end
+
+-- 查看当前 buffer 的活跃 LSP
 function M.get_active_lsps(bufnr)
 	bufnr = bufnr or 0
 	local clients = vim.lsp.get_clients({ bufnr = bufnr })
 
 	if not clients or vim.tbl_isempty(clients) then
+		vim.notify("No active LSP clients for this buffer.", vim.log.levels.WARN)
 		return {}
 	end
 
@@ -142,106 +160,6 @@ function M.get_active_lsps(bufnr)
 		})
 	end
 	return active
-end
-
--- 获取所有 LSP 支持的文件类型列表（用于自动命令的 pattern）
-function M.get_supported_filetypes()
-	local all_configs = M._load_all_lsp_configs()
-	local filetypes = {}
-
-	for _, config in pairs(all_configs) do
-		if config.filetypes then
-			local ft_list = type(config.filetypes) == "string" and { config.filetypes } or config.filetypes
-			for _, ft in ipairs(ft_list) do
-				if not vim.tbl_contains(filetypes, ft) then
-					table.insert(filetypes, ft)
-				end
-			end
-		end
-	end
-
-	return filetypes
-end
-
--- =============================================
--- LSP 功能支持检测
--- =============================================
-
--- 检查 LSP 客户端是否支持特定方法
-function M.client_supports_method(client, method)
-	if not client or not client.supports then
-		return false
-	end
-	return client.supports(method)
-end
-
--- 获取当前缓冲区的 LSP 功能支持状态
-function M.get_buffer_capabilities(bufnr)
-	bufnr = bufnr or 0
-	local clients = vim.lsp.get_clients({ bufnr = bufnr })
-	local capabilities = {}
-
-	for _, client in ipairs(clients) do
-		local caps = client.server_capabilities
-		if caps then
-			capabilities[client.name] = {
-				document_formatting = not not caps.documentFormattingProvider,
-				document_range_formatting = not not caps.documentRangeFormattingProvider,
-				code_action = not not caps.codeActionProvider,
-				completion = not not caps.completionProvider,
-				hover = not not caps.hoverProvider,
-				signature_help = not not caps.signatureHelpProvider,
-				definition = not not caps.definitionProvider,
-				references = not not caps.referencesProvider,
-				implementation = not not caps.implementationProvider,
-				rename = not not caps.renameProvider,
-			}
-		end
-	end
-
-	return capabilities
-end
-
--- =============================================
--- 格式化功能
--- =============================================
-
--- 格式化当前缓冲区（使用支持格式化的第一个 LSP 客户端）
-function M.format_buffer()
-	local clients = vim.lsp.get_clients({ bufnr = 0 })
-	for _, client in ipairs(clients) do
-		if M.client_supports_method(client, "textDocument/formatting") then
-			vim.lsp.buf.format({
-				filter = function(c)
-					return c.name == client.name
-				end,
-				async = false,
-			})
-			return true
-		end
-	end
-	return false
-end
-
--- =============================================
--- 诊断工具
--- =============================================
-
--- 获取当前行的诊断信息
-function M.get_current_line_diagnostics()
-	local row = unpack(vim.api.nvim_win_get_cursor(0)) - 1
-	return vim.diagnostic.get(0, { lnum = row })
-end
-
--- 检查当前行是否有错误
-function M.has_error_on_current_line()
-	local diags = M.get_current_line_diagnostics()
-	for _, diag in ipairs(diags) do
-		if diag.severity == vim.diagnostic.severity.ERROR then
-			return true
-		end
-	end
-	return false
 end
 
 return M
