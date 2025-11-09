@@ -1,3 +1,4 @@
+-- lua/lsp/manager.lua
 -- LSP 管理器模块
 -- 负责 LSP 客户端生命周期管理、状态显示等核心业务逻辑
 local M = {}
@@ -114,6 +115,7 @@ function M.start_eligible_lsps()
 	local lsp_names = utils.get_lsp_name()
 
 	for _, lsp_name in ipairs(lsp_names) do
+		-- 使用项目级状态来决定是否启动
 		if M.is_lsp_enabled(lsp_name) then
 			local success, err = M.start_lsp(lsp_name)
 			if not success then
@@ -160,6 +162,19 @@ function M.show_lsp_status()
 		end
 	else
 		print("当前没有活跃的 LSP 客户端")
+	end
+
+	-- 显示当前缓冲区的覆盖状态
+	local bufnr = vim.api.nvim_get_current_buf()
+	local buffer_states = project_state.get_all_buffer_states(bufnr)
+	if next(buffer_states) then
+		print("\n当前缓冲区覆盖状态:")
+		for lsp_name, enabled in pairs(buffer_states) do
+			local status = enabled and "启用" or "禁用"
+			local project_enabled = project_state.is_lsp_enabled(lsp_name)
+			local conflict_marker = enabled ~= project_enabled and " [冲突]" or ""
+			print(string.format("  %s: %s%s", lsp_name, status, conflict_marker))
+		end
 	end
 end
 

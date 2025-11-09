@@ -1,3 +1,4 @@
+-- lua/lsp/control.lua
 local M = {}
 
 local manager, project_state, utils
@@ -22,6 +23,10 @@ local function handle_lsp_error(operation, lsp_name, err, level)
 	return false, err
 end
 
+-- =============================================
+-- 统一的 LSP 管理
+-- =============================================
+
 function M.stop_lsp()
 	ensure_modules()
 	local bufnr = vim.api.nvim_get_current_buf()
@@ -36,7 +41,7 @@ function M.stop_lsp()
 		return client.name
 	end, clients)
 
-	vim.ui.select(lsp_names, { prompt = "  停止lsp " }, function(choice)
+	vim.ui.select(lsp_names, { prompt = "  停止LSP " }, function(choice)
 		if not choice then
 			vim.notify("已取消停止操作", vim.log.levels.INFO)
 			return
@@ -44,7 +49,8 @@ function M.stop_lsp()
 
 		local success, err = manager.stop_lsp(choice, bufnr)
 		if success then
-			manager.set_lsp_state(choice, false)
+			-- 记录缓冲区级状态
+			project_state.set_buffer_lsp_state(bufnr, choice, false)
 			vim.notify("已停止 LSP: " .. choice, vim.log.levels.INFO)
 		else
 			handle_lsp_error("停止", choice, err)
@@ -57,7 +63,7 @@ function M.start_lsp()
 	local disabled_lsps = {}
 
 	for _, lsp_name in ipairs(utils.get_lsp_name()) do
-		if not manager.is_lsp_enabled(lsp_name) then
+		if not project_state.is_lsp_enabled_for_buffer(lsp_name) then
 			table.insert(disabled_lsps, lsp_name)
 		end
 	end
@@ -67,7 +73,7 @@ function M.start_lsp()
 		return
 	end
 
-	vim.ui.select(disabled_lsps, { prompt = " 󰀚 启动lsp " }, function(choice)
+	vim.ui.select(disabled_lsps, { prompt = " 󰀚 启动LSP " }, function(choice)
 		if not choice then
 			vim.notify("已取消启动操作", vim.log.levels.INFO)
 			return
@@ -75,7 +81,8 @@ function M.start_lsp()
 
 		local success, err = manager.start_lsp(choice)
 		if success then
-			manager.set_lsp_state(choice, true)
+			-- 记录缓冲区级状态
+			project_state.set_buffer_lsp_state(0, choice, true)
 			vim.notify("已启动 LSP: " .. choice, vim.log.levels.INFO)
 		else
 			handle_lsp_error("启动", choice, err)
@@ -84,122 +91,112 @@ function M.start_lsp()
 end
 
 -- =============================================
--- 缓冲区级 LSP 管理（程序化接口）
+-- 项目级 LSP 管理（智能排除冲突缓冲区）
 -- =============================================
 
-function M.buffer_stop(lsp_names, bufnr)
+function M.project_stop_lsp()
 	ensure_modules()
-	bufnr = bufnr or vim.api.nvim_get_current_buf()
+	local lsp_names = utils.get_lsp_name()
 
-	-- 参数标准化
-	if type(lsp_names) == "string" then
-		lsp_names = { lsp_names }
+	if #lsp_names == 0 then
+		vim.notify("当前文件类型没有支持的 LSP", vim.log.levels.INFO)
+		return
 	end
 
-	if not lsp_names or #lsp_names == 0 then
-		return false, "需要提供 LSP 名称"
-	end
-
-	local buffer_state = require("lsp.buffer_state")
-	local stopped = 0
-
-	for _, lsp_name in ipairs(lsp_names) do
-		-- 分离客户端
-		local clients = vim.lsp.get_active_clients({ name = lsp_name, bufnr = bufnr })
-
-		for _, client in ipairs(clients) do
-			pcall(vim.lsp.buf_detach_client, bufnr, client.id)
+	vim.ui.select(lsp_names, { prompt = "  停止项目LSP " }, function(choice)
+		if not choice then
+			vim.notify("已取消停止操作", vim.log.levels.INFO)
+			return
 		end
 
-		-- 设置缓冲区状态
-		buffer_state.set_buffer_lsp_state(bufnr, lsp_name, false)
-		stopped = stopped + 1
-	end
+		-- 设置项目级状态
+		project_state.set_lsp_state(choice, false)
 
-	if stopped > 0 then
-		vim.notify(string.format("已停止 %d 个 LSP", stopped), vim.log.levels.INFO)
-	end
+		-- 获取需要停止的缓冲区列表（排除有冲突的）
+		local eligible_buffers = project_state.get_buffers_for_project_operation(choice, false)
 
-	return true
+		-- 停止符合条件的缓冲区
+		local stopped_count = 0
+		for _, buffer_key in ipairs(eligible_buffers) do
+			local bufnr
+			if buffer_key:match("^buffer_%d+$") then
+				bufnr = tonumber(buffer_key:match("buffer_(%d+)"))
+			else
+				bufnr = vim.fn.bufnr(buffer_key)
+			end
+
+			if bufnr and bufnr ~= -1 and vim.api.nvim_buf_is_valid(bufnr) then
+				local success, err = manager.stop_lsp(choice, bufnr)
+				if success then
+					stopped_count = stopped_count + 1
+				end
+			end
+		end
+
+		if stopped_count > 0 then
+			vim.notify(
+				string.format("已在 %d 个缓冲区停止 LSP: %s", stopped_count, choice),
+				vim.log.levels.INFO
+			)
+		else
+			vim.notify(string.format("LSP %s 已在项目中禁用", choice), vim.log.levels.INFO)
+		end
+	end)
 end
 
-function M.buffer_start(lsp_names, bufnr)
+function M.project_start_lsp()
 	ensure_modules()
-	bufnr = bufnr or vim.api.nvim_get_current_buf()
+	local lsp_names = utils.get_lsp_name()
 
-	-- 参数标准化
-	if type(lsp_names) == "string" then
-		lsp_names = { lsp_names }
+	if #lsp_names == 0 then
+		vim.notify("当前文件类型没有支持的 LSP", vim.log.levels.INFO)
+		return
 	end
 
-	if not lsp_names or #lsp_names == 0 then
-		return false, "需要提供 LSP 名称"
-	end
-
-	local buffer_state = require("lsp.buffer_state")
-	local started = 0
-
-	for _, lsp_name in ipairs(lsp_names) do
-		-- 清除缓冲区状态
-		buffer_state.set_buffer_lsp_state(bufnr, lsp_name, nil)
-
-		-- 重新启动 LSP
-		local success, err = manager.start_lsp(lsp_name, bufnr)
-		if success then
-			started = started + 1
-		else
-			vim.notify(string.format("启动 %s 失败: %s", lsp_name, err), vim.log.levels.WARN)
+	vim.ui.select(lsp_names, { prompt = " 󰀚 启动项目LSP " }, function(choice)
+		if not choice then
+			vim.notify("已取消启动操作", vim.log.levels.INFO)
+			return
 		end
-	end
 
-	if started > 0 then
-		vim.notify(string.format("已启动 %d 个 LSP", started), vim.log.levels.INFO)
-	end
+		-- 设置项目级状态
+		project_state.set_lsp_state(choice, true)
 
-	return started > 0
+		-- 获取需要启动的缓冲区列表（排除有冲突的）
+		local eligible_buffers = project_state.get_buffers_for_project_operation(choice, true)
+
+		-- 启动符合条件的缓冲区
+		local started_count = 0
+		for _, buffer_key in ipairs(eligible_buffers) do
+			local bufnr
+			if buffer_key:match("^buffer_%d+$") then
+				bufnr = tonumber(buffer_key:match("buffer_(%d+)"))
+			else
+				bufnr = vim.fn.bufnr(buffer_key)
+			end
+
+			if bufnr and bufnr ~= -1 and vim.api.nvim_buf_is_valid(bufnr) then
+				local success, err = manager.start_lsp(choice, bufnr)
+				if success then
+					started_count = started_count + 1
+				end
+			end
+		end
+
+		if started_count > 0 then
+			vim.notify(
+				string.format("已在 %d 个缓冲区启动 LSP: %s", started_count, choice),
+				vim.log.levels.INFO
+			)
+		else
+			vim.notify(string.format("LSP %s 已在项目中启用", choice), vim.log.levels.INFO)
+		end
+	end)
 end
 
 -- =============================================
 -- 便捷方法
 -- =============================================
-
-function M.buffer_stop_all(bufnr)
-	bufnr = bufnr or vim.api.nvim_get_current_buf()
-
-	local clients = vim.lsp.get_active_clients({ bufnr = bufnr })
-	if #clients == 0 then
-		vim.notify("当前缓冲区没有 LSP 客户端", vim.log.levels.INFO)
-		return
-	end
-
-	local lsp_names = {}
-	for _, client in ipairs(clients) do
-		table.insert(lsp_names, client.name)
-	end
-
-	return M.buffer_stop(lsp_names, bufnr)
-end
-
-function M.buffer_start_all(bufnr)
-	bufnr = bufnr or vim.api.nvim_get_current_buf()
-
-	local buffer_state = require("lsp.buffer_state")
-	local buffer_states = buffer_state.get_all_buffer_states(bufnr)
-
-	local disabled_lsps = {}
-	for lsp_name, enabled in pairs(buffer_states) do
-		if enabled == false then
-			table.insert(disabled_lsps, lsp_name)
-		end
-	end
-
-	if #disabled_lsps == 0 then
-		vim.notify("当前缓冲区没有禁用的 LSP", vim.log.levels.INFO)
-		return true
-	end
-
-	return M.buffer_start(disabled_lsps, bufnr)
-end
 
 function M.restart_lsp()
 	ensure_modules()
