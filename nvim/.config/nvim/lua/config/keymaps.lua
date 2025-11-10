@@ -28,71 +28,6 @@ vim.keymap.set("n", "<a-q>", "<cmd>Toggle quickfix<cr>", { desc = "Toggle Quickf
 
 vim.keymap.set("n", "<a-l>", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
--- LSP 相关键映射
--- vim.api.nvim_set_keymap(
--- 	"n",
--- 	"<leader>lD",
--- 	":LspDiagnostics<CR>",
--- 	{ noremap = true, silent = true, desc = "打开项目诊断列表" }
--- )
--- vim.api.nvim_set_keymap(
--- 	"n",
--- 	"<leader>ld",
--- 	":LspBufferDiagnostics<CR>",
--- 	{ noremap = true, silent = true, desc = "打开当前缓冲区诊断列表" }
--- )
--- vim.api.nvim_set_keymap(
--- 	"n",
--- 	"<leader>yd",
--- 	":LspCopyError<CR>",
--- 	{ noremap = true, silent = true, desc = "复制当前光标处的错误信息" }
--- )
---
--- vim.api.nvim_set_keymap(
--- 	"n",
--- 	"<leader>lr",
--- 	":LspRestart<CR>",
--- 	{ noremap = true, silent = true, desc = "重启LSP客户端" }
--- )
--- vim.api.nvim_set_keymap(
--- 	"n",
--- 	"<leader>ls",
--- 	":LspStop<CR>",
--- 	{ noremap = true, silent = true, desc = "停止LSP客户端" }
--- )
--- vim.api.nvim_set_keymap(
--- 	"n",
--- 	"<leader>lS",
--- 	":LspStart<CR>",
--- 	{ noremap = true, silent = true, desc = "启动LSP客户端" }
--- )
---
--- vim.api.nvim_set_keymap(
--- 	"n",
--- 	"<leader>lI",
--- 	":LspInfo<CR>",
--- 	{ noremap = true, silent = true, desc = "显示详细的LSP信息" }
--- )
--- vim.api.nvim_set_keymap(
--- 	"n",
--- 	"<leader>lt",
--- 	":LspStatus<CR>",
--- 	{ noremap = true, silent = true, desc = "显示LSP状态信息" }
--- )
--- vim.api.nvim_set_keymap(
--- 	"n",
--- 	"<leader>lT",
--- 	":LspStats<CR>",
--- 	{ noremap = true, silent = true, desc = "显示诊断统计" }
--- )
---
--- vim.keymap.set(
--- 	"n",
--- 	"<leader>tod",
--- 	"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
--- 	{ desc = "打开/关闭 LSP 诊断" }
--- )
-
 vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "重新加载当前buffer" })
 vim.keymap.set("n", "<leader>tor", "<cmd>restart<cr>", { silent = true, desc = "热重启nvim" })
 
@@ -117,8 +52,6 @@ vim.keymap.set("n", "<leader>eu", function()
 		command = "set nosplitright | 40vnew | set splitright<",
 	})
 end, { desc = "打开撤销树" })
-
-vim.keymap.set("n", "<leader>eo", "<cmd>SwitchEnv<cr>", { desc = "配置切换" })
 
 vim.keymap.set("n", "<leader>yp", function()
 	vim.fn.setreg("+", vim.fn.expand("%:p"))

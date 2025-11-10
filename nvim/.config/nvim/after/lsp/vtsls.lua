@@ -24,7 +24,7 @@ return {
 		local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(bufnr))
 		local file_size_mb = (ok and stats and stats.size or 0) / (1024 * 1024) -- 转换成 MB
 
-		local BIGFILE_LINES = 10000
+		local BIGFILE_LINES = 100000
 		local BIGFILE_SIZE = 3 -- MB
 
 		if line_count > BIGFILE_LINES or file_size_mb > BIGFILE_SIZE then
