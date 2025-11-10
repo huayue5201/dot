@@ -1,6 +1,6 @@
 local M = {}
 
--- 确保文件目录存在
+-- 确保目录存在
 local function ensure_dir(path)
 	local dir = vim.fn.fnamemodify(path, ":h")
 	if vim.fn.isdirectory(dir) == 0 then
@@ -8,38 +8,36 @@ local function ensure_dir(path)
 	end
 end
 
--- 创建实例
 function M:new(config)
 	local instance = {
 		file_path = config.file_path,
 		default_data = config.default_data or {},
-		data = nil, -- 缓存数据（延迟加载）
-		_dirty = false, -- 是否需要保存
-		auto_save = config.auto_save or false, -- 可选：自动写入文件
+		data = nil,
+		_dirty = false,
+		auto_save = config.auto_save or false,
 	}
 	setmetatable(instance, { __index = self })
 	return instance
 end
 
--- 内部加载数据
+-- 内部加载文件
 function M:_load_from_file()
-	local file = io.open(self.file_path, "r")
-	if not file then
+	local f = io.open(self.file_path, "r")
+	if not f then
 		return vim.deepcopy(self.default_data)
 	end
-	local content = file:read("*a")
-	file:close()
+	local content = f:read("*a")
+	f:close()
 
 	local ok, data = pcall(vim.json.decode, content)
 	if ok and type(data) == "table" then
 		return data
 	else
-		vim.notify("⚠️ JSON 解析失败，已重置默认数据: " .. self.file_path, vim.log.levels.WARN)
+		vim.notify("⚠️ JSON 解析失败, 使用默认数据: " .. self.file_path, vim.log.levels.WARN)
 		return vim.deepcopy(self.default_data)
 	end
 end
 
--- 加载（带缓存）
 function M:load()
 	if not self.data then
 		self.data = self:_load_from_file()
@@ -47,49 +45,39 @@ function M:load()
 	return self.data
 end
 
--- 保存到文件
 function M:save()
 	if not self.data then
 		return false
 	end
 	ensure_dir(self.file_path)
 
-	local ok, json_str
-	local ok_indent = pcall(function()
-		json_str = vim.json.encode(self.data, { indent = true })
-	end)
-
-	if not ok_indent or not json_str then
-		local compact = vim.fn.json_encode(self.data)
-		json_str = compact:gsub(',"', ',\n  "'):gsub("{", "{\n  "):gsub("}", "\n}")
+	local ok, json_str = pcall(vim.json.encode, self.data, { indent = true })
+	if not ok or not json_str then
+		json_str = vim.fn.json_encode(self.data):gsub(',"', ',\n  "'):gsub("{", "{\n  "):gsub("}", "\n}")
 	end
 
-	local file = io.open(self.file_path, "w")
-	if not file then
+	local f = io.open(self.file_path, "w")
+	if not f then
 		vim.notify("❌ 无法写入 JSON 文件: " .. self.file_path, vim.log.levels.ERROR)
 		return false
 	end
-	file:write(json_str)
-	file:close()
+	f:write(json_str)
+	f:close()
 
 	self._dirty = false
 	return true
 end
 
--- 手动刷新到文件
 function M:flush()
 	if self._dirty then
 		return self:save()
 	end
 end
 
--- 获取键
 function M:get(key)
-	local data = self:load()
-	return data[key]
+	return self:load()[key]
 end
 
--- 设置键
 function M:set(key, value)
 	local data = self:load()
 	data[key] = value
@@ -99,7 +87,6 @@ function M:set(key, value)
 	end
 end
 
--- 删除键
 function M:delete(key)
 	local data = self:load()
 	if data[key] ~= nil then
@@ -111,7 +98,6 @@ function M:delete(key)
 	end
 end
 
--- 清空数据
 function M:clear()
 	self.data = vim.deepcopy(self.default_data)
 	self._dirty = true

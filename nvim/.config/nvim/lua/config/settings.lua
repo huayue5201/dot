@@ -41,6 +41,7 @@ require("vim._extui").enable({
 -- vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 -- vim.opt.foldlevelstart = 99 -- 默认展开所有内容
 -- vim.opt.foldcolumn = "1" -- 显示折叠列
+vim.o.foldtext = ""
 
 -- -------------- 编辑行为设置 --------------
 vim.opt.expandtab = true -- 将 Tab 转为空格

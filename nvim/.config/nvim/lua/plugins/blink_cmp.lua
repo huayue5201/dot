@@ -5,7 +5,11 @@ return {
 	event = { "InsertEnter", "CmdlineEnter" },
 	-- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
 	build = "cargo build --release",
-	dependencies = "xzbdmw/colorful-menu.nvim",
+	dependencies = {
+		"xzbdmw/colorful-menu.nvim",
+		-- https://github.com/mikavilpas/blink-ripgrep.nvim
+		"mikavilpas/blink-ripgrep.nvim",
+	},
 	---@module 'blink.cmp'
 	---@type blink.cmp.Config
 	config = function()
@@ -111,7 +115,18 @@ return {
 			},
 			-- 补全源配置：定义默认启用的补全提供者
 			sources = {
-				default = { "lsp", "path", "snippets", "buffer", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
+				default = { "buffer", "lsp", "path", "snippets", "ripgrep", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
+				providers = {
+					-- other sources
+					ripgrep = {
+						module = "blink-ripgrep",
+						name = "Ripgrep",
+						-- see the full configuration below for all available options
+						---@module "blink-ripgrep"
+						---@type blink-ripgrep.Options
+						opts = {},
+					},
+				},
 				transform_items = function(ctx, items)
 					local line = ctx.cursor[1] - 1
 					local col = ctx.cursor[2]
