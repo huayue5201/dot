@@ -71,9 +71,9 @@ function M.setup()
 			end
 
 			-- 启用内联提示
-			-- if client:supports_method("textDocument/inlayHint") then
-			-- 	vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-			-- end
+			if client:supports_method("textDocument/inlayHint") then
+				vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+			end
 		end,
 	})
 

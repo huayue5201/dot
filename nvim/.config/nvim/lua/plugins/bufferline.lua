@@ -6,7 +6,6 @@ return {
 	dependencies = "nvim-tree/nvim-web-devicons",
 	config = function()
 		local icons = require("utils.utils").icons.diagnostic
-
 		require("bufferline").setup({
 			options = {
 				separator_style = "thin",
