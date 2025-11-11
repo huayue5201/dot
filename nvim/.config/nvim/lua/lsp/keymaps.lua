@@ -2,6 +2,7 @@ local M = {}
 
 -- 打开所有 buffer 的诊断（Quickfix 风格，适合全局排查）
 local function open_all_diagnostics()
+	---@diagnostic disable-next-line: param-type-mismatch
 	vim.diagnostic.setqflist({
 		open = true,
 		title = "Project Diagnostics",
@@ -20,6 +21,7 @@ end
 
 -- 仅当前 buffer 的诊断（Loclist 风格，适合局部修复）
 local function open_buffer_diagnostics()
+	---@diagnostic disable-next-line: param-type-mismatch
 	vim.diagnostic.setloclist({
 		open = true,
 		title = "Buffer Diagnostics",
@@ -74,12 +76,7 @@ local keymaps = {
 		"复制报错",
 	},
 	{
-		"<leader>lw",
-		"<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>",
-		"列出工作区文件夹",
-	},
-	{
-		"<leader>toi",
+		"<leader>li",
 		"<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>",
 		"打开/关闭内联提示",
 	},

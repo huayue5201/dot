@@ -25,21 +25,19 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
 -- 立即加载基础配置
 require("env") -- 环境变量配置
-require("config.settings") -- 基础 Neovim 选项
-require("config.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
-require("config.statusline").active()
+require("core.settings") -- 基础 Neovim 选项
+require("core.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
+require("core.statusline").active()
 
 -- vim.lsp.enable("emmylua_ls")
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()
-	require("config.autocmds") -- 加载自动命令
-	require("config.keymaps") -- 加载按键映射
+	require("core.autocmds") -- 加载自动命令
+	require("core.keymaps") -- 加载按键映射
 
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
 		require("lsp").setup() --lsp
 		require("utils.dotenv").load() -- token加载模块
-		-- quickfixtextfunc
-		require("config.quickfixtext").setup()
 	end)
 end, 300) -- 延迟 100ms 执行
