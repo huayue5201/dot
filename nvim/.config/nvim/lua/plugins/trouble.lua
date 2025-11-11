@@ -110,7 +110,7 @@ return {
 					win = {
 						type = "split",
 						position = "right", -- 可选：bottom | top | left | right | float
-						size = 40, -- ← 窗口宽度（右侧）或高度（底部）
+						size = 70, -- ← 窗口宽度（右侧）或高度（底部）
 					}, -- 窗口位置在右侧
 				},
 			},
