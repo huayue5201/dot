@@ -46,12 +46,12 @@ vim.keymap.set(
 )
 
 -- 加载 undotree 插件
-vim.cmd("packadd nvim.undotree")
-vim.keymap.set("n", "<leader>eu", function()
-	require("undotree").open({
-		command = "set nosplitright | 40vnew | set splitright<",
-	})
-end, { desc = "打开撤销树" })
+-- vim.cmd("packadd nvim.undotree")
+-- vim.keymap.set("n", "<leader>eu", function()
+-- 	require("undotree").open({
+-- 		command = "set nosplitright | 40vnew | set splitright<",
+-- 	})
+-- end, { desc = "打开撤销树" })
 
 vim.keymap.set("n", "<leader>yp", function()
 	vim.fn.setreg("+", vim.fn.expand("%:p"))
