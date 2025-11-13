@@ -5,7 +5,8 @@ return {
 	event = "UIEnter",
 	dependencies = "nvim-tree/nvim-web-devicons",
 	config = function()
-		local icons = require("utils.utils").icons.diagnostic
+		local icons = require("lsp.utils").icons.diagnostic
+
 		require("bufferline").setup({
 			options = {
 				separator_style = "thin",

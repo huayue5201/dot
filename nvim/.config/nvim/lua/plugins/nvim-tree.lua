@@ -4,7 +4,8 @@ return {
 	dependencies = { "nvim-tree/nvim-web-devicons" },
 	lazy = false,
 	config = function()
-		local icon = require("utils.utils").icons.diagnostic
+		local icon = require("lsp.utils").icons.diagnostic
+
 		-- 🎨 Git 状态颜色
 		vim.api.nvim_set_hl(0, "NvimTreeGitDirty", { fg = "#e5c07b" }) -- 黄色
 		vim.api.nvim_set_hl(0, "NvimTreeGitStaged", { fg = "#98c379" }) -- 绿色

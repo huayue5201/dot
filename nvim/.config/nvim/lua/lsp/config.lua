@@ -1,6 +1,6 @@
 local M = {}
 
-local icons = require("utils.utils").icons.diagnostic
+local icons = require("lsp.utils").icons.diagnostic
 local lsp_get = require("lsp.utils")
 
 M.diagnostic_config = function()

@@ -26,6 +26,7 @@ return {
 				-- c={ "astyle" },
 				rust = { "rustfmt" },
 				javascript = { "biome" },
+				python = { "ruff_format" },
 			},
 			-- Set up format-on-save
 			format_on_save = function(bufnr)
