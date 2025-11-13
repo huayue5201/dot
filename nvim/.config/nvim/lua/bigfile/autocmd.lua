@@ -1,5 +1,5 @@
+-- lua/bigfile/autocmd.lua
 local uv = vim.loop
-local info = require("bigfile.info")
 local checkers = require("bigfile.checkers")
 local state = require("bigfile.state")
 
@@ -116,7 +116,6 @@ function M.setup(opts)
 		group = vim.api.nvim_create_augroup("BigFileCleanup", { clear = true }),
 		callback = function(args)
 			cleanup_timer(args.buf)
-			info.clear(args.buf)
 			state.clear(args.buf)
 		end,
 	})
@@ -158,7 +157,7 @@ function M.run_all_checkers(buf)
 								settings_mod.apply(buf)
 							end
 							-- 记录状态变化
-							state.set_rule_state(buf, name, true)
+							state.set_rule_state(buf, name, true, reason)
 							table.insert(triggered_rules, {
 								name = name,
 								reason = reason,
@@ -171,7 +170,7 @@ function M.run_all_checkers(buf)
 								settings_mod.reset(buf)
 							end
 							-- 记录状态变化
-							state.set_rule_state(buf, name, false)
+							state.set_rule_state(buf, name, false, "恢复正常")
 							table.insert(recovered_rules, {
 								name = name,
 								reason = "恢复正常",
@@ -187,7 +186,7 @@ function M.run_all_checkers(buf)
 
 						-- 如果有任何规则命中，显示详细信息
 						if #triggered_rules > 0 then
-							info.show(buf)
+							state.show(buf)
 						end
 					end
 				end)

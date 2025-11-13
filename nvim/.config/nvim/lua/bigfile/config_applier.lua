@@ -1,63 +1,56 @@
+-- lua/bigfile/config_applier.lua
 local M = {}
 
 -- 应用配置到指定缓冲区
-function M.apply_config(config, buf)
-	if not config then
+function M.apply_config(config_table, buf)
+	if not config_table or not config_table.configs then
 		return
 	end
 
-	-- 应用选项设置
-	if config.options then
-		for opt_name, opt_value in pairs(config.options) do
-			M.apply_option(opt_name, opt_value, buf)
-		end
+	-- 保存当前缓冲区
+	local current_buf = vim.api.nvim_get_current_buf()
+	local switch_back = current_buf ~= buf
+
+	-- 切换到目标缓冲区
+	if switch_back then
+		vim.api.nvim_set_current_buf(buf)
 	end
 
-	-- 执行插件命令
-	if config.plugin_commands then
-		for _, cmd in ipairs(config.plugin_commands) do
-			M.execute_command(cmd)
-		end
+	-- 执行所有配置项
+	for _, config_line in ipairs(config_table.configs) do
+		M.execute_config_line(config_line)
 	end
-end
 
--- 应用单个选项（自动判断作用域）
-function M.apply_option(opt_name, opt_value, buf)
-	local success, err = pcall(function()
-		local win = vim.fn.bufwinid(buf)
-
-		-- 按作用域优先级尝试设置选项
-		if win ~= -1 then
-			-- 先尝试窗口选项
-			pcall(vim.api.nvim_set_option_value, opt_name, opt_value, { win = win })
-		end
-
-		-- 再尝试缓冲区选项
-		pcall(vim.api.nvim_set_option_value, opt_name, opt_value, { buf = buf })
-
-		-- 最后尝试全局选项
-		pcall(function()
-			vim.o[opt_name] = opt_value
-		end)
-	end)
-
-	if not success then
-		vim.notify(string.format("[bigfile] Failed to set option %s: %s", opt_name, err), vim.log.levels.WARN)
+	-- 切换回原缓冲区
+	if switch_back then
+		vim.api.nvim_set_current_buf(current_buf)
 	end
 end
 
--- 执行命令（支持 Vim 命令和 Lua 代码）
-function M.execute_command(cmd)
+-- 执行单个配置行
+function M.execute_config_line(config_line)
+	if type(config_line) ~= "string" then
+		return
+	end
+
+	-- 清理配置行（移除注释和多余空格）
+	local clean_line = config_line:gsub("%-%-.*$", ""):gsub("^%s*(.-)%s*$", "%1")
+
+	-- 跳过空行
+	if clean_line == "" then
+		return
+	end
+
+	-- 执行配置
 	local success, err = pcall(function()
-		if cmd:sub(1, 4) == "lua " then
-			loadstring(cmd:sub(5))()
-		else
-			vim.cmd(cmd)
-		end
+		loadstring(clean_line)()
 	end)
 
 	if not success then
-		vim.notify(string.format("[bigfile] Failed to execute command: %s", err), vim.log.levels.WARN)
+		vim.notify(
+			string.format("[bigfile] Failed to execute config: %s\nError: %s", clean_line, err),
+			vim.log.levels.WARN
+		)
 	end
 end
 
