@@ -3,7 +3,7 @@ local M = {}
 
 function M.check(buf, ctx, callback)
 	ctx = ctx or {}
-	local max_bytes = ctx.max_bytes or 2 * 1024 * 1024 -- 2MB 默认阈值
+	local max_bytes = ctx.max_bytes or 10 * 1024 * 1024 -- 2MB 默认阈值
 
 	local name = vim.api.nvim_buf_get_name(buf)
 	if name == "" then

@@ -1,47 +1,37 @@
+-- lua/bigfile/settings/size.lua
 local config_applier = require("bigfile.config_applier")
-local info = require("bigfile.info")
+local state = require("bigfile.state")
 
 local M = {}
 
 M.name = "文件大小"
 
--- 大文件配置
 M.bigfile = {
-	options = {
-		syntax = "off",
-		foldmethod = "manual",
-		swapfile = false,
-	},
-	plugin_commands = {
-		-- "TSDisable", -- treesitter
+	configs = {
+		"vim.opt.syntax = 'off'",
+		"vim.opt.foldmethod = 'manual'",
+		"vim.opt.swapfile = false",
+		"vim.cmd('TSDisable highlight')",
 	},
 }
 
--- 小文件配置
 M.smallfile = {
-	options = {
-		syntax = "on",
-		foldmethod = "indent",
-		swapfile = true,
-	},
-	plugin_commands = {
-		-- "TSEnable", -- treesitter
+	configs = {
+		"vim.opt.syntax = 'on'",
+		"vim.opt.foldmethod = 'indent'",
+		"vim.opt.swapfile = true",
+		"vim.cmd('TSEnable highlight')",
 	},
 }
 
 function M.apply(buf)
 	config_applier.apply_config(M.bigfile, buf)
-	info.add(
-		buf,
-		"size",
-		"file too large",
-		{ "syntax=off", "foldmethod=manual", "swapfile=false" },
-		{ "treesitter", "cmp", "lsp" }
-	)
+	state.set_rule_state(buf, "size", true, "file too large")
 end
 
 function M.reset(buf)
 	config_applier.apply_config(M.smallfile, buf)
+	state.set_rule_state(buf, "size", false, "恢复正常")
 end
 
 return M

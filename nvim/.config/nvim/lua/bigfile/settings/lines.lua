@@ -1,51 +1,43 @@
+-- lua/bigfile/settings/lines.lua
 local config_applier = require("bigfile.config_applier")
-local info = require("bigfile.info")
+local state = require("bigfile.state")
 
 local M = {}
 
 M.name = "行数"
 
--- 大文件配置
+-- 大文件配置 - 直接使用 vim.opt 和 vim.cmd 格式
 M.bigfile = {
-	options = {
-		wrap = false,
-		cursorline = false,
-		cursorcolumn = false,
-		number = false,
-		relativenumber = false,
-	},
-	plugin_commands = {
-		"TSBufDisable indent",
+	configs = {
+		"vim.opt.wrap = false",
+		"vim.opt.cursorline = false",
+		"vim.opt.cursorcolumn = false",
+		"vim.opt.number = false",
+		"vim.opt.relativenumber = false",
+		"vim.cmd('TSBufDisable indent')",
 	},
 }
 
 -- 小文件配置
 M.smallfile = {
-	options = {
-		wrap = true,
-		cursorline = true,
-		cursorcolumn = false,
-		number = true,
-		relativenumber = true,
-	},
-	plugin_commands = {
-		"TSBufEnable indent",
+	configs = {
+		"vim.opt.wrap = true",
+		"vim.opt.cursorline = true",
+		"vim.opt.cursorcolumn = false",
+		"vim.opt.number = true",
+		"vim.opt.relativenumber = true",
+		"vim.cmd('TSBufEnable indent')",
 	},
 }
 
 function M.apply(buf)
 	config_applier.apply_config(M.bigfile, buf)
-	info.add(
-		buf,
-		"lines",
-		"too many lines",
-		{ "wrap=false", "cursorline=false", "cursorcolumn=false", "number=false", "relativenumber=false" },
-		{ "treesitter", "indent_blankline" }
-	)
+	state.set_rule_state(buf, "lines", true, "too many lines")
 end
 
 function M.reset(buf)
 	config_applier.apply_config(M.smallfile, buf)
+	state.set_rule_state(buf, "lines", false, "恢复正常")
 end
 
 return M
