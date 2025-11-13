@@ -1,5 +1,14 @@
 local M = {}
 
+M.icons = {
+	diagnostic = {
+		ERROR = "󰅚 ",
+		WARN = "󰀪 ",
+		HINT = " ",
+		INFO = " ",
+	},
+}
+
 -- 缓存 LSP 配置，避免重复加载
 M._lsp_config_cache = nil
 

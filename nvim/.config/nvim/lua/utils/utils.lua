@@ -38,15 +38,6 @@ M.buf_keymaps = {
 	},
 }
 
-M.icons = {
-	diagnostic = {
-		ERROR = "󰅚 ",
-		WARN = "󰀪 ",
-		HINT = " ",
-		INFO = " ",
-	},
-}
-
 M.palette = {
 	-- 基础颜色
 	bg = "#1e1e2e", -- 背景色

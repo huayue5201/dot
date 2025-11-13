@@ -80,6 +80,11 @@ local keymaps = {
 		"<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>",
 		"打开/关闭内联提示",
 	},
+	{
+		"<leader>lw",
+		"<cmd>LspListActive<cr>",
+		"列出工作区文件夹",
+	},
 }
 
 -- 设置按键映射
