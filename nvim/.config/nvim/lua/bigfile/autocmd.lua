@@ -1,4 +1,3 @@
--- lua/bigfile/autocmd.lua
 local uv = vim.loop
 local checkers = require("bigfile.checkers")
 local state = require("bigfile.state")
@@ -13,6 +12,8 @@ local whitelist = {
 
 -- 弱引用表管理 timers
 local timers = setmetatable({}, { __mode = "k" })
+local last_line_count = setmetatable({}, { __mode = "k" })
+local pending_detection = setmetatable({}, { __mode = "k" })
 
 -- 检查 buf 是否在白名单中
 local function is_whitelisted(buf)
@@ -40,11 +41,22 @@ end
 
 -- 清理指定缓冲区的定时器
 local function cleanup_timer(buf)
+	-- 清理原有定时器
 	if timers[buf] and not timers[buf]:is_closing() then
 		timers[buf]:stop()
 		timers[buf]:close()
 	end
 	timers[buf] = nil
+
+	-- 清理粘贴检测定时器
+	if pending_detection[buf] and not pending_detection[buf]:is_closing() then
+		pending_detection[buf]:stop()
+		pending_detection[buf]:close()
+	end
+	pending_detection[buf] = nil
+
+	-- 清理行数记录
+	last_line_count[buf] = nil
 end
 
 -- 显示汇总通知
@@ -63,7 +75,7 @@ local function show_summary_notification(buf, triggered_rules, recovered_rules)
 			local settings_mod = checkers.get_settings_module(rule.name)
 			table.insert(rule_names, settings_mod and settings_mod.name or rule.name)
 		end
-		table.insert(messages, string.format("📦 触发大文件规则: %s", table.concat(rule_names, ", ")))
+		table.insert(messages, string.format("📦 大文件: %s", table.concat(rule_names, ", ")))
 	end
 
 	if #recovered_rules > 0 then
@@ -72,7 +84,7 @@ local function show_summary_notification(buf, triggered_rules, recovered_rules)
 			local settings_mod = checkers.get_settings_module(rule.name)
 			table.insert(rule_names, settings_mod and settings_mod.name or rule.name)
 		end
-		table.insert(messages, string.format("✅ 恢复规则: %s", table.concat(rule_names, ", ")))
+		table.insert(messages, string.format("✅ 恢复: %s", table.concat(rule_names, ", ")))
 	end
 
 	local notification = string.format("%s: %s", filename, table.concat(messages, "; "))
@@ -81,9 +93,54 @@ local function show_summary_notification(buf, triggered_rules, recovered_rules)
 	vim.notify(notification, level, { title = "BigFile" })
 end
 
+-- 设置粘贴检测
+local function setup_paste_detection()
+	vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "TextChangedP" }, {
+		group = vim.api.nvim_create_augroup("BigFilePasteDetection", { clear = true }),
+		callback = function(args)
+			local buf = args.buf
+
+			if is_whitelisted(buf) then
+				return
+			end
+
+			local current_lines = vim.api.nvim_buf_line_count(buf)
+			local previous_lines = last_line_count[buf] or current_lines
+
+			-- 检测行数大幅增加（可能是粘贴）
+			local line_increase = current_lines - previous_lines
+			if line_increase > 20 then -- 行数增加阈值
+				-- 取消之前的检测
+				if pending_detection[buf] then
+					pending_detection[buf]:stop()
+					pending_detection[buf]:close()
+				end
+
+				-- 延迟检测
+				pending_detection[buf] = uv.new_timer()
+				pending_detection[buf]:start(
+					500, -- 500ms 后检测
+					0,
+					vim.schedule_wrap(function()
+						pending_detection[buf] = nil
+						if vim.api.nvim_buf_is_valid(buf) and not is_whitelisted(buf) then
+							M.run_all_checkers(buf)
+						end
+					end)
+				)
+			end
+
+			last_line_count[buf] = current_lines
+		end,
+	})
+end
+
 -- 启动防抖检测
 function M.setup(opts)
 	local delay = opts and opts.debounce or 200
+
+	-- 初始化粘贴检测
+	setup_paste_detection()
 
 	-- 注册自动命令
 	vim.api.nvim_create_autocmd({ "BufReadPost", "BufWinEnter" }, {
@@ -94,6 +151,9 @@ function M.setup(opts)
 			if is_whitelisted(buf) then
 				return
 			end
+
+			-- 初始化行数记录
+			last_line_count[buf] = vim.api.nvim_buf_line_count(buf)
 
 			-- 清理之前的定时器
 			cleanup_timer(buf)
