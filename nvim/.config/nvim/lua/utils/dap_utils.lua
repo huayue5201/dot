@@ -30,64 +30,93 @@ function M.set_breakpoint()
 	vim.ui.select({ "条件断点", "命中次数", "日志点", "多条件断点" }, {
 		prompt = "选择断点类型:",
 	}, function(choice)
+		-----------------------------------------------------------------------
+		-- 条件断点
+		-----------------------------------------------------------------------
 		if choice == "条件断点" then
 			vim.ui.input({ prompt = "󰌓 输入条件: " }, function(condition)
-				local str_condition = tostring(condition or "")
-				if str_condition ~= "" then
-					dap.toggle_breakpoint(str_condition)
+				if condition and condition ~= "" then
+					dap.toggle_breakpoint(condition) -- condition 是字符串
 				else
 					vim.notify("条件不能为空！", vim.log.levels.ERROR)
 				end
 			end)
+
+		-----------------------------------------------------------------------
+		-- 命中次数断点
+		-----------------------------------------------------------------------
 		elseif choice == "命中次数" then
-			vim.ui.input({ prompt = "󰌓 输入次数: " }, function(hit_count)
-				local num_hit = tonumber(hit_count)
-				if num_hit then
-					dap.toggle_breakpoint(nil, num_hit)
+			vim.ui.input({ prompt = "󰌓 输入次数（数字）: " }, function(hit_count)
+				local num = tonumber(hit_count)
+				if num then
+					dap.toggle_breakpoint(nil, tostring(num)) -- hitCondition 必须是字符串
 				else
-					vim.notify("无效输入次数！请输入有效的数字。", vim.log.levels.ERROR)
+					vim.notify("请输入有效数字！", vim.log.levels.ERROR)
 				end
 			end)
+
+		-----------------------------------------------------------------------
+		-- 日志断点
+		-----------------------------------------------------------------------
 		elseif choice == "日志点" then
 			vim.ui.input({ prompt = "󰌓 输入日志内容: " }, function(message)
-				local str_message = tostring(message or "")
-				if str_message ~= "" then
-					dap.toggle_breakpoint(nil, nil, str_message)
+				if message and message ~= "" then
+					dap.toggle_breakpoint(nil, nil, message) -- logMessage 必须是字符串
 				else
 					vim.notify("日志内容不能为空！", vim.log.levels.ERROR)
 				end
 			end)
+
+		-----------------------------------------------------------------------
+		-- 多条件断点 (condition, hitCondition, logMessage)
+		-----------------------------------------------------------------------
 		elseif choice == "多条件断点" then
-			vim.ui.input({ prompt = "󰌓 输入多条件（逗号分隔，支持转义字符）: " }, function(input)
-				local conditions = {}
-				if input then
-					input = input:match("^%s*(.-)%s*$")
-					input = input:gsub("\\,", "COMMA")
-					for condition in string.gmatch(input, "([^,]+)") do
-						condition = condition:gsub("COMMA", ",")
-						table.insert(conditions, condition:match("^%s*(.-)%s*$"))
-					end
-					local condition = conditions[1]
-					local hit_count = conditions[2]
-					local log_message = conditions[3]
-					if condition == "nil" then
-						condition = nil
-					end
-					if hit_count == "nil" then
-						hit_count = nil
-					end
-					if log_message == "nil" then
-						log_message = nil
-					end
-					if hit_count ~= nil and not tonumber(hit_count) then
-						vim.notify("命中次数只能是数字或nil！", vim.log.levels.ERROR)
+			vim.ui.input({ prompt = "󰌓 输入多条件（格式：条件,次数,日志）: " }, function(input)
+				if not input or input == "" then
+					vim.notify("输入不能为空！", vim.log.levels.ERROR)
+					return
+				end
+
+				-- 去除前后空格
+				input = input:match("^%s*(.-)%s*$")
+
+				-- 支持逗号转义：\, → COMMA
+				input = input:gsub("\\,", "COMMA")
+
+				local parts = {}
+				for part in input:gmatch("([^,]+)") do
+					part = part:gsub("COMMA", ",")
+					part = part:match("^%s*(.-)%s*$")
+					table.insert(parts, part)
+				end
+
+				local condition = parts[1]
+				local hitCondition = parts[2]
+				local logMessage = parts[3]
+
+				-- nil 字符串转换
+				if condition == "nil" then
+					condition = nil
+				end
+				if hitCondition == "nil" then
+					hitCondition = nil
+				end
+				if logMessage == "nil" then
+					logMessage = nil
+				end
+
+				-- hitCondition 必须是字符串数字
+				if hitCondition ~= nil then
+					if not tonumber(hitCondition) then
+						vim.notify("命中次数必须是数字或 nil！", vim.log.levels.ERROR)
 						return
 					end
-					dap.toggle_breakpoint(condition, hit_count, log_message)
+					hitCondition = tostring(hitCondition)
 				end
+
+				dap.toggle_breakpoint(condition, hitCondition, logMessage)
 			end)
 		end
 	end)
 end
-
 return M

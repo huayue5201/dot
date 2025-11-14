@@ -12,8 +12,6 @@ M.bigfile = {
 		"vim.opt.wrap = false",
 		"vim.opt.cursorline = false",
 		"vim.opt.cursorcolumn = false",
-		"vim.opt.number = false",
-		"vim.opt.relativenumber = false",
 		"vim.cmd('TSBufDisable indent')",
 	},
 }
@@ -24,8 +22,6 @@ M.smallfile = {
 		"vim.opt.wrap = true",
 		"vim.opt.cursorline = true",
 		"vim.opt.cursorcolumn = false",
-		"vim.opt.number = true",
-		"vim.opt.relativenumber = true",
 		"vim.cmd('TSBufEnable indent')",
 	},
 }

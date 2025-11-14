@@ -9,7 +9,7 @@ return {
 		"igorlfs/nvim-dap-view",
 		-- https://github.com/theHamsta/nvim-dap-virtual-text
 		"theHamsta/nvim-dap-virtual-text",
-		"nvimtools/hydra.nvim", -- 添加 hydra 依赖
+		"Jorenar/nvim-dap-disasm",
 	},
 	config = function()
 		-- repl 自动补全支持
@@ -22,10 +22,10 @@ return {
 		vim.api.nvim_set_hl(0, "YellowCursor", { fg = "#FFCC00", bg = "" })
 		vim.api.nvim_set_hl(0, "YellowBack", { bg = "#4C4C19" })
 		local signs = {
-			DapBreakpoint = { text = "󰯯 ", texthl = "DapBreakpoint" }, -- 断点
-			DapBreakpointCondition = { text = "󰯲 ", texthl = "DapBreakpointCondition" }, -- 条件断点
-			DapBreakpointRejected = { text = " ", texthl = "DapBreakpointRejected" }, -- 拒绝断点
-			DapLogPoint = { text = "󰰍 ", texthl = "DapLogPoint" }, -- 日志点
+			DapBreakpoint = { text = "", texthl = "DapBreakpoint" }, -- 断点
+			DapBreakpointCondition = { text = "", texthl = "DapBreakpointCondition" }, -- 条件断点
+			DapBreakpointRejected = { text = "", texthl = "DapBreakpointRejected" }, -- 拒绝断点
+			DapLogPoint = { text = "", texthl = "DapLogPoint" }, -- 日志点
 			DapStopped = { -- 停止位置
 				text = " ",
 				texthl = "YellowCursor",
