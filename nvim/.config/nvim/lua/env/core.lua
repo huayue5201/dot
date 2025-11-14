@@ -88,7 +88,7 @@ end
 function M.EnvStatus()
 	local env = vim.g.envCofnig
 	local name = (env and env.name) or "Unknown"
-	return "%#env_icon# %*" .. name
+	return "%#env_icon# %*" .. name
 end
 
 return M

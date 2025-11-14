@@ -21,7 +21,7 @@ local function setup_highlights()
 		PinkHighlight = { fg = "#ffde7d", bold = true },
 		StatuslineIcon = { fg = "#ffde7d", bold = true },
 		DapIcon = { fg = "#FF0000", bold = true },
-		GitIcon = { fg = "#6639a6", bold = true },
+		GitIcon = { fg = "#FF8C00", bold = true },
 		GitIconChanged = { fg = colors.yellow, bold = true },
 		GitIconRemoved = { fg = colors.red, bold = true },
 		GitIconAdded = { fg = colors.green, bold = true },
@@ -75,7 +75,7 @@ local PROGRESS_ICONS = {
 function M.mode()
 	local current_mode = vim.api.nvim_get_mode().mode
 	local mode_info = MODES[current_mode] or { label = current_mode, hl = "DefaultMode" }
-	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
+	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
 -- 定义高亮组（可放在 setup_highlights 函数里）
@@ -109,10 +109,10 @@ end
 function M.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or not git_info.head then
-		return "%#GitIcon#   %*"
+		return "%#GitIcon#  %*"
 	end
 
-	local parts = { "%#GitIcon# %*" .. git_info.head }
+	local parts = { "%#GitIcon# %*" .. git_info.head }
 
 	local git_icons = {
 		added = "%#GitIconAdded#+%*",
@@ -156,7 +156,7 @@ end
 function M.active()
 	return table.concat({
 		"%#Normal#",
-		string.format("%-45s", M.mode()), -- 模式显示区域
+		string.format("%-45s", M.mode()) .. " ", -- 模式显示区域
 		M.hydra_icon() .. "  ",
 		M.env() .. "  ",
 		-- "%y ",
@@ -164,9 +164,9 @@ function M.active()
 		"%=", -- 分隔符
 		search_status.get() .. " ",
 		M.dap_status() .. " ",
-		M.vcs() .. " ",
-		"  %l%c ",
-		"%P",
+		M.vcs() .. "  ",
+		"%l%c   ",
+		"%p:",
 		M.get_scrollbar(),
 	})
 end
