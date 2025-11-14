@@ -44,7 +44,11 @@ local function load_env_lua(file)
 	if type(result) == "table" then
 		for k, v in pairs(result) do
 			if type(k) == "string" and type(v) == "string" then
-				vim.env[k] = v
+				if k == "PATH" then
+					vim.env.PATH = v .. ":" .. vim.env.PATH
+				else
+					vim.env[k] = v
+				end
 			end
 		end
 	end
