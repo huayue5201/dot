@@ -19,7 +19,7 @@ local function setup_highlights()
 		VisualMode = { bold = true },
 		ReplaceMode = { bold = true },
 		PinkHighlight = { fg = "#ffde7d", bold = true },
-		StatuslineIcon = { fg = "#ffde7d", bold = true },
+		StatuslineIcon = { fg = "#ffc125", bold = true },
 		DapIcon = { fg = "#FF0000", bold = true },
 		GitIcon = { fg = "#FF8C00", bold = true },
 		GitIconChanged = { fg = colors.yellow, bold = true },
@@ -112,7 +112,7 @@ function M.vcs()
 		return "%#GitIcon#  %*"
 	end
 
-	local parts = { "%#GitIcon# %*" .. git_info.head }
+	local parts = { "%#GitIcon# %*" .. "[" .. git_info.head .. "]" }
 
 	local git_icons = {
 		added = "%#GitIconAdded#+%*",

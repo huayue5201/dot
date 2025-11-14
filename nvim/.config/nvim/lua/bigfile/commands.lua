@@ -48,8 +48,7 @@ function M.show_status()
 			table.insert(rule_names, settings_mod and settings_mod.name or rule)
 		end
 
-		local notification =
-			string.format("📊 当前处于大文件模式，触发的规则: %s", table.concat(rule_names, ", "))
+		local notification = string.format("📊 当前处于大文件模式: %s", table.concat(rule_names, ", "))
 		vim.notify(notification, vim.log.levels.INFO, { title = "BigFile Status" })
 	else
 		vim.notify("📊 当前处于小文件模式", vim.log.levels.INFO, { title = "BigFile Status" })
