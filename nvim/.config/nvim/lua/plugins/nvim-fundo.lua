@@ -8,7 +8,7 @@ return {
 		require("fundo").install()
 	end,
 	config = function()
-		vim.o.undofile = true
+		-- vim.o.undofile = true
 		require("fundo").setup()
 	end,
 }

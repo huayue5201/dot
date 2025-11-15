@@ -39,6 +39,17 @@ return {
 
 		local dap = require("dap")
 
+		-- 自动开启和关闭调试界面[citation:3]
+		local daps, dapui = dap, require("dapui")
+		daps.listeners.after.event_initialized["dapui_config"] = function()
+			dapui.open({})
+		end
+		daps.listeners.before.event_terminated["dapui_config"] = function()
+			dapui.close({})
+		end
+		daps.listeners.before.event_exited["dapui_config"] = function()
+			dapui.close({})
+		end
 		--  nvim-dap配置
 		local dap_defaults = {
 			switchbuf = "usevisible,usetab,newtab", -- 在调试时使用打开的缓冲区
@@ -54,7 +65,7 @@ return {
 		}
 		-- 将配置应用到 dap.defaults.fallback
 		for key, value in pairs(dap_defaults) do
-			dap.defaults.fallback[key] = value
+			daps.defaults.fallback[key] = value
 		end
 
 		require("utils.dap_keys").setup()
@@ -70,7 +81,7 @@ return {
 					-- 将结果放入系统剪贴板（+寄存器）
 					vim.fn.setreg("+", result)
 					-- 输出信息到 REPL
-					dap.repl.append("Copied to clipboard: " .. result)
+					daps.repl.append("Copied to clipboard: " .. result)
 				end,
 			},
 		})
@@ -127,7 +138,7 @@ return {
 					print("Failed to load module '" .. module_name .. "': " .. mod_or_err)
 					vim.notify("Failed to load module '" .. module_name .. "': " .. mod_or_err, vim.log.levels.ERROR)
 				elseif mod_or_err.setup then
-					mod_or_err.setup(dap)
+					mod_or_err.setup(daps)
 				end
 			end
 		end
