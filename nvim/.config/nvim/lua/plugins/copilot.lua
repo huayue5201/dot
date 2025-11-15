@@ -18,7 +18,7 @@ return {
 		-- =====================================
 		require("copilot").setup({
 			nes = {
-				enabled = false, -- 开启 Neovim inline ghost text
+				enabled = true, -- 开启 Neovim inline ghost text
 				inline = true, -- 行内显示
 				keymap = {
 					accept_and_goto = "<leader>p", -- 接受建议并跳到下一个
@@ -60,26 +60,26 @@ return {
 		-- =====================================
 		vim.keymap.set("i", "<C-p>", function()
 			require("copilot.suggestion").accept()
-		end, { silent = true, desc = "Accept Copilot suggestion" })
+		end, { silent = true, desc = "Copilot: 接受建议" })
 
 		vim.keymap.set("i", "<C-l>", function()
 			require("copilot.suggestion").accept_line()
-		end, { silent = true, desc = "Accept Copilot suggestion" })
+		end, { silent = true, desc = "Copilot: 接受整行建议" })
 
 		vim.keymap.set("i", "<C-w>", function()
 			require("copilot.suggestion").accept_word()
-		end, { silent = true, desc = "Accept Copilot suggestion" })
+		end, { silent = true, desc = "Copilot: 接受单词建议" })
 
 		vim.keymap.set("n", "<leader>tog", function()
 			require("copilot.suggestion").toggle_auto_trigger()
-		end, { silent = true, desc = "Accept Copilot suggestion" })
+		end, { silent = true, desc = "Copilot: 切换自动触发" })
 
 		vim.keymap.set("i", "<C-k>", function()
 			require("copilot.suggestion").next()
-		end, { silent = true, desc = "Next Copilot suggestion" })
+		end, { silent = true, desc = "Copilot: 下一个建议" })
 
 		vim.keymap.set("i", "<C-j>", function()
 			require("copilot.suggestion").prev()
-		end, { silent = true, desc = "Previous Copilot suggestion" })
+		end, { silent = true, desc = "Copilot: 上一个建议" })
 	end,
 }

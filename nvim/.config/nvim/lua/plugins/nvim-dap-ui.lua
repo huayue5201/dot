@@ -2,13 +2,15 @@
 
 return {
 	"rcarriga/nvim-dap-ui",
+	lazy = true,
 	dependencies = {
 		"mfussenegger/nvim-dap", -- 核心调试插件[citation:2]
 		"nvim-neotest/nvim-nio", -- 新增的必需依赖[citation:1]
 	},
 	config = function()
 		-- 关键初始化步骤[citation:5]
-		require("dapui").setup({
+		local dapui = require("dapui")
+		dapui.setup({
 			icons = { expanded = "▾", collapsed = "▸", current_frame = "▸" },
 			mappings = {
 				expand = { "<CR>", "<2-LeftMouse>" },
@@ -67,16 +69,12 @@ return {
 			},
 		})
 
-		-- 自动开启和关闭调试界面[citation:3]
-		local dap, dapui = require("dap"), require("dapui")
-		dap.listeners.after.event_initialized["dapui_config"] = function()
-			dapui.open({})
-		end
-		dap.listeners.before.event_terminated["dapui_config"] = function()
-			dapui.close({})
-		end
-		dap.listeners.before.event_exited["dapui_config"] = function()
-			dapui.close({})
-		end
+		vim.keymap.set("n", "<localleader>du", dapui.toggle, { desc = "DAP UI: Toggle" })
+		vim.keymap.set("n", "<leader>df", dapui.float_element, { desc = "DAP UI: Float element" })
+		vim.keymap.set("n", "<leader>de", dapui.eval, { desc = "DAP UI: Eval under cursor" })
+		vim.keymap.set("v", "<leader>de", dapui.eval, { desc = "DAP UI: Eval selection" })
+		vim.keymap.set("n", "<leader>dE", function()
+			dapui.eval(vim.fn.input("Expression: "))
+		end, { desc = "DAP UI: Eval input expression" })
 	end,
 }
