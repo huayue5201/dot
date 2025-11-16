@@ -10,7 +10,7 @@ vim.keymap.set("n", "dd", function()
 	return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true, desc = "删除当前行（空行使用黑洞寄存器）" })
 
-vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
+-- vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
 
 vim.keymap.set("n", "<c-s>", "<cmd>w<cr>", { silent = true, desc = "保存buffer" })
 
@@ -23,10 +23,6 @@ vim.keymap.set("n", "<leader>rt", "<cmd>tabclose<cr>", { silent = true, desc = "
 vim.keymap.set("n", "<leader>rat", "<cmd>tabonly<cr>", { silent = true, desc = "仅保留当前标签页" })
 
 vim.keymap.set("n", "<leader>i", "<cmd>messages<cr>", { silent = true, desc = "查看历史消息" })
-
-vim.keymap.set("n", "<a-q>", "<cmd>Toggle quickfix<cr>", { desc = "Toggle Quickfix" })
-
-vim.keymap.set("n", "<a-l>", "<cmd>Toggle loclist<cr>", { desc = "Toggle Loclist" })
 
 vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "重新加载当前buffer" })
 vim.keymap.set("n", "<leader>tor", "<cmd>restart<cr>", { silent = true, desc = "热重启nvim" })

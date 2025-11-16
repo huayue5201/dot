@@ -2,7 +2,7 @@ local M = {}
 
 local utils = require("lsp.utils")
 
-vim.api.nvim_set_hl(0, "LspIcon", { fg = "#4876FF", bold = true })
+vim.api.nvim_set_hl(0, "LspHighlight", { fg = "#fffff0", bold = true })
 
 -- =========================================================
 -- 动态 LSP Spinner（你给的字符序列）
@@ -81,7 +81,7 @@ function M.lsp_clients()
 	local buf_clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
 
 	if vim.tbl_isempty(buf_clients) then
-		return "󰼎 "
+		return "%#LspHighlight#󰼎 " .. "%*"
 	end
 
 	local ignore_list = {
@@ -122,7 +122,7 @@ function M.lsp_clients()
 	-- ⭐ 将动态 spinner 放在最前面
 	local spin = spinner_icon()
 
-	return string.format("%s %s. %s", icon, main_client.name, spin)
+	return string.format("%s %s. %s", "%#LspHighlight#" .. icon .. "%*", main_client.name, spin)
 end
 
 -- =========================================================

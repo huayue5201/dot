@@ -84,7 +84,7 @@ local function get_todo_files(project)
 	if vim.fn.isdirectory(dir) == 0 then
 		return {}
 	end
-	return vim.fn.globpath(dir, "*.md", false, true)
+	return vim.fn.globpath(dir, "*.todo.md", false, true)
 end
 
 -- ==========================

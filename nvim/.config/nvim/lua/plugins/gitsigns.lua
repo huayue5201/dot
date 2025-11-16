@@ -63,21 +63,21 @@ return {
 				end
 
 				-- Navigation (导航)
-				map("n", "]h", function()
-					if vim.wo.diff then
-						vim.cmd.normal({ "]h", bang = true })
-					else
-						gitsigns.nav_hunk("next")
-					end
-				end, { desc = "跳转到下一个差异区块" })
-
-				map("n", "[h", function()
-					if vim.wo.diff then
-						vim.cmd.normal({ "[h", bang = true })
-					else
-						gitsigns.nav_hunk("prev")
-					end
-				end, { desc = "跳转到上一个差异区块" })
+				-- map("n", "]h", function()
+				-- 	if vim.wo.diff then
+				-- 		vim.cmd.normal({ "]h", bang = true })
+				-- 	else
+				-- 		gitsigns.nav_hunk("next")
+				-- 	end
+				-- end, { desc = "跳转到下一个差异区块" })
+				--
+				-- map("n", "[h", function()
+				-- 	if vim.wo.diff then
+				-- 		vim.cmd.normal({ "[h", bang = true })
+				-- 	else
+				-- 		gitsigns.nav_hunk("prev")
+				-- 	end
+				-- end, { desc = "跳转到上一个差异区块" })
 
 				-- Actions (操作)
 				map("n", "<leader>gs", gitsigns.stage_hunk, { desc = "暂存当前差异区块" })
