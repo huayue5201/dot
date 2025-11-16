@@ -4,8 +4,8 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
 	event = "VeryLazy",
-	-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 	dependencies = {
+		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
 		"nvim-treesitter/nvim-treesitter-textobjects",
 		-- https://github.com/LiadOz/nvim-dap-repl-highlights
 		"LiadOz/nvim-dap-repl-highlights",
@@ -32,10 +32,10 @@ return {
 			incremental_selection = {
 				enable = true,
 				keymaps = {
-					init_selection = "<tab>", -- set to `false` to disable one of the mappings
+					init_selection = "<cr>",
 					node_incremental = "<tab>",
-					scope_incremental = "<cr>",
-					node_decremental = "<Backspace>",
+					node_decremental = "<bs>",
+					scope_incremental = "<s-tab>",
 				},
 			},
 			-- 确保所需的语言解析器被安装
@@ -121,5 +121,61 @@ return {
 				},
 			},
 		})
+
+		--------------------------------------------------------------------------------
+		-- Treesitter Repeatable Move 统一跳转重复系统
+		-- 让所有跳转都能用 ; 重复、, 反向重复
+		--------------------------------------------------------------------------------
+
+		local ts_repeat_move = require("nvim-treesitter.textobjects.repeatable_move")
+
+		--------------------------------------------------------------------------------
+		-- 1. 基础重复：让 ; 和 , 固定为向前 / 向后重复跳转
+		--------------------------------------------------------------------------------
+
+		-- ; 永远向前重复上一次跳转
+		-- , 永远向后重复上一次跳转
+		vim.keymap.set({ "n", "x", "o" }, ";", ts_repeat_move.repeat_last_move_next)
+		vim.keymap.set({ "n", "x", "o" }, ",", ts_repeat_move.repeat_last_move_previous)
+
+		--------------------------------------------------------------------------------
+		-- 2. Vim 内置 f/F/t/T 也接入 repeat 系统
+		--------------------------------------------------------------------------------
+
+		-- 使用 expr = true 替换 f/F/t/T 的原始行为
+		vim.keymap.set({ "n", "x", "o" }, "f", ts_repeat_move.builtin_f_expr, { expr = true })
+		vim.keymap.set({ "n", "x", "o" }, "F", ts_repeat_move.builtin_F_expr, { expr = true })
+		vim.keymap.set({ "n", "x", "o" }, "t", ts_repeat_move.builtin_t_expr, { expr = true })
+		vim.keymap.set({ "n", "x", "o" }, "T", ts_repeat_move.builtin_T_expr, { expr = true })
+
+		--------------------------------------------------------------------------------
+		-- 3. 自定义 repeat 例子（可选）
+		-- <Home>: 反向重复上次跳转 + 移动到目标开头
+		-- <End>:  正向重复上次跳转 + 移动到目标末尾
+		--------------------------------------------------------------------------------
+
+		vim.keymap.set({ "n", "x", "o" }, "<Home>", function()
+			ts_repeat_move.repeat_last_move({ forward = false, start = true })
+		end)
+
+		vim.keymap.set({ "n", "x", "o" }, "<End>", function()
+			ts_repeat_move.repeat_last_move({ forward = true, start = false })
+		end)
+
+		--------------------------------------------------------------------------------
+		-- 4. 让其他插件（例如 gitsigns）也变成可重复跳转的动作
+		-- 例如：]h / [h 跳到下一个 / 上一个 hunk
+		--------------------------------------------------------------------------------
+
+		local ok, gs = pcall(require, "gitsigns")
+		if ok then
+			-- 创建 repeatable 跳转函数组合
+			local next_hunk_repeat, prev_hunk_repeat =
+				ts_repeat_move.make_repeatable_move_pair(gs.next_hunk, gs.prev_hunk)
+
+			-- 覆盖 ]h 和 [h，使它们支持 ; 和 , 重复
+			vim.keymap.set({ "n", "x", "o" }, "]h", next_hunk_repeat)
+			vim.keymap.set({ "n", "x", "o" }, "[h", prev_hunk_repeat)
+		end
 	end,
 }

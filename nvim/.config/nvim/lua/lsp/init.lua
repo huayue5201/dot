@@ -3,7 +3,7 @@
 
 local M = {}
 local configs = require("lsp.config")
-local autocmds = require("lsp.autocmds")
+local autocmds = require("lsp.lsp_autocmds")
 
 function M.setup()
 	configs.lsp_Start() -- 启动lsp

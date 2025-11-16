@@ -17,6 +17,7 @@ return {
 		-- Copilot 配置
 		-- =====================================
 		require("copilot").setup({
+			disable_limit_reached_message = true, --token 超过限制（rate limit / daily quota / usage limit）之后的提示设置
 			nes = {
 				enabled = true, -- 开启 Neovim inline ghost text
 				inline = true, -- 行内显示

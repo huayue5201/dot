@@ -3,7 +3,7 @@ local M = {}
 
 function M.setup(opts)
 	opts = opts or {}
-	require("bigfile.autocmd").setup(opts)
+	require("bigfile.bigfile_autocmds").setup(opts)
 	require("bigfile.commands").setup_commands()
 end
 

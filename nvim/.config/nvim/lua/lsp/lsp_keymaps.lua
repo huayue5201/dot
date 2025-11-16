@@ -76,7 +76,7 @@ local keymaps = {
 		"复制报错",
 	},
 	{
-		"<leader>li",
+		"<localleader>li",
 		"<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>",
 		"打开/关闭内联提示",
 	},

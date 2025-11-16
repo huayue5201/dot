@@ -1,40 +1,42 @@
--- Yanky.nvim 插件配置
 -- 官方文档: https://github.com/gbprod/yanky.nvim#ringhistory_length
 
 return {
-	"gbprod/yanky.nvim", -- 插件名
-	-- dependencies = { "kkharji/sqlite.lua" }, -- 依赖 SQLite，用于持久化 yank 历史
+	"gbprod/yanky.nvim",
 	dependencies = { "nvimtools/hydra.nvim" },
-	event = "VeryLazy", -- 延迟加载（在 VeryLazy 事件触发时加载）
+	event = "VeryLazy",
 	config = function()
-		-- Yanky 插件设置
 		require("yanky").setup({
 			ring = {
-				storage = "shada", -- 使用 SQLite 存储 yank 历史，实现持久化
+				storage = "shada",
 			},
 			preserve_cursor_position = {
-				enabled = true, -- 在 put 操作后保留光标位置
+				enabled = true,
 			},
 			highlight = {
-				on_put = true, -- 在 put（粘贴）操作后高亮粘贴内容
-				on_yank = true, -- 在 yank（复制）操作后高亮复制内容
-				timer = 500, -- 高亮持续时间，单位毫秒
+				on_put = true,
+				on_yank = true,
+				timer = 500,
 			},
 		})
 
-		-- 普通模式和可视模式下 y 绑定 YankyYank
-		vim.keymap.set({ "n", "x" }, "y", "<Plug>(YankyYank)") -- 使用 Yanky 的复制功能
+		-- 普通/可视模式 y → Yanky yank
+		vim.keymap.set({ "n", "x" }, "y", "<Plug>(YankyYank)", {
+			desc = "Yank using Yanky",
+		})
 
-		-- 打开 yank 历史列表
-		vim.keymap.set(
-			"n",
-			"<leader>yl",
-			"<cmd>YankyRingHistory<cr>", -- 显示 yank 历史列表，支持选择条目粘贴
-			{ silent = true, desc = "打开寄存器列表" }
-		)
+		-- 打开 yank 历史
+		vim.keymap.set("n", "<leader>yl", "<cmd>YankyRingHistory<cr>", {
+			silent = true,
+			desc = "打开 Yank 历史列表",
+		})
 
-		vim.keymap.set("n", "<c-p>", "<Plug>(YankyPreviousEntry)")
-		vim.keymap.set("n", "<c-n>", "<Plug>(YankyNextEntry)")
+		-- 上/下一条记录
+		vim.keymap.set("n", "<c-p>", "<Plug>(YankyPreviousEntry)", {
+			desc = "上一条 yank 记录",
+		})
+		vim.keymap.set("n", "<c-n>", "<Plug>(YankyNextEntry)", {
+			desc = "下一条 yank 记录",
+		})
 
 		local Hydra = require("hydra")
 
@@ -42,16 +44,17 @@ return {
 			return vim.api.nvim_replace_termcodes(str, true, true, true)
 		end
 
+		-- Hydra: yank ring
 		local yanky_hydra = Hydra({
 			name = "Yank ring",
 			mode = "n",
 			heads = {
-				{ "p", "<Plug>(YankyPutAfter)", { desc = "After" } },
-				{ "P", "<Plug>(YankyPutBefore)", { desc = "Before" } },
+				{ "p", "<Plug>(YankyPutAfter)", { desc = "Put After" } },
+				{ "P", "<Plug>(YankyPutBefore)", { desc = "Put Before" } },
 			},
 		})
 
-		-- choose/change the mappings if you want
+		-- put 系列
 		for key, putAction in pairs({
 			["p"] = "<Plug>(YankyPutAfter)",
 			["P"] = "<Plug>(YankyPutBefore)",
@@ -61,10 +64,12 @@ return {
 			vim.keymap.set({ "n", "x" }, key, function()
 				vim.fn.feedkeys(t(putAction))
 				yanky_hydra:activate()
-			end)
+			end, {
+				desc = "Yanky put: " .. key,
+			})
 		end
 
-		-- choose/change the mappings if you want
+		-- indent + filter put 系列
 		for key, putAction in pairs({
 			["]p"] = "<Plug>(YankyPutIndentAfterLinewise)",
 			["[p"] = "<Plug>(YankyPutIndentBeforeLinewise)",
@@ -82,7 +87,9 @@ return {
 			vim.keymap.set("n", key, function()
 				vim.fn.feedkeys(t(putAction))
 				yanky_hydra:activate()
-			end)
+			end, {
+				desc = "Yanky put (indent/filter): " .. key,
+			})
 		end
 	end,
 }

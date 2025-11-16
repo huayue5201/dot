@@ -40,13 +40,13 @@ return {
 			},
 			-- 边框字符
 			borders = {
-				vert = "┃",
-				strong_header = "━",
-				strong_cross = "╋",
-				strong_end = "┫",
+				vert = "",
+				strong_header = "",
+				strong_cross = "",
+				strong_end = "",
 				soft_header = "╌",
-				soft_cross = "╂",
-				soft_end = "┨",
+				soft_cross = "",
+				soft_end = "",
 			},
 			trim_leading_whitespace = "common",
 			max_filename_width = function()
@@ -80,12 +80,12 @@ return {
 		})
 
 		-- 切换 quickfix 窗口
-		vim.keymap.set("n", "<localleader>q", function()
+		vim.keymap.set("n", "<a-q>", function()
 			require("quicker").toggle()
 		end, { desc = "Toggle quickfix" })
 
 		-- 切换 loclist 窗口
-		vim.keymap.set("n", "<localleader>l", function()
+		vim.keymap.set("n", "<a-l>", function()
 			require("quicker").toggle({ loclist = true })
 		end, { desc = "Toggle loclist" })
 	end,

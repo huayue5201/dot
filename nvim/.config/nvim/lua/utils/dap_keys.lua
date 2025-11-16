@@ -48,8 +48,15 @@ function M.setup()
 	vim.keymap.set("n", "<leader>dR", dap.clear_breakpoints, { desc = "DAP: 清除所有断点" })
 
 	-- 📜 导航
-	vim.keymap.set("n", "<leader>d{", dap.up, { desc = "DAP: 上一个帧" })
-	vim.keymap.set("n", "<leader>d}", dap.down, { desc = "DAP: 下一个帧" })
+	local ts_repeat_move = require("nvim-treesitter.textobjects.repeatable_move")
+	-- 创建可重复的跳转函数
+	local dap_down_repeat, dap_up_repeat = ts_repeat_move.make_repeatable_move_pair(dap.down, dap.up)
+
+	-- 替换你的按键映射
+	vim.keymap.set("n", "<leader>d}", dap_down_repeat, { desc = "DAP: 下一个帧（可重复）" })
+	vim.keymap.set("n", "<leader>d{", dap_up_repeat, { desc = "DAP: 上一个帧（可重复）" })
+	-- vim.keymap.set("n", "<leader>d{", dap.up, { desc = "DAP: 上一个帧" })
+	-- vim.keymap.set("n", "<leader>d}", dap.down, { desc = "DAP: 下一个帧" })
 
 	-- 🔍 评估 / 日志
 	vim.keymap.set("n", "<leader>da", function()
