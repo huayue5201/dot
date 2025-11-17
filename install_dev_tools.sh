@@ -14,14 +14,14 @@ stow tmux
 stow aria2
 brew install git
 brew install difftastic # git diff语义增强
-brew install lazygit # git管理GUI
+brew install lazygit    # git管理GUI
 brew install fzf
 brew install fd
 brew install ripgrep # rg
-brew install bat # cat替代
-brew install btop # 系统监测
-brew install tmux # 终端复用
-brew install aria2 # 下载工具
+brew install bat     # cat替代
+brew install btop    # 系统监测
+brew install tmux    # 终端复用
+brew install aria2   # 下载工具
 brew install --HEAD neovim
 brew tap laishulu/homebrew # neovim输入法切换依赖
 brew install macism
@@ -29,29 +29,31 @@ brew install yazi # 文件资源管理器
 brew install xray # 作为后台启动:brew services start xray
 brew install llvm
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # 安装rust
-brew install lsusb # usb设备查看工具
+brew install lsusb                                             # usb设备查看工具
+brew install lsd or sudo port install lsd
+brew install zoxide
 
 # mcu 开发环境
 brew install --cask gcc-arm-embedded #gcc交叉编译工具
-brew install openocd # debug.烧录工具
-brew install telnet # openocd依赖
-pipx install compiledb # compile_commands.json生成工具 compiledb make
+brew install openocd                 # debug.烧录工具
+brew install telnet                  # openocd依赖
+pipx install compiledb               # compile_commands.json生成工具 compiledb make
 brew install node
 
 # lsp severs or 语言工具
-brew install taplo # toml lsp
-brew install stylua # lua格式化工具
-brew install uv # python虚拟环境管理工具
-uv tool install ty@latest # python lsp
+brew install taplo         # toml lsp
+brew install stylua        # lua格式化工具
+brew install uv            # python虚拟环境管理工具
+uv tool install ty@latest  # python lsp
 brew install rust-analyzer # rust lsp
-brew install emmylua_ls # lua lsp
+brew install emmylua_ls    # lua lsp
 # https://github.com/ast-grep/ast-grep
 brew install ast-grep #
 # https://github.com/astral-sh/ruff
 brew install ruff # python格式化工具
 
 # brew 命令扩展
-brew tap buo/cask-upgrade # cask更新 brew cu [CASK name]
+brew tap buo/cask-upgrade  # cask更新 brew cu [CASK name]
 brew tap beeftornado/rmtre # 删除包及其依赖 brew rmtre [packge neme]
 
 # cask

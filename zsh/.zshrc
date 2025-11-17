@@ -1,0 +1,219 @@
+# ---------------------------------------
+# 基础环境
+# ---------------------------------------
+export ZSH="$HOME/.zsh"
+export EDITOR="nvim"
+export LANG="en_US.UTF-8"
+
+# ---------------------------------------
+# Zinit 插件管理器安装
+# GitHub: https://github.com/zdharma-continuum/zinit
+# ---------------------------------------
+if [[ ! -f "${HOME}/.zinit/bin/zinit.zsh" ]]; then
+    echo "Installing Zinit..."
+    mkdir -p "${HOME}/.zinit"
+    git clone https://github.com/zdharma-continuum/zinit.git "${HOME}/.zinit/bin"
+fi
+
+# 加载 Zinit
+source "${HOME}/.zinit/bin/zinit.zsh"
+
+# ---------------------------------------
+# Powerlevel10k 主题
+# GitHub: https://github.com/romkatv/powerlevel10k
+# ---------------------------------------
+zinit ice depth"1"
+zinit light romkatv/powerlevel10k
+
+# 禁用配置向导
+POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# ---------------------------------------
+# 历史记录配置
+# ---------------------------------------
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt appendhistory
+setopt inc_append_history
+setopt share_history
+setopt hist_ignore_all_dups
+setopt hist_save_no_dups
+setopt hist_ignore_space
+setopt correct
+setopt autocd
+setopt notify
+
+# ---------------------------------------
+# 插件配置
+# ---------------------------------------
+
+# fast-syntax-highlighting: https://github.com/zdharma-continuum/fast-syntax-highlighting
+# 只保留一个语法高亮插件，性能更好
+zinit ice depth"1" wait"0" lucid
+zinit light zdharma-continuum/fast-syntax-highlighting
+
+# zsh-autosuggestions: https://github.com/zsh-users/zsh-autosuggestions
+zinit ice depth"1" wait"0" lucid
+zinit light zsh-users/zsh-autosuggestions
+
+# history-search-multi-word: https://github.com/zdharma-continuum/history-search-multi-word
+zinit ice depth"1" wait"1" lucid
+zinit light zdharma-continuum/history-search-multi-word
+
+# fzf-tab: https://github.com/Aloxaf/fzf-tab
+# 延迟加载，提升启动速度
+# zinit ice depth"1" wait"2" lucid
+zinit light Aloxaf/fzf-tab
+
+# zsh-vi-mode: https://github.com/jeffreytse/zsh-vi-mode
+zinit ice depth"1" wait"1" lucid
+zinit load jeffreytse/zsh-vi-mode
+
+# autopair: https://github.com/hlissner/zsh-autopair
+zinit ice depth"1" wait"1" lucid pick"autopair.zsh"
+zinit load hlissner/zsh-autopair
+
+# https://github.com/MichaelAquilina/zsh-auto-notify
+zinit ice depth"1" wait"1" lucid
+zinit load MichaelAquilina/zsh-auto-notify
+# ---------------------------------------
+# fzf-tab 配置
+# ---------------------------------------
+
+# 禁用 git checkout 排序
+zstyle ':completion:*:git-checkout:*' sort false
+# 补全描述格式
+zstyle ':completion:*:descriptions' format '[%d]'
+# 启用 list-colors
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+# 禁用原生补全菜单
+zstyle ':completion:*' menu no
+# 使用 FZF_DEFAULT_OPTS
+zstyle ':fzf-tab:*' use-fzf-default-opts yes
+# 切换补全组
+zstyle ':fzf-tab:*' switch-group '<' '>'
+
+# ---------------------------------------
+# zsh-vi-mode 配置
+# ---------------------------------------
+
+# 启用系统剪贴板支持
+ZVM_SYSTEM_CLIPBOARD_ENABLED=true
+
+# macOS / Linux 剪贴板配置
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    ZVM_CLIPBOARD_COPY_CMD='pbcopy'
+    ZVM_CLIPBOARD_PASTE_CMD='pbpaste'
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # 检测是否有 xclip 或 xsel
+    if command -v xclip >/dev/null 2>&1; then
+        ZVM_CLIPBOARD_COPY_CMD='xclip -selection clipboard'
+        ZVM_CLIPBOARD_PASTE_CMD='xclip -selection clipboard -o'
+    elif command -v xsel >/dev/null 2>&1; then
+        ZVM_CLIPBOARD_COPY_CMD='xsel --clipboard --input'
+        ZVM_CLIPBOARD_PASTE_CMD='xsel --clipboard --output'
+    fi
+fi
+
+# 启动时使用插入模式
+ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
+
+# 设置 jk 为退出插入模式的快捷键
+ZVM_VI_ESCAPE_BINDKEY=jk
+
+# Key timeout 配置
+ZVM_KEYTIMEOUT=0.4
+
+# ---------------------------------------
+# autopair 配置
+# ---------------------------------------
+# 如果需要额外的 autopair 配置可以在这里添加
+# export AUTOPAIR_BETWEEN_WHITESPACE=1
+
+# ---------------------------------------
+# fzf 配置
+# ---------------------------------------
+export FZF_DEFAULT_OPTS="\
+--height 50% \
+--layout=reverse \
+--border \
+--margin=1,2 \
+--preview '([[ -f {} ]] && bat --style=numbers --color=always --line-range :500 {}) || ([[ -d {} ]] && lsd -t {} || echo {})' \
+--preview-window=right:60%"
+
+# ---------------------------------------
+# 补全系统
+# ---------------------------------------
+autoload -Uz compinit
+if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
+    compinit
+else
+    compinit -C
+fi
+
+# zinit 自身命令补全
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+# ---------------------------------------
+# 命令别名
+# ---------------------------------------
+alias la='lsd -a'
+alias lt='lsd -t'
+alias ls='lsd'
+alias ff='bash ~/ff.sh'
+alias update-all='bash ~/update-all.sh'
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gcm='git commit -m'
+alias gco='git checkout'
+alias gl='git log --oneline --graph'
+alias gd='git diff'
+
+# ---------------------------------------
+# 自定义函数
+# ---------------------------------------
+zshconfig() {
+    cd ~/.config/zsh || return
+    ${EDITOR} ~/.zshrc
+}
+
+# 快速重新加载配置
+reload() {
+    source ~/.zshrc
+    echo "Zsh configuration reloaded!"
+}
+
+# 查找历史命令
+fh() {
+    print -z $(history | fzf --height=40% --reverse | sed 's/ *[0-9]* *//')
+}
+
+# 查找文件并编辑
+fe() {
+    local file
+    file=$(fzf --query="$1" --select-1 --exit-0 --height=40% --reverse)
+    [ -n "$file" ] && ${EDITOR} "$file"
+}
+
+# ---------------------------------------
+# 其他工具初始化
+# ---------------------------------------
+
+# zoxide: https://github.com/ajeetdsouza/zoxide
+eval "$(zoxide init zsh)"
+
+# fzf 自动补全和键绑定
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# 加载 p10k 配置（如果存在）
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+
+# ---------------------------------------
+# 启动消息（可选）
+# ---------------------------------------
+echo "Zsh configuration loaded successfully!"
