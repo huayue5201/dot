@@ -112,7 +112,7 @@ vim.opt.fillchars = {
 	-- 水平分隔符字符
 	horiz = "", -- 水平分隔符（例如 :split 使用）
 	horizup = "", -- 向上的水平分隔符
-	horizdown = "┳", -- 向下的水平分隔符
+	horizdown = "", -- 向下的水平分隔符
 	-- 垂直分隔符字符
 	vert = "", -- 垂直分隔符（例如 :vsplit 使用）
 	vertleft = "", -- 向左的垂直分隔符
@@ -126,7 +126,7 @@ vim.opt.fillchars = {
 	foldinner = " ",
 	-- 其他
 	diff = "╱", -- 显示差异时，已删除的行字符
-	msgsep = "", -- 消息分隔符字符（例如用于 `display`）
+	msgsep = " ", -- 消息分隔符字符（例如用于 `display`）
 	eob = " ", -- 空行字符（用于表示缓冲区末尾）
 	lastline = "@", -- 最后一行或截断字符
 }

@@ -51,7 +51,6 @@ function M.setup()
 	local ts_repeat_move = require("nvim-treesitter.textobjects.repeatable_move")
 	-- 创建可重复的跳转函数
 	local dap_down_repeat, dap_up_repeat = ts_repeat_move.make_repeatable_move_pair(dap.down, dap.up)
-
 	-- 替换你的按键映射
 	vim.keymap.set("n", "<leader>d}", dap_down_repeat, { desc = "DAP: 下一个帧（可重复）" })
 	vim.keymap.set("n", "<leader>d{", dap_up_repeat, { desc = "DAP: 上一个帧（可重复）" })
