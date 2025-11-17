@@ -126,13 +126,13 @@ if should_run system; then
   # 1) 优先升级 uv tools
   # ----------------------------------------
   if command -v uv &>/dev/null; then
-    echo -e "${BLUE}⚡ 使用 uv 升级 CLI 工具...${RESET}" | tee -a "$LOG_FILE"
-    retry_command "uv tool upgrade --all" | tee -a "$LOG_FILE" || true
-    retry_command "uv cache prune" | tee -a "$LOG_FILE" || true
+    UV_TOOLS=$(uv tool list 2>/dev/null | awk '{print $1}' | grep -v '^$' | tr '\n' ' ')
 
-    # 获取 uv 管理的工具列表（名称）
-    UV_TOOLS=$(uv tool list --format=simple | cut -d ' ' -f1)
-    echo -e "${BLUE}🔍 uv 管理的工具: ${UV_TOOLS}${RESET}" | tee -a "$LOG_FILE"
+    if [ -z "$UV_TOOLS" ]; then
+      echo -e "${YELLOW}⚠️ uv 未安装任何工具${RESET}" | tee -a "$LOG_FILE"
+    else
+      echo -e "${BLUE}🔍 uv 管理的工具: ${UV_TOOLS}${RESET}" | tee -a "$LOG_FILE"
+    fi
   else
     echo -e "${YELLOW}⚠️ 未检测到 uv，跳过 uv 工具更新${RESET}" | tee -a "$LOG_FILE"
     UV_TOOLS=""
