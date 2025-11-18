@@ -54,7 +54,7 @@ zinit ice depth"1" wait"0" lucid
 zinit light zdharma-continuum/fast-syntax-highlighting
 
 # https://github.com/larkery/zsh-histdb
-zinit ice depth"1" wait"1" lucid
+zinit ice depth"1" wait"2" lucid
 zinit light larkery/zsh-histdb
 
 # zsh-autosuggestions: https://github.com/zsh-users/zsh-autosuggestions
@@ -136,32 +136,8 @@ fi'
 # zsh-vi-mode 配置
 # ---------------------------------------
 
-# 启用系统剪贴板支持
-ZVM_SYSTEM_CLIPBOARD_ENABLED=true
-
-# macOS / Linux 剪贴板配置
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    ZVM_CLIPBOARD_COPY_CMD='pbcopy'
-    ZVM_CLIPBOARD_PASTE_CMD='pbpaste'
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # 检测是否有 xclip 或 xsel
-    if command -v xclip >/dev/null 2>&1; then
-        ZVM_CLIPBOARD_COPY_CMD='xclip -selection clipboard'
-        ZVM_CLIPBOARD_PASTE_CMD='xclip -selection clipboard -o'
-    elif command -v xsel >/dev/null 2>&1; then
-        ZVM_CLIPBOARD_COPY_CMD='xsel --clipboard --input'
-        ZVM_CLIPBOARD_PASTE_CMD='xsel --clipboard --output'
-    fi
-fi
-
 # 启动时使用插入模式
 ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
-
-# 设置 jk 为退出插入模式的快捷键
-ZVM_VI_ESCAPE_BINDKEY=jk
-
-# Key timeout 配置
-ZVM_KEYTIMEOUT=0.4
 
 # ---------------------------------------
 # autopair 配置

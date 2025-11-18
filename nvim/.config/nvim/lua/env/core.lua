@@ -1,5 +1,5 @@
 local registry = require("env.registry")
-local json_store = require("utils.json_store")
+local json_store = require("user.json_store")
 
 local M = {}
 
