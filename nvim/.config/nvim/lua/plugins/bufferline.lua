@@ -5,7 +5,7 @@ return {
 	event = "UIEnter",
 	dependencies = "nvim-tree/nvim-web-devicons",
 	config = function()
-		local icons = require("lsp.utils").icons.diagnostic
+		local icons = require("lsp.lsp_utils").icons.diagnostic
 
 		require("bufferline").setup({
 			options = {
@@ -40,7 +40,7 @@ return {
 						separator = "┃",
 					},
 					{
-						filetype = "NvimTree",
+						filetype = "neo-tree",
 						text = "󰪶 File Explorer",
 						raw = " %{%v:lua.__get_selector()%} ",
 						highlight = { sep = { link = "WinSeparator" } },

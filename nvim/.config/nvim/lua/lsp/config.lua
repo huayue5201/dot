@@ -1,7 +1,7 @@
 local M = {}
 
-local icons = require("lsp.utils").icons.diagnostic
-local lsp_get = require("lsp.utils")
+local icons = require("lsp.lsp_utils").icons.diagnostic
+local lsp_get = require("lsp.lsp_utils")
 
 M.diagnostic_config = function()
 	vim.diagnostic.config({

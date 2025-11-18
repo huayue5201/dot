@@ -1,5 +1,19 @@
 local M = {}
 
+M.settings = {
+
+	["any-jump"] = {
+		setup = function() end,
+	},
+	-- nofile 类型
+	nofile = {
+		setup = function()
+			vim.wo.cursorline = false
+			vim.wo.number = false
+		end,
+	},
+}
+
 M.buf_keymaps = {
 	-- 统一使用按键作为顶级键
 	["q"] = {

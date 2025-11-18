@@ -14,10 +14,20 @@ return {
 		dropbar.setup({
 			menu = {
 				win_configs = {
-					border = "rounded",
+					border = "shadow",
 				},
 			},
 			icons = {
+				ui = {
+					bar = {
+						separator = "> ",
+						extends = "…",
+					},
+					menu = {
+						separator = " ",
+						indicator = "󱞩 ",
+					},
+				},
 				enable = true,
 				kinds = {
 					symbols = {

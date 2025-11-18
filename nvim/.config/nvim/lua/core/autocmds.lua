@@ -26,11 +26,11 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 -- =============================================
 
 -- 文件类型特定的快捷键映射
+local buf_keymaps = require("utils.utils").buf_keymaps
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	desc = "根据文件类型设置按键",
 	group = vim.api.nvim_create_augroup("CustomKeyMappings", { clear = true }),
 	callback = function()
-		local buf_keymaps = require("utils.utils").buf_keymaps
 		local ft = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
 		local set_markers = vim.b.keymaps_set or {}
 
@@ -50,5 +50,22 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 		end
 
 		vim.b.keymaps_set = set_markers
+	end,
+})
+
+local buffer_settings = require("utils.utils").settings
+vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
+	desc = "根据文件类型/缓冲区类型应用",
+	group = vim.api.nvim_create_augroup("CustomBufferSettings", { clear = true }),
+	callback = function(args)
+		local buf = args.buf
+		local ft = vim.bo[buf].filetype
+		local bt = vim.bo[buf].buftype
+		-- 选择优先 filetype，其次 buftype
+		local kind = (ft ~= "" and ft) or bt
+		-- 匹配 filetype/buftype
+		if buffer_settings[kind] then
+			buffer_settings[kind].setup()
+		end
 	end,
 })
