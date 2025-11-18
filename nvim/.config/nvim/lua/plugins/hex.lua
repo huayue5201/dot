@@ -3,7 +3,7 @@
 return {
 	"RaafatTurki/hex.nvim",
 	keys = {
-		{ "<leader>oh", desc = "进制转换" },
+		{ "<leader>oh", desc = "hex: 进制转换" },
 	},
 	config = function()
 		-- defaults
@@ -31,7 +31,7 @@ return {
 			"n",
 			"<leader>oh",
 			"<cmd>lua require 'hex'.toggle()<CR>",
-			{ silent = true, desc = "进制转换" }
+			{ silent = true, desc = "hex: 进制转换" }
 		)
 	end,
 }
