@@ -26,7 +26,7 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 -- =============================================
 
 -- 文件类型特定的快捷键映射
-local buf_keymaps = require("utils.utils").buf_keymaps
+local buf_keymaps = require("user.utils").buf_keymaps
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	desc = "根据文件类型设置按键",
 	group = vim.api.nvim_create_augroup("CustomKeyMappings", { clear = true }),
@@ -53,7 +53,7 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	end,
 })
 
-local buffer_settings = require("utils.utils").settings
+local buffer_settings = require("user.utils").settings
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	desc = "根据文件类型/缓冲区类型应用",
 	group = vim.api.nvim_create_augroup("CustomBufferSettings", { clear = true }),

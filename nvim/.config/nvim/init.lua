@@ -29,7 +29,6 @@ require("core.settings") -- 基础 Neovim 选项
 require("core.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
 require("core.statusline").active()
 
--- vim.lsp.enable("emmylua_ls")
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()
 	require("core.autocmds") -- 加载自动命令
@@ -41,6 +40,6 @@ vim.defer_fn(function()
 			debounce = 300, -- 检测延迟（毫秒）
 		})
 		require("lsp").setup() --lsp
-		require("utils.dotenv").load() -- token加载模块
+		require("user.dotenv").load() -- token加载模块
 	end)
 end, 300) -- 延迟 100ms 执行

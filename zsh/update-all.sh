@@ -125,8 +125,11 @@ if should_run system; then
   # ----------------------------------------
   # 1) 优先升级 uv tools
   # ----------------------------------------
+  UV_TOOLS=""
   if command -v uv &>/dev/null; then
-    UV_TOOLS=$(uv tool list 2>/dev/null | awk '{print $1}' | grep -v '^$' | tr '\n' ' ')
+    if uv tool list &>/dev/null; then
+      UV_TOOLS=$(uv tool list 2>/dev/null | awk '{print $1}' | grep -v '^$' | tr '\n' ' ')
+    fi
 
     if [ -z "$UV_TOOLS" ]; then
       echo -e "${YELLOW}⚠️ uv 未安装任何工具${RESET}" | tee -a "$LOG_FILE"
@@ -135,7 +138,6 @@ if should_run system; then
     fi
   else
     echo -e "${YELLOW}⚠️ 未检测到 uv，跳过 uv 工具更新${RESET}" | tee -a "$LOG_FILE"
-    UV_TOOLS=""
   fi
 
   # ----------------------------------------
@@ -148,17 +150,17 @@ if should_run system; then
     retry_command "pip3 install --upgrade pip setuptools wheel" | tee -a "$LOG_FILE" || true
 
     # 获取所有 pip 包
-    PIP_PACKAGES=$(pip3 list --format=freeze | cut -d '=' -f1)
+    PIP_PACKAGES=$(pip3 list --format=freeze 2>/dev/null | cut -d '=' -f1)
 
     for pkg in $PIP_PACKAGES; do
       # 跳过 uv 管理的包
-      if echo "$UV_TOOLS" | grep -q "^${pkg}$"; then
+      if [ -n "$UV_TOOLS" ] && echo "$UV_TOOLS" | grep -q "^${pkg}$"; then
         echo -e "${YELLOW}⏭  跳过已由 uv 管理的包: ${pkg}${RESET}" | tee -a "$LOG_FILE"
         continue
       fi
 
       # 跳过本地 / editable 包
-      if pip3 show "$pkg" | grep -q "Location: .*site-packages"; then
+      if pip3 show "$pkg" 2>/dev/null | grep -q "Location: .*site-packages"; then
         retry_command "pip3 install -U \"$pkg\"" | tee -a "$LOG_FILE" || true
       else
         echo -e "${YELLOW}⏭  跳过本地/开发者模式包: ${pkg}${RESET}" | tee -a "$LOG_FILE"
@@ -166,7 +168,7 @@ if should_run system; then
     done
 
     # 清理 pip 缓存
-    retry_command "pip3 cache purge" | tee -a "$LOG_FILE" || true
+    pip3 cache purge 2>/dev/null || true
     echo -e "${GREEN}✅ pip3 更新完成${RESET}" | tee -a "$LOG_FILE"
 
   else
@@ -185,6 +187,8 @@ if should_run system; then
   if command -v cargo &>/dev/null; then
     if cargo install-update --help &>/dev/null; then
       retry_command "cargo install-update -a" | tee -a "$LOG_FILE" || true
+    else
+      echo -e "${YELLOW}⚠️ cargo-install-update 未安装，跳过 cargo 包更新${RESET}" | tee -a "$LOG_FILE"
     fi
     echo -e "${GREEN}✅ cargo 包更新完成${RESET}" | tee -a "$LOG_FILE"
   fi
@@ -200,6 +204,20 @@ if should_run git; then
 
   if [ ! -f "$GIT_CONF" ]; then
     echo -e "${YELLOW}⚠️ 未找到配置文件: $GIT_CONF${RESET}" | tee -a "$LOG_FILE"
+    echo -e "${BLUE}💡 创建示例配置: $GIT_CONF${RESET}" | tee -a "$LOG_FILE"
+    cat >"$GIT_CONF" <<'EOF'
+# Git 仓库配置
+# 每行一个仓库路径，支持 ~ 扩展
+# 格式1: 直接路径
+# /path/to/repo
+
+# 格式2: 自动克隆 (源URL -> 目标路径)
+# https://github.com/user/repo.git -> ~/Projects/repo
+
+# 示例:
+# ~/Projects/my-project
+# https://github.com/username/repo.git -> ~/Projects/repo
+EOF
   else
     echo "📘 使用配置文件: $GIT_CONF" | tee -a "$LOG_FILE"
 
@@ -207,47 +225,67 @@ if should_run git; then
     SKIP_COUNT=0
     FAIL_COUNT=0
 
-    # 并行执行 Git 更新
-    export LOG_FILE
-    cat "$GIT_CONF" | grep -v '^#' | grep -v '^[[:space:]]*$' |
-      xargs -I {} -P 4 bash -c '
-            line="{}"
-            repo=$(echo "$line" | tr -d "\r")
+    # 顺序执行 Git 更新（更稳定）
+    while IFS= read -r line || [ -n "$line" ]; do
+      # 跳过空行和注释
+      line=$(echo "$line" | sed 's/#.*$//' | tr -d '[:space:]')
+      [ -z "$line" ] && continue
 
-            # 支持 "url -> path" 格式自动 clone
-            if [[ "$repo" == *"->"* ]]; then
-                src=$(echo "$repo" | cut -d ">" -f1 | tr -d " ")
-                dest=$(echo "$repo" | cut -d ">" -f2 | tr -d " ")
-                repo="$dest"
-                if [ ! -d "$dest/.git" ]; then
-                    echo "🚧 克隆新仓库: $src -> $dest" | tee -a "$LOG_FILE"
-                    git clone "$src" "$dest" >> "$LOG_FILE" 2>&1 || exit 1
-                fi
-            fi
+      echo -e "\n${BLUE}🔄 处理: $line${RESET}" | tee -a "$LOG_FILE"
 
-            repo=$(eval echo "$repo")  # 展开 ~
+      # 处理 "url -> path" 格式
+      if [[ "$line" == *"->"* ]]; then
+        src=$(echo "$line" | awk -F'->' '{print $1}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        dest=$(echo "$line" | awk -F'->' '{print $2}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        dest=$(eval echo "$dest") # 展开 ~
 
-            if [ ! -d "$repo/.git" ]; then
-                echo "⚠️ 跳过 $repo (非 Git 仓库)" | tee -a "$LOG_FILE"
-                exit 10
-            fi
+        if [ ! -d "$dest/.git" ]; then
+          echo "🚧 克隆新仓库: $src -> $dest" | tee -a "$LOG_FILE"
+          if git clone "$src" "$dest" >>"$LOG_FILE" 2>&1; then
+            echo -e "${GREEN}✅ 克隆成功: $dest${RESET}" | tee -a "$LOG_FILE"
+            ((SUCCESS_COUNT++))
+          else
+            echo -e "${RED}❌ 克隆失败: $dest${RESET}" | tee -a "$LOG_FILE"
+            ((FAIL_COUNT++))
+          fi
+          continue
+        else
+          repo="$dest"
+        fi
+      else
+        repo=$(eval echo "$line") # 展开 ~
+      fi
 
-            cd "$repo"
-            if [ -n "$(git status --porcelain)" ]; then
-                echo "⚠️ 跳过 $repo (有未提交修改)" | tee -a "$LOG_FILE"
-                exit 10
-            fi
+      # 检查是否为 Git 仓库
+      if [ ! -d "$repo/.git" ]; then
+        echo -e "${YELLOW}⚠️ 跳过 $repo (非 Git 仓库)${RESET}" | tee -a "$LOG_FILE"
+        ((SKIP_COUNT++))
+        continue
+      fi
 
-            if git pull --rebase --autostash >> "$LOG_FILE" 2>&1; then
-                echo "✅ 成功更新 $repo" | tee -a "$LOG_FILE"
-                exit 0
-            else
-                echo "❌ 更新失败 $repo" | tee -a "$LOG_FILE"
-                exit 1
-            fi
-        ' || true
+      # 检查是否有未提交的修改
+      cd "$repo"
+      if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
+        echo -e "${YELLOW}⚠️ 跳过 $repo (有未提交修改)${RESET}" | tee -a "$LOG_FILE"
+        ((SKIP_COUNT++))
+        continue
+      fi
 
-    echo -e "\n${BOLD}${BLUE}📊 Git 仓库更新完成${RESET}" | tee -a "$LOG_FILE"
+      # 执行 Git 更新
+      if git pull --rebase --autostash >>"$LOG_FILE" 2>&1; then
+        echo -e "${GREEN}✅ 成功更新 $repo${RESET}" | tee -a "$LOG_FILE"
+        ((SUCCESS_COUNT++))
+      else
+        echo -e "${RED}❌ 更新失败 $repo${RESET}" | tee -a "$LOG_FILE"
+        ((FAIL_COUNT++))
+      fi
+
+    done <"$GIT_CONF"
+
+    echo -e "\n${BOLD}${BLUE}📊 Git 仓库更新统计:${RESET}" | tee -a "$LOG_FILE"
+    echo -e "${GREEN}✅ 成功: $SUCCESS_COUNT${RESET}" | tee -a "$LOG_FILE"
+    echo -e "${YELLOW}⏭️ 跳过: $SKIP_COUNT${RESET}" | tee -a "$LOG_FILE"
+    echo -e "${RED}❌ 失败: $FAIL_COUNT${RESET}" | tee -a "$LOG_FILE"
   fi
 fi
 

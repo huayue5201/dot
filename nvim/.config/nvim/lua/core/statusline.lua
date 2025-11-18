@@ -1,10 +1,10 @@
 -- TODO https://github.com/neovim/neovim/issues/34562
 
-local utils = require("utils.utils")
+local utils = require("user.utils")
 local colors = utils.palette
 local lsp = require("lsp.status_mod").lsp
-require("utils.search_status").setup()
-local search_status = require("utils.search_status")
+require("user.search_status").setup()
+local search_status = require("user.search_status")
 
 local M = {} -- 使用 M 作为模块的局部变量
 
