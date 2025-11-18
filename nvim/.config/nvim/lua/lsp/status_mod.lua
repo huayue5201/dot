@@ -1,6 +1,6 @@
 local M = {}
 
-local utils = require("lsp.utils")
+local utils = require("lsp.lsp_utils")
 
 vim.api.nvim_set_hl(0, "LspHighlight", { fg = "#fffff0", bold = true })
 
