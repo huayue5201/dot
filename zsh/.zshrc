@@ -50,21 +50,19 @@ setopt notify
 # ---------------------------------------
 
 # fast-syntax-highlighting: https://github.com/zdharma-continuum/fast-syntax-highlighting
-# 只保留一个语法高亮插件，性能更好
 zinit ice depth"1" wait"0" lucid
 zinit light zdharma-continuum/fast-syntax-highlighting
+
+# https://github.com/larkery/zsh-histdb
+zinit ice depth"1" wait"1" lucid
+zinit light larkery/zsh-histdb
 
 # zsh-autosuggestions: https://github.com/zsh-users/zsh-autosuggestions
 zinit ice depth"1" wait"0" lucid
 zinit light zsh-users/zsh-autosuggestions
 
-# history-search-multi-word: https://github.com/zdharma-continuum/history-search-multi-word
-zinit ice depth"1" wait"1" lucid
-zinit light zdharma-continuum/history-search-multi-word
-
-# fzf-tab: https://github.com/Aloxaf/fzf-tab
 # 延迟加载，提升启动速度
-# zinit ice depth"1" wait"2" lucid
+zinit ice depth"1" wait"2" lucid
 zinit light Aloxaf/fzf-tab
 
 # zsh-vi-mode: https://github.com/jeffreytse/zsh-vi-mode
@@ -78,10 +76,34 @@ zinit load hlissner/zsh-autopair
 # https://github.com/MichaelAquilina/zsh-auto-notify
 zinit ice depth"1" wait"1" lucid
 zinit load MichaelAquilina/zsh-auto-notify
+
+# ---------------------------------------
+# histdb 配置
+# ---------------------------------------
+# 忽略某些命令不写入数据库（同 zsh 的 HISTORY_IGNORE 机制）
+export HISTORY_IGNORE="(ls|cd|top|htop|clear)"
+# 如果你安装了 zsh‑autosuggestions，你可以让它用 histdb 做建议：
+if type _zsh_autosuggest_strategy_histdb_top_here &>/dev/null; then
+  ZSH_AUTOSUGGEST_STRATEGY=histdb_top_here
+fi
+# 在 macOS 上，如果你看到输出分隔怪异，可以加入：
+HISTDB_TABULATE_CMD=(sed -e $'s/\x1f/\t/g')
+
+_zsh_autosuggest_strategy_histdb_top_here() {
+    local query="select commands.argv from
+history left join commands on history.command_id = commands.rowid
+left join places on history.place_id = places.rowid
+where places.dir LIKE '$(sql_escape $PWD)%'
+and commands.argv LIKE '$(sql_escape $1)%'
+group by commands.argv order by count(*) desc limit 1"
+    suggestion=$(_histdb_query "$query")
+}
+
+ZSH_AUTOSUGGEST_STRATEGY=histdb_top_here
+
 # ---------------------------------------
 # fzf-tab 配置
 # ---------------------------------------
-
 # 禁用 git checkout 排序
 zstyle ':completion:*:git-checkout:*' sort false
 # 补全描述格式
@@ -90,11 +112,26 @@ zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 # 禁用原生补全菜单
 zstyle ':completion:*' menu no
-# 使用 FZF_DEFAULT_OPTS
+# fzf-tab 核心配置
+zstyle ':fzf-tab:*' fzf-flags --height=60% --reverse 
 zstyle ':fzf-tab:*' use-fzf-default-opts yes
 # 切换补全组
 zstyle ':fzf-tab:*' switch-group '<' '>'
 
+# 预览配置（关键）
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd -la --color=always $realpath 2>/dev/null || ls -la --color=always $realpath'
+zstyle ':fzf-tab:complete:z:*' fzf-preview 'lsd -la --color=always $realpath 2>/dev/null || ls -la --color=always $realpath'
+zstyle ':fzf-tab:complete:ls:*' fzf-preview 'lsd -la --color=always $realpath 2>/dev/null || ls -la --color=always $realpath'
+
+# 文件预览
+zstyle ':fzf-tab:complete:*:*' fzf-preview '
+if [[ -f $realpath ]]; then
+    bat --style=numbers --color=always $realpath 2>/dev/null || cat $realpath
+elif [[ -d $realpath ]]; then
+    lsd -la --color=always $realpath 2>/dev/null || ls -la --color=always $realpath
+else
+    echo $realpath
+fi'
 # ---------------------------------------
 # zsh-vi-mode 配置
 # ---------------------------------------
@@ -133,13 +170,19 @@ ZVM_KEYTIMEOUT=0.4
 # export AUTOPAIR_BETWEEN_WHITESPACE=1
 
 # ---------------------------------------
-# fzf 配置
+# auto-notify 配置
+# ---------------------------------------
+export AUTO_NOTIFY_THRESHOLD=30  # 命令执行超过30秒才通知
+export AUTO_NOTIFY_TITLE="命令完成"
+export AUTO_NOTIFY_BODY="命令: {command} (运行时间: {time})"
+export AUTO_NOTIFY_IGNORE=("vim" "nvim" "man" "less" "more" "top" "htop")
+
+# ---------------------------------------
+# fzf 配置（无边框版本）
 # ---------------------------------------
 export FZF_DEFAULT_OPTS="\
 --height 50% \
 --layout=reverse \
---border \
---margin=1,2 \
 --preview '([[ -f {} ]] && bat --style=numbers --color=always --line-range :500 {}) || ([[ -d {} ]] && lsd -t {} || echo {})' \
 --preview-window=right:60%"
 

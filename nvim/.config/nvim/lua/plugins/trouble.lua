@@ -118,8 +118,8 @@ return {
 			icons = {
 				---@type trouble.Indent.symbols
 				indent = {
-					top = "│ ", -- 顶部缩进
-					middle = "├╴", -- 中间缩进
+					top = "│", -- 顶部缩进
+					middle = "", --"├", -- 中间缩进
 					-- last = "└╴", -- 最后缩进
 					-- last = "-╴", -- 最后缩进（替代样式）
 					last = "╰╴", -- 圆角样式

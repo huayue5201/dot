@@ -36,7 +36,7 @@ return {
 					min_severity = vim.diagnostic.severity.HINT,
 				},
 				gitsigns = {
-					enable = true,
+					enable = false,
 					signs = {
 						add = "│",
 						change = "│",
