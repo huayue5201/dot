@@ -84,7 +84,16 @@ local function get_todo_files(project)
 	if vim.fn.isdirectory(dir) == 0 then
 		return {}
 	end
-	return vim.fn.globpath(dir, "*.todo.md", false, true)
+
+	local exts = { "*.todo.md", "todo.txt", "*.todo" }
+	local files = {}
+
+	for _, ext in ipairs(exts) do
+		local f = vim.fn.globpath(dir, ext, false, true)
+		vim.list_extend(files, f)
+	end
+
+	return files
 end
 
 -- ==========================
