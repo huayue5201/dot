@@ -55,18 +55,30 @@ return {
 			},
 		})
 
-		-- 跳转至可见位置
+		-- Jump to visible buffers
 		for i = 1, 9 do
 			vim.keymap.set(
 				"n",
 				"<leader>tb" .. i,
 				"<Cmd>BufferLineGoToBuffer " .. i .. "<CR>",
-				{ silent = true, desc = "Go to buffer " .. i }
+				{ silent = true, desc = "BufferLine: go to buffer " .. i }
 			)
 		end
-		vim.keymap.set("n", "<leader>tbp", "<cmd>BufferLineTogglePin<cr>", { desc = "图钉📌" })
-		vim.keymap.set("n", "gb", "<cmd>BufferLinePick<CR>", { desc = "跳转到任意可见标签" })
-		vim.keymap.set("n", "<leader>rb", "<cmd>BufferLinePickClose<CR>", { desc = "删除任意可见标签" })
-		vim.keymap.set("n", "<leader>rab", "<cmd>BufferLineCloseOthers<cr>", { desc = "删除其他所有buffers" })
+
+		vim.keymap.set("n", "<leader>tbp", "<cmd>BufferLineTogglePin<cr>", {
+			desc = "BufferLine: toggle pin",
+		})
+
+		vim.keymap.set("n", "gb", "<cmd>BufferLinePick<CR>", {
+			desc = "BufferLine: pick buffer",
+		})
+
+		vim.keymap.set("n", "<leader>rb", "<cmd>BufferLinePickClose<CR>", {
+			desc = "BufferLine: pick & close buffer",
+		})
+
+		vim.keymap.set("n", "<leader>rab", "<cmd>BufferLineCloseOthers<cr>", {
+			desc = "BufferLine: close other buffers",
+		})
 	end,
 }

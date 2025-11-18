@@ -54,36 +54,41 @@ end
 -- 按键映射
 local keymaps = {
 	-- { "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
+
 	{
 		"<leader>ld",
 		function()
 			open_buffer_diagnostics()
 		end,
-		"当前buffer内诊断",
+		"LSP: buffer diagnostics",
 	},
+
 	{
 		"<leader>lD",
 		function()
 			open_all_diagnostics()
 		end,
-		"项目内所有诊断",
+		"LSP: workspace diagnostics",
 	},
+
 	{
 		"<leader>yd",
 		function()
 			CopyErrorMessage()
 		end,
-		"复制报错",
+		"LSP: copy diagnostic message",
 	},
+
 	{
 		"<localleader>li",
 		"<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>",
-		"打开/关闭内联提示",
+		"LSP: toggle inlay hints",
 	},
+
 	{
 		"<leader>lw",
 		"<cmd>LspListActive<cr>",
-		"列出工作区文件夹",
+		"LSP: list workspace folders",
 	},
 }
 

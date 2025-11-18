@@ -8,38 +8,45 @@ return {
 	config = function()
 		local augend = require("dial.augend")
 		require("dial.config").augends:register_group({
-			-- default augends used when no group name is specified
 			default = {
-				augend.integer.alias.decimal, -- nonnegative decimal number (0, 1, 2, 3, ...)
-				augend.integer.alias.hex, -- nonnegative hex number  (0x01, 0x1a1f, etc.)
-				augend.integer.alias.binary, -- 二进制数
-				augend.date.alias["%Y/%m/%d"], -- date (2022/02/19, etc.)
+				augend.integer.alias.decimal,
+				augend.integer.alias.hex,
+				augend.integer.alias.binary,
+				augend.date.alias["%Y/%m/%d"],
 				augend.constant.alias.bool,
 			},
 		})
+
 		vim.keymap.set("n", "<C-a>", function()
 			require("dial.map").manipulate("increment", "normal")
-		end)
+		end, { desc = "Dial: increment" })
+
 		vim.keymap.set("n", "<C-x>", function()
 			require("dial.map").manipulate("decrement", "normal")
-		end)
+		end, { desc = "Dial: decrement" })
+
 		vim.keymap.set("n", "g<C-a>", function()
 			require("dial.map").manipulate("increment", "gnormal")
-		end)
+		end, { desc = "Dial: increment g" })
+
 		vim.keymap.set("n", "g<C-x>", function()
 			require("dial.map").manipulate("decrement", "gnormal")
-		end)
+		end, { desc = "Dial: decrement g" })
+
 		vim.keymap.set("v", "<C-a>", function()
 			require("dial.map").manipulate("increment", "visual")
-		end)
+		end, { desc = "Dial: increment visual" })
+
 		vim.keymap.set("v", "<C-x>", function()
 			require("dial.map").manipulate("decrement", "visual")
-		end)
+		end, { desc = "Dial: decrement visual" })
+
 		vim.keymap.set("v", "g<C-a>", function()
 			require("dial.map").manipulate("increment", "gvisual")
-		end)
+		end, { desc = "Dial: increment gvisual" })
+
 		vim.keymap.set("v", "g<C-x>", function()
 			require("dial.map").manipulate("decrement", "gvisual")
-		end)
+		end, { desc = "Dial: decrement gvisual" })
 	end,
 }
