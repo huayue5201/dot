@@ -41,10 +41,10 @@ return {
 			incremental_selection = {
 				enable = true,
 				keymaps = {
-					init_selection = "<cr>",
-					node_incremental = "<tab>",
+					init_selection = "<s-tab>",
+					node_incremental = "<cr>",
 					node_decremental = "<bs>",
-					scope_incremental = "<s-tab>",
+					scope_incremental = "<tab>",
 				},
 			},
 			-- 确保所需的语言解析器被安装

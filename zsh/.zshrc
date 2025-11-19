@@ -196,11 +196,6 @@ alias gd='git diff'
 # ---------------------------------------
 # 自定义函数
 # ---------------------------------------
-zshconfig() {
-    cd ~/.config/zsh || return
-    ${EDITOR} ~/.zshrc
-}
-
 # 快速重新加载配置
 reload() {
     source ~/.zshrc
