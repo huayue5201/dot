@@ -1,67 +1,141 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# to maintain cask ....
-#     brew update && brew cleanup
+echo "======================="
+echo "一键环境部署脚本开始"
+echo "======================="
 
-# 基本工具
-brew install stow # dotfile管理
-cd ~/dotfile
-stow git
-stow nvim
-stow ghostty
-stow btop
-stow tmux
-stow aria2
-brew install git
-brew install difftastic # git diff语义增强
-brew install lazygit    # git管理GUI
-brew install fzf
-brew install fd
-brew install ripgrep # rg
-brew install bat     # cat替代
-brew install btop    # 系统监测
-brew install tmux    # 终端复用
-brew install aria2   # 下载工具
-brew install --HEAD neovim
-brew tap laishulu/homebrew # neovim输入法切换依赖
-brew install macism
-brew install yazi # 文件资源管理器
-brew install xray # 作为后台启动:brew services start xray
-brew install llvm
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh # 安装rust
-brew install lsusb                                             # usb设备查看工具
-brew install lsd or sudo port install lsd
-brew install zoxide
+# -----------------------------
+# 工具函数
+# -----------------------------
+log() { echo -e "\033[1;34m[INFO]\033[0m $*"; }
+warn() { echo -e "\033[1;33m[WARN]\033[0m $*"; }
+error() { echo -e "\033[1;31m[ERROR]\033[0m $*"; }
 
-# mcu 开发环境
-brew install --cask gcc-arm-embedded #gcc交叉编译工具
-brew install openocd                 # debug.烧录工具
-brew install telnet                  # openocd依赖
-pip3 install compiledb               # compile_commands.json生成工具 compiledb make
-brew install node
+command_exists() { command -v "$1" &>/dev/null; }
 
-# lsp severs or 语言工具
-brew install taplo         # toml lsp
-brew install stylua        # lua格式化工具
-brew install uv            # python虚拟环境管理工具
-uv tool install ty@latest  # python lsp
-brew install rust-analyzer # rust lsp
-brew install emmylua_ls    # lua lsp
-# https://github.com/ast-grep/ast-grep
-brew install ast-grep #
-# https://github.com/astral-sh/ruff
-brew install ruff # python格式化工具
+# -----------------------------
+# 并行安装工具
+# -----------------------------
+brew_install_parallel() {
+  local packages=("$@")
+  for pkg in "${packages[@]}"; do
+    if ! brew list "$pkg" &>/dev/null; then
+      log "开始安装 $pkg ..."
+      brew install "$pkg" &
+    else
+      log "$pkg 已安装，跳过"
+    fi
+  done
+  wait
+}
 
-# brew 命令扩展
-brew tap buo/cask-upgrade  # cask更新 brew cu [CASK name]
-brew tap beeftornado/rmtre # 删除包及其依赖 brew rmtre [packge neme]
+brew_cask_install_parallel() {
+  local casks=("$@")
+  for cask in "${casks[@]}"; do
+    if ! brew list --cask "$cask" &>/dev/null; then
+      log "开始安装 cask $cask ..."
+      brew install --cask "$cask" &
+    else
+      log "cask $cask 已安装，跳过"
+    fi
+  done
+  wait
+}
 
-# cask
-brew install orbstack # docker和linux虚拟机
-brew install --cask ghostty
-brew tap homebrew/cask-fonts # fonts字体安装
-brew install --cask font-fira-code-nerd-font
-brew install --cask font-victor-mono-nerd-font
-brew install --cask font-gohufont-nerd-font
-brew install --cask font-anonymice-nerd-font
-brew install --cask font-terminess-ttf-nerd-font
+pip3_install_parallel() {
+  local packages=("$@")
+  for pkg in "${packages[@]}"; do
+    if ! pip3 show "$pkg" &>/dev/null; then
+      log "开始安装 pip3 包 $pkg ..."
+      pip3 install "$pkg" &
+    else
+      log "pip3 包 $pkg 已安装，跳过"
+    fi
+  done
+  wait
+}
+
+# -----------------------------
+# Homebrew 安装和更新
+# -----------------------------
+if ! command_exists brew; then
+  log "Homebrew 未安装，开始安装..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+else
+  log "Homebrew 已安装，更新中..."
+  brew update
+  brew upgrade
+fi
+
+# -----------------------------
+# 1. 基础工具并行安装
+# -----------------------------
+log "安装基础工具..."
+brew_install_parallel stow git difftastic lazygit fzf fd ripgrep bat btop tmux aria2 llvm lsusb zoxide
+brew install --HEAD neovim # neovim 建议单独安装，避免 HEAD 并行冲突
+
+# -----------------------------
+# 2. dotfiles 管理（顺序执行）
+# -----------------------------
+DOTFILES_DIR="$HOME/dotfile"
+if [ -d "$DOTFILES_DIR" ]; then
+  log "开始 stow 链接 dotfiles..."
+  cd "$DOTFILES_DIR"
+  for d in git nvim ghostty btop tmux aria2; do
+    stow "$d" || warn "stow $d 失败"
+  done
+else
+  warn "$DOTFILES_DIR 不存在，跳过 dotfiles 链接"
+fi
+
+# -----------------------------
+# 3. MCU 开发环境并行安装
+# -----------------------------
+log "安装 MCU 开发环境..."
+brew_install_parallel openocd telnet node
+brew_install --cask gcc-arm-embedded # cask 建议单独安装
+pip3_install_parallel compiledb
+
+# -----------------------------
+# 4. LSP / 语言工具并行安装
+# -----------------------------
+log "安装 LSP 和语言工具..."
+brew_install_parallel taplo stylua uv rust-analyzer emmylua_ls ast-grep ruff
+if command_exists uv; then
+  uv tool install ty@latest || warn "uv tool install ty@latest 失败"
+fi
+
+# -----------------------------
+# 5. Brew 扩展（顺序执行即可）
+# -----------------------------
+brew tap buo/cask-upgrade || true
+brew tap beeftornado/rmtre || true
+
+# -----------------------------
+# 6. Cask 应用 & 字体并行安装
+# -----------------------------
+log "安装 cask 应用和字体..."
+brew_cask_install_parallel orbstack ghostty
+brew tap homebrew/cask-fonts || true
+brew_cask_install_parallel font-fira-code-nerd-font font-victor-mono-nerd-font font-gohufont-nerd-font font-anonymice-nerd-font font-terminess-ttf-nerd-font
+
+# -----------------------------
+# 7. Rust 安装（顺序执行）
+# -----------------------------
+if ! command_exists rustc; then
+  log "安装 Rust..."
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+else
+  log "Rust 已安装，跳过"
+fi
+
+# -----------------------------
+# 8. 完成提示
+# -----------------------------
+log "======================="
+log "一键环境部署完成！"
+log "建议操作："
+log "  - brew cu 升级 cask"
+log "  - uv tool upgrade 更新 python 工具"
+log "======================="
