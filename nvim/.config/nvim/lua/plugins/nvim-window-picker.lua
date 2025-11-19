@@ -155,7 +155,7 @@ return {
 			end
 			-- 恢复原来的窗口
 			vim.api.nvim_set_current_win(current_win)
-		end, { silent = true, desc = "删除选中的窗口（支持 close_commands 表）" })
+		end, { silent = true, desc = "window: 删除选中的窗口（支持 close_commands 表）" })
 
 		vim.keymap.set("n", "<Leader>w", function()
 			local success, picker = pcall(require, "window-picker")
@@ -169,7 +169,7 @@ return {
 			else
 				print("No window picked!")
 			end
-		end, { silent = true, desc = "选择一个窗口并切换" })
+		end, { silent = true, desc = "window: 选择一个窗口并切换" })
 
 		vim.keymap.set("n", "<leader>sw", function()
 			local success, picker = pcall(require, "window-picker")
@@ -191,6 +191,6 @@ return {
 			else
 				print("No window picked!")
 			end
-		end, { silent = true, desc = "交换当前窗口与目标窗口的位置" })
+		end, { silent = true, desc = "window: 交换当前窗口与目标窗口的位置" })
 	end,
 }

@@ -10,7 +10,7 @@ return {
 				require("conform").format({ async = true })
 			end,
 			mode = "",
-			desc = "Format buffer",
+			desc = "conform: Format buffer",
 		},
 	},
 	config = function()
