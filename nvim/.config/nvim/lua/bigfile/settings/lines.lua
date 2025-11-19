@@ -9,7 +9,8 @@ M.name = "行数"
 -- 大文件配置 - 直接使用 vim.opt 和 vim.cmd 格式
 M.bigfile = {
 	configs = {
-		"vim.opt.wrap = false",
+		"vim.opt.updatecount = 0",
+		"vim.o.swapfile = false",
 		"vim.opt.cursorline = false",
 		"vim.opt.cursorcolumn = false",
 		"vim.cmd('TSBufDisable indent')",
@@ -19,7 +20,8 @@ M.bigfile = {
 -- 小文件配置
 M.smallfile = {
 	configs = {
-		"vim.opt.wrap = true",
+		"vim.opt.updatecount = 300",
+		"vim.o.swapfile = true",
 		"vim.opt.cursorline = true",
 		"vim.opt.cursorcolumn = false",
 		"vim.cmd('TSBufEnable indent')",

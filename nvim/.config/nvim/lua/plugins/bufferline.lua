@@ -59,13 +59,13 @@ return {
 		for i = 1, 9 do
 			vim.keymap.set(
 				"n",
-				"<leader>tb" .. i,
+				"<leader>b" .. i,
 				"<Cmd>BufferLineGoToBuffer " .. i .. "<CR>",
 				{ silent = true, desc = "BufferLine: go to buffer " .. i }
 			)
 		end
 
-		vim.keymap.set("n", "<leader>tbp", "<cmd>BufferLineTogglePin<cr>", {
+		vim.keymap.set("n", "<leader>bp", "<cmd>BufferLineTogglePin<cr>", {
 			desc = "BufferLine: toggle pin",
 		})
 

@@ -69,7 +69,7 @@ return {
 			},
 		})
 
-		vim.keymap.set("n", "<localleader>du", dapui.toggle, { desc = "DAP UI: Toggle" })
+		vim.keymap.set("n", "<leader>du", dapui.toggle, { desc = "DAP UI: Toggle" })
 		vim.keymap.set("n", "<leader>df", dapui.float_element, { desc = "DAP UI: Float element" })
 		vim.keymap.set("n", "<leader>de", dapui.eval, { desc = "DAP UI: Eval under cursor" })
 		vim.keymap.set("v", "<leader>de", dapui.eval, { desc = "DAP UI: Eval selection" })

@@ -1,3 +1,5 @@
+-- TODO:备选 https://github.com/jbyuki/one-small-step-for-vimkind
+
 return {
 	setup = function(dap)
 		dap.adapters["local-lua"] = {

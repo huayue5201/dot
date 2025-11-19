@@ -150,7 +150,7 @@ ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
 # ---------------------------------------
 export AUTO_NOTIFY_THRESHOLD=30  # 命令执行超过30秒才通知
 export AUTO_NOTIFY_TITLE="命令完成"
-export AUTO_NOTIFY_BODY="命令: {command} (运行时间: {time})"
+# export AUTO_NOTIFY_BODY="命令: {command} (运行时间: {time})"
 export AUTO_NOTIFY_IGNORE=("vim" "nvim" "man" "less" "more" "top" "htop")
 
 # ---------------------------------------

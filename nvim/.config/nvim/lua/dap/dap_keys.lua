@@ -7,9 +7,8 @@ function M.setup()
 	local sidebar = nil
 
 	-- ▶ 控制
-	vim.keymap.set("n", "<leader>dc", dap.continue, { desc = "DAP: 继续 / 启动调试" })
-	vim.keymap.set("n", "<leader>ds", dap.pause, { desc = "DAP: 暂停" })
-	vim.keymap.set("n", "<leader>dt", function()
+	vim.keymap.set("n", "<F5>", dap.continue, { desc = "DAP: 继续 / 启动调试" })
+	vim.keymap.set("n", "<F4>", function()
 		dap.terminate({
 			on_done = function()
 				dap.repl.close()
@@ -17,16 +16,17 @@ function M.setup()
 			end,
 		})
 	end, { desc = "DAP: 终止调试" })
+	vim.keymap.set("n", "<F6>", dap.pause, { desc = "DAP: 暂停" })
 
 	-- 🪜 步进控制
-	vim.keymap.set("n", "<leader>di", dap.step_into, { desc = "DAP: 单步进入" })
-	vim.keymap.set("n", "<leader>do", dap.step_over, { desc = "DAP: 单步跳过" })
-	vim.keymap.set("n", "<leader>du", dap.step_out, { desc = "DAP: 单步跳出" })
-	vim.keymap.set("n", "<leader>dp", dap.step_back, { desc = "DAP: 逆向单步" })
+	vim.keymap.set("n", "<F10>", dap.step_over, { desc = "DAP: 单步跳过" })
+	vim.keymap.set("n", "<F9>", dap.step_back, { desc = "DAP: 逆向单步" })
+	vim.keymap.set("n", "<F11>", dap.step_into, { desc = "DAP: 单步进入" })
+	vim.keymap.set("n", "<F12>", dap.step_out, { desc = "DAP: 单步跳出" })
 
 	-- 🎯 跳转
-	vim.keymap.set("n", "<leader>dgc", dap.run_to_cursor, { desc = "DAP: 运行到光标" })
-	vim.keymap.set("n", "<leader>dgs", function()
+	vim.keymap.set("n", "<leader>dc", dap.run_to_cursor, { desc = "DAP: 运行到光标" })
+	vim.keymap.set("n", "<leader>ds", function()
 		vim.ui.input({ prompt = " 󰙎 输入行号: " }, function(input)
 			if input then
 				local line = tonumber(input)
@@ -40,7 +40,7 @@ function M.setup()
 	end, { desc = "DAP: 跳转到行" })
 
 	-- 💡 断点管理
-	vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { desc = "DAP: 切换断点" })
+	vim.keymap.set("n", "<leader>.", dap.toggle_breakpoint, { desc = "DAP: 切换断点" })
 	vim.keymap.set("n", "<leader>db", function()
 		dap.set_exception_breakpoints()
 	end, { desc = "DAP: 设置异常断点" })
@@ -52,8 +52,8 @@ function M.setup()
 	-- 创建可重复的跳转函数
 	local dap_down_repeat, dap_up_repeat = ts_repeat_move.make_repeatable_move_pair(dap.down, dap.up)
 	-- 替换你的按键映射
-	vim.keymap.set("n", "<leader>d}", dap_down_repeat, { desc = "DAP: 下一个帧（可重复）" })
-	vim.keymap.set("n", "<leader>d{", dap_up_repeat, { desc = "DAP: 上一个帧（可重复）" })
+	vim.keymap.set("n", "<leader>d]", dap_down_repeat, { desc = "DAP: 下一个帧（可重复）" })
+	vim.keymap.set("n", "<leader>d[", dap_up_repeat, { desc = "DAP: 上一个帧（可重复）" })
 	-- vim.keymap.set("n", "<leader>d{", dap.up, { desc = "DAP: 上一个帧" })
 	-- vim.keymap.set("n", "<leader>d}", dap.down, { desc = "DAP: 下一个帧" })
 

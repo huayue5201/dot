@@ -80,7 +80,7 @@ local keymaps = {
 	},
 
 	{
-		"<localleader>li",
+		"<leader>ri",
 		"<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>",
 		"LSP: toggle inlay hints",
 	},
