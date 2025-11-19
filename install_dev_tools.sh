@@ -37,7 +37,7 @@ brew install zoxide
 brew install --cask gcc-arm-embedded #gcc交叉编译工具
 brew install openocd                 # debug.烧录工具
 brew install telnet                  # openocd依赖
-pipx install compiledb               # compile_commands.json生成工具 compiledb make
+pip3 install compiledb               # compile_commands.json生成工具 compiledb make
 brew install node
 
 # lsp severs or 语言工具
