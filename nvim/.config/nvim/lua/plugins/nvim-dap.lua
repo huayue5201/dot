@@ -68,7 +68,7 @@ return {
 			daps.defaults.fallback[key] = value
 		end
 
-		require("user.dap_keys").setup()
+		require("dap.dap_keys").setup()
 
 		-- 扩展 REPL 命令
 		local repl = require("dap.repl")
@@ -143,7 +143,7 @@ return {
 			end
 		end
 		-- 加载模块
-		load_modules_from_dir("lua/dap")
+		load_modules_from_dir("lua/dap/configs")
 
 		vim.api.nvim_create_autocmd({ "VimLeave" }, {
 			callback = function()

@@ -9,14 +9,14 @@ vim.keymap.set("n", "<c-s>", "<cmd>w<cr>", { silent = true, desc = "Basic: save 
 vim.keymap.set("n", "<Leader>q", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 
 -- 🏷 Tab operations
-vim.keymap.set("n", "<leader>ttn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
+vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
 vim.keymap.set("n", "<leader>rt", "<cmd>tabclose<cr>", { silent = true, desc = "Tab: close tab" })
 vim.keymap.set("n", "<leader>rat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>i", "<cmd>messages<cr>", { silent = true, desc = "Message: show messages" })
-vim.keymap.set("n", "<leader>toe", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
-vim.keymap.set("n", "<leader>tor", "<cmd>restart<cr>", { silent = true, desc = "Basic: restart Neovim" })
+vim.keymap.set("n", "<leader>re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
+vim.keymap.set("n", "<leader>rn", "<cmd>restart<cr>", { silent = true, desc = "Basic: restart Neovim" })
 
 -- 🔍 Search
 vim.keymap.set("x", "/", "<C-\\><C-n>`</\\%V", { desc = "Search: forward in visual range" })
