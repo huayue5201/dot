@@ -2,7 +2,7 @@
 
 local utils = require("user.utils")
 local colors = utils.palette
-local lsp = require("lsp.status_mod").lsp
+local lsp = require("lsp.lsp_status_mod").lsp
 require("user.search_status").setup()
 local search_status = require("user.search_status")
 

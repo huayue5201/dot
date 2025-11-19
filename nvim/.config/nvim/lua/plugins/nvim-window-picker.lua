@@ -137,7 +137,7 @@ return {
 			local buf_id = vim.api.nvim_win_get_buf(picked_window_id)
 			local filetype = vim.api.nvim_get_option_value("filetype", { buf = buf_id })
 			local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf_id })
-			local close_commands = require("utils.utils").buf_keymaps["q"]
+			local close_commands = require("user.utils").buf_keymaps["q"]
 			-- 获取文件类型或缓冲区类型对应的关闭命令
 			local command = close_commands[filetype ~= "" and filetype or buftype]
 			-- 临时切换到选中的窗口，执行命令后切回
