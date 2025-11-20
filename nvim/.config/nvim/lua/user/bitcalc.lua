@@ -45,9 +45,9 @@ local function format_result(val)
 	local hex = format_hex_groups(string.format("%X", val))
 	local bin = to_binary(val)
 	return {
-		"   Dec: " .. dec,
-		"   Hex: 0x" .. hex,
-		"   Bin: " .. bin,
+		" 󰕆  Dec: " .. dec,
+		" 󰛡  Hex: 0x" .. hex,
+		"   Bin: " .. bin,
 	}
 end
 

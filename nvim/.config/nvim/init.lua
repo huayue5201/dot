@@ -23,6 +23,7 @@ vim.cmd([[
 vim.g.mapleader = vim.keycode("<space>")
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
+-- vim.lsp.enable({ "lua_ls", "pyright" })
 -- 立即加载基础配置
 require("env") -- 环境变量配置
 require("core.settings") -- 基础 Neovim 选项

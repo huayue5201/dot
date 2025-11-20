@@ -69,13 +69,13 @@ return {
 			desc = "BufferLine: toggle pin",
 		})
 
-		vim.keymap.set("n", "gb", "<cmd>BufferLinePick<CR>", {
+		vim.keymap.set("n", "<leader>bs", "<cmd>BufferLinePick<CR>", {
 			desc = "BufferLine: pick buffer",
 		})
 
-		vim.keymap.set("n", "<leader>rb", "<cmd>BufferLinePickClose<CR>", {
-			desc = "BufferLine: pick & close buffer",
-		})
+		-- vim.keymap.set("n", "<leader>rb", "<cmd>BufferLinePickClose<CR>", {
+		-- 	desc = "BufferLine: pick & close buffer",
+		-- })
 
 		vim.keymap.set("n", "<leader>rab", "<cmd>BufferLineCloseOthers<cr>", {
 			desc = "BufferLine: close other buffers",
