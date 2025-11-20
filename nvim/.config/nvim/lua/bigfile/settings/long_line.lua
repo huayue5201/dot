@@ -14,6 +14,7 @@ M.bigfile = {
 		"vim.opt.linebreak = true",
 		"vim.opt.showbreak = '↪ '",
 		"vim.opt.sidescroll = 5",
+		"vim.cmd [[syntax off]]",
 		-- "vim.cmd('TSDisable highlight')",
 	},
 }
@@ -27,6 +28,7 @@ M.smallfile = {
 		"vim.opt.linebreak = false",
 		"vim.opt.showbreak = ''",
 		"vim.opt.sidescroll = 1",
+		"vim.cmd [[syntax on]]",
 		-- "vim.cmd('TSEnable highlight')",
 	},
 }

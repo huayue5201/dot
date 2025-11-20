@@ -35,15 +35,44 @@ end
 -- ================================
 -- 模式配置
 -- ================================
+-- 更完整的 MODES 表（基于 :help mode() 列出的可能返回值）
 local MODES = {
+	-- Normal
 	["n"] = { label = "NORMAL", hl = "NormalMode" },
-	["i"] = { label = "INSERT", hl = "InsertMode" },
+	["no"] = { label = "N·OP_PENDING", hl = "NormalMode" },
+
+	-- Visual
 	["v"] = { label = "VISUAL", hl = "VisualMode" },
-	["V"] = { label = "V-LINE", hl = "VisualMode" },
-	[""] = { label = "V-BLOCK", hl = "VisualMode" },
+	["V"] = { label = "V-LINE", hl = "VisualMode" }, -- visual line
+	["\22"] = { label = "V-BLOCK", hl = "VisualMode" }, -- visual block (Ctrl-V). \22 is the ASCII for Ctrl-V
+
+	-- Select (select mode, rarely used)
+	["s"] = { label = "SELECT", hl = "VisualMode" },
+	["S"] = { label = "S-LINE", hl = "VisualMode" },
+	["\19"] = { label = "S-BLOCK", hl = "VisualMode" }, -- Ctrl-S (if appears)
+
+	-- Insert / Replace / Command / Terminal
+	["i"] = { label = "INSERT", hl = "InsertMode" },
+	["ic"] = { label = "INSERT", hl = "InsertMode" }, -- insert completion
+	["ix"] = { label = "INSERT", hl = "InsertMode" }, -- insert mapping
+
 	["R"] = { label = "REPLACE", hl = "ReplaceMode" },
+	["Rv"] = { label = "V-REPLACE", hl = "ReplaceMode" }, -- virtual replace?
+
 	["c"] = { label = "COMMAND", hl = "DefaultMode" },
-	["t"] = { label = "TERMINL", hl = "DefaultMode" },
+	["cv"] = { label = "VIM EX", hl = "DefaultMode" }, -- Ex mode from vim
+	["ce"] = { label = "EX", hl = "DefaultMode" },
+
+	-- Hit-enter prompt, more prompt-like states
+	["r"] = { label = "PROMPT", hl = "DefaultMode" }, -- hit-enter prompt, etc.
+	["rm"] = { label = "MORE", hl = "DefaultMode" }, -- more-mode (for r? etc)
+	["r?"] = { label = "CONFIRM", hl = "DefaultMode" },
+
+	-- Operator-pending (after typed operator like d, c, y)
+	["o"] = { label = "OP-PENDING", hl = "DefaultMode" },
+
+	-- Terminal mode
+	["t"] = { label = "TERMINAL", hl = "DefaultMode" },
 }
 
 -- ================================
@@ -70,11 +99,20 @@ local PROGRESS_ICONS = {
 -- ================================
 -- 核心功能函数
 -- ================================
-
---- 获取当前模式并应用高亮
+-- 更鲁棒的 mode 显示函数
 function M.mode()
+	-- 使用 nvim_get_mode().mode，它返回精确的模式字符串（可能是多字符）
 	local current_mode = vim.api.nvim_get_mode().mode
-	local mode_info = MODES[current_mode] or { label = current_mode, hl = "DefaultMode" }
+
+	-- 试直接匹配完整模式（优先精确匹配）
+	local mode_info = MODES[current_mode]
+	if not mode_info then
+		-- 如果没有精确匹配，尝试用第一个字符做退化匹配（如 "niI" -> "n"）
+		local short = current_mode:sub(1, 1)
+		mode_info = MODES[short] or { label = current_mode, hl = "DefaultMode" }
+	end
+
+	-- 返回带高亮的文本
 	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
@@ -189,7 +227,7 @@ setup_highlights()
 local statusline_group = vim.api.nvim_create_augroup("Statusline", { clear = true })
 
 -- 注册自动命令
-vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter", "BufWritePost" }, {
+vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter", "BufWritePost", "ModeChanged" }, {
 	group = statusline_group,
 	callback = refresh_statusline,
 })
