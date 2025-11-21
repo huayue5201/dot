@@ -78,15 +78,25 @@ return {
 		end, { desc = "上一个 todo 注释" })
 
 		-- Telescope （如果你用了 telescope）
-		vim.keymap.set("n", "<leader>st", "<cmd>TodoLocList<cr>", { desc = "在 Telescope 中查找 todos" })
+		vim.keymap.set(
+			"n",
+			"<leader>tdl",
+			"<cmd>TodoLocList<cr>",
+			{ desc = "todo-comments: 在 LocList 中查找 todos" }
+		)
 
 		-- Trouble （如果你用了 trouble.nvim）
-		vim.keymap.set("n", "<leader>xt", "<cmd>TodoTrouble<cr>", { desc = "在 Trouble 中显示 todos" })
+		vim.keymap.set(
+			"n",
+			"<leader>tdt",
+			"<cmd>TodoTrouble<cr>",
+			{ desc = "todo_comments: 在 Trouble 中显示 todos" }
+		)
 		vim.keymap.set(
 			"n",
 			"<leader>xT",
 			"<cmd>TodoTrouble keywords=TODO,FIX<cr>",
-			{ desc = "只看 TODO / FIX (Trouble)" }
+			{ desc = "todo_comments: 只看 TODO / FIX (Trouble)" }
 		)
 	end,
 }

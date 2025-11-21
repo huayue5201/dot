@@ -171,7 +171,7 @@ return {
 			end
 		end, { silent = true, desc = "window: 选择一个窗口并切换" })
 
-		vim.keymap.set("n", "<leader>sw", function()
+		vim.keymap.set("n", "<localleader>ws", function()
 			local success, picker = pcall(require, "window-picker")
 			if not success then
 				print("You'll need to install window-picker to use this command.")
