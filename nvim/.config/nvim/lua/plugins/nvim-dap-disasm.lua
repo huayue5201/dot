@@ -38,6 +38,6 @@ return {
 		})
 
 		-- 可选：给一个快捷键打开反汇编窗口
-		vim.keymap.set("n", "<localleader>da", "<cmd>DapDisasm<cr>", { desc = "DAP: 打开反汇编窗口 (Disasm)" })
+		vim.keymap.set("n", "<localleader>dh", "<cmd>DapDisasm<cr>", { desc = "DAP: 打开反汇编窗口 (Disasm)" })
 	end,
 }

@@ -7,16 +7,16 @@ return {
 		{
 			"gb",
 			function()
-				BufferSticks.jump()
+				BufferSticks.list({ action = "open" })
 			end,
-			desc = "Jump to buffer",
+			desc = "buffer-sticks: Jump to buffer",
 		},
 		{
 			"<leader>rb",
 			function()
 				BufferSticks.list({ action = "close" })
 			end,
-			desc = "Close buffer",
+			desc = "buffer-sticks: Close buffer",
 		},
 		-- {
 		-- 	"<leader>p",
@@ -28,7 +28,7 @@ return {
 		-- 			end
 		-- 		})
 		-- 	end,
-		-- 	desc = "Buffer picker",
+		-- 	desc = "buffer-sticks: Buffer picker",
 		-- },
 	},
 	config = function()

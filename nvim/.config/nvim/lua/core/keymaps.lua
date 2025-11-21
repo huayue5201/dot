@@ -8,8 +8,20 @@ end, { expr = true, desc = "Basic: delete line (empty → blackhole)" })
 vim.keymap.set("n", "<c-s>", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
 vim.keymap.set("n", "<Leader>q", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 
+-- vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
+
 -- 🏷 Tab operations
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
+vim.api.nvim_set_keymap("n", "<leader>tmp", ":-tabmove<CR>", {
+	noremap = true,
+	silent = true,
+	desc = "Tab: 左移",
+})
+vim.api.nvim_set_keymap("n", "<leader>tmn", ":+tabmove<CR>", {
+	noremap = true,
+	silent = true,
+	desc = "Tab: 右移",
+})
 vim.keymap.set("n", "<leader>rt", "<cmd>tabclose<cr>", { silent = true, desc = "Tab: close tab" })
 vim.keymap.set("n", "<leader>rat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
@@ -58,7 +70,7 @@ end, { desc = "Tool: bit calculator" })
 -- 📌 TODO
 local todo = require("user.todo")
 
-vim.keymap.set("n", "<leader>tdl", function()
+vim.keymap.set("n", "<leader>tdo", function()
 	todo.select_todo_file("current", function(choice)
 		if choice then
 			todo.open_todo_file(choice.path, true)
@@ -77,6 +89,13 @@ vim.keymap.set("n", "<leader>tdd", function()
 		end
 	end)
 end, { desc = "TODO: delete file" })
+
+vim.api.nvim_set_keymap(
+	"n",
+	"<leader>fp",
+	':lua require("user.ff_chain").open_project_chain()<CR>',
+	{ noremap = true, silent = true }
+)
 
 -- 🪟 Window management
 vim.keymap.set("n", "<Leader>raw", function()
