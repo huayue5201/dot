@@ -5,7 +5,7 @@
 
 CACHE_FILE="$HOME/.cache/ff_projects.txt"
 HISTORY_FILE="$HOME/.cache/ff_history.txt"
-SEARCH_DIRS=(~/MCU-Project ~/python_project)
+SEARCH_DIRS=(~/MCU-Project ~/python_project ~/golang_project)
 MAX_DEPTH=3
 PREVIEW_LIMIT=50
 
@@ -33,9 +33,9 @@ decay_history() {
     last_mod=$(stat -f %m "$HISTORY_FILE" 2>/dev/null || echo 0)
   fi
   local now=$(date +%s)
-  local decay_sec=2592000  # 30天
+  local decay_sec=2592000 # 30天
   while [[ $now -gt $((last_mod + decay_sec)) ]]; do
-    awk '{ $2=int($2*0.5); if($2<1) $2=1; print }' "$HISTORY_FILE" > "${HISTORY_FILE}.tmp"
+    awk '{ $2=int($2*0.5); if($2<1) $2=1; print }' "$HISTORY_FILE" >"${HISTORY_FILE}.tmp"
     mv "${HISTORY_FILE}.tmp" "$HISTORY_FILE"
     last_mod=$((last_mod + decay_sec))
   done
@@ -56,7 +56,7 @@ refresh_cache() {
 # -------------------------------
 cleanup_history() {
   [[ ! -f "$HISTORY_FILE" ]] && return
-  awk '{ if (system("[ -d \"" $1 "\" ]") == 0) print $0 }' "$HISTORY_FILE" > "${HISTORY_FILE}.tmp"
+  awk '{ if (system("[ -d \"" $1 "\" ]") == 0) print $0 }' "$HISTORY_FILE" >"${HISTORY_FILE}.tmp"
   mv "${HISTORY_FILE}.tmp" "$HISTORY_FILE"
 }
 
@@ -85,8 +85,8 @@ projects_with_weight=$(merge_history <(refresh_cache))
 
 selected_repo=$(
   echo "$projects_with_weight" |
-  cut -f2- |
-  fzf --ansi --prompt="📁 选择项目: " \
+    cut -f2- |
+    fzf --ansi --prompt="📁 选择项目: " \
       --header='🛠️  ↑↓选择，回车进入，Ctrl-R刷新列表' \
       --bind "ctrl-r:reload($(merge_history <(refresh_cache)))" \
       --preview "
@@ -111,9 +111,9 @@ if [[ -n "$selected_repo" ]]; then
     awk -v path="$selected_repo" '
       $1 == path { $2 = $2 + 1 }
       { print }
-    ' "$HISTORY_FILE" > "${HISTORY_FILE}.tmp"
+    ' "$HISTORY_FILE" >"${HISTORY_FILE}.tmp"
     mv "${HISTORY_FILE}.tmp" "$HISTORY_FILE"
   else
-    echo "$selected_repo 1" >> "$HISTORY_FILE"
+    echo "$selected_repo 1" >>"$HISTORY_FILE"
   fi
 fi

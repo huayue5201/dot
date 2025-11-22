@@ -5,7 +5,7 @@ return {
 	event = "BufReadPost",
 	keys = {
 		{
-			"<s-a-F>",
+			"<localleader>f",
 			function()
 				require("conform").format({ async = true })
 			end,
@@ -28,6 +28,7 @@ return {
 				javascript = { "biome" },
 				python = { "ruff_format" },
 				sh = { "shfmt" },
+				go = { "gofumpt" },
 			},
 			-- Set up format-on-save
 			format_on_save = function(bufnr)

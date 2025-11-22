@@ -1,6 +1,7 @@
 local M = {}
 
-local search_dirs = { vim.fn.expand("~/MCU-Project"), vim.fn.expand("~/python_project") }
+local search_dirs =
+	{ vim.fn.expand("~/MCU-Project"), vim.fn.expand("~/python_project"), vim.fn.expand("~/golang_project") }
 local max_depth = 3
 local history_file = vim.fn.expand("~/.cache/ff_history.txt")
 

@@ -29,6 +29,7 @@ require("env") -- 环境变量配置
 require("core.settings") -- 基础 Neovim 选项
 require("core.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
 require("core.statusline").active()
+require("user.project_env") -- per-project 环境隔离
 
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()

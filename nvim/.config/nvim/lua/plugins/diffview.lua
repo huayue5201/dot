@@ -5,6 +5,11 @@ return {
 	event = "VeryLazy",
 	config = function()
 		require("diffview").setup({
+			signs = {
+				fold_closed = ">",
+				fold_open = "",
+				done = "✓",
+			},
 			view = {
 				-- Configure the layout and behavior of different types of views.
 				-- Available layouts:
