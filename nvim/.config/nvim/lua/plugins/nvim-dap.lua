@@ -5,8 +5,6 @@ return {
 	"mfussenegger/nvim-dap",
 	event = "VeryLazy",
 	dependencies = {
-		-- https://github.com/igorlfs/nvim-dap-view
-		"igorlfs/nvim-dap-view",
 		-- https://github.com/theHamsta/nvim-dap-virtual-text
 		"theHamsta/nvim-dap-virtual-text",
 		"Jorenar/nvim-dap-disasm",

@@ -20,8 +20,8 @@ return {
 			betterTerm.open()
 		end, { desc = "Toggle terminal" })
 
-		-- -- Open a specific terminal
-		-- vim.keymap.set({ "n", "t" }, "<C-/>", function()
+		-- Open a specific terminal
+		-- vim.keymap.set({ "n", "t" }, "<C-\\>", function()
 		-- 	betterTerm.open(1)
 		-- end, { desc = "Toggle terminal 1" })
 
