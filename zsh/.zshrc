@@ -231,3 +231,6 @@ eval "$(zoxide init zsh)"
 # 启动消息（可选）
 # ---------------------------------------
 echo "Zsh configuration loaded successfully!"
+
+# bun completions
+[ -s "/Users/lijia/.bun/_bun" ] && source "/Users/lijia/.bun/_bun"

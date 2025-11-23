@@ -103,7 +103,7 @@ function M.setup()
 end
 
 vim.api.nvim_create_user_command("LspListActive", function()
-	local lsps = require("lsp.utils").get_active_lsps(0)
+	local lsps = require("lsp.lsp_utils").get_active_lsps(0)
 	if #lsps == 0 then
 		print("No active LSP clients for this buffer.")
 		return
