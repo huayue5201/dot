@@ -6,20 +6,18 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 })
 
 -- 恢复上次光标位置
-vim.api.nvim_create_autocmd("BufReadPost", {
-	desc = "打开文件时恢复上次光标位置",
-	group = vim.api.nvim_create_augroup("LastPlace", { clear = true }),
-	pattern = "*",
-	callback = function()
-		local mark = vim.api.nvim_buf_get_mark(0, '"')
-		local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-		if #lines > 0 and mark[1] > 0 and mark[1] <= #lines then
-			vim.schedule(function()
-				pcall(vim.api.nvim_win_set_cursor, 0, mark)
-			end)
-		end
-	end,
-})
+vim.cmd([[
+augroup RestoreCursor
+  autocmd!
+  autocmd BufReadPre * autocmd FileType <buffer> ++once
+    \ let s:line = line("'\"")
+    \ | if s:line >= 1 && s:line <= line("$") && &filetype !~# 'commit'
+    \      && index(['xxd', 'gitrebase'], &filetype) == -1
+    \      && !&diff
+    \ |   execute "normal! g`\""
+    \ | endif
+augroup END
+]])
 
 -- =============================================
 -- 快捷键映射配置

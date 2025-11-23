@@ -11,7 +11,6 @@ vim.loader.enable()
 -- 	},
 -- })
 
--- 光标配置（启动后设置，减少影响 UI 加载）
 vim.cmd([[
     au VimEnter,VimResume * set guicursor=n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50
     \,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor
@@ -26,6 +25,7 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 -- vim.lsp.enable({ "lua_ls", "pyright" })
 -- 立即加载基础配置
 require("env") -- 环境变量配置
+require("lsp").setup() --lsp
 require("core.settings") -- 基础 Neovim 选项
 require("core.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
 require("core.statusline").active()
@@ -40,7 +40,6 @@ vim.defer_fn(function()
 		require("bigfile").setup({
 			debounce = 300, -- 检测延迟（毫秒）
 		})
-		require("lsp").setup() --lsp
 		require("user.dotenv").load() -- token加载模块
 	end)
 end, 300) -- 延迟 100ms 执行

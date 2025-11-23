@@ -22,7 +22,7 @@ return {
 			-- "kitty"   is the graph like https://github.com/isakbm/gitgraph.nvim - use https://github.com/rbong/flog-symbols if you don't use Kitty
 			graph_style = "kitty",
 			-- Show message with spinning animation when a git command is running.
-			process_spinner = true,
+			process_spinner = false,
 			-- Allows a different telescope sorter. Defaults to 'fuzzy_with_index_bias'. The example below will use the native fzf
 			-- sorter instead. By default, this function returns `nil`.
 			telescope_sorter = function()

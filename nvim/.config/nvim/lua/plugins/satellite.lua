@@ -1,4 +1,5 @@
 -- GitHub: https://github.com/lewis6991/satellite.nvim
+
 return {
 	"lewis6991/satellite.nvim",
 	event = "UIEnter",
@@ -53,14 +54,6 @@ return {
 					signs = { "-", "=", "≡" },
 				},
 			},
-		})
-
-		-- 可选：在某些情况下手动刷新
-		-- 例如在窗口 resize 后
-		vim.api.nvim_create_autocmd({ "VimResized" }, {
-			callback = function()
-				require("satellite").refresh()
-			end,
 		})
 	end,
 }
