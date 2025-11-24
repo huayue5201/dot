@@ -20,8 +20,8 @@ return {
 			icons = {
 				ui = {
 					bar = {
-						separator = "> ",
-						extends = "…",
+						separator = " > ",
+						extends = " … ",
 					},
 					menu = {
 						separator = " ",

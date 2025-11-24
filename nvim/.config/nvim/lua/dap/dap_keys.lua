@@ -40,7 +40,7 @@ function M.setup()
 	end, { desc = "DAP: 跳转到行" })
 
 	-- 💡 断点管理
-	vim.keymap.set("n", "<leader>.", dap.toggle_breakpoint, { desc = "DAP: 切换断点" })
+	vim.keymap.set("n", "<leader>b", dap.toggle_breakpoint, { desc = "DAP: 切换断点" })
 	vim.keymap.set("n", "<leader>db", function()
 		dap.set_exception_breakpoints()
 	end, { desc = "DAP: 设置异常断点" })
