@@ -6,7 +6,7 @@ vim.keymap.set("n", "dd", function()
 end, { expr = true, desc = "Basic: delete line (empty → blackhole)" })
 
 vim.keymap.set("n", "<c-s>", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
-vim.keymap.set("n", "<Leader>q", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
+vim.keymap.set("n", "<localLeader>q", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 
 -- vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
 

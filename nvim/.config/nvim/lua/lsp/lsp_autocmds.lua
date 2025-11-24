@@ -115,7 +115,7 @@ vim.api.nvim_create_user_command("LspListActive", function()
 end, { desc = "List active LSP clients for current buffer" })
 
 -- 重启当前缓冲区的 LSP 客户端
--- local lsp_get = require("utils.lsp_utils")
+-- local lsp_get = require("user.lsp_utils")
 -- function M.restart_lsp()
 -- 	vim.lsp.stop_client(vim.lsp.get_clients(), true)
 -- 	-- 延迟启动 LSP
