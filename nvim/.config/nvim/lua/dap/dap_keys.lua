@@ -74,7 +74,7 @@ function M.setup()
 		dap.list_breakpoints()
 		vim.cmd("copen")
 	end, { desc = "DAP: 查看所有断点" })
-	vim.keymap.set("n", "<leader>dK", function()
+	vim.keymap.set("n", "<F1>", function()
 		widgets.hover(nil, { border = "rounded" })
 	end, { desc = "DAP: 查看变量" })
 

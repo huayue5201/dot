@@ -102,7 +102,7 @@ return {
 					gitsigns.blame_line({ full = true })
 				end, { desc = "gitsigns：显示当前行的 Git blame" })
 
-				-- map("n", "<leader>gd", gitsigns.diffthis, { desc = "gitsigns：显示当前文件的差异" })
+				-- map("n", "<leader>gdx", gitsigns.diffthis, { desc = "gitsigns：显示当前文件的差异" })
 				--
 				-- map("n", "<leader>gD", function()
 				-- 	gitsigns.diffthis("~")

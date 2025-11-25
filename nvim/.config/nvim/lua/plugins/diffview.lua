@@ -1,4 +1,5 @@
 -- https://github.com/sindrets/diffview.nvim
+-- TODO: 备选https://github.com/esmuellert/vscode-diff.nvim
 
 return {
 	"sindrets/diffview.nvim",
@@ -42,7 +43,7 @@ return {
 			},
 		})
 
-		vim.keymap.set("n", "<leader>glh", "<cmd>DiffviewFileHistory<cr>", { desc = "diffview: Diff History" })
-		vim.keymap.set("n", "<leader>glf", "<cmd>DiffviewOpen<cr>", { desc = "diffview: Diff" })
+		vim.keymap.set("n", "<leader>gdh", "<cmd>DiffviewFileHistory<cr>", { desc = "diffview: Diff History" })
+		vim.keymap.set("n", "<leader>gdf", "<cmd>DiffviewOpen<cr>", { desc = "diffview: Diff" })
 	end,
 }
