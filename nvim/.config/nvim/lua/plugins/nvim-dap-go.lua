@@ -16,42 +16,32 @@ return {
 		-- 临时表存储 session keymaps
 		local session_keymaps = {}
 
-		-- DAP 启动时绑定
+		-- DAP 启动时绑定 keymaps
 		dap.listeners.after.event_initialized["project_dap_keymaps"] = function()
-			-- 保存绑定的 buffer / keymap id
-			session_keymaps = {}
-
 			local opts = { noremap = true, silent = true }
-			-- 只在 normal 模式
-			table.insert(
-				session_keymaps,
-				vim.keymap.set("n", "<leader>dt", function()
-					require("dap-go").debug_test()
-				end, vim.tbl_extend("force", opts, { desc = "Debug Go Test (closest)" }))
-			)
+			-- 保存绑定的 key 名
+			session_keymaps = { "<leader>dt", "<leader>dT" }
 
-			table.insert(
-				session_keymaps,
-				vim.keymap.set("n", "<leader>dT", function()
-					require("dap-go").debug_last_test()
-				end, vim.tbl_extend("force", opts, { desc = "Debug Last Go Test" }))
-			)
+			vim.keymap.set("n", "<leader>dt", function()
+				require("dap-go").debug_test()
+			end, vim.tbl_extend("force", opts, { desc = "Debug Go Test (closest)" }))
+
+			vim.keymap.set("n", "<leader>dT", function()
+				require("dap-go").debug_last_test()
+			end, vim.tbl_extend("force", opts, { desc = "Debug Last Go Test" }))
 		end
 
-		-- DAP 结束时清理
-		dap.listeners.before.event_terminated["project_dap_keymaps"] = function()
-			for _, id in ipairs(session_keymaps) do
-				vim.keymap.del("n", id)
+		-- DAP 结束时清理 keymaps
+		local function clear_session_keymaps()
+			for _, key in ipairs(session_keymaps) do
+				vim.keymap.del("n", key)
 			end
 			session_keymaps = {}
 		end
-		dap.listeners.before.event_exited["project_dap_keymaps"] = function()
-			for _, id in ipairs(session_keymaps) do
-				vim.keymap.del("n", id)
-			end
-			session_keymaps = {}
-		end
-		-- -- 推荐 keymap（你可以按自己习惯改）
+
+		dap.listeners.before.event_terminated["project_dap_keymaps"] = clear_session_keymaps
+		dap.listeners.before.event_exited["project_dap_keymaps"] = clear_session_keymaps
+
 		-- vim.keymap.set("n", "<leader>dt", function()
 		-- 	require("dap-go").debug_test()
 		-- end, { desc = "Debug Go Test (closest)" })
