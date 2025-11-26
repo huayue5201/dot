@@ -12,7 +12,7 @@ return {
 			desc = "buffer-sticks: Jump to buffer",
 		},
 		{
-			"<leader>rb",
+			"<leader>cb",
 			function()
 				BufferSticks.list({ action = "close" })
 			end,

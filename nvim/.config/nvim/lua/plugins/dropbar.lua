@@ -21,7 +21,7 @@ return {
 				ui = {
 					bar = {
 						separator = " > ",
-						extends = " … ",
+						extends = "…",
 					},
 					menu = {
 						separator = " ",

@@ -22,13 +22,13 @@ vim.api.nvim_set_keymap("n", "<leader>tmn", ":+tabmove<CR>", {
 	silent = true,
 	desc = "Tab: 右移",
 })
-vim.keymap.set("n", "<leader>rt", "<cmd>tabclose<cr>", { silent = true, desc = "Tab: close tab" })
-vim.keymap.set("n", "<leader>rat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
+vim.keymap.set("n", "<leader>ct", "<cmd>tabclose<cr>", { silent = true, desc = "Tab: close tab" })
+vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>i", "<cmd>messages<cr>", { silent = true, desc = "Message: show messages" })
-vim.keymap.set("n", "<leader>re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
-vim.keymap.set("n", "<leader>rn", "<cmd>restart<cr>", { silent = true, desc = "Basic: restart Neovim" })
+vim.keymap.set("n", "<leader>ce", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
+vim.keymap.set("n", "<leader>cn", "<cmd>restart<cr>", { silent = true, desc = "Basic: restart Neovim" })
 
 -- 🔍 Search
 vim.keymap.set("x", "/", "<C-\\><C-n>`</\\%V", { desc = "Search: forward in visual range" })
@@ -57,7 +57,7 @@ vim.keymap.set("n", "<leader>yt", function()
 end, { silent = true, desc = "Path: copy filename" })
 
 -- 🗂 Marks
-vim.keymap.set("n", "<leader>ram", function()
+vim.keymap.set("n", "<leader>cam", function()
 	vim.cmd("delmarks a-z")
 	vim.cmd("delmarks A-Z")
 end, { desc = "Mark: delete all marks" })
@@ -98,7 +98,7 @@ vim.api.nvim_set_keymap(
 )
 
 -- 🪟 Window management
-vim.keymap.set("n", "<Leader>raw", function()
+vim.keymap.set("n", "<Leader>caw", function()
 	local current_win = vim.api.nvim_get_current_win()
 	local current_buf = vim.api.nvim_win_get_buf(current_win)
 	local current_dir = vim.fn.fnamemodify(vim.fn.bufname(current_buf), ":p:h")
