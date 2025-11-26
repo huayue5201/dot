@@ -7,10 +7,7 @@ M.settings = {
 	},
 	-- nofile 类型
 	nofile = {
-		setup = function()
-			vim.wo.cursorline = false
-			vim.wo.number = false
-		end,
+		setup = function() end,
 	},
 }
 
@@ -32,23 +29,7 @@ M.buf_keymaps = {
 		["gitsigns-blame"] = { cmd = "bdelete!" },
 		terminal = { cmd = "bdelete" },
 		["nvim-undotree"] = { cmd = "close" },
-
-		-- 函数命令
-		DiffviewFileHistory = {
-			cmd = function()
-				vim.cmd("DiffviewClose")
-			end,
-		},
-
-		["dap-view"] = {
-			cmd = "DapViewClose",
-		},
-
-		DiffviewFiles = {
-			cmd = function()
-				vim.cmd("DiffviewClose")
-			end,
-		},
+		["vscode-diff-explorer"] = { cmd = "tabclose" },
 	},
 }
 

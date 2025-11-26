@@ -42,36 +42,36 @@ return {
 		end
 
 		-- Crates keymaps
-		map_filetype("toml", "n", "<leader>ct", crates.toggle, { desc = "Crates: toggle" })
-		map_filetype("toml", "n", "<leader>cr", crates.reload, { desc = "Crates: reload" })
-		map_filetype("toml", "n", "<leader>cv", crates.show_versions_popup, { desc = "Crates: show versions" })
-		map_filetype("toml", "n", "<leader>cf", crates.show_features_popup, { desc = "Crates: show features" })
-		map_filetype("toml", "n", "<leader>cd", crates.show_dependencies_popup, { desc = "Crates: show dependencies" })
-		map_filetype("toml", "n", "<leader>cu", crates.update_crate, { desc = "Crates: update crate" })
-		map_filetype("v", "<leader>cu", crates.update_crates, { desc = "Crates: update selected crates" })
-		map_filetype("toml", "n", "<leader>ca", crates.update_all_crates, { desc = "Crates: update all crates" })
-		map_filetype("toml", "n", "<leader>cU", crates.upgrade_crate, { desc = "Crates: upgrade crate" })
-		map_filetype("v", "<leader>cU", crates.upgrade_crates, { desc = "Crates: upgrade selected crates" })
-		map_filetype("toml", "n", "<leader>cA", crates.upgrade_all_crates, { desc = "Crates: upgrade all crates" })
+		map_filetype("toml", "n", "<leader>ot", crates.toggle, { desc = "Crates: toggle" })
+		map_filetype("toml", "n", "<leader>or", crates.reload, { desc = "Crates: reload" })
+		map_filetype("toml", "n", "<leader>ov", crates.show_versions_popup, { desc = "Crates: show versions" })
+		map_filetype("toml", "n", "<leader>of", crates.show_features_popup, { desc = "Crates: show features" })
+		map_filetype("toml", "n", "<leader>od", crates.show_dependencies_popup, { desc = "Crates: show dependencies" })
+		map_filetype("toml", "n", "<leader>ou", crates.update_crate, { desc = "Crates: update crate" })
+		map_filetype("v", "<leader>ou", crates.update_crates, { desc = "Crates: update selected crates" })
+		map_filetype("toml", "n", "<leader>oa", crates.update_all_crates, { desc = "Crates: update all crates" })
+		map_filetype("toml", "n", "<leader>oU", crates.upgrade_crate, { desc = "Crates: upgrade crate" })
+		map_filetype("v", "<leader>oU", crates.upgrade_crates, { desc = "Crates: upgrade selected crates" })
+		map_filetype("toml", "n", "<leader>oA", crates.upgrade_all_crates, { desc = "Crates: upgrade all crates" })
 		map_filetype(
 			"toml",
 			"n",
-			"<leader>cx",
+			"<leader>ox",
 			crates.expand_plain_crate_to_inline_table,
 			{ desc = "Crates: expand crate to inline table" }
 		)
 		map_filetype(
 			"toml",
 			"n",
-			"<leader>cX",
+			"<leader>oX",
 			crates.extract_crate_into_table,
 			{ desc = "Crates: extract crate to table" }
 		)
-		map_filetype("toml", "n", "<leader>cH", crates.open_homepage, { desc = "Crates: open homepage" })
-		map_filetype("toml", "n", "<leader>cR", crates.open_repository, { desc = "Crates: open repository" })
-		map_filetype("toml", "n", "<leader>cD", crates.open_documentation, { desc = "Crates: open documentation" })
-		map_filetype("toml", "n", "<leader>cC", crates.open_crates_io, { desc = "Crates: open crates.io" })
-		map_filetype("toml", "n", "<leader>cL", crates.open_lib_rs, { desc = "Crates: open lib.rs" })
+		map_filetype("toml", "n", "<leader>oH", crates.open_homepage, { desc = "Crates: open homepage" })
+		map_filetype("toml", "n", "<leader>oR", crates.open_repository, { desc = "Crates: open repository" })
+		map_filetype("toml", "n", "<leader>oD", crates.open_documentation, { desc = "Crates: open documentation" })
+		map_filetype("toml", "n", "<leader>oC", crates.open_crates_io, { desc = "Crates: open crates.io" })
+		map_filetype("toml", "n", "<leader>oL", crates.open_lib_rs, { desc = "Crates: open lib.rs" })
 
 		-- Show documentation (fallback to LSP hover)
 		local function show_documentation()
