@@ -116,24 +116,6 @@ function M.mode()
 	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
--- 定义高亮组（可放在 setup_highlights 函数里）
-vim.api.nvim_set_hl(0, "HydraActive", { fg = "#ff5555", bold = true })
-vim.api.nvim_set_hl(0, "HydraInactive", { fg = "#ffffff", bold = true })
-
--- Hydra 状态图标函数
-function M.hydra_icon()
-	local has_hydra, hydra = pcall(require, "hydra.statusline")
-	if not has_hydra then
-		return "" -- 没有安装 hydra 时不显示
-	end
-
-	if hydra.is_active() then
-		return "%#HydraActive# %*" -- 红色图标（Hydra 启动中）
-	else
-		return "%#HydraInactive# %*" -- 白色图标（Hydra 未激活）
-	end
-end
-
 --- 获取调试器状态
 function M.dap_status()
 	local dap_status = require("dap").status()
@@ -195,9 +177,8 @@ function M.active()
 	return table.concat({
 		"%#Normal#",
 		string.format("%-45s", M.mode()) .. " ", -- 模式显示区域
-		M.hydra_icon() .. "  ",
 		M.env() .. "  ",
-		-- "%y ",
+		"%y ",
 		lsp(),
 		"%=", -- 分隔符
 		search_status.get() .. " ",

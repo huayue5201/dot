@@ -3,7 +3,7 @@ local M = {}
 function M.setup()
 	local dap = require("dap")
 	local widgets = require("dap.ui.widgets")
-	local bp = require("user.dap_utils")
+	local bp = require("dap.dap_utils")
 	local sidebar = nil
 
 	-- ▶ 控制
@@ -45,7 +45,7 @@ function M.setup()
 		dap.set_exception_breakpoints()
 	end, { desc = "DAP: 设置异常断点" })
 	vim.keymap.set("n", "<leader>d?", bp.set_breakpoint, { desc = "DAP: 自定义断点" })
-	vim.keymap.set("n", "<leader>dR", dap.clear_breakpoints, { desc = "DAP: 清除所有断点" })
+	vim.keymap.set("n", "<leader>dC", dap.clear_breakpoints, { desc = "DAP: 清除所有断点" })
 
 	-- 📜 导航
 	local ts_repeat_move = require("nvim-treesitter.textobjects.repeatable_move")
@@ -74,9 +74,10 @@ function M.setup()
 		dap.list_breakpoints()
 		vim.cmd("copen")
 	end, { desc = "DAP: 查看所有断点" })
-	vim.keymap.set("n", "<F1>", function()
-		widgets.hover(nil, { border = "rounded" })
-	end, { desc = "DAP: 查看变量" })
+
+	-- vim.keymap.set("n", "<F1>", function()
+	-- 	widgets.hover(nil, { border = "rounded" })
+	-- end, { desc = "DAP: 查看变量" })
 
 	-- REPL / Eval 相关映射
 	vim.keymap.set("n", "<localleader>de", "<cmd>DapEval<cr>", { desc = "DAP: Eval 表达式" })

@@ -3,7 +3,7 @@
 return {
 	"RaafatTurki/hex.nvim",
 	keys = {
-		{ "<leader>oh", desc = "hex: 进制转换" },
+		{ "<s-a-h>", desc = "hex: 进制转换" },
 	},
 	config = function()
 		-- defaults
@@ -29,7 +29,7 @@ return {
 		})
 		vim.keymap.set(
 			"n",
-			"<leader>oh",
+			"<s-a-h>",
 			"<cmd>lua require 'hex'.toggle()<CR>",
 			{ silent = true, desc = "hex: 进制转换" }
 		)

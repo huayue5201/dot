@@ -17,7 +17,7 @@ return {
 			all_references = false, -- 是否显示变量的所有引用的虚拟文本（不仅限于定义）
 			clear_on_continue = true, -- 在 "continue" 时清除虚拟文本（可能会导致在单步调试时出现闪烁）
 			-- 虚拟文本的位置，参见 `:h nvim_buf_set_extmark()`，默认尝试将虚拟文本内联显示。使用 'eol' 将虚拟文本放置在行尾。
-			virt_text_pos = "eol",
+			-- virt_text_pos = "eol",
 
 			--- 回调函数，用于确定如何显示变量或是否忽略该变量
 			--- @param variable 变量 https://microsoft.github.io/debug-adapter-protocol/specification#Types_Variable

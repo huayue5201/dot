@@ -13,6 +13,7 @@ return {
 			win = "TabLine",
 			tail = "TabLine",
 		}
+		-- local theme = "oasis"
 		vim.api.nvim_set_hl(0, "TabbyHeadIcon", { fg = "#7FBBB3", bg = "#414B50" })
 		vim.api.nvim_set_hl(0, "TabbyHead", { fg = "#7FBBB3", bg = "#414B50" })
 
@@ -65,7 +66,7 @@ return {
 			end,
 		})
 		-- 重命名 Tab（Tabby 内置命令）
-		vim.keymap.set("n", "<leader>tr", ":Tabby rename_tab ", { desc = "tabby: 重命名 Tab" })
+		vim.keymap.set("n", "<leader>trn", ":Tabby rename_tab ", { desc = "tabby: 重命名 Tab" })
 
 		vim.keymap.set("n", "<leader>tp", ":Tabby pick_window<CR>", { desc = "tabby: Tab 列表", silent = true })
 	end,

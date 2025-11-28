@@ -1,5 +1,24 @@
 local M = {}
 
+-- 重启当前缓冲区的 LSP 客户端
+local lsp_get = require("lsp.lsp_utils")
+local function restart_lsp()
+	vim.lsp.stop_client(vim.lsp.get_clients(), true)
+	-- 延迟启动 LSP
+	vim.defer_fn(function()
+		local lsp_name = lsp_get.get_lsp_name()
+		vim.lsp.enable(lsp_name, true)
+	end, 500)
+end
+
+-- 关闭lsp
+function M.stop_lsp()
+	vim.lsp.stop_client(vim.lsp.get_clients(), true)
+	vim.schedule(function()
+		vim.cmd.redrawstatus()
+	end)
+end
+
 -- 打开所有 buffer 的诊断（Quickfix 风格，适合全局排查）
 local function open_all_diagnostics()
 	---@diagnostic disable-next-line: param-type-mismatch
@@ -41,13 +60,16 @@ local function CopyErrorMessage()
 		for _, diagnostic in ipairs(diag) do
 			local code = diagnostic.code or "No code available"
 			local message = diagnostic.message or "No message available"
-			table.insert(messages, message .. " [" .. code .. "]")
+			-- 可选：附加上诊断来源，便于排查
+			local source = diagnostic.source or "unknown"
+			table.insert(messages, message .. " [" .. code .. "] - " .. source)
 		end
 		local all_messages = table.concat(messages, "\n")
 		vim.fn.setreg("+", all_messages)
 		print("Error messages copied to clipboard:\n" .. all_messages)
 	else
-		print("No error at the cursor!")
+		-- 更详细的提示
+		print("No diagnostics found at cursor position. Ensure a language server or linter is running.")
 	end
 end
 
@@ -55,6 +77,25 @@ end
 local keymaps = {
 	-- { "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
 
+	-- {
+	-- 	"<s-a-d>",
+	-- 	"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
+	-- 	"LSP: toggle diagnostics",
+	-- },
+	{
+		"<leader>cl",
+		function()
+			M.stop_lsp()
+		end,
+		"LSP: 关闭lsp",
+	},
+	{
+		"<leader>rl",
+		function()
+			restart_lsp()
+		end,
+		"LSP: 重启lsp",
+	},
 	{
 		"<leader>ld",
 		function()

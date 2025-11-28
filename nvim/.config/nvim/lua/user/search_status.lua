@@ -6,31 +6,36 @@ M.cursor_autocmd_id = nil
 -- 判断光标是否在当前搜索匹配行
 local function cursor_in_match()
 	local search_pattern = vim.fn.getreg("/")
-	if search_pattern == "" or search_pattern == vim.fn.getreg("1") then
+	if search_pattern == "" then
 		return false
 	end
 
 	local cursor = vim.api.nvim_win_get_cursor(0)
-	local line, col = cursor[1], cursor[2]
+	local line, col = cursor[1] - 1, cursor[2] -- Lua 是 0-based 索引
 
-	-- 使用Vim的searchpos来确保与搜索行为一致
-	local saved_cursor = vim.api.nvim_win_get_cursor(0)
-	vim.api.nvim_win_set_cursor(0, { line, 0 })
+	-- 使用更可靠的方法检查光标是否在匹配上
+	local line_content = vim.api.nvim_get_current_line()
 
-	local match_start = vim.fn.searchpos(search_pattern, "c", line)[2]
-	local match_end = match_start + vim.fn.matchstr(vim.fn.getline(line), search_pattern):len() - 1
-
-	vim.api.nvim_win_set_cursor(0, saved_cursor)
-
-	if match_start > 0 then
-		return col + 1 >= match_start and col + 1 <= match_end
+	-- 使用 Vim 的 match 函数来定位匹配
+	local match_start = vim.fn.match(line_content, search_pattern)
+	if match_start < 0 then
+		return false
 	end
-	return false
+
+	-- 获取匹配的结束位置
+	local match_end = vim.fn.matchend(line_content, search_pattern) - 1
+
+	return col >= match_start and col <= match_end
 end
 
 -- 刷新状态栏
 function M.update_status()
-	local sc = vim.fn.searchcount({ recompute = 1, maxcount = 9999 })
+	local ok, sc = pcall(vim.fn.searchcount, { recompute = 1, maxcount = 9999 })
+	if not ok then
+		M.clear_status()
+		return
+	end
+
 	local current = sc.current or 0
 	local total = sc.total or 0
 	if total > 0 then
@@ -62,8 +67,10 @@ end
 
 -- 创建临时光标移动自动命令，检测离开匹配行
 function M.start_cursor_autocmd()
-	-- 如果已经有监听器，先停止它
-	M.stop_cursor_autocmd()
+	-- 如果已经有监听器且仍在运行，不重复创建
+	if M.cursor_autocmd_id then
+		return
+	end
 
 	M.cursor_autocmd_id = vim.api.nvim_create_autocmd("CursorMoved", {
 		callback = function()
@@ -123,11 +130,25 @@ function M.setup_keymaps()
 		vim.keymap.set("n", key, function()
 			local count = vim.v.count1
 			local cmd = (count > 1 and count or "") .. key
-			vim.cmd("normal! " .. cmd)
-			-- 延迟更新状态，确保跳转已完成
-			vim.defer_fn(function()
-				M.update_status()
-			end, 10)
+
+			-- 安全执行命令，捕获可能出现的错误
+			local ok, err = pcall(vim.cmd, "normal! " .. cmd)
+			if not ok then
+				-- 如果是"模式未找到"错误，温和处理而非抛出Lua错误
+				if string.find(tostring(err), "E486:") then
+					vim.notify("搜索模式未找到: " .. vim.fn.getreg("/"), vim.log.levels.WARN)
+					-- 仍然更新状态，显示无匹配
+					M.clear_status()
+				else
+					-- 其他错误重新抛出
+					error(err)
+				end
+			else
+				-- 延迟更新状态，确保跳转已完成
+				vim.defer_fn(function()
+					M.update_status()
+				end, 10)
+			end
 		end, { noremap = true, silent = true })
 	end
 
