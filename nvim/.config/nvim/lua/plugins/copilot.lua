@@ -71,9 +71,16 @@ return {
 			require("copilot.suggestion").accept_word()
 		end, { silent = true, desc = "Copilot: 接受单词建议" })
 
-		vim.keymap.set("n", "<leader>tog", function()
-			require("copilot.suggestion").toggle_auto_trigger()
-		end, { silent = true, desc = "Copilot: 切换自动触发" })
+		-- vim.keymap.set("n", "<leader>tog", function()
+		-- 	require("copilot.suggestion").toggle_auto_trigger()
+		-- end, { silent = true, desc = "Copilot: 切换自动触发" })
+
+		vim.keymap.set(
+			"n",
+			"<s-a-g>",
+			"<cmd>Copilot toggle<cr>",
+			{ silent = true, desc = "Copilot: 切换自动触发" }
+		)
 
 		vim.keymap.set("i", "<C-k>", function()
 			require("copilot.suggestion").next()

@@ -2,7 +2,6 @@
 
 return {
 	"gbprod/yanky.nvim",
-	dependencies = { "nvimtools/hydra.nvim" },
 	event = "VeryLazy",
 	config = function()
 		require("yanky").setup({
@@ -38,39 +37,19 @@ return {
 			desc = "Yanky: next entry",
 		})
 
-		local Hydra = require("hydra")
-
 		local function t(str)
 			return vim.api.nvim_replace_termcodes(str, true, true, true)
 		end
 
-		-- Yank ring hydra
-		local yanky_hydra = Hydra({
-			name = "Yank ring",
-			mode = "n",
-			heads = {
-				{ "p", "<Plug>(YankyPutAfter)", { desc = "Put after" } },
-				{ "P", "<Plug>(YankyPutBefore)", { desc = "Put before" } },
-			},
-		})
-
-		-- put actions
-		for key, putAction in pairs({
+		-- Yank ring mappings
+		local yanky_mappings = {
+			-- Put actions
 			["p"] = "<Plug>(YankyPutAfter)",
 			["P"] = "<Plug>(YankyPutBefore)",
 			["gp"] = "<Plug>(YankyGPutAfter)",
 			["gP"] = "<Plug>(YankyGPutBefore)",
-		}) do
-			vim.keymap.set({ "n", "x" }, key, function()
-				vim.fn.feedkeys(t(putAction))
-				yanky_hydra:activate()
-			end, {
-				desc = "Yanky: put " .. key,
-			})
-		end
 
-		-- indent/filter put actions
-		for key, putAction in pairs({
+			-- Indent/Filter Put actions
 			["]p"] = "<Plug>(YankyPutIndentAfterLinewise)",
 			["[p"] = "<Plug>(YankyPutIndentBeforeLinewise)",
 			["]P"] = "<Plug>(YankyPutIndentAfterLinewise)",
@@ -83,12 +62,14 @@ return {
 
 			["=p"] = "<Plug>(YankyPutAfterFilter)",
 			["=P"] = "<Plug>(YankyPutBeforeFilter)",
-		}) do
-			vim.keymap.set("n", key, function()
+		}
+
+		-- Apply the mappings for normal mode and visual mode (where applicable)
+		for key, putAction in pairs(yanky_mappings) do
+			vim.keymap.set({ "n", "x" }, key, function()
 				vim.fn.feedkeys(t(putAction))
-				yanky_hydra:activate()
 			end, {
-				desc = "Yanky: put (indent/filter) " .. key,
+				desc = "Yanky: put " .. key,
 			})
 		end
 	end,

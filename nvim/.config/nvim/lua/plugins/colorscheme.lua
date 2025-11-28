@@ -19,7 +19,6 @@ return {
 			},
 		})
 		vim.cmd("colorscheme Carbonfox")
-
 		-- require("oasis").setup({
 		-- 	dark_style = "lagoon", -- 当 vim.o.background 为 "dark" 时使用的主题样式
 		-- 	light_style = "dawn", -- 当 vim.o.background 为 "light" 时使用的主题样式
@@ -44,5 +43,9 @@ return {
 		-- })
 
 		-- vim.cmd.colorscheme("oasis") -- After setup, apply theme (or a any style like "oasis-night")
+		-- 防止主题覆盖 IlluminatedWord 高亮设置
+		vim.api.nvim_set_hl(0, "IlluminatedWordText", { underline = true })
+		vim.api.nvim_set_hl(0, "IlluminatedWordRead", { underline = true })
+		vim.api.nvim_set_hl(0, "IlluminatedWordWrite", { underline = true })
 	end,
 }

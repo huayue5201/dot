@@ -46,8 +46,5 @@ return {
 			-- 如果你自己要映射跳转键，可以设为 true
 			disable_keymaps = false,
 		})
-		vim.api.nvim_set_hl(0, "IlluminatedWordText", { underline = true })
-		vim.api.nvim_set_hl(0, "IlluminatedWordRead", { underline = true })
-		vim.api.nvim_set_hl(0, "IlluminatedWordWrite", { underline = true })
 	end,
 }

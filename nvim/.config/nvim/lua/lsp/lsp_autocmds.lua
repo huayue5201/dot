@@ -114,27 +114,4 @@ vim.api.nvim_create_user_command("LspListActive", function()
 	end
 end, { desc = "List active LSP clients for current buffer" })
 
--- 重启当前缓冲区的 LSP 客户端
--- local lsp_get = require("user.lsp_utils")
--- function M.restart_lsp()
--- 	vim.lsp.stop_client(vim.lsp.get_clients(), true)
--- 	-- 延迟启动 LSP
--- 	vim.defer_fn(function()
--- 		local lsp_name = lsp_get.get_lsp_name()
---
--- 		vim.lsp.enable(lsp_name, true)
--- 		-- 更新 LSP 状态
--- 		require("utils.project_lsp_toggle").set_lsp_state(true)
--- 	end, 500)
--- end
---
--- -- 关闭lsp
--- function M.stop_lsp()
--- 	vim.lsp.stop_client(vim.lsp.get_clients(), true)
--- 	require("utils.project_lsp_toggle").set_lsp_state(false)
--- 	vim.schedule(function()
--- 		vim.cmd.redrawstatus()
--- 	end)
--- end
-
 return M

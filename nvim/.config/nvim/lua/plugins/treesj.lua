@@ -5,7 +5,8 @@ return {
 	event = "VeryLazy",
 	dependencies = { "nvim-treesitter/nvim-treesitter" }, -- if you install parsers with `nvim-treesitter`
 	config = function()
-		require("treesj").setup({--[[ your config ]]
+		require("treesj").setup({
+			use_default_keymaps = false,
 		})
 		vim.keymap.set("n", "<c-j>", require("treesj").toggle)
 		-- For extending default preset with `recursive = true`

@@ -9,5 +9,6 @@ return {
 			preset = "modern",
 		})
 		vim.diagnostic.open_float = require("tiny-inline-diagnostic.override").open_float
+		vim.keymap.set("n", "<s-a-d>", "<cmd>TinyInlineDiag toggle<cr>", { desc = "LSP: Toggle diagnostics" })
 	end,
 }
