@@ -1,24 +1,19 @@
 local uv = vim.loop
 local M = {}
 
+-- 文件大小检测器
 function M.check(buf, ctx, callback)
-	ctx = ctx or {}
-	local max_bytes = ctx.max_bytes or 10 * 1024 * 1024 -- 2MB 默认阈值
+	-- 确保配置存在
+	local max_bytes = ctx.max_bytes or (10 * 1024 * 1024)
 
 	local name = vim.api.nvim_buf_get_name(buf)
 	if name == "" then
-		if callback then
-			callback(false, "no file path")
-		end
-		return
+		return callback(false, "no file path")
 	end
 
 	uv.fs_stat(name, function(err, stat)
 		if err or not stat then
-			if callback then
-				callback(false, "cannot stat file")
-			end
-			return
+			return callback(false, "cannot stat file")
 		end
 
 		if stat.size > max_bytes then

@@ -3,8 +3,8 @@
 #           字体设置
 # ================================================
 # 设置字体
-# font-family = Victor Mono
-font-family = FiraCode Nerd Font
+font-family = Victor Mono
+# font-family = FiraCode Nerd Font
 # font-family = IosevkaTermSlab Nerd Font
 # font-family = GohuFont uni14 Nerd Font
 # 启用加粗字体

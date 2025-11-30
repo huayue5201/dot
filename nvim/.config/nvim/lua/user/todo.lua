@@ -191,9 +191,9 @@ function M.create_todo_file()
 		return notify("取消创建 TODO 文件", vim.log.levels.INFO)
 	end
 
-	local path = dir .. "/" .. filename .. ".md"
+	local path = dir .. "/" .. filename .. ".todo.md"
 	if vim.fn.filereadable(path) == 1 then
-		return notify("文件已存在: " .. filename .. ".md", vim.log.levels.WARN)
+		return notify("文件已存在: " .. filename .. ".todo.md", vim.log.levels.WARN)
 	end
 
 	local fd = io.open(path, "w")

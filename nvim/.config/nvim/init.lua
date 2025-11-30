@@ -28,7 +28,7 @@ require("env") -- 环境变量配置
 require("lsp").setup() --lsp
 require("core.settings") -- 基础 Neovim 选项
 require("core.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
-require("core.statusline").active()
+require("core.statusline").active() -- 状态栏
 
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()

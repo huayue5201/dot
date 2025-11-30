@@ -1,5 +1,23 @@
 local M = {}
 
+-- 统一默认配置
+M.defaults = {
+	size = {
+		max_bytes = 10 * 1024 * 1024, -- 10MB
+	},
+	lines = {
+		max_lines = 10000,
+	},
+	long_line = {
+		max_length = 10000,
+		workers = 4,
+		chunk_size = nil,
+		min_chunk = 500,
+		max_chunk = 20000,
+		schedule_delay = 0,
+	},
+}
+
 -- 检测器注册表
 M.rules = {
 	size = {
@@ -16,6 +34,28 @@ M.rules = {
 	},
 }
 
+-- 获取统一配置（确保关键配置不为nil）
+function M.get_config(checker_name, user_ctx)
+	local defaults = M.defaults[checker_name] or {}
+	local ctx = user_ctx or {}
+
+	-- 深度合并配置
+	local config = vim.tbl_deep_extend("force", {}, defaults, ctx)
+
+	-- 确保关键配置字段不为nil
+	if checker_name == "size" and config.max_bytes == nil then
+		config.max_bytes = defaults.max_bytes
+	end
+	if checker_name == "lines" and config.max_lines == nil then
+		config.max_lines = defaults.max_lines
+	end
+	if checker_name == "long_line" and config.max_length == nil then
+		config.max_length = defaults.max_length
+	end
+
+	return config
+end
+
 -- 获取设置模块
 function M.get_settings_module(checker_name)
 	local checker = M.rules[checker_name]
@@ -30,7 +70,7 @@ function M.get_settings_module(checker_name)
 	return nil
 end
 
--- 统一的检测接口（保持向后兼容）
+-- 统一的检测接口
 function M.detect(buf, ctx, callback)
 	ctx = ctx or {}
 	local results = {}
@@ -40,7 +80,9 @@ function M.detect(buf, ctx, callback)
 	for name, rule in pairs(M.rules) do
 		if rule.check then
 			pending = pending + 1
-			local rule_ctx = ctx[name] or {}
+			-- 使用合并后的配置，确保包含所有必需字段
+			local rule_ctx = M.get_config(name, ctx[name] or {})
+
 			rule.check(buf, rule_ctx, function(hit, reason)
 				if hit then
 					hit_any = true

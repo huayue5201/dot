@@ -16,13 +16,11 @@ return {
 		vim.g.any_jump_show_prompt = 1
 		-- 忽略某些文件类型
 		vim.g.any_jump_ignore_filetypes = { "markdown", "txt", "help" }
+		-- Disable default any-jump keybindings (default: 0)
+		vim.g.any_jump_disable_default_keybindings = 1
 
 		-- ===================== 键位映射 =====================
 		local opts = { noremap = true, silent = true }
-
-		-- 跳转到定义 / 引用
-		vim.api.nvim_set_keymap("n", "<leader>j", "<cmd>AnyJump<CR>", opts)
-		vim.api.nvim_set_keymap("v", "<leader>j", "<cmd>AnyJump<CR>", opts)
 
 		-- 返回上一次跳转位置
 		vim.api.nvim_set_keymap("n", "<leader>ab", "<cmd>AnyJumpBack<CR>", opts)

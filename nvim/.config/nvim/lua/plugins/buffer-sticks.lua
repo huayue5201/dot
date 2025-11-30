@@ -70,7 +70,7 @@ return {
 			preview = {
 				enabled = false, -- 启用缓冲区预览（在导航时显示）
 			},
-			winblend = 100, -- 窗口混合程度（0-100，0=不透明，100=完全透明）
+			winblend = 30, -- 窗口混合程度（0-100，0=不透明，100=完全透明）
 			filter = {
 				filetypes = { "help", "qf" }, -- 排除的文件类型（例如： "NvimTree"、"neo-tree"、"Trouble"）
 				buftypes = { "terminal" }, -- 排除的缓冲区类型（例如："help"、"quickfix"、"nofile"）

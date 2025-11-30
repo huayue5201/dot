@@ -3,11 +3,11 @@ local json_store = require("user.json_store")
 
 local M = {}
 
--- 缓存实例
-local env_store = json_store:new({
-	file_path = vim.fn.stdpath("cache") .. "/selected_env.json",
+-- 共用一个 JSON 文件存储环境配置和项目状态
+local state_store = json_store:new({
+	file_path = vim.fn.stdpath("cache") .. "/project_states.json",
 	default_data = {},
-	auto_save = false,
+	auto_save = true,
 })
 
 vim.api.nvim_set_hl(0, "env_icon", { fg = "#6B8E23", bold = true })
@@ -38,20 +38,22 @@ local function apply_env(name, key)
 	end
 
 	vim.g.envCofnig = env
-	env_store:set(key, name)
+
+	-- 保存环境配置到共享的状态文件
+	local project_data = state_store:get(key) or {}
+	project_data.env = name
+	state_store:set(key, project_data)
 
 	if env.apply then
 		env.apply()
 	end
-	vim.defer_fn(function()
-		env_store:flush()
-	end, 100)
 end
 
 function M.load_env_on_startup()
 	auto_require_envs()
 	local key = project_key()
-	local selected_name = env_store:get(key)
+	local project_data = state_store:get(key) or {}
+	local selected_name = project_data.env
 
 	if selected_name and registry.envs[selected_name] then
 		vim.g.envCofnig = registry.envs[selected_name]
@@ -89,6 +91,59 @@ function M.EnvStatus()
 	local env = vim.g.envCofnig
 	local name = (env and env.name) or "Unknown"
 	return "%#env_icon# %*" .. name
+end
+
+-- ========== 纯净的状态管理 API ==========
+
+-- 设置状态值
+function M.set_state(key, value)
+	local pkey = project_key()
+	local project_data = state_store:get(pkey) or {}
+
+	-- 初始化 states 表
+	if not project_data.states then
+		project_data.states = {}
+	end
+
+	project_data.states[key] = value
+	state_store:set(pkey, project_data)
+end
+
+-- 获取状态值
+function M.get_state(key)
+	local pkey = project_key()
+	local project_data = state_store:get(pkey) or {}
+
+	if project_data.states then
+		return project_data.states[key]
+	end
+	return nil
+end
+
+-- 切换布尔状态
+function M.toggle_state(key)
+	local current = M.get_state(key)
+	local new_value = not (current == true)
+	M.set_state(key, new_value)
+	return new_value
+end
+
+-- 删除状态
+function M.delete_state(key)
+	local pkey = project_key()
+	local project_data = state_store:get(pkey) or {}
+
+	if project_data.states then
+		project_data.states[key] = nil
+		state_store:set(pkey, project_data)
+	end
+end
+
+-- 获取当前项目所有状态（用于调试）
+function M.get_all_states()
+	local pkey = project_key()
+	local project_data = state_store:get(pkey) or {}
+	return project_data.states or {}
 end
 
 return M
