@@ -126,63 +126,94 @@ function M.reload_lsp_configs()
 end
 
 --------------------------------------------------------------
--- 查询接口
+-- 查询接口 - 重构部分 [!code focus]
 --------------------------------------------------------------
-function M.get_lsp_config(...)
-	local fields = { ... }
-	return M.get_lsp_config_with_opts({}, unpack(fields))
-end
 
-function M.get_lsp_config_with_opts(opts, ...)
-	opts = opts or {}
-	local quiet = opts.quiet or false
-	local fields = { ... }
+-- 字段值提取器 [!code focus]
+function M._extract_field_value(config, field, filename, quiet) -- [!code focus]
+	if field == "name" then -- [!code focus]
+		return filename -- [!code focus]
+	end -- [!code focus]
+	-- [!code focus]
+	local value = config[field] -- [!code focus]
+	if not value then -- [!code focus]
+		if not quiet then -- [!code focus]
+			vim.notify("Field '" .. field .. "' not found in config: " .. filename, vim.log.levels.DEBUG) -- [!code focus]
+		end -- [!code focus]
+		return nil -- [!code focus]
+	end -- [!code focus]
+	-- [!code focus]
+	return value -- [!code focus]
+end -- [!code focus]
 
-	local all_configs = M._load_all_lsp_configs()
+-- 值处理器 [!code focus]
+function M._process_value_into_results(value, results) -- [!code focus]
+	if type(value) == "table" then -- [!code focus]
+		-- 处理数组类型的字段值 -- [!code focus]
+		for _, v in ipairs(value) do -- [!code focus]
+			if not vim.tbl_contains(results, v) then -- [!code focus]
+				table.insert(results, v) -- [!code focus]
+			end -- [!code focus]
+		end -- [!code focus]
+	else -- [!code focus]
+		-- 处理标量类型的字段值 -- [!code focus]
+		if not vim.tbl_contains(results, value) then -- [!code focus]
+			table.insert(results, value) -- [!code focus]
+		end -- [!code focus]
+	end -- [!code focus]
+end -- [!code focus]
 
-	-- 无字段：返回完整配置
-	if #fields == 0 then
-		return all_configs
-	end
+-- 单字段查询 [!code focus]
+function M._query_single_field(all_configs, field, quiet) -- [!code focus]
+	local results = {} -- [!code focus]
+	-- [!code focus]
+	for filename, config in pairs(all_configs) do -- [!code focus]
+		local value = M._extract_field_value(config, field, filename, quiet) -- [!code focus]
+		if value then -- [!code focus]
+			M._process_value_into_results(value, results) -- [!code focus]
+		end -- [!code focus]
+	end -- [!code focus]
+	-- [!code focus]
+	return vim.fn.sort(results) -- [!code focus]
+end -- [!code focus]
 
-	-- 单字段查询
-	if #fields == 1 then
-		local field = fields[1]
-		local result = {}
+-- 多字段查询 [!code focus]
+function M._query_multiple_fields(all_configs, fields, quiet) -- [!code focus]
+	local multi_results = {} -- [!code focus]
+	-- [!code focus]
+	for _, field in ipairs(fields) do -- [!code focus]
+		multi_results[field] = M._query_single_field(all_configs, field, quiet) -- [!code focus]
+	end -- [!code focus]
+	-- [!code focus]
+	return multi_results -- [!code focus]
+end -- [!code focus]
 
-		for filename, config in pairs(all_configs) do
-			if field == "name" then
-				table.insert(result, filename)
-			else
-				local value = config[field]
-				if value then
-					if type(value) == "table" then
-						for _, v in ipairs(value) do
-							if not vim.tbl_contains(result, v) then
-								table.insert(result, v)
-							end
-						end
-					else
-						if not vim.tbl_contains(result, value) then
-							table.insert(result, value)
-						end
-					end
-				elseif not quiet then
-					vim.notify("Field '" .. field .. "' not found in config: " .. filename, vim.log.levels.DEBUG)
-				end
-			end
-		end
+-- 主查询函数 [!code focus]
+function M.get_lsp_config(...) -- [!code focus]
+	local fields = { ... } -- [!code focus]
+	return M.get_lsp_config_with_opts({}, unpack(fields)) -- [!code focus]
+end -- [!code focus]
 
-		return vim.fn.sort(result)
-	end
-
-	-- 多字段查询：独立字段
-	local multi = {}
-	for _, field in ipairs(fields) do
-		multi[field] = M.get_lsp_config_with_opts({ quiet = quiet }, field)
-	end
-	return multi
-end
+function M.get_lsp_config_with_opts(opts, ...) -- [!code focus]
+	opts = opts or {} -- [!code focus]
+	local quiet = opts.quiet or false -- [!code focus]
+	local fields = { ... } -- [!code focus]
+	-- [!code focus]
+	local all_configs = M._load_all_lsp_configs() -- [!code focus]
+	-- [!code focus]
+	-- 无字段：返回完整配置 -- [!code focus]
+	if #fields == 0 then -- [!code focus]
+		return all_configs -- [!code focus]
+	end -- [!code focus]
+	-- [!code focus]
+	-- 单字段查询 -- [!code focus]
+	if #fields == 1 then -- [!code focus]
+		return M._query_single_field(all_configs, fields[1], quiet) -- [!code focus]
+	end -- [!code focus]
+	-- [!code focus]
+	-- 多字段查询 -- [!code focus]
+	return M._query_multiple_fields(all_configs, fields, quiet) -- [!code focus]
+end -- [!code focus]
 
 --------------------------------------------------------------
 -- 获取 LSP 名称

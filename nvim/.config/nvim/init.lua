@@ -37,9 +37,6 @@ vim.defer_fn(function()
 
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
-		require("bigfile").setup({
-			debounce = 300, -- 检测延迟（毫秒）
-		})
 		require("user.dotenv").load() -- token加载模块
 	end)
 end, 300) -- 延迟 100ms 执行
