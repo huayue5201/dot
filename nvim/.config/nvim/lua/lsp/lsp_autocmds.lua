@@ -64,12 +64,14 @@ function M.setup()
 			keymaps.set_keymaps() -- 设置 LSP 按键映射
 			mode_changed_handler() -- 设置模式变化时禁用/启用诊断
 			vim.lsp.document_color.enable(true, 0, { style = "virtual" }) -- 启用文档颜色高亮
+
+			if client:supports_method("textDocument/onTypeFormatting") then
+				vim.lsp.on_type_formatting.enable() -- 启用按键格式化
+			end
 			-- 启用 LSP 折叠
 			if client:supports_method("textDocument/foldingRange") then
-				local win = vim.api.nvim_get_current_win()
 				vim.wo.foldexpr = "v:lua.vim.lsp.foldexpr()"
 			end
-
 			-- 启用内联提示
 			if client:supports_method("textDocument/inlayHint") then
 				vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())

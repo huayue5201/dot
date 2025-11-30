@@ -6,21 +6,33 @@ local M = {}
 
 M.name = "文件大小"
 
+-- 大文件配置
 M.bigfile = {
 	configs = {
-		"vim.opt.syntax = 'off'",
-		"vim.opt.foldmethod = 'manual'",
-		"vim.opt.swapfile = false",
-		"vim.cmd('TSDisable highlight')",
+		function(buf)
+			-- 禁用语法高亮和折叠以提升性能
+			vim.bo.syntax = "off"
+			vim.wo.foldmethod = "manual"
+			vim.bo.swapfile = false
+
+			-- 禁用 treesitter 高亮（如果可用）
+			vim.cmd("TSDisable highlight")
+		end,
 	},
 }
 
+-- 小文件配置
 M.smallfile = {
 	configs = {
-		"vim.opt.syntax = 'on'",
-		"vim.opt.foldmethod = 'indent'",
-		"vim.opt.swapfile = true",
-		"vim.cmd('TSEnable highlight')",
+		function(buf)
+			-- 启用语法高亮和折叠
+			vim.bo.syntax = "on"
+			vim.wo.foldmethod = "indent"
+			vim.bo.swapfile = true
+
+			-- 启用 treesitter 高亮（如果可用）
+			vim.cmd("TSEnable highlight")
+		end,
 	},
 }
 

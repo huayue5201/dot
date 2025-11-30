@@ -1,19 +1,27 @@
 local M = {}
 
--- 重启当前缓冲区的 LSP 客户端
 local lsp_get = require("lsp.lsp_utils")
+
+-- 重启当前缓冲区的 LSP 客户端
 local function restart_lsp()
-	vim.lsp.stop_client(vim.lsp.get_clients(), true)
+	-- 获取所有已启动的 LSP 客户端
+	local clients = vim.lsp.get_clients()
+	-- 遍历所有 LSP 客户端并请求停止
+	for _, client in ipairs(clients) do
+		client:stop(true) -- 使用 `true` 表示强制停止客户端
+	end
 	-- 延迟启动 LSP
 	vim.defer_fn(function()
 		local lsp_name = lsp_get.get_lsp_name()
+		-- 假设 lsp.enable() 已经处理了启动逻辑
 		vim.lsp.enable(lsp_name, true)
 	end, 500)
 end
 
--- 关闭lsp
+-- 关闭 LSP
 function M.stop_lsp()
-	vim.lsp.stop_client(vim.lsp.get_clients(), true)
+	vim.lsp.enable(lsp_get.get_lsp_name(), false)
+	-- 刷新状态
 	vim.schedule(function()
 		vim.cmd.redrawstatus()
 	end)
@@ -77,11 +85,11 @@ end
 local keymaps = {
 	-- { "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
 
-	-- {
-	-- 	"<s-a-d>",
-	-- 	"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
-	-- 	"LSP: toggle diagnostics",
-	-- },
+	{
+		"<s-a-d>",
+		"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
+		"LSP: toggle diagnostics",
+	},
 	{
 		"<leader>cl",
 		function()

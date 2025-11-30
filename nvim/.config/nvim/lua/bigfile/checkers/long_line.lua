@@ -1,17 +1,6 @@
--- lua/fast_linecheck.lua
 local M = {}
 
--- 默认配置
-local DEFAULTS = {
-	max_length = 10000,
-	workers = 4,
-	chunk_size = nil, -- nil 表示自动计算
-	min_chunk = 500, -- 最小 chunk 大小
-	max_chunk = 20000, -- 最大 chunk 大小
-	schedule_delay = 0, -- 每次 worker 下一步使用的 defer 延迟(ms)
-}
-
--- simple promise implementation: supports then(fn) and await() (coroutine yield)
+-- 简单的 Promise 实现
 local function make_promise()
 	local p = {
 		done = false,
@@ -72,16 +61,12 @@ end
 -- 自动计算 chunk_size
 local function compute_chunk_size(total_lines, workers, opts)
 	local base = math.floor(total_lines / (workers * 12))
-	if base < (opts.min_chunk or DEFAULTS.min_chunk) then
-		base = opts.min_chunk or DEFAULTS.min_chunk
-	end
-	if base > (opts.max_chunk or DEFAULTS.max_chunk) then
-		base = opts.max_chunk or DEFAULTS.max_chunk
-	end
-	return base
+	local min_chunk = opts.min_chunk or 500
+	local max_chunk = opts.max_chunk or 20000
+	return math.min(math.max(base, min_chunk), max_chunk)
 end
 
--- worker
+-- Worker 处理函数
 local function spawn_worker(id, buf, range_start, range_end, opt, shared, promise)
 	local cursor = range_start
 	local chunk = opt.chunk_size
@@ -109,19 +94,16 @@ local function spawn_worker(id, buf, range_start, range_end, opt, shared, promis
 		local end_line = math.min(cursor + chunk, range_end)
 		local lines = vim.api.nvim_buf_get_lines(buf, cursor, end_line, false)
 
-		local ml = maxlen
 		for i = 1, #lines do
-			local line = lines[i]
-			if #line > ml then
+			if #lines[i] > maxlen then
 				shared.stopped = true
 				local linenr = cursor + i
-				promise:resolve(true, string.format("line %d too long (%d > %d)", linenr, #line, ml))
+				promise:resolve(true, string.format("line %d too long (%d > %d)", linenr, #lines[i], maxlen))
 				return
 			end
 		end
 
 		cursor = end_line
-
 		if not shared.stopped and not promise.cancelled then
 			vim.defer_fn(step, opt.schedule_delay or 0)
 		end
@@ -130,16 +112,16 @@ local function spawn_worker(id, buf, range_start, range_end, opt, shared, promis
 	vim.defer_fn(step, opt.schedule_delay or 0)
 end
 
--- 主 API
+-- 长行扫描函数
 function M.scan(buf, opts)
 	opts = opts or {}
 	local opt = {
-		max_length = opts.max_length or DEFAULTS.max_length,
-		workers = math.max(1, opts.workers or DEFAULTS.workers),
+		max_length = opts.max_length or 10000,
+		workers = math.max(1, opts.workers or 4),
 		chunk_size = opts.chunk_size,
-		min_chunk = opts.min_chunk or DEFAULTS.min_chunk,
-		max_chunk = opts.max_chunk or DEFAULTS.max_chunk,
-		schedule_delay = opts.schedule_delay or DEFAULTS.schedule_delay,
+		min_chunk = opts.min_chunk or 500,
+		max_chunk = opts.max_chunk or 20000,
+		schedule_delay = opts.schedule_delay or 0,
 	}
 
 	local promise = make_promise()
@@ -159,16 +141,14 @@ function M.scan(buf, opts)
 		return promise
 	end
 
+	-- 自动计算 chunk_size
 	if not opt.chunk_size then
 		opt.chunk_size = compute_chunk_size(total_lines, opt.workers, opt)
 	end
 
-	local workers = opt.workers
-	local per = math.floor(total_lines / workers)
-	if per < 1 then
-		per = 1
-		workers = total_lines
-	end
+	-- 计算 worker 分配
+	local workers = math.min(opt.workers, total_lines)
+	local per = math.ceil(total_lines / workers)
 
 	local shared = {
 		stopped = false,
@@ -176,6 +156,7 @@ function M.scan(buf, opts)
 		total_workers = workers,
 	}
 
+	-- 启动 workers
 	for i = 1, workers do
 		local start_line = (i - 1) * per
 		local end_line = (i == workers) and total_lines or (i * per)
@@ -193,6 +174,28 @@ function M.scan(buf, opts)
 			return promise:cancel()
 		end,
 	}
+end
+
+-- 统一的检测接口
+function M.check(buf, ctx, callback)
+	-- 确保配置存在
+	local config = {
+		max_length = ctx.max_length or 10000,
+		workers = ctx.workers or 4,
+		chunk_size = ctx.chunk_size,
+		min_chunk = ctx.min_chunk or 500,
+		max_chunk = ctx.max_chunk or 20000,
+		schedule_delay = ctx.schedule_delay or 0,
+	}
+
+	if not vim.api.nvim_buf_is_valid(buf) then
+		return callback(false, "invalid buffer")
+	end
+
+	local promise = M.scan(buf, config)
+	promise:then_(function(hit, reason)
+		callback(hit, reason)
+	end)
 end
 
 return M

@@ -41,34 +41,29 @@ end
 
 -- 清理指定缓冲区的定时器
 local function cleanup_timer(buf)
-	-- 清理原有定时器
 	if timers[buf] and not timers[buf]:is_closing() then
 		timers[buf]:stop()
 		timers[buf]:close()
 	end
 	timers[buf] = nil
 
-	-- 清理粘贴检测定时器
 	if pending_detection[buf] and not pending_detection[buf]:is_closing() then
 		pending_detection[buf]:stop()
 		pending_detection[buf]:close()
 	end
 	pending_detection[buf] = nil
 
-	-- 清理行数记录
 	last_line_count[buf] = nil
 end
 
 -- 显示汇总通知
 local function show_summary_notification(buf, triggered_rules, recovered_rules)
 	local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t")
-
 	if #triggered_rules == 0 and #recovered_rules == 0 then
 		return
 	end
 
 	local messages = {}
-
 	if #triggered_rules > 0 then
 		local rule_names = {}
 		for _, rule in ipairs(triggered_rules) do
@@ -89,7 +84,6 @@ local function show_summary_notification(buf, triggered_rules, recovered_rules)
 
 	local notification = string.format("%s: %s", filename, table.concat(messages, "; "))
 	local level = (#triggered_rules > 0) and vim.log.levels.WARN or vim.log.levels.INFO
-
 	vim.notify(notification, level, { title = "BigFile" })
 end
 
@@ -99,7 +93,6 @@ local function setup_paste_detection()
 		group = vim.api.nvim_create_augroup("BigFilePasteDetection", { clear = true }),
 		callback = function(args)
 			local buf = args.buf
-
 			if is_whitelisted(buf) then
 				return
 			end
@@ -109,17 +102,15 @@ local function setup_paste_detection()
 
 			-- 检测行数大幅增加（可能是粘贴）
 			local line_increase = current_lines - previous_lines
-			if line_increase > 20 then -- 行数增加阈值
-				-- 取消之前的检测
+			if line_increase > 20 then
 				if pending_detection[buf] then
 					pending_detection[buf]:stop()
 					pending_detection[buf]:close()
 				end
 
-				-- 延迟检测
 				pending_detection[buf] = uv.new_timer()
 				pending_detection[buf]:start(
-					500, -- 500ms 后检测
+					500,
 					0,
 					vim.schedule_wrap(function()
 						pending_detection[buf] = nil
@@ -139,26 +130,19 @@ end
 function M.setup(opts)
 	local delay = opts and opts.debounce or 200
 
-	-- 初始化粘贴检测
 	setup_paste_detection()
 
-	-- 注册自动命令
 	vim.api.nvim_create_autocmd({ "BufReadPost", "BufWinEnter" }, {
 		group = vim.api.nvim_create_augroup("BigFileDetection", { clear = true }),
 		callback = function(args)
 			local buf = args.buf
-
 			if is_whitelisted(buf) then
 				return
 			end
 
-			-- 初始化行数记录
 			last_line_count[buf] = vim.api.nvim_buf_line_count(buf)
-
-			-- 清理之前的定时器
 			cleanup_timer(buf)
 
-			-- 创建新的定时器
 			timers[buf] = uv.new_timer()
 			timers[buf]:start(
 				delay,
@@ -171,7 +155,6 @@ function M.setup(opts)
 		end,
 	})
 
-	-- 清理缓冲区的状态
 	vim.api.nvim_create_autocmd("BufWipeout", {
 		group = vim.api.nvim_create_augroup("BigFileCleanup", { clear = true }),
 		callback = function(args)
@@ -181,7 +164,7 @@ function M.setup(opts)
 	})
 end
 
--- 执行所有检测模块
+-- 执行所有检测模块（修复配置传递问题）
 function M.run_all_checkers(buf)
 	if not vim.api.nvim_buf_is_valid(buf) or is_whitelisted(buf) then
 		return
@@ -202,49 +185,37 @@ function M.run_all_checkers(buf)
 		return
 	end
 
-	-- 执行所有检测器
+	-- 执行所有检测器（修复：传递正确的配置）
 	for name, checker in pairs(checkers.rules) do
 		if checker and type(checker.check) == "function" then
-			checker.check(buf, nil, function(hit, reason)
+			-- 关键修复：使用 get_config 获取正确的配置
+			local rule_config = checkers.get_config(name, {})
+			checker.check(buf, rule_config, function(hit, reason)
 				vim.schedule(function()
 					local settings_mod = checkers.get_settings_module(name)
 					local previous_state = state.get_rule_state(buf, name)
 
 					if hit then
-						-- 只有当之前不是大文件状态时才应用配置
 						if not previous_state then
 							if settings_mod and settings_mod.apply then
 								settings_mod.apply(buf)
 							end
-							-- 记录状态变化
 							state.set_rule_state(buf, name, true, reason)
-							table.insert(triggered_rules, {
-								name = name,
-								reason = reason,
-							})
+							table.insert(triggered_rules, { name = name, reason = reason })
 						end
 					else
-						-- 只有当之前是大文件状态时才重置配置
 						if previous_state then
 							if settings_mod and settings_mod.reset then
 								settings_mod.reset(buf)
 							end
-							-- 记录状态变化
 							state.set_rule_state(buf, name, false, "恢复正常")
-							table.insert(recovered_rules, {
-								name = name,
-								reason = "恢复正常",
-							})
+							table.insert(recovered_rules, { name = name, reason = "恢复正常" })
 						end
 					end
 
-					-- 等所有 checker 回调完成后显示汇总通知
 					pending = pending - 1
 					if pending == 0 then
-						-- 显示汇总通知
 						show_summary_notification(buf, triggered_rules, recovered_rules)
-
-						-- 如果有任何规则命中，显示详细信息
 						if #triggered_rules > 0 then
 							state.show(buf)
 						end

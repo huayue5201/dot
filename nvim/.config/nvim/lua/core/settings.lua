@@ -27,7 +27,7 @@ vim.opt.smoothscroll = true -- 开启平滑滚动
 vim.opt.undofile = true -- 启用持久撤销
 vim.opt.confirm = true -- 未保存退出确认
 vim.opt.spelloptions = "camel" -- 开启驼峰拼写检查
-vim.opt.messagesopt = "wait:500,history:1000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
+vim.opt.messagesopt = "wait:200,history:1000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
 -- https://github.com/neovim/neovim/pull/27855
 require("vim._extui").enable({
 	enable = true, -- Whether to enable or disable the UI.
@@ -36,14 +36,6 @@ require("vim._extui").enable({
 		---cmdline or in a separate ephemeral message window.
 		target = "msg",
 		timeout = 4000, -- Time a message is visible in the message window.
-	},
-})
--- 启用 vim._extui 并配置透明效果
-require("vim._extui").enable({
-	enable = true,
-	msg = {
-		target = "cmd",
-		timeout = 4000,
 	},
 })
 
@@ -130,7 +122,6 @@ vim.opt.fillchars = {
 	eob = " ", -- 空行字符（用于表示缓冲区末尾）
 	lastline = "@", -- 最后一行或截断字符
 }
--- vim.opt.foldtext = "v:lua.require('config.foldtext').custom_foldtext()"
 
 vim.opt.listchars = {
 	tab = "│ ", -- 显示 Tab 字符
