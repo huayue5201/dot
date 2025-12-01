@@ -13,6 +13,24 @@ return {
 	-- event = "InsertEnter",
 	ft = { "lua", "python", "rust", "c", "go" },
 	config = function()
+		local json_store = require("user.json_store")
+
+		vim.api.nvim_create_autocmd({ "BufEnter", "BufReadPost" }, {
+			pattern = "*", -- 匹配所有文件
+			callback = function()
+				local copilot_status = json_store.get_lsp_state("copilot")
+
+				if copilot_status == "off" then
+					-- 正确关闭 Copilot 自动建议
+					vim.cmd("Copilot disable")
+				-- 或者如果需要完全分离：
+				-- vim.cmd("Copilot detach")
+				else
+					vim.cmd("Copilot enable")
+				end
+			end,
+			desc = "根据保存状态控制 Copilot 自动触发",
+		})
 		-- =====================================
 		-- Copilot 配置
 		-- =====================================
@@ -75,12 +93,13 @@ return {
 		-- 	require("copilot.suggestion").toggle_auto_trigger()
 		-- end, { silent = true, desc = "Copilot: 切换自动触发" })
 
-		vim.keymap.set(
-			"n",
-			"<s-a-g>",
-			"<cmd>Copilot toggle<cr>",
-			{ silent = true, desc = "Copilot: 切换自动触发" }
-		)
+		vim.keymap.set("n", "<s-a-g>", function()
+			vim.cmd.Copilot("toggle")
+			-- 简单地在 "on" 和 "off" 之间切换
+			local current = json_store.get_lsp_state("copilot")
+			local new_status = (current == "on") and "off" or "on"
+			json_store.set_lsp_state("copilot", new_status)
+		end, { silent = true, desc = "Copilot: 切换状态" })
 
 		vim.keymap.set("i", "<C-k>", function()
 			require("copilot.suggestion").next()

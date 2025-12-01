@@ -7,11 +7,6 @@ M.settings = {
 			vim.opt_local.confirm = false
 		end,
 	},
-	["any-jump"] = {},
-	-- nofile 类型
-	nofile = {
-		setup = function() end,
-	},
 }
 
 M.buf_keymaps = {

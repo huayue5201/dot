@@ -115,7 +115,7 @@ return {
 			},
 			-- 补全源配置：定义默认启用的补全提供者
 			sources = {
-				default = { "buffer", "lsp", "path", "snippets", "ripgrep", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
+				default = { "lazydev", "buffer", "lsp", "path", "snippets", "ripgrep", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
 				providers = {
 					-- other sources
 					ripgrep = {
@@ -125,6 +125,12 @@ return {
 						---@module "blink-ripgrep"
 						---@type blink-ripgrep.Options
 						opts = {},
+					},
+					lazydev = {
+						name = "LazyDev",
+						module = "lazydev.integrations.blink",
+						-- make lazydev completions top priority (see `:h blink.cmp`)
+						score_offset = 100,
 					},
 				},
 				transform_items = function(ctx, items)

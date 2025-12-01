@@ -1,5 +1,4 @@
--- https://github.com/mfussenegger/nvim-dap
--- NOTE : https://github.com/Jorenar/nvim-dap-disasm 提供反汇编（disassembly)
+-- hDapBreakpointStoppedttps://github.com/mfussenegger/nvim-dap
 
 return {
 	"mfussenegger/nvim-dap",
@@ -49,24 +48,39 @@ return {
 			dapui.close({})
 		end
 		--  nvim-dap配置
+		-- 确保你使用的是正确的全局变量名（通常是 dap 而不是 daps）
+		local dap = require("dap")
+
 		local dap_defaults = {
-			switchbuf = "usevisible,usetab,newtab", -- 在调试时使用打开的缓冲区
-			terminal_win_cmd = "belowright new", -- 设置终端窗口在底部打开
-			focus_terminal = true, -- 打开终端时将焦点切换到终端
-			autostart = "nluarepl", -- 自动启动 Lua REPL
-			console = "integratedTerminal", -- 控制台设置
-			stepping_granularity = "statement", -- `line` or `instructions`
-			external_terminal = {
-				command = "/usr/bin/alacritty", -- 外部终端的命令路径
-				args = { "-e" }, -- 外部终端的参数
-			},
+			switchbuf = "usevisible,usetab,newtab",
+			terminal_win_cmd = "belowright new",
+			focus_terminal = true,
+			autostart = "nluarepl",
+			console = "integratedTerminal",
+			stepping_granularity = "statement",
 		}
-		-- 将配置应用到 dap.defaults.fallback
+
+		-- 先赋值普通配置
 		for key, value in pairs(dap_defaults) do
-			daps.defaults.fallback[key] = value
+			dap.defaults.fallback[key] = value
 		end
 
+		-- 单独设置 table 类型的配置
+		dap.defaults.fallback.external_terminal = {
+			command = "/usr/bin/kitty",
+			args = { "-e" },
+		}
+
+		-- 或者使用类型安全的合并函数
+		dap.defaults.fallback = vim.tbl_deep_extend("force", dap.defaults.fallback or {}, {
+			external_terminal = {
+				command = "/usr/bin/kitty",
+				args = { "-e" },
+			},
+		})
+
 		require("dap.dap_keys").setup()
+		require("dap.breakpoint_state").setup()
 
 		-- 扩展 REPL 命令
 		local repl = require("dap.repl")
