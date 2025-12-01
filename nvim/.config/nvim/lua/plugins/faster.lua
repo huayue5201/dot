@@ -21,7 +21,7 @@ return {
 					pattern = "*", -- 应用于所有文件
 					extra_patterns = { -- 为特定文件类型设置不同阈值
 						-- { filesize = 1.1, pattern = "*.md" }, -- 示例：Markdown文件阈值设为1.1MB
-						{ filesize = 0.5, pattern = "*.js" },
+						-- { filesize = 0.5, pattern = "*.js" },
 					},
 				},
 				fastmacro = {

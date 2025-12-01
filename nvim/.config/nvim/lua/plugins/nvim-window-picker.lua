@@ -74,7 +74,7 @@ return {
 				-- 根据缓冲区选项进行过滤
 				bo = {
 					-- 如果文件类型是以下之一，窗口将被忽略
-					filetype = { "pager", "neo-tree", "msgmore", "snacks_picker_input" },
+					filetype = { "dap-repl", "pager", "neo-tree", "msgmore", "snacks_picker_input" },
 
 					-- 如果缓冲区类型是以下之一，窗口将被忽略
 					-- buftype = { "terminal" },
@@ -127,22 +127,34 @@ return {
 				print("You'll need to install window-picker to use this command.")
 				return
 			end
+
 			-- 获取选中的窗口 ID
 			local picked_window_id = picker.pick_window()
 			if not picked_window_id then
 				print("No window picked!")
 				return
 			end
+
 			-- 获取该窗口的缓冲区 ID 和类型信息
 			local buf_id = vim.api.nvim_win_get_buf(picked_window_id)
 			local filetype = vim.api.nvim_get_option_value("filetype", { buf = buf_id })
 			local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf_id })
 			local close_commands = require("user.utils").buf_keymaps["q"]
+
 			-- 获取文件类型或缓冲区类型对应的关闭命令
 			local command = close_commands[filetype ~= "" and filetype or buftype]
+
 			-- 临时切换到选中的窗口，执行命令后切回
 			local current_win = vim.api.nvim_get_current_win()
+
+			-- 确保目标窗口有效
+			if not vim.api.nvim_win_is_valid(picked_window_id) then
+				print("Picked window is no longer valid.")
+				return
+			end
+
 			vim.api.nvim_set_current_win(picked_window_id)
+
 			-- 执行相应的命令或默认的 bdelete
 			if command then
 				if type(command) == "function" then
@@ -153,8 +165,11 @@ return {
 			else
 				vim.cmd(string.format("bdelete %d", buf_id)) -- 默认 bdelete
 			end
+
 			-- 恢复原来的窗口
-			vim.api.nvim_set_current_win(current_win)
+			if vim.api.nvim_win_is_valid(current_win) then
+				vim.api.nvim_set_current_win(current_win)
+			end
 		end, { silent = true, desc = "window: 删除选中的窗口（支持 close_commands 表）" })
 
 		vim.keymap.set("n", "<Leader>w", function()

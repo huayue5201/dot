@@ -227,10 +227,5 @@ eval "$(zoxide init zsh)"
 # 加载 p10k 配置（如果存在）
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
-# ---------------------------------------
-# 启动消息（可选）
-# ---------------------------------------
-echo "Zsh configuration loaded successfully!"
-
 # bun completions
 [ -s "/Users/lijia/.bun/_bun" ] && source "/Users/lijia/.bun/_bun"
