@@ -45,7 +45,10 @@ function M.setup()
 		dap.set_exception_breakpoints()
 	end, { desc = "DAP: 设置异常断点" })
 	vim.keymap.set("n", "<leader>d?", bp.set_breakpoint, { desc = "DAP: 自定义断点" })
-	vim.keymap.set("n", "<leader>dC", dap.clear_breakpoints, { desc = "DAP: 清除所有断点" })
+	vim.keymap.set("n", "<leader>dC", function()
+		dap.clear_breakpoints()
+		require("dap.breakpoint_state").clear_breakpoints()
+	end, { desc = "DAP: 清除所有断点" })
 
 	-- 📜 导航
 	local ts_repeat_move = require("nvim-treesitter.textobjects.repeatable_move")

@@ -1,14 +1,8 @@
+-- lua/env/core.lua
 local registry = require("env.registry")
-local json_store = require("user.json_store")
+local json_store = require("user.json_store") -- 统一存储
 
 local M = {}
-
--- 共用一个 JSON 文件存储环境配置和项目状态
-local state_store = json_store:new({
-	file_path = vim.fn.stdpath("cache") .. "/project_states.json",
-	default_data = {},
-	auto_save = true,
-})
 
 vim.api.nvim_set_hl(0, "env_icon", { fg = "#6B8E23", bold = true })
 
@@ -39,10 +33,8 @@ local function apply_env(name, key)
 
 	vim.g.envCofnig = env
 
-	-- 保存环境配置到共享的状态文件
-	local project_data = state_store:get(key) or {}
-	project_data.env = name
-	state_store:set(key, project_data)
+	-- 只存储环境名称（字符串），不存储整个配置对象
+	json_store.set_env(name)
 
 	if env.apply then
 		env.apply()
@@ -52,11 +44,14 @@ end
 function M.load_env_on_startup()
 	auto_require_envs()
 	local key = project_key()
-	local project_data = state_store:get(key) or {}
-	local selected_name = project_data.env
+
+	-- 从统一存储中读取环境名称
+	local selected_name = json_store.get_env()
 
 	if selected_name and registry.envs[selected_name] then
-		vim.g.envCofnig = registry.envs[selected_name]
+		local env = registry.envs[selected_name]
+		vim.g.envCofnig = env
+		-- 不执行apply()，因为只是加载
 		return
 	end
 
@@ -93,57 +88,23 @@ function M.EnvStatus()
 	return "%#env_icon# %*" .. name
 end
 
--- ========== 纯净的状态管理 API ==========
-
--- 设置状态值
-function M.set_state(key, value)
-	local pkey = project_key()
-	local project_data = state_store:get(pkey) or {}
-
-	-- 初始化 states 表
-	if not project_data.states then
-		project_data.states = {}
+-- 新增简单API
+function M.set_env(name)
+	if registry.envs[name] then
+		local key = project_key()
+		apply_env(name, key)
+		return true
 	end
-
-	project_data.states[key] = value
-	state_store:set(pkey, project_data)
+	return false
 end
 
--- 获取状态值
-function M.get_state(key)
-	local pkey = project_key()
-	local project_data = state_store:get(pkey) or {}
-
-	if project_data.states then
-		return project_data.states[key]
-	end
-	return nil
+function M.get_env()
+	return json_store.get_env()
 end
 
--- 切换布尔状态
-function M.toggle_state(key)
-	local current = M.get_state(key)
-	local new_value = not (current == true)
-	M.set_state(key, new_value)
-	return new_value
-end
-
--- 删除状态
-function M.delete_state(key)
-	local pkey = project_key()
-	local project_data = state_store:get(pkey) or {}
-
-	if project_data.states then
-		project_data.states[key] = nil
-		state_store:set(pkey, project_data)
-	end
-end
-
--- 获取当前项目所有状态（用于调试）
-function M.get_all_states()
-	local pkey = project_key()
-	local project_data = state_store:get(pkey) or {}
-	return project_data.states or {}
+function M.clear_env()
+	json_store.clear_env()
+	vim.g.envCofnig = { name = "Unknown", type = "generic" }
 end
 
 return M

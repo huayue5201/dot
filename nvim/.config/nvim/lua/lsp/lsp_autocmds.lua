@@ -57,7 +57,6 @@ function M.setup()
 		group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
 		desc = "LSP 客户端附加到缓冲区时的配置",
 		callback = function(args)
-			-- vim.lsp.stop_client(args.data.client_id, true)
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
 			configs.diagnostic_config() -- 诊断ui
 			inlay_hint_handler() -- 插入模式内联提示处理
@@ -98,7 +97,7 @@ function M.setup()
 					end
 				end
 				-- 移除键映射
-				keymaps.remove_keymaps()
+				-- keymaps.remove_keymaps()
 			end
 		end,
 	})

@@ -1,3 +1,5 @@
+-- https://github.com/lewis6991/hover.nvim
+
 return {
 	"lewis6991/hover.nvim",
 	event = "BufReadPost",
@@ -28,6 +30,8 @@ return {
 			title = true,
 			mouse_providers = {
 				"hover.providers.lsp",
+				"hover.providers.dictionary",
+				"hover.providers.highlight",
 			},
 			mouse_delay = 1000,
 		})
@@ -41,11 +45,11 @@ return {
 			require("hover").enter()
 		end, { desc = "hover.nvim (enter)" })
 
-		vim.keymap.set("n", "<C-p>", function()
+		vim.keymap.set("n", "<C-=>", function()
 			require("hover").switch("previous")
 		end, { desc = "hover.nvim (previous source)" })
 
-		vim.keymap.set("n", "<C-n>", function()
+		vim.keymap.set("n", "<C-->", function()
 			require("hover").switch("next")
 		end, { desc = "hover.nvim (next source)" })
 		-- Mouse support

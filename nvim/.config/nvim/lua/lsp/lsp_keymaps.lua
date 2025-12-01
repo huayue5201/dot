@@ -1,5 +1,6 @@
 local M = {}
 
+local json_store = require("user.json_store")
 local lsp_get = require("lsp.lsp_utils")
 
 -- 重启当前缓冲区的 LSP 客户端
@@ -15,13 +16,17 @@ local function restart_lsp()
 		local lsp_name = lsp_get.get_lsp_name()
 		-- 假设 lsp.enable() 已经处理了启动逻辑
 		vim.lsp.enable(lsp_name, true)
+		json_store.set_lsp_state(lsp_name[1], "active")
 	end, 500)
 end
 
 -- 关闭 LSP
 function M.stop_lsp()
-	vim.lsp.enable(lsp_get.get_lsp_name(), false)
-	-- 刷新状态
+	local lsp_name = lsp_get.get_lsp_name()
+	vim.lsp.enable(lsp_name, false)
+
+	json_store.set_lsp_state(lsp_name[1], "inactive")
+
 	vim.schedule(function()
 		vim.cmd.redrawstatus()
 	end)
