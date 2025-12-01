@@ -1,10 +1,13 @@
 local M = {}
 
 M.settings = {
-
-	["any-jump"] = {
-		setup = function() end,
+	["dap-repl"] = {
+		setup = function()
+			-- 仅在当前 buffer 中禁用保存确认提示
+			vim.opt_local.confirm = false
+		end,
 	},
+	["any-jump"] = {},
 	-- nofile 类型
 	nofile = {
 		setup = function() end,

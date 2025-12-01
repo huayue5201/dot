@@ -57,6 +57,7 @@ return {
 				"regex",
 				"bash",
 				"c",
+				"go",
 				"cmake",
 				"json",
 				"rust",
