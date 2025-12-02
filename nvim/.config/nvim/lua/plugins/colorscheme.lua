@@ -3,22 +3,22 @@
 -- https://github.com/uhs-robert/oasis.nvim
 
 return {
-	"oxfist/night-owl.nvim",
-	-- "EdenEast/nightfox.nvim",
+	-- "oxfist/night-owl.nvim",
+	"EdenEast/nightfox.nvim",
 	-- "uhs-robert/oasis.nvim",
 	lazy = false,
 	priority = 1000,
 	config = function()
-		require("night-owl").setup()
-		vim.cmd.colorscheme("night-owl")
+		-- require("night-owl").setup()
+		-- vim.cmd.colorscheme("night-owl")
 
-		-- require("nightfox").setup({
-		-- 	options = {
-		-- 		-- 是否使非焦点窗口使用不同的背景颜色，增强视觉分隔
-		-- 		dim_inactive = true,
-		-- 	},
-		-- })
-		-- vim.cmd("colorscheme Carbonfox")
+		require("nightfox").setup({
+			options = {
+				-- 是否使非焦点窗口使用不同的背景颜色，增强视觉分隔
+				dim_inactive = true,
+			},
+		})
+		vim.cmd("colorscheme Carbonfox")
 		-- require("oasis").setup({
 		-- 	dark_style = "lagoon", -- 当 vim.o.background 为 "dark" 时使用的主题样式
 		-- 	light_style = "dawn", -- 当 vim.o.background 为 "light" 时使用的主题样式

@@ -5,7 +5,6 @@ return {
 	ft = { "markdown", "todo", "TDDO" }, -- Lazy loads for Markdown files matching patterns in 'files'
 	config = function()
 		require("checkmate").setup({
-			---@type checkmate.Config
 			enabled = true, -- ✅ 是否启用 Checkmate 插件
 			notify = true, -- ✅ 是否启用消息通知
 

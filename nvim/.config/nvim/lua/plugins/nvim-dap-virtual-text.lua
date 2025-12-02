@@ -19,14 +19,7 @@ return {
 			-- 虚拟文本的位置，参见 `:h nvim_buf_set_extmark()`，默认尝试将虚拟文本内联显示。使用 'eol' 将虚拟文本放置在行尾。
 			-- virt_text_pos = "eol",
 
-			--- 回调函数，用于确定如何显示变量或是否忽略该变量
-			--- @param variable 变量 https://microsoft.github.io/debug-adapter-protocol/specification#Types_Variable
-			--- @param buf number 缓冲区编号
-			--- @param stackframe dap.StackFrame https://microsoft.github.io/debug-adapter-protocol/specification#Types_StackFrame
-			--- @param node userdata tree-sitter 节点，表示变量定义或引用（请参见 `:h tsnode`）
-			--- @param options nvim_dap_virtual_text_options 当前 `nvim-dap-virtual-text` 插件的配置选项
-			--- @return string|nil 返回显示虚拟文本的字符串，如果该变量不应显示则返回 nil
-			display_callback = function(variable, buf, stackframe, node, options)
+			display_callback = function(variable, options)
 				-- 默认情况下，去掉变量值中的换行符
 				if options.virt_text_pos == "inline" then
 					return " = " .. variable.value:gsub("%s+", " ") -- 如果是内联模式，去除多余的空格并显示
