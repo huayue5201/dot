@@ -3,6 +3,16 @@ local M = {}
 local breakpoints = require("dap.breakpoints")
 local json_store = require("user.json_store")
 
+-- 缓存存储的断点数据
+local cached_bps = nil
+local save_debounce_timer = nil
+
+-- 获取当前项目标识
+local function get_project_id()
+	local cwd = vim.fn.getcwd()
+	return vim.fn.fnamemodify(cwd, ":t") .. ":" .. cwd
+end
+
 -- 规范化文件路径
 local function normalize_path(path)
 	if not path or path == "" then
@@ -11,205 +21,347 @@ local function normalize_path(path)
 	return vim.fn.fnamemodify(path, ":p")
 end
 
--- 1. 自动保存断点
-function M.save_breakpoints()
+-- 获取缓存或从存储加载断点
+local function get_cached_stored_bps()
+	if cached_bps == nil then
+		cached_bps = json_store.get("dap", "breakpoints") or {}
+	end
+	return cached_bps
+end
+
+-- 更新缓存和存储
+local function update_cached_bps(new_bps)
+	cached_bps = new_bps
+	json_store.set("dap", "breakpoints", new_bps)
+end
+
+-- 验证断点数据有效性
+local function validate_breakpoint(bp)
+	if not bp.line or type(bp.line) ~= "number" or bp.line <= 0 then
+		return false
+	end
+
+	-- 验证条件字段
+	if bp.condition and type(bp.condition) ~= "string" then
+		return false
+	end
+
+	if bp.logMessage and type(bp.logMessage) ~= "string" then
+		return false
+	end
+
+	if bp.hitCondition and type(bp.hitCondition) ~= "string" then
+		return false
+	end
+
+	return true
+end
+
+-- 获取当前所有打开的缓冲区及其实际断点
+local function get_current_breakpoints()
+	local current_bps = {}
 	local breakpoints_by_buf = breakpoints.get()
-	local serialized = {}
-	local saved_count = 0
 
 	for buf, buf_bps in pairs(breakpoints_by_buf) do
 		local filepath = vim.api.nvim_buf_get_name(buf)
 		local full_path = normalize_path(filepath)
 
 		if full_path and vim.fn.filereadable(full_path) == 1 then
-			serialized[full_path] = {}
+			current_bps[full_path] = {}
 
 			for _, bp in ipairs(buf_bps) do
-				table.insert(serialized[full_path], {
-					line = bp.line,
-					condition = bp.condition,
-					logMessage = bp.logMessage,
-					hitCondition = bp.hitCondition,
-				})
-				saved_count = saved_count + 1
+				if validate_breakpoint(bp) then
+					table.insert(current_bps[full_path], {
+						line = bp.line,
+						condition = bp.condition,
+						logMessage = bp.logMessage,
+						hitCondition = bp.hitCondition,
+					})
+				end
 			end
 		end
 	end
 
-	json_store.set("dap", "breakpoints", serialized)
-	print("💾 保存了 " .. saved_count .. " 个断点到 JSON 存储")
-	return true
+	return current_bps
 end
 
--- 2. 自动恢复断点
+-- 防抖保存断点
+function M.save_breakpoints_debounced()
+	if save_debounce_timer then
+		save_debounce_timer:close()
+	end
+
+	save_debounce_timer = vim.defer_fn(function()
+		M.save_breakpoints()
+		save_debounce_timer = nil
+	end, 500) -- 500ms防抖
+end
+
+-- 智能保存断点：比对存储和实际断点，清理无效数据
+function M.save_breakpoints()
+	-- 获取当前项目ID
+	local project_id = get_project_id()
+
+	-- 获取当前实际的断点
+	local current_bps = get_current_breakpoints()
+
+	-- 获取存储中的断点
+	local stored_bps = get_cached_stored_bps()
+
+	-- 创建新的存储数据
+	local new_stored_bps = {}
+
+	-- 首先，保存所有当前实际的断点
+	for filepath, bps in pairs(current_bps) do
+		if #bps > 0 then
+			-- 只保存有效的断点
+			local valid_bps = {}
+			for _, bp in ipairs(bps) do
+				if validate_breakpoint(bp) then
+					table.insert(valid_bps, bp)
+				end
+			end
+
+			if #valid_bps > 0 then
+				new_stored_bps[filepath] = valid_bps
+			end
+		end
+	end
+
+	-- 然后，检查存储中是否有文件实际已不存在
+	for filepath, bps in pairs(stored_bps) do
+		-- 跳过项目标识和版本信息等特殊键
+		if not filepath:match("^_") then
+			-- 如果文件不存在于当前实际断点中
+			if not current_bps[filepath] then
+				-- 检查文件是否还存在于系统中
+				if vim.fn.filereadable(filepath) == 0 then
+					-- 文件已不存在，不保留断点
+				else
+					-- 文件存在但没有当前断点，保留存储的断点（可能文件未打开）
+					-- 但只保留有效的断点
+					local valid_bps = {}
+					for _, bp in ipairs(bps) do
+						if validate_breakpoint(bp) then
+							table.insert(valid_bps, bp)
+						end
+					end
+
+					if #valid_bps > 0 then
+						new_stored_bps[filepath] = valid_bps
+					end
+				end
+			end
+		end
+	end
+
+	-- 保存项目标识
+	new_stored_bps._project = project_id
+
+	-- 保存版本信息（便于未来数据迁移）
+	new_stored_bps._version = 1
+
+	-- 保存新的存储数据
+	update_cached_bps(new_stored_bps)
+end
+
+-- 恢复断点
 function M.restore_breakpoints()
-	local serialized = json_store.get("dap", "breakpoints") or {}
-	local restored_count = 0
+	local stored_bps = get_cached_stored_bps()
+	local current_project = get_project_id()
+	local stored_project = stored_bps._project
 
-	-- 先检查所有已打开的缓冲区
-	for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-		if vim.api.nvim_buf_is_loaded(bufnr) then
-			local filepath = vim.api.nvim_buf_get_name(bufnr)
-			local full_path = normalize_path(filepath)
+	-- 如果项目不同，跳过恢复（静默处理）
+	if stored_project and stored_project ~= current_project then
+		return
+	end
 
-			if full_path and serialized[full_path] then
-				for _, bp in ipairs(serialized[full_path]) do
-					local opts = {}
-					if bp.condition and bp.condition ~= "" then
-						opts.condition = bp.condition
-					end
-					if bp.logMessage and bp.logMessage ~= "" then
-						opts.log_message = bp.logMessage
-					end
-					if bp.hitCondition and bp.hitCondition ~= "" then
-						opts.hit_condition = bp.hitCondition
-					end
+	-- 先获取当前实际的断点，用于去重
+	local current_bps = get_current_breakpoints()
 
-					-- 设置断点
-					breakpoints.set(opts, bufnr, bp.line)
-					restored_count = restored_count + 1
+	-- 恢复每个文件的断点
+	for filepath, bps in pairs(stored_bps) do
+		-- 跳过特殊键
+		if filepath:match("^_") then
+			goto continue
+		end
+
+		-- 验证文件是否存在
+		if vim.fn.filereadable(filepath) ~= 1 then
+			goto continue
+		end
+
+		-- 查找文件是否在缓冲区中
+		local bufnr = vim.fn.bufnr(filepath)
+		if bufnr == -1 then
+			-- 文件未打开，跳过
+			goto continue
+		end
+
+		-- 获取该文件当前的断点（用于去重）
+		local current_file_bps = {}
+		if current_bps[filepath] then
+			for _, bp in ipairs(current_bps[filepath]) do
+				current_file_bps[bp.line] = true
+			end
+		end
+
+		-- 恢复断点（跳过已存在的）
+		for _, bp in ipairs(bps) do
+			if validate_breakpoint(bp) and not current_file_bps[bp.line] then
+				local opts = {}
+				if bp.condition and bp.condition ~= "" then
+					opts.condition = bp.condition
+				end
+				if bp.logMessage and bp.logMessage ~= "" then
+					opts.log_message = bp.logMessage
+				end
+				if bp.hitCondition and bp.hitCondition ~= "" then
+					opts.hit_condition = bp.hitCondition
 				end
 
-				-- 从待恢复列表中移除
-				serialized[full_path] = nil
+				breakpoints.set(opts, bufnr, bp.line)
 			end
+		end
+
+		::continue::
+	end
+end
+
+-- 处理文件重命名
+local function handle_file_rename(old_path, new_path)
+	if not old_path or not new_path or old_path == new_path then
+		return
+	end
+
+	local stored_bps = get_cached_stored_bps()
+	if stored_bps[old_path] then
+		stored_bps[new_path] = stored_bps[old_path]
+		stored_bps[old_path] = nil
+		update_cached_bps(stored_bps)
+	end
+end
+
+-- 清理无效的存储断点
+function M.cleanup_stored_breakpoints()
+	local stored_bps = get_cached_stored_bps()
+	local valid_bps = {}
+
+	-- 保留特殊键
+	for key, value in pairs(stored_bps) do
+		if key:match("^_") then
+			valid_bps[key] = value
 		end
 	end
 
-	-- 对于未打开的缓冲区，可以稍后在文件打开时恢复
-	-- 这里可以保存下来，在文件打开时再恢复
-	if restored_count > 0 then
-		print("🔄 恢复了 " .. restored_count .. " 个断点")
-	end
+	for filepath, bps in pairs(stored_bps) do
+		-- 跳过特殊键
+		if filepath:match("^_") then
+			goto continue
+		end
 
-	return restored_count
-end
+		-- 验证文件是否存在
+		if vim.fn.filereadable(filepath) ~= 1 then
+			-- 文件不存在，跳过
+			goto continue
+		end
 
--- 3. 调试函数：查看存储的断点数据
-function M.debug_breakpoints()
-	local serialized = json_store.get("dap", "breakpoints") or {}
-	print("=== 存储的断点数据 ===")
-	for filepath, bps in pairs(serialized) do
-		print("文件: " .. vim.fn.fnamemodify(filepath, ":~"))
-		print("  断点数量: " .. #bps)
-		for i, bp in ipairs(bps) do
-			print("    断点 " .. i .. ": 第 " .. bp.line .. " 行")
-			if bp.condition then
-				print("      条件: " .. bp.condition)
+		-- 验证每个断点是否有效
+		local valid_file_bps = {}
+		for _, bp in ipairs(bps) do
+			if validate_breakpoint(bp) then
+				table.insert(valid_file_bps, bp)
 			end
 		end
+
+		if #valid_file_bps > 0 then
+			valid_bps[filepath] = valid_file_bps
+		end
+
+		::continue::
 	end
-	print("======================")
+
+	-- 保存清理后的数据
+	update_cached_bps(valid_bps)
 end
 
--- 4. 清除存储的断点数据
+-- 清除存储的断点数据
 function M.clear_breakpoints()
+	cached_bps = {}
 	json_store.delete("dap", "breakpoints")
-	print("🧹 已清除所有存储的断点")
 	return true
 end
 
--- 5. 设置自动保存和自动恢复
+-- 设置自动保存和自动恢复
 function M.setup()
-	-- 退出时自动保存
+	-- 初始化缓存
+	get_cached_stored_bps()
+
+	-- 退出时自动保存（并清理无效数据）
 	vim.api.nvim_create_autocmd("VimLeavePre", {
 		callback = function()
 			M.save_breakpoints()
 		end,
-		desc = "DAP: 退出时自动保存断点",
+		desc = "DAP: 退出时自动保存并清理断点",
 	})
 
-	-- 延迟更长时间等待 DAP 插件完全加载
-	vim.api.nvim_create_autocmd("User", {
-		pattern = "DapStarted", -- 如果 DAP 有启动事件
-		callback = function()
-			vim.defer_fn(function()
-				local count = M.restore_breakpoints()
-				if count > 0 then
-					print("✅ 恢复了 " .. count .. " 个断点")
-				end
-			end, 500)
-		end,
-		desc = "DAP: 启动时恢复断点",
-	})
-
-	-- 如果没有 DapStarted 事件，使用更通用的延迟
+	-- 启动时自动恢复
 	vim.defer_fn(function()
-		-- 尝试恢复断点
-		local count = M.restore_breakpoints()
-		if count > 0 then
-			print("✅ 恢复了 " .. count .. " 个断点")
-		end
+		-- 先清理无效的存储数据
+		M.cleanup_stored_breakpoints()
+		-- 然后恢复有效的断点
+		M.restore_breakpoints()
+	end, 2000)
 
-		-- 设置断点变化时的自动保存
-		local group = vim.api.nvim_create_augroup("DapBreakpointAutoSave", { clear = true })
-		vim.api.nvim_create_autocmd("User", {
-			group = group,
-			pattern = "DapBreakpointChanged",
-			callback = function()
-				vim.defer_fn(M.save_breakpoints, 200)
-			end,
-			desc = "DAP: 断点变化时自动保存",
-		})
+	-- 断点变化时自动保存（使用防抖）
+	local group = vim.api.nvim_create_augroup("DapBreakpointAutoSave", { clear = true })
 
-		-- 文件打开时尝试恢复该文件的断点
-		vim.api.nvim_create_autocmd("BufReadPost", {
-			group = group,
-			callback = function(args)
+	vim.api.nvim_create_autocmd("User", {
+		group = group,
+		pattern = "DapBreakpointChanged",
+		callback = function()
+			M.save_breakpoints_debounced()
+		end,
+		desc = "DAP: 断点变化时智能保存",
+	})
+
+	-- 文件删除时清理相关断点
+	vim.api.nvim_create_autocmd("BufDelete", {
+		group = group,
+		callback = function(args)
+			local filepath = vim.api.nvim_buf_get_name(args.buf)
+			local full_path = normalize_path(filepath)
+
+			if full_path and full_path ~= "" then
+				-- 延迟执行，给其他操作时间
 				vim.defer_fn(function()
-					local filepath = vim.api.nvim_buf_get_name(args.buf)
-					local full_path = normalize_path(filepath)
-					local serialized = json_store.get("dap", "breakpoints") or {}
-
-					if full_path and serialized[full_path] then
-						local restored = 0
-						for _, bp in ipairs(serialized[full_path]) do
-							local opts = {}
-							if bp.condition and bp.condition ~= "" then
-								opts.condition = bp.condition
-							end
-							if bp.logMessage and bp.logMessage ~= "" then
-								opts.log_message = bp.logMessage
-							end
-							if bp.hitCondition and bp.hitCondition ~= "" then
-								opts.hit_condition = bp.hitCondition
-							end
-
-							breakpoints.set(opts, args.buf, bp.line)
-							restored = restored + 1
-						end
-
-						if restored > 0 then
-							print(
-								"📁 为 "
-									.. vim.fn.fnamemodify(filepath, ":t")
-									.. " 恢复了 "
-									.. restored
-									.. " 个断点"
-							)
+					-- 检查文件是否真的被删除了
+					if vim.fn.filereadable(full_path) ~= 1 then
+						local stored_bps = get_cached_stored_bps()
+						if stored_bps[full_path] then
+							stored_bps[full_path] = nil
+							update_cached_bps(stored_bps)
 						end
 					end
-				end, 100)
-			end,
-			desc = "DAP: 文件打开时恢复断点",
-		})
-	end, 2000) -- 延迟 2 秒，确保所有插件加载完成
-
-	-- 添加调试命令
-	vim.api.nvim_create_user_command("DapDebugBreakpoints", M.debug_breakpoints, {
-		desc = "调试断点存储状态",
+				end, 1000) -- 延迟1秒检查
+			end
+		end,
+		desc = "DAP: 文件删除时清理断点",
 	})
 
-	vim.api.nvim_create_user_command("DapSaveBreakpoints", M.save_breakpoints, {
-		desc = "手动保存断点",
-	})
-
-	vim.api.nvim_create_user_command("DapRestoreBreakpoints", M.restore_breakpoints, {
-		desc = "手动恢复断点",
-	})
-
-	vim.api.nvim_create_user_command("DapClearBreakpoints", M.clear_breakpoints, {
-		desc = "清除存储的断点",
+	-- 文件重命名时更新断点
+	vim.api.nvim_create_autocmd("BufFilePost", {
+		group = group,
+		callback = function(args)
+			local oldname = vim.v.oldname
+			local newname = vim.api.nvim_buf_get_name(args.buf)
+			if oldname and oldname ~= "" and newname and newname ~= "" then
+				local old_path = normalize_path(oldname)
+				local new_path = normalize_path(newname)
+				handle_file_rename(old_path, new_path)
+			end
+		end,
+		desc = "DAP: 处理文件重命名",
 	})
 
 	return true

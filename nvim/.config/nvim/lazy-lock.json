@@ -3,7 +3,7 @@
   "any-jump.vim": { "branch": "master", "commit": "f95674d9a4251ac02f452d5f1861e4422f4652c7" },
   "atone.nvim": { "branch": "main", "commit": "d1c1f08bfe23ac56536d0091c8a398938ee9db4e" },
   "betterTerm.nvim": { "branch": "main", "commit": "595e1260f2f418183f14d820692434ef11f4564b" },
-  "blink-ripgrep.nvim": { "branch": "main", "commit": "944455035f17c15f9bf454ae3367852cb2728b84" },
+  "blink-ripgrep.nvim": { "branch": "main", "commit": "5ee15a6cb7096e476b57a877a8b837aa2f650d78" },
   "blink.cmp": { "branch": "main", "commit": "7beba91fdc61fdc84ea6d6395d614671e609f895" },
   "buffer-sticks.nvim": { "branch": "main", "commit": "6698356c4b967f547be273c9cb66997e8fe26c92" },
   "checkmate.nvim": { "branch": "main", "commit": "fc8edd6ecf8e4095ef878780e4bed83cc5c56c14" },
@@ -87,7 +87,7 @@
   "videre.nvim": { "branch": "main", "commit": "224bfb4909d833f6b2282a14ca65464279d34b33" },
   "vim-illuminate": { "branch": "master", "commit": "0d1e93684da00ab7c057410fecfc24f434698898" },
   "vim-translator": { "branch": "master", "commit": "1af0fa637de52df6ae8c398ffe273303f64ab32c" },
-  "vscode-diff.nvim": { "branch": "main", "commit": "63cd607c228a34b9ce5ab1b204929048de54052d" },
+  "vscode-diff.nvim": { "branch": "main", "commit": "f872d68e8a6728e795f9c4f186059cc5da01d102" },
   "which-key.nvim": { "branch": "main", "commit": "3aab2147e74890957785941f0c1ad87d0a44c15a" },
   "xml2lua.nvim": { "branch": "master", "commit": "c5fa33ad038958e9592df06e8ca6a88f4e7543aa" },
   "yanky.nvim": { "branch": "main", "commit": "04775cc6e10ef038c397c407bc17f00a2f52b378" }

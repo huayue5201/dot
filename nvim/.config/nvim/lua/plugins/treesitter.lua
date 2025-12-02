@@ -11,17 +11,14 @@ return {
 		"LiadOz/nvim-dap-repl-highlights",
 	},
 	config = function()
-		local parser_configs = require("nvim-treesitter.parsers").get_parser_configs()
-
-		parser_configs.qf = {
-			install_info = {
-				url = "https://github.com/OXY2DEV/tree-sitter-qf",
-				files = { "src/parser.c" },
-				branch = "main",
-			},
-		}
 		require("nvim-dap-repl-highlights").setup()
 		require("nvim-treesitter.configs").setup({
+			ignore_install = { "text" }, -- 忽略某些解析器
+			modules = { -- 指定需要加载的模块
+				"highlight",
+				"indent",
+				"textobjects",
+			},
 			-- 是否同步安装解析器
 			sync_install = true,
 			-- 是否自动安装解析器

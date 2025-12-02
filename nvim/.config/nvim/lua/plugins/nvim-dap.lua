@@ -47,10 +47,8 @@ return {
 		daps.listeners.before.event_exited["dapui_config"] = function()
 			dapui.close({})
 		end
-		--  nvim-dap配置
-		-- 确保你使用的是正确的全局变量名（通常是 dap 而不是 daps）
-		local dap = require("dap")
 
+		--  nvim-dap配置
 		local dap_defaults = {
 			switchbuf = "usevisible,usetab,newtab",
 			terminal_win_cmd = "belowright new",
@@ -71,15 +69,8 @@ return {
 			args = { "-e" },
 		}
 
-		-- 或者使用类型安全的合并函数
-		dap.defaults.fallback = vim.tbl_deep_extend("force", dap.defaults.fallback or {}, {
-			external_terminal = {
-				command = "/usr/bin/kitty",
-				args = { "-e" },
-			},
-		})
-
 		require("dap.dap_keys").setup()
+		-- 断点持久化
 		require("dap.breakpoint_state").setup()
 
 		-- 扩展 REPL 命令
@@ -99,7 +90,7 @@ return {
 		})
 
 		vim.api.nvim_create_autocmd("FileType", {
-			pattern = { "dap-repl", "dap-view-term", "dap-view" },
+			pattern = { "dap-repl", "dap-view-term", "dap-view", "" },
 			group = vim.api.nvim_create_augroup("dapui_keymaps", { clear = true }),
 			desc = "Fix and add insert-mode keymaps for dap-repl",
 			callback = function()
@@ -123,7 +114,7 @@ return {
 					end
 				end, { buffer = true, expr = true, desc = "Reverse Tab Completion in dap-repl" })
 				-- 选择补全项
-				vim.keymap.set("i", "<CR>", function()
+				vim.keymap.set({ "i", "n" }, "<CR>", function()
 					if vim.fn.pumvisible() == 1 then
 						return "<C-y>" -- 选择当前补全项（确认补全）
 					else
