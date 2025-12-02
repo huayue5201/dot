@@ -16,7 +16,7 @@ return {
 		})
 
 		-- Toggle the first terminal (ID defaults to index_base, which is 0)
-		vim.keymap.set({ "n", "t" }, "<C-;>", function()
+		vim.keymap.set({ "n", "t" }, "<C-\\>", function()
 			betterTerm.open()
 		end, { desc = "Toggle terminal" })
 
@@ -42,6 +42,7 @@ return {
 			vim.keymap.set("t", "<C-k>", [[<Cmd>wincmd k<CR>]], opts)
 			vim.keymap.set("t", "<C-l>", [[<Cmd>wincmd l<CR>]], opts)
 			vim.keymap.set("t", "<C-w>", [[<C-\><C-n><C-w>]], opts)
+			vim.opt_local.winfixbuf = true
 		end
 
 		vim.api.nvim_create_autocmd("FileType", {

@@ -45,11 +45,11 @@ return {
 			require("hover").enter()
 		end, { desc = "hover.nvim (enter)" })
 
-		vim.keymap.set("n", "<C-=>", function()
+		vim.keymap.set("n", "<c-,>", function()
 			require("hover").switch("previous")
 		end, { desc = "hover.nvim (previous source)" })
 
-		vim.keymap.set("n", "<C-->", function()
+		vim.keymap.set("n", "<c-.>", function()
 			require("hover").switch("next")
 		end, { desc = "hover.nvim (next source)" })
 		-- Mouse support
