@@ -72,11 +72,6 @@ return {
 					desc = "Collapse quickfix context",
 				},
 			},
-			-- 当 quickfix buffer 打开时执行额外逻辑
-			on_qf = function(bufnr)
-				-- 比如自动设置 some 选项
-				vim.api.nvim_buf_set_option(bufnr, "cursorline", true)
-			end,
 		})
 
 		-- 切换 quickfix 窗口

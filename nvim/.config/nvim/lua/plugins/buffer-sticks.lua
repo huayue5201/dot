@@ -7,21 +7,21 @@ return {
 		{
 			"gb",
 			function()
-				BufferSticks.list({ action = "open" })
+				require("buffer-sticks").list({ action = "open" })
 			end,
 			desc = "buffer-sticks: Jump to buffer",
 		},
 		{
 			"<leader>cb",
 			function()
-				BufferSticks.list({ action = "close" })
+				require("buffer-sticks").list({ action = "close" })
 			end,
 			desc = "buffer-sticks: Close buffer",
 		},
 		-- {
 		-- 	"<leader>p",
 		-- 	function()
-		-- 		BufferSticks.list({
+		-- 		require("buffer-sticks").list({
 		-- 			action = function(buffer, leave)
 		-- 				print("Selected: " .. buffer.name)
 		-- 				leave()

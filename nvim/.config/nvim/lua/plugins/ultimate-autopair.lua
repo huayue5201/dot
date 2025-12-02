@@ -116,7 +116,7 @@ return {
 			tabout = {
 				enable = true, -- 默认禁用，按需开启
 				map = "<A-tab>", -- Alt+tab 跳出当前配对
-				hopout = false, -- 从空配对中跳出
+				hopout = true, -- 从空配对中跳出
 			},
 		})
 	end,

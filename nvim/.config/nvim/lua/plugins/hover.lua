@@ -6,7 +6,6 @@ return {
 	config = function()
 		require("hover").config({
 			--- List of modules names to load as providers.
-			--- @type (string|Hover.Config.Provider)[]
 			providers = {
 				"hover.providers.diagnostic",
 				"hover.providers.lsp",

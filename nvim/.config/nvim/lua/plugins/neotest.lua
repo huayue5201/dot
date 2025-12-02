@@ -8,70 +8,145 @@ return {
 		"nvim-lua/plenary.nvim",
 		"antoinemadec/FixCursorHold.nvim",
 		"nvim-treesitter/nvim-treesitter",
-		"fredrikaverpil/neotest-golang",
+		{
+			-- https://fredrikaverpil.github.io/neotest-golang/
+			"fredrikaverpil/neotest-golang",
+			build = function()
+				vim.system({ "go", "install", "gotest.tools/gotestsum@latest" }):wait() -- Optional, but recommended
+			end,
+		},
 	},
 	config = function()
-		-- neotest 配置
 		require("neotest").setup({
-			-- 设置测试适配器
+			-- ===== 1. 必需核心字段 =====
 			adapters = {
-
-				-- 配置 Go 测试适配器
 				require("neotest-golang")({
-					-- 设置 go test 命令
-					command = "go",
-					args = { "test", "-v" }, -- 使用 go test 命令并输出详细信息
+					runner = "gotestsum",
 				}),
-
-				-- JavaScript/TypeScript (jest)
-				-- require("neotest-jest")({
-				-- 	-- Jest 的命令行配置
-				-- 	jestCommand = "jest --watchAll --no-cache --coverage",
-				-- 	env = {
-				-- 		NODE_ENV = "test",
-				-- },
-				-- }),
 			},
-			-- 设置测试运行器的行为
-			strategies = {
-				"neotest.strategy.term", -- 在终端中运行测试
-				"neotest.strategy.integrated", -- 在 Neovim 内部集成运行测试
+			discovery = {
+				enabled = true,
+				concurrent = 0, -- 0表示根据CPU自动设置 [citation:5]
 			},
+			running = {
+				concurrent = true, -- 允许测试并发运行 [citation:5]
+			},
+			default_strategy = "integrated",
 
-			-- 设置 Neotest 窗口和信息显示
+			-- ===== 2. 之前缺失的必需字段（补全类型检查）=====
+			consumers = {},
 			icons = {
-				passed = "✔",
-				failed = "✘",
-				running = "➤",
+				passed = "",
+				failed = "",
+				skipped = "",
+				running = "",
+				unknown = "",
 			},
+			highlights = {
+				passed = "NeotestPassed",
+				failed = "NeotestFailed",
+				running = "NeotestRunning",
+				skipped = "NeotestSkipped",
+				test = "NeotestTest",
+				namespace = "NeotestNamespace",
+			},
+			floating = {
+				border = "rounded",
+				max_height = 0.6,
+				max_width = 0.6,
+				options = {},
+			},
+			run = { enabled = true },
+			output_panel = {
+				enabled = true,
+				open = "botright split | resize 15",
+			},
+			quickfix = {
+				enabled = true,
+				open = false,
+			},
+			state = { enabled = true },
+			watch = {
+				enabled = true,
+				symbol_queries = {
+					python = [[ (import_from_statement (_ (identifier) @symbol)) (import_statement (_ (identifier) @symbol)) ]],
+					javascript = [[ (import_specifier name: (identifier) @symbol) (import_clause (identifier) @symbol) ]],
+				},
+			},
+			diagnostic = {
+				enabled = true,
+				severity = vim.diagnostic.severity.ERROR,
+			},
+			projects = {},
 
-			-- 测试结果展示
+			-- ===== 3. 常用功能与界面配置（可自定义）=====
+			log_level = vim.log.levels.WARN,
+			status = {
+				enabled = true,
+				signs = true,
+				virtual_text = false,
+			},
+			summary = {
+				enabled = true,
+				open = "botright vsplit | vertical resize 50",
+				follow = true,
+				expand_errors = true,
+
+				-- 新增的必需字段
+				animated = true, -- 启用/禁用图标动画
+				count = true, -- 在适配器名称旁显示测试数量
+
+				mappings = {
+					-- 您已配置的映射
+					expand = { "<CR>", "<2-LeftMouse>" },
+					run = "r",
+					debug = "d",
+					output = "o",
+					short = "O",
+					stop = "u",
+					attach = "a",
+
+					-- 新增的必需映射字段 (根据您的习惯设置快捷键)
+					expand_all = "e",
+					jumpto = "i",
+					mark = "m",
+					run_marked = "R",
+					debug_marked = "D",
+					clear_marked = "M",
+					target = "t",
+					clear_target = "T",
+					next_failed = "J",
+					prev_failed = "K",
+					next_sibling = ">",
+					prev_sibling = "<",
+					parent = "P",
+					watch = "w",
+				},
+			},
 			output = {
-				show_failed = true, -- 仅展示失败的测试
-				show_passing = true, -- 展示成功的测试
-				show_running = true, -- 展示运行中的测试
+				enabled = true,
+				open_on_run = "short",
 			},
-
-			-- 测试时显示详细日志
-			logging = true,
-
-			-- 其他配置选项
-			display = {
-				-- 是否启用测试覆盖率报告
-				show_coverage = true,
-				-- 设置最大执行超时时间
-				timeout = 5000,
-			},
-
-			-- 快捷键配置
-			mappings = {
-				-- 运行当前文件的所有测试
-				run_all = "<Leader>oa", -- 运行所有测试
-				-- 运行当前测试
-				run_current = "<Leader>or", -- 运行当前测试
-				-- 跳转到失败的测试
-				jump_to_failed = "<Leader>of", -- 跳转到失败测试
+			strategies = {
+				integrated = {
+					width = 120,
+					height = 40,
+				},
 			},
 		})
+
+		-- ===== 4. 推荐快捷键映射 =====
+		vim.keymap.set("n", "<leader>rn", function()
+			require("neotest").run.run()
+		end, { desc = "Neotest: 运行最近测试" })
+		vim.keymap.set("n", "<leader>rf", function()
+			require("neotest").run.run(vim.fn.expand("%"))
+		end, { desc = "Neotest: 运行当前文件" })
+		vim.keymap.set("n", "<leader>rs", function()
+			require("neotest").summary.toggle()
+		end, { desc = "Neotest: 切换摘要面板" })
+		vim.keymap.set("n", "<leader>ro", function()
+			require("neotest").output_panel.toggle()
+		end, { desc = "Neotest: 切换输出面板" })
 	end,
 }
