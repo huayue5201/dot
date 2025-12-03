@@ -24,7 +24,7 @@ return {
 				statusline_winbar_picker = {
 					-- 你可以更改状态栏中的显示字符串。
 					-- 它支持 '%' 格式化风格。例如 `return char .. ': %f'` 用来显示缓冲区的文件路径。有关详细信息，请参阅 :h 'stl'。
-					selection_display = function(char, windowid)
+					selection_display = function(char)
 						return "%=" .. char .. "%="
 					end,
 
@@ -74,7 +74,7 @@ return {
 				-- 根据缓冲区选项进行过滤
 				bo = {
 					-- 如果文件类型是以下之一，窗口将被忽略
-					filetype = { "pager", "neo-tree", "msgmore", "snacks_picker_input" },
+					filetype = { "pager", "msgmore", "snacks_picker_input" },
 
 					-- 如果缓冲区类型是以下之一，窗口将被忽略
 					-- buftype = { "terminal" },
@@ -127,35 +127,27 @@ return {
 				print("You'll need to install window-picker to use this command.")
 				return
 			end
-
 			-- 获取选中的窗口 ID
 			local picked_window_id = picker.pick_window()
 			if not picked_window_id then
 				print("No window picked!")
 				return
 			end
-
-			-- 获取该窗口的缓冲区 ID 和类型信息
+			-- 获取窗口的缓冲区 ID 和类型信息
 			local buf_id = vim.api.nvim_win_get_buf(picked_window_id)
-			local filetype = vim.api.nvim_get_option_value("filetype", { buf = buf_id })
-			local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf_id })
+			local filetype = vim.bo[buf_id].filetype
+			local buftype = vim.bo[buf_id].buftype
 			local close_commands = require("user.utils").buf_keymaps["q"]
-
-			-- 获取文件类型或缓冲区类型对应的关闭命令
-			local command = close_commands[filetype ~= "" and filetype or buftype]
-
-			-- 临时切换到选中的窗口，执行命令后切回
+			-- 获取对应的关闭命令
+			local command = close_commands[filetype] or close_commands[buftype]
+			-- 切换到目标窗口并执行命令
 			local current_win = vim.api.nvim_get_current_win()
-
-			-- 确保目标窗口有效
 			if not vim.api.nvim_win_is_valid(picked_window_id) then
 				print("Picked window is no longer valid.")
 				return
 			end
-
 			vim.api.nvim_set_current_win(picked_window_id)
-
-			-- 执行相应的命令或默认的 bdelete
+			-- 执行关闭命令
 			if command then
 				if type(command) == "function" then
 					command() -- 执行函数
@@ -165,8 +157,7 @@ return {
 			else
 				vim.cmd(string.format("bdelete %d", buf_id)) -- 默认 bdelete
 			end
-
-			-- 恢复原来的窗口
+			-- 恢复原窗口
 			if vim.api.nvim_win_is_valid(current_win) then
 				vim.api.nvim_set_current_win(current_win)
 			end

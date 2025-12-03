@@ -19,7 +19,7 @@ return {
 		vim.keymap.set("n", "<s-a-Right>", require("smart-splits").move_cursor_right, { desc = "Move cursor right" })
 		vim.keymap.set(
 			"n",
-			"<C-;>",
+			"<C-[>",
 			require("smart-splits").move_cursor_previous,
 			{ desc = "Move cursor to previous split" }
 		)

@@ -6,7 +6,7 @@ vim.keymap.set("n", "dd", function()
 end, { expr = true, desc = "Basic: delete line (empty → blackhole)" })
 
 vim.keymap.set("n", "<c-s>", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
-vim.keymap.set("n", "<localLeader>q", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
+vim.keymap.set("n", "<c-c>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 
 -- vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
 
@@ -28,7 +28,7 @@ vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>i", "<cmd>messages<cr>", { silent = true, desc = "Message: show messages" })
 vim.keymap.set("n", "<leader>re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
-vim.keymap.set("n", "<leader>rn", "<cmd>restart<cr>", { silent = true, desc = "Basic: restart Neovim" })
+vim.keymap.set("n", "<leader>rr", "<cmd>restart<cr>", { silent = true, desc = "Basic: restart Neovim" })
 
 -- 🔍 Search
 vim.keymap.set("x", "/", "<C-\\><C-n>`</\\%V", { desc = "Search: forward in visual range" })
