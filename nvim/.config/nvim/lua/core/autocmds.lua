@@ -1,19 +1,3 @@
--- 多行检测
-vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost" }, {
-	pattern = "*", -- 匹配所有文件
-	callback = function()
-		local lines = vim.fn.line("$") -- 获取文件的总行数
-		local max_lines = 5000 -- 设置最大行数阈值
-		-- 如果文件行数超过阈值，禁用 indent
-		if lines > max_lines then
-			vim.cmd("TSBufDisable indent")
-		else
-			-- 恢复 indent
-			vim.cmd("TSBufEnable indent")
-		end
-	end,
-})
-
 -- 保存时自动删除尾随空格
 vim.api.nvim_create_autocmd("BufWritePre", {
 	pattern = { "*.txt", "*.lua", "*.js", "*.py" },
