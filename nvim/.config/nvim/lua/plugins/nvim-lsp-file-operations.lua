@@ -1,0 +1,13 @@
+-- https://github.com/nvim-neo-tree/neo-tree.nvim
+
+return {
+	"antosha417/nvim-lsp-file-operations",
+	event = "VeryLazy",
+	dependencies = {
+		"nvim-lua/plenary.nvim",
+		"nvim-neo-tree/neo-tree.nvim", -- makes sure that this loads after Neo-tree.
+	},
+	config = function()
+		require("lsp-file-operations").setup()
+	end,
+}
