@@ -237,7 +237,7 @@ function M.select_todo_file(scope, callback)
 		local handle = vim.loop.fs_scandir(root)
 		if handle then
 			while true do
-				local name, typ = vim.loop.fs_scandir_next(handle)
+				local name = vim.loop.fs_scandir_next(handle)
 				if not name then
 					break
 				end

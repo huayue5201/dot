@@ -188,11 +188,51 @@ local function open_float_win(lines, expr)
 		end,
 	})
 
-	-- 高亮显示结果数字部分
-	vim.api.nvim_buf_add_highlight(buf, -1, "Function", 0, 6, -1)
-	vim.api.nvim_buf_add_highlight(buf, -1, "Constant", 1, 6, -1)
-	vim.api.nvim_buf_add_highlight(buf, -1, "Keyword", 2, 6, -1)
+	local ns_id = vim.api.nvim_create_namespace("my_highlights")
 
+	-- 安全的设置高亮函数
+	local function safe_set_highlight(buf, line, start_col, hl_group, end_col_specified)
+		-- 1. 获取该行内容
+		local line_content = vim.api.nvim_buf_get_lines(buf, line, line + 1, false)[1] or ""
+		-- 计算该行最后一个字符的索引（字节索引，从0开始）
+		local max_valid_col = #line_content
+
+		-- 2. 计算实际的结束列
+		local final_end_col
+		if end_col_specified == -1 then
+			-- 如果指定为-1（行尾），则使用行长度
+			final_end_col = max_valid_col
+		else
+			-- 否则，使用指定值，但确保不超过最大有效列
+			final_end_col = math.min(end_col_specified, max_valid_col)
+		end
+
+		-- 3. 检查起始列是否也有效
+		local final_start_col = start_col
+		if final_start_col > max_valid_col then
+			-- 如果起始列已经超过行尾，则无法设置有效范围
+			-- 这里可以选择跳过，或设置一个空范围（起始列=结束列）
+			final_start_col = max_valid_col
+			final_end_col = max_valid_col
+		end
+
+		-- 4. 仅当范围有效时才设置高亮
+		if final_start_col <= final_end_col then
+			return vim.api.nvim_buf_set_extmark(buf, ns_id, line, final_start_col, {
+				hl_group = hl_group,
+				end_row = line,
+				end_col = final_end_col,
+			})
+		else
+			-- 范围无效，返回nil（或者你可以打印一个警告）
+			return nil
+		end
+	end
+
+	-- 使用示例：迁移你的三行高亮
+	safe_set_highlight(buf, 0, 6, "Function", -1) -- 替换你的第一行
+	safe_set_highlight(buf, 1, 6, "Constant", -1) -- 替换你的第二行
+	safe_set_highlight(buf, 2, 6, "Keyword", -1) -- 替换你的第三行
 	return win, buf
 end
 

@@ -156,9 +156,8 @@ return {
 			keymap = { preset = "inherit" },
 			completion = { menu = { auto_show = true } },
 		},
-
-		config = function(opts)
-			require("blink.cmp").setup(opts)
-		end,
+		-- config = function(opts)
+		-- 	require("blink.cmp").setup(opts)
+		-- end,
 	},
 }

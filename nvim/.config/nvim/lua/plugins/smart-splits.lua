@@ -4,36 +4,40 @@ return {
 	"mrjones2014/smart-splits.nvim",
 	event = "WinNew",
 	config = function()
-		-- 配置 smart-splits.nvim 插件
-		require("smart-splits").setup({
-			-- 鼠标拖动支持 (optional)
-			mouse_support = true,
-
-			-- 默认快捷键配置
-			keymaps = {
-				-- 通过快捷键切换窗口
-				left = "<C-h>",
-				down = "<C-j>",
-				up = "<C-k>",
-				right = "<C-l>",
-
-				-- 通过快捷键调整窗口大小
-				increase_width = "<C-S-h>",
-				decrease_width = "<C-S-l>",
-				increase_height = "<C-S-j>",
-				decrease_height = "<C-S-k>",
-			},
-
-			-- 窗口大小的最小值
-			resize_step = 2,
-
-			-- 调整窗口大小时是否开启平滑动画
-			smooth_resize = true,
-		})
+		---@diagnostic disable: missing-fields
+		require("smart-splits").setup({})
 		-- for example `10<A-h>` will `resize_left` by `(10 * config.default_amount)`
-		vim.keymap.set("n", "<A-Left>", require("smart-splits").resize_left)
-		vim.keymap.set("n", "<A-Down>", require("smart-splits").resize_down)
-		vim.keymap.set("n", "<A-Up>", require("smart-splits").resize_up)
-		vim.keymap.set("n", "<A-Right>", require("smart-splits").resize_right)
+		vim.keymap.set("n", "<A-Left>", require("smart-splits").resize_left, { desc = "Resize split left" })
+		vim.keymap.set("n", "<A-Down>", require("smart-splits").resize_down, { desc = "Resize split down" })
+		vim.keymap.set("n", "<A-Up>", require("smart-splits").resize_up, { desc = "Resize split up" })
+		vim.keymap.set("n", "<A-Right>", require("smart-splits").resize_right, { desc = "Resize split right" })
+
+		-- moving between splits
+		vim.keymap.set("n", "<s-a-Left>", require("smart-splits").move_cursor_left, { desc = "Move cursor left" })
+		vim.keymap.set("n", "<s-a-Down>", require("smart-splits").move_cursor_down, { desc = "Move cursor down" })
+		vim.keymap.set("n", "<s-a-Up>", require("smart-splits").move_cursor_up, { desc = "Move cursor up" })
+		vim.keymap.set("n", "<s-a-Right>", require("smart-splits").move_cursor_right, { desc = "Move cursor right" })
+		vim.keymap.set(
+			"n",
+			"<C-;>",
+			require("smart-splits").move_cursor_previous,
+			{ desc = "Move cursor to previous split" }
+		)
+
+		-- swapping buffers between windows
+		vim.keymap.set(
+			"n",
+			"<leader><leader>h",
+			require("smart-splits").swap_buf_left,
+			{ desc = "Swap buffer to the left" }
+		)
+		vim.keymap.set("n", "<leader><leader>j", require("smart-splits").swap_buf_down, { desc = "Swap buffer down" })
+		vim.keymap.set("n", "<leader><leader>k", require("smart-splits").swap_buf_up, { desc = "Swap buffer up" })
+		vim.keymap.set(
+			"n",
+			"<leader><leader>l",
+			require("smart-splits").swap_buf_right,
+			{ desc = "Swap buffer to the right" }
+		)
 	end,
 }
