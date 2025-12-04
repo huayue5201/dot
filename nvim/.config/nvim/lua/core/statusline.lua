@@ -14,6 +14,7 @@ local M = {} -- 使用 M 作为模块的局部变量
 local function setup_highlights()
 	local highlight_defs = {
 		DefaultMode = { bold = true },
+		SaveHighlight = { fg = "#f08080", bold = true }, -- 定义红色保存高亮组
 		NormalMode = { bold = true },
 		InsertMode = { bold = true },
 		VisualMode = { bold = true },
@@ -116,6 +117,25 @@ function M.mode()
 	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
 end
 
+-- ================================
+-- 保存提示功能
+-- ================================
+function M.save_status()
+	-- 获取所有打开的 buffer
+	local buffers = vim.api.nvim_list_bufs()
+
+	-- 遍历每个 buffer 检查是否有已修改的文件
+	for _, buf in ipairs(buffers) do
+		-- 如果该 buffer 已修改，显示保存提示
+		if vim.api.nvim_get_option_value("modified", { buf = buf }) then
+			return "%#SaveHighlight#󰆓 %*" .. " 保存"
+		end
+	end
+
+	-- 如果所有 buffer 都未修改，显示一个空的保存图标
+	return "󰆓 "
+end
+
 --- 获取调试器状态
 function M.dap_status()
 	local dap_status = require("dap").status()
@@ -177,8 +197,9 @@ function M.active()
 	return table.concat({
 		"%#Normal#",
 		string.format("%-45s", M.mode()) .. " ", -- 模式显示区域
-		M.env() .. "  ",
-		"%y ",
+		M.env() .. " ",
+		M.save_status(),
+		"  %y ",
 		lsp(),
 		"%=", -- 分隔符
 		search_status.get() .. " ",

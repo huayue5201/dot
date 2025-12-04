@@ -17,6 +17,10 @@
       {
         "language": "dosini",
         "path": "./cfg.json"
+      },
+      {
+        "language": "go",
+        "path": "./go.json"
       }
     ]
   }

@@ -96,7 +96,7 @@ local keymaps = {
 		"LSP: toggle diagnostics",
 	},
 	{
-		"<leader>cl",
+		"<leader>sl",
 		function()
 			M.stop_lsp()
 		end,

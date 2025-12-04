@@ -29,6 +29,20 @@ M.diagnostic_config = function()
 	})
 end
 
+-- 全局配置
+M.global_config = function()
+	vim.lsp.config("*", {
+		capabilities = {
+			textDocument = {
+				semanticTokens = {
+					multilineTokenSupport = true,
+				},
+			},
+		},
+		root_markers = { ".git" },
+	})
+end
+
 -- 根据文件类型启动 LSP
 local json_store = require("user.json_store")
 M.lsp_Start = function()

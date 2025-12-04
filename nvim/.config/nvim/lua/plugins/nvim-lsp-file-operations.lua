@@ -1,4 +1,4 @@
--- https://github.com/nvim-neo-tree/neo-tree.nvim
+-- https://github.com/antosha417/nvim-lsp-file-operations
 
 return {
 	"antosha417/nvim-lsp-file-operations",
