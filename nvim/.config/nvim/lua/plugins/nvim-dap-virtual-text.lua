@@ -19,15 +19,6 @@ return {
 			-- 虚拟文本的位置，参见 `:h nvim_buf_set_extmark()`，默认尝试将虚拟文本内联显示。使用 'eol' 将虚拟文本放置在行尾。
 			-- virt_text_pos = "eol",
 
-			display_callback = function(variable, options)
-				-- 默认情况下，去掉变量值中的换行符
-				if options.virt_text_pos == "inline" then
-					return " = " .. variable.value:gsub("%s+", " ") -- 如果是内联模式，去除多余的空格并显示
-				else
-					return variable.name .. " = " .. variable.value:gsub("%s+", " ") -- 否则显示变量名和值
-				end
-			end,
-
 			-- 实验性功能：
 			all_frames = false, -- 是否为所有堆栈帧显示虚拟文本，而不仅仅是当前堆栈帧。仅对 `debugpy` 在我的机器上有效。
 			virt_lines = false, -- 是否显示虚拟行而非虚拟文本（可能会导致闪烁！）

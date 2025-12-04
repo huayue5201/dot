@@ -7,6 +7,7 @@ local autocmds = require("lsp.lsp_autocmds")
 
 function M.setup()
 	configs.lsp_Start() -- 启动lsp
+	configs.global_config() -- 全局配置
 	autocmds.setup() -- 配置初始化
 
 	vim.api.nvim_create_user_command("LspListActive", function()

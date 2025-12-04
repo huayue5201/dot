@@ -1,0 +1,12 @@
+{
+  "go_if_err": {
+    "prefix": "iferr",
+    "body": [
+      "if err != nil {",
+      "    ${1:fmt.Println(err)}",
+      "    return ${2:nil}",
+      "}"
+    ],
+    "description": "Go if err statement template"
+  }
+}

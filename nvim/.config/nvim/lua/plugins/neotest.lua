@@ -52,11 +52,17 @@ return {
 		vim.keymap.set("n", "<leader>tf", function()
 			require("neotest").run.run(vim.fn.expand("%"))
 		end, { desc = "Neotest: 运行当前文件" })
+		vim.keymap.set("n", "<leader>dt", function()
+			require("neotest").run.run({ strategy = "dap" })
+		end, { desc = "Neotest: debug最近的测试" })
 		vim.keymap.set("n", "<leader>tt", function()
 			require("neotest").summary.toggle()
 		end, { desc = "Neotest: 切换摘要面板" })
 		vim.keymap.set("n", "<leader>to", function()
 			require("neotest").output_panel.toggle()
 		end, { desc = "Neotest: 切换输出面板" })
+		vim.keymap.set("n", "<leader>st", function()
+			require("neotest").run.stop()
+		end, { desc = "Neotest: 停止测试" })
 	end,
 }

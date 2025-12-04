@@ -124,89 +124,89 @@ return {
 			end,
 		})
 
-		-- local api = vim.api
+		local api = vim.api
 		-- 使用局部变量避免全局污染
-		-- local keymap_restore = {}
-		-- local original_global_k = nil
+		local keymap_restore = {}
+		local original_global_k = nil
 
 		dap.listeners.after["event_initialized"]["me"] = function()
 			-- 关闭lsp内嵌提示
 			vim.lsp.inlay_hint.enable(false)
 			-- 保存全局 K 键映射
-			-- 	local global_maps = vim.api.nvim_get_keymap("n")
-			-- 	for _, map in ipairs(global_maps) do
-			-- 		if map.lhs == "K" then
-			-- 			original_global_k = map
-			-- 			break
-			-- 		end
-			-- 	end
-			--
-			-- 	-- 删除全局 K 键映射
-			-- 	pcall(vim.keymap.del, "n", "K")
-			--
-			-- 	-- 保存并删除缓冲区本地映射
-			-- 	for _, buf in ipairs(api.nvim_list_bufs()) do
-			-- 		local keymaps = api.nvim_buf_get_keymap(buf, "n")
-			-- 		for _, keymap in ipairs(keymaps) do
-			-- 			if keymap.lhs == "K" then
-			-- 				table.insert(keymap_restore, keymap)
-			-- 				pcall(api.nvim_buf_del_keymap, buf, "n", "K")
-			-- 			end
-			-- 		end
-			-- 	end
-			--
-			-- 	-- 设置新的全局映射
-			-- 	vim.keymap.set("n", "K", function()
-			-- 		require("dap.ui.widgets").hover()
-			-- 	end, { silent = true, desc = "DAP Hover" })
+			local global_maps = vim.api.nvim_get_keymap("n")
+			for _, map in ipairs(global_maps) do
+				if map.lhs == "K" then
+					original_global_k = map
+					break
+				end
+			end
+
+			-- 删除全局 K 键映射
+			pcall(vim.keymap.del, "n", "K")
+
+			-- 保存并删除缓冲区本地映射
+			for _, buf in ipairs(api.nvim_list_bufs()) do
+				local keymaps = api.nvim_buf_get_keymap(buf, "n")
+				for _, keymap in ipairs(keymaps) do
+					if keymap.lhs == "K" then
+						table.insert(keymap_restore, keymap)
+						pcall(api.nvim_buf_del_keymap, buf, "n", "K")
+					end
+				end
+			end
+
+			-- 设置新的全局映射
+			vim.keymap.set("n", "K", function()
+				require("dap.ui.widgets").hover()
+			end, { silent = true, desc = "DAP Hover" })
 		end
 
 		dap.listeners.after["event_terminated"]["me"] = function()
 			-- 开启lsp内嵌提示
 			vim.lsp.inlay_hint.enable(true)
-			-- -- 恢复缓冲区映射
-			-- for _, keymap in ipairs(keymap_restore) do
-			-- 	if keymap.rhs then
-			-- 		pcall(
-			-- 			api.nvim_buf_set_keymap,
-			-- 			keymap.buffer,
-			-- 			keymap.mode,
-			-- 			keymap.lhs,
-			-- 			keymap.rhs,
-			-- 			{ silent = keymap.silent == 1 }
-			-- 		)
-			-- 	elseif keymap.callback then
-			-- 		pcall(
-			-- 			vim.keymap.set,
-			-- 			keymap.mode,
-			-- 			keymap.lhs,
-			-- 			keymap.callback,
-			-- 			{ buffer = keymap.buffer, silent = keymap.silent == 1 }
-			-- 		)
-			-- 	end
-			-- end
-			-- keymap_restore = {}
-			--
-			-- -- 删除调试用的 K 键映射
-			-- pcall(vim.keymap.del, "n", "K")
-			--
-			-- -- 恢复原始全局映射
-			-- if original_global_k then
-			-- 	if original_global_k.rhs then
-			-- 		pcall(vim.keymap.set, "n", "K", original_global_k.rhs, {
-			-- 			silent = original_global_k.silent == 1,
-			-- 			expr = original_global_k.expr == 1,
-			-- 			nowait = original_global_k.nowait == 1,
-			-- 		})
-			-- 	elseif original_global_k.callback then
-			-- 		pcall(vim.keymap.set, "n", "K", original_global_k.callback, {
-			-- 			silent = original_global_k.silent == 1,
-			-- 			expr = original_global_k.expr == 1,
-			-- 			nowait = original_global_k.nowait == 1,
-			-- 		})
-			-- 	end
-			-- 	original_global_k = nil
-			-- end
+			-- 恢复缓冲区映射
+			for _, keymap in ipairs(keymap_restore) do
+				if keymap.rhs then
+					pcall(
+						api.nvim_buf_set_keymap,
+						keymap.buffer,
+						keymap.mode,
+						keymap.lhs,
+						keymap.rhs,
+						{ silent = keymap.silent == 1 }
+					)
+				elseif keymap.callback then
+					pcall(
+						vim.keymap.set,
+						keymap.mode,
+						keymap.lhs,
+						keymap.callback,
+						{ buffer = keymap.buffer, silent = keymap.silent == 1 }
+					)
+				end
+			end
+			keymap_restore = {}
+
+			-- 删除调试用的 K 键映射
+			pcall(vim.keymap.del, "n", "K")
+
+			-- 恢复原始全局映射
+			if original_global_k then
+				if original_global_k.rhs then
+					pcall(vim.keymap.set, "n", "K", original_global_k.rhs, {
+						silent = original_global_k.silent == 1,
+						expr = original_global_k.expr == 1,
+						nowait = original_global_k.nowait == 1,
+					})
+				elseif original_global_k.callback then
+					pcall(vim.keymap.set, "n", "K", original_global_k.callback, {
+						silent = original_global_k.silent == 1,
+						expr = original_global_k.expr == 1,
+						nowait = original_global_k.nowait == 1,
+					})
+				end
+				original_global_k = nil
+			end
 		end
 
 		local module_cache = {}
