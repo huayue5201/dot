@@ -4,23 +4,24 @@
 local M = {}
 local configs = require("lsp.config")
 local autocmds = require("lsp.lsp_autocmds")
+local keymap = require("lsp.lsp_keymaps")
 
 function M.setup()
 	configs.lsp_Start() -- 启动lsp
 	configs.global_config() -- 全局配置
 	autocmds.setup() -- 配置初始化
 
-	vim.api.nvim_create_user_command("LspListActive", function()
-		local lsps = require("lsp.lsp_utils").get_active_lsps(0)
-		if #lsps == 0 then
-			print("No active LSP clients for this buffer.")
-			return
-		end
-		print("Active LSPs:")
-		for _, lsp in ipairs(lsps) do
-			print(string.format("- %s (root: %s)", lsp.name, lsp.root_dir or "nil"))
-		end
-	end, { desc = "List active LSP clients for current buffer" })
+	vim.keymap.set("n", "<leader>rl", function()
+		keymap.restart_lsp()
+	end, { noremap = true, silent = true, desc = "LSP: 重启lsp" })
+
+	vim.keymap.set("n", "<leader>lt", function()
+		keymap.toggle_lsp()
+	end, { desc = "Toggle LSP for current filetype" })
+
+	vim.keymap.set("n", "<leader>yd", function()
+		keymap.CopyErrorMessage()
+	end, { noremap = true, silent = true, desc = "LSP: 复制lsp诊断" })
 end
 
 return M

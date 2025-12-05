@@ -64,6 +64,7 @@ function M.setup()
 			mode_changed_handler() -- 设置模式变化时禁用/启用诊断
 			vim.lsp.document_color.enable(true, 0, { style = "virtual" }) -- 启用文档颜色高亮
 
+			---@diagnostic disable: need-check-nil
 			if client:supports_method("textDocument/onTypeFormatting") then
 				vim.lsp.on_type_formatting.enable() -- 启用按键格式化
 			end
@@ -74,6 +75,10 @@ function M.setup()
 			-- 启用内联提示
 			if client:supports_method("textDocument/inlayHint") then
 				vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+			end
+
+			if client:supports_method("textDocument/inlineCompletion") then
+				vim.lsp.inline_completion.enable(true)
 			end
 		end,
 	})
@@ -97,7 +102,7 @@ function M.setup()
 					end
 				end
 				-- 移除键映射
-				-- keymaps.remove_keymaps()
+				keymaps.remove_keymaps()
 			end
 		end,
 	})

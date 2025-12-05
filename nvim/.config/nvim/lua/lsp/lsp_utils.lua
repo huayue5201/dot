@@ -9,14 +9,14 @@ M.icons = {
 	},
 }
 
--- 缓存
+-- 缓存系统
 M._lsp_config_cache = nil
 M._filetype_index = nil
 
 --------------------------------------------------------------
--- 配置验证
+-- 配置验证 (移除了未使用的filename参数)
 --------------------------------------------------------------
-function M._validate_lsp_config(config, filename)
+function M._validate_lsp_config(config)
 	if type(config) ~= "table" then
 		return false, "Config must be a table"
 	end
@@ -48,7 +48,7 @@ function M._validate_lsp_config(config, filename)
 end
 
 --------------------------------------------------------------
--- 加载配置
+-- 加载配置 (核心缓存)
 --------------------------------------------------------------
 function M._load_all_lsp_configs()
 	if M._lsp_config_cache then
@@ -61,14 +61,14 @@ function M._load_all_lsp_configs()
 		local ok, config = pcall(dofile, path)
 
 		if ok and type(config) == "table" then
-			local valid, err = M._validate_lsp_config(config, filename)
+			local valid, err = M._validate_lsp_config(config)
 			if valid then
 				configs[filename] = config
 			else
-				vim.notify(string.format("Invalid LSP config %s: %s", filename, err), vim.log.levels.ERROR)
+				vim.notify(string.format("Invalid LSP config %s: %s", filename, err), vim.log.levels.WARN)
 			end
 		else
-			vim.notify("Failed to load config from: " .. path, vim.log.levels.ERROR)
+			vim.notify("Failed to load config from: " .. path, vim.log.levels.WARN)
 		end
 	end
 
@@ -77,7 +77,7 @@ function M._load_all_lsp_configs()
 end
 
 --------------------------------------------------------------
--- 构建 filetype 索引
+-- 构建 filetype 索引 (作为主缓存的派生缓存)
 --------------------------------------------------------------
 function M._build_filetype_index()
 	if M._filetype_index then
@@ -85,7 +85,7 @@ function M._build_filetype_index()
 	end
 
 	local index = {}
-	local configs = M._load_all_lsp_configs()
+	local configs = M._load_all_lsp_configs() -- 依赖主缓存
 
 	for name, config in pairs(configs) do
 		local fts = config.filetypes
@@ -109,7 +109,7 @@ function M._build_filetype_index()
 end
 
 --------------------------------------------------------------
--- 缓存控制
+-- 缓存控制 (保持一致性)
 --------------------------------------------------------------
 function M.clear_lsp_config_cache()
 	M._lsp_config_cache = nil
@@ -118,105 +118,110 @@ end
 
 function M.reload_lsp_configs()
 	M.clear_lsp_config_cache()
-	local count = 0
-	for _ in pairs(M._load_all_lsp_configs()) do
-		count = count + 1
-	end
-	return M._lsp_config_cache, count
+	local configs = M._load_all_lsp_configs()
+	return configs, vim.tbl_count(configs)
 end
 
 --------------------------------------------------------------
--- 查询接口 - 重构部分 [!code focus]
+-- 查询接口优化
 --------------------------------------------------------------
 
--- 字段值提取器 [!code focus]
-function M._extract_field_value(config, field, filename, quiet) -- [!code focus]
-	if field == "name" then -- [!code focus]
-		return filename -- [!code focus]
-	end -- [!code focus]
-	-- [!code focus]
-	local value = config[field] -- [!code focus]
-	if not value then -- [!code focus]
-		if not quiet then -- [!code focus]
-			vim.notify("Field '" .. field .. "' not found in config: " .. filename, vim.log.levels.DEBUG) -- [!code focus]
-		end -- [!code focus]
-		return nil -- [!code focus]
-	end -- [!code focus]
-	-- [!code focus]
-	return value -- [!code focus]
-end -- [!code focus]
+-- 优化的字段值提取器
+function M._extract_field_value(config, field, filename, quiet)
+	if field == "name" then
+		-- 优先使用配置中的name字段，其次使用文件名
+		return config.name or filename
+	end
 
--- 值处理器 [!code focus]
-function M._process_value_into_results(value, results) -- [!code focus]
-	if type(value) == "table" then -- [!code focus]
-		-- 处理数组类型的字段值 -- [!code focus]
-		for _, v in ipairs(value) do -- [!code focus]
-			if not vim.tbl_contains(results, v) then -- [!code focus]
-				table.insert(results, v) -- [!code focus]
-			end -- [!code focus]
-		end -- [!code focus]
-	else -- [!code focus]
-		-- 处理标量类型的字段值 -- [!code focus]
-		if not vim.tbl_contains(results, value) then -- [!code focus]
-			table.insert(results, value) -- [!code focus]
-		end -- [!code focus]
-	end -- [!code focus]
-end -- [!code focus]
+	local value = config[field]
+	if value == nil and not quiet then
+		vim.notify("Field '" .. field .. "' not found in config: " .. filename, vim.log.levels.DEBUG)
+	end
+	return value
+end
 
--- 单字段查询 [!code focus]
-function M._query_single_field(all_configs, field, quiet) -- [!code focus]
-	local results = {} -- [!code focus]
-	-- [!code focus]
-	for filename, config in pairs(all_configs) do -- [!code focus]
-		local value = M._extract_field_value(config, field, filename, quiet) -- [!code focus]
-		if value then -- [!code focus]
-			M._process_value_into_results(value, results) -- [!code focus]
-		end -- [!code focus]
-	end -- [!code focus]
-	-- [!code focus]
-	return vim.fn.sort(results) -- [!code focus]
-end -- [!code focus]
+-- 统一的值处理器 (处理数组和标量)
+function M._process_value_into_results(value, results)
+	local function add_item(item)
+		if not vim.tbl_contains(results, item) then
+			table.insert(results, item)
+		end
+	end
 
--- 多字段查询 [!code focus]
-function M._query_multiple_fields(all_configs, fields, quiet) -- [!code focus]
-	local multi_results = {} -- [!code focus]
-	-- [!code focus]
-	for _, field in ipairs(fields) do -- [!code focus]
-		multi_results[field] = M._query_single_field(all_configs, field, quiet) -- [!code focus]
-	end -- [!code focus]
-	-- [!code focus]
-	return multi_results -- [!code focus]
-end -- [!code focus]
+	if type(value) == "table" then
+		for _, v in ipairs(value) do
+			add_item(v)
+		end
+	else
+		add_item(value)
+	end
+end
 
--- 主查询函数 [!code focus]
-function M.get_lsp_config(...) -- [!code focus]
-	local fields = { ... } -- [!code focus]
-	return M.get_lsp_config_with_opts({}, unpack(fields)) -- [!code focus]
-end -- [!code focus]
+-- 单字段查询
+function M._query_single_field(all_configs, field, quiet)
+	local results = {}
 
-function M.get_lsp_config_with_opts(opts, ...) -- [!code focus]
-	opts = opts or {} -- [!code focus]
-	local quiet = opts.quiet or false -- [!code focus]
-	local fields = { ... } -- [!code focus]
-	-- [!code focus]
-	local all_configs = M._load_all_lsp_configs() -- [!code focus]
-	-- [!code focus]
-	-- 无字段：返回完整配置 -- [!code focus]
-	if #fields == 0 then -- [!code focus]
-		return all_configs -- [!code focus]
-	end -- [!code focus]
-	-- [!code focus]
-	-- 单字段查询 -- [!code focus]
-	if #fields == 1 then -- [!code focus]
-		return M._query_single_field(all_configs, fields[1], quiet) -- [!code focus]
-	end -- [!code focus]
-	-- [!code focus]
-	-- 多字段查询 -- [!code focus]
-	return M._query_multiple_fields(all_configs, fields, quiet) -- [!code focus]
-end -- [!code focus]
+	for filename, config in pairs(all_configs) do
+		local value = M._extract_field_value(config, field, filename, quiet)
+		if value ~= nil then
+			M._process_value_into_results(value, results)
+		end
+	end
+
+	return vim.fn.sort(results)
+end
+
+-- 多字段查询 (返回扁平表)
+function M._query_multiple_fields(all_configs, fields, quiet)
+	local multi_results = {}
+
+	for _, field in ipairs(fields) do
+		multi_results[field] = M._query_single_field(all_configs, field, quiet)
+	end
+
+	return multi_results
+end
+
+-- 主查询函数 - 简化接口
+function M.get_lsp_config(...)
+	local fields = { ... }
+
+	-- 如果没有参数，返回完整配置
+	if #fields == 0 then
+		return M._load_all_lsp_configs()
+	end
+
+	local all_configs = M._load_all_lsp_configs()
+
+	-- 单字段查询：直接返回数组
+	if #fields == 1 then
+		return M._query_single_field(all_configs, fields[1], false)
+	end
+
+	-- 多字段查询：返回 {field=结果} 表
+	return M._query_multiple_fields(all_configs, fields, false)
+end
+
+-- 带选项的查询函数
+function M.get_lsp_config_with_opts(opts, ...)
+	opts = vim.tbl_extend("force", { quiet = false }, opts or {})
+	local fields = { ... }
+
+	if #fields == 0 then
+		return M._load_all_lsp_configs()
+	end
+
+	local all_configs = M._load_all_lsp_configs()
+
+	if #fields == 1 then
+		return M._query_single_field(all_configs, fields[1], opts.quiet)
+	end
+
+	return M._query_multiple_fields(all_configs, fields, opts.quiet)
+end
 
 --------------------------------------------------------------
--- 获取 LSP 名称
+-- 获取 LSP 名称 (核心功能)
 --------------------------------------------------------------
 function M.get_lsp_name()
 	local bufnr = vim.api.nvim_get_current_buf()
@@ -225,7 +230,8 @@ function M.get_lsp_name()
 end
 
 function M.get_lsp_by_filetype(filetype)
-	return (M._build_filetype_index())[string.lower(filetype)] or {}
+	local index = M._build_filetype_index()
+	return index[string.lower(filetype)] or {}
 end
 
 function M.get_all_lsp_names()
@@ -233,7 +239,7 @@ function M.get_all_lsp_names()
 end
 
 --------------------------------------------------------------
--- 活跃 LSP
+-- 活跃 LSP 查询
 --------------------------------------------------------------
 function M.get_active_lsps(bufnr)
 	bufnr = bufnr or 0
@@ -241,13 +247,13 @@ function M.get_active_lsps(bufnr)
 
 	if not ok or not clients then
 		if not ok then
-			vim.notify("Error getting LSP clients: " .. clients, vim.log.levels.ERROR)
+			vim.notify("Error getting LSP clients: " .. tostring(clients), vim.log.levels.ERROR)
 		end
 		return {}
 	end
 
 	local active = {}
-	for _, client in pairs(clients) do
+	for _, client in ipairs(clients) do
 		table.insert(active, {
 			id = client.id,
 			name = client.name,
@@ -258,14 +264,17 @@ function M.get_active_lsps(bufnr)
 end
 
 --------------------------------------------------------------
--- 自动重载配置
+-- 自动重载配置 (优化监控模式)
 --------------------------------------------------------------
 vim.api.nvim_create_autocmd("BufWritePost", {
-	pattern = { "*/lsp/*.lua", "lua/lsp/*.lua" },
-	callback = function()
+	pattern = { "lsp/*.lua", "after/lsp/*.lua" },
+	callback = function(args)
+		-- 只重载与当前文件相关的配置
+		local filename = vim.fn.fnamemodify(args.file, ":t:r")
 		local _, count = M.reload_lsp_configs()
-		vim.notify(string.format("LSP configurations reloaded (%d configs)", count), vim.log.levels.INFO)
+		vim.notify(string.format("LSP configurations reloaded (%d configs total)", count), vim.log.levels.INFO)
 	end,
+	group = vim.api.nvim_create_augroup("LSPConfigAutoReload", { clear = true }),
 })
 
 return M

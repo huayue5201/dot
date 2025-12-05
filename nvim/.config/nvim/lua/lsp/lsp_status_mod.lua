@@ -91,7 +91,6 @@ function M.lsp_clients()
 		"eslint",
 		"GitHub Copilot",
 		"copilot",
-		"lua_ls",
 	}
 
 	-- 找主客户端（未忽略的第一个）
