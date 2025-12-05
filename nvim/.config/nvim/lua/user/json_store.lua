@@ -225,6 +225,7 @@ function M.force_save()
 	return store:save()
 end
 
+-- require("user.json_store").clear_project_data()
 function M.clear_project_data()
 	local store = _ensure_store()
 	local pkey = store:_project_key()

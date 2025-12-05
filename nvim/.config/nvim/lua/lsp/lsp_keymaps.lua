@@ -4,7 +4,7 @@ local json_store = require("user.json_store")
 local lsp_get = require("lsp.lsp_utils")
 
 -- 重启当前缓冲区的 LSP 客户端
-local function restart_lsp()
+function M.restart_lsp()
 	-- 获取所有已启动的 LSP 客户端
 	local clients = vim.lsp.get_clients()
 	-- 遍历所有 LSP 客户端并请求停止
@@ -16,19 +16,48 @@ local function restart_lsp()
 		local lsp_name = lsp_get.get_lsp_name()
 		-- 假设 lsp.enable() 已经处理了启动逻辑
 		vim.lsp.enable(lsp_name, true)
-		json_store.set_lsp_state(lsp_name[1], "active")
 	end, 500)
 end
 
--- 关闭 LSP
-function M.stop_lsp()
-	local lsp_name = lsp_get.get_lsp_name()
-	vim.lsp.enable(lsp_name, false)
+-- 切换lsp状态
+function M.toggle_lsp()
+	-- 获取当前缓冲区的所有相关 LSP 客户端名称
+	local lsp_names = lsp_get.get_lsp_by_filetype(vim.bo.filetype)
 
-	json_store.set_lsp_state(lsp_name[1], "inactive")
+	-- 使用 vim.ui.select 来让用户选择要停用或启动的 LSP 客户端
+	vim.ui.select(lsp_names, {
+		prompt = "🔄 选择要切换的 LSP 客户端：", -- 提示信息
+		format_item = function(item)
+			-- 获取当前 LSP 的状态
+			local state = json_store.get_lsp_state(item)
+			-- 美化显示：左对齐 LSP 名称，并展示状态，增加可读性
+			return string.format("%-20s • 状态: %s", item, state or "未知")
+		end,
+	}, function(selected_lsp)
+		if not selected_lsp then
+			vim.notify("未选择 LSP 客户端.", vim.log.levels.INFO)
+			return
+		end
 
-	vim.schedule(function()
-		vim.cmd.redrawstatus()
+		-- 获取当前 LSP 客户端的状态
+		local current_state = json_store.get_lsp_state(selected_lsp)
+
+		if current_state == "inactive" then
+			-- 启动 LSP 客户端
+			vim.lsp.enable(selected_lsp, true)
+			json_store.set_lsp_state(selected_lsp, "active")
+			vim.notify(string.format("LSP '%s' 已启动。", selected_lsp), vim.log.levels.INFO)
+		else
+			-- 停用 LSP 客户端
+			vim.lsp.enable(selected_lsp, false)
+			json_store.set_lsp_state(selected_lsp, "inactive")
+			vim.notify(string.format("LSP '%s' 已停止。", selected_lsp), vim.log.levels.INFO)
+		end
+
+		-- 刷新状态栏
+		vim.schedule(function()
+			vim.cmd.redrawstatus()
+		end)
 	end)
 end
 
@@ -65,7 +94,7 @@ local function open_buffer_diagnostics()
 end
 
 -- 复制光标处的错误信息（包括错误代码）
-local function CopyErrorMessage()
+function M.CopyErrorMessage()
 	local row = unpack(vim.api.nvim_win_get_cursor(0)) - 1
 	local diag = vim.diagnostic.get(0, { lnum = row })
 	if #diag > 0 then
@@ -86,6 +115,19 @@ local function CopyErrorMessage()
 	end
 end
 
+-- 定义一个函数来列出当前缓冲区的活动 LSP 客户端
+local function list_active_lsps()
+	local lsps = require("lsp.lsp_utils").get_active_lsps(0)
+	if #lsps == 0 then
+		print("No active LSP clients for this buffer.")
+		return
+	end
+	print("Active LSPs:")
+	for _, lsp in ipairs(lsps) do
+		print(string.format("- %s (root: %s)", lsp.name, lsp.root_dir or "nil"))
+	end
+end
+
 -- 按键映射
 local keymaps = {
 	-- { "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
@@ -96,27 +138,12 @@ local keymaps = {
 		"LSP: toggle diagnostics",
 	},
 	{
-		"<leader>sl",
-		function()
-			M.stop_lsp()
-		end,
-		"LSP: 关闭lsp",
-	},
-	{
-		"<leader>rl",
-		function()
-			restart_lsp()
-		end,
-		"LSP: 重启lsp",
-	},
-	{
 		"<leader>ld",
 		function()
 			open_buffer_diagnostics()
 		end,
 		"LSP: buffer diagnostics",
 	},
-
 	{
 		"<leader>lD",
 		function()
@@ -124,15 +151,6 @@ local keymaps = {
 		end,
 		"LSP: workspace diagnostics",
 	},
-
-	{
-		"<leader>yd",
-		function()
-			CopyErrorMessage()
-		end,
-		"LSP: copy diagnostic message",
-	},
-
 	{
 		"<s-a-i>",
 		"<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>",
@@ -141,7 +159,9 @@ local keymaps = {
 
 	{
 		"<leader>lw",
-		"<cmd>LspListActive<cr>",
+		function()
+			list_active_lsps()
+		end,
 		"LSP: list workspace folders",
 	},
 }

@@ -1,7 +1,6 @@
 local M = {}
 
 local icons = require("lsp.lsp_utils").icons.diagnostic
-local lsp_get = require("lsp.lsp_utils")
 
 M.diagnostic_config = function()
 	vim.diagnostic.config({
@@ -44,17 +43,20 @@ M.global_config = function()
 end
 
 -- 根据文件类型启动 LSP
+local lsp_get = require("lsp.lsp_utils")
 local json_store = require("user.json_store")
 M.lsp_Start = function()
 	vim.api.nvim_create_autocmd("FileType", {
 		desc = "根据文件类型启动或停止 LSP",
 		pattern = lsp_get.get_lsp_config("filetypes"),
 		callback = function()
-			local lsp_name = lsp_get.get_lsp_name()
-			if json_store.get_lsp_state(lsp_name[1]) == "inactive" then
-				vim.lsp.enable(lsp_name, false)
-			else
-				vim.lsp.enable(lsp_name, true)
+			local lsp_names = lsp_get.get_lsp_by_filetype(vim.bo.filetype)
+			for _, lsp_name in ipairs(lsp_names) do
+				if json_store.get_lsp_state(lsp_name) == "inactive" then
+					vim.lsp.enable(lsp_name, false)
+				else
+					vim.lsp.enable(lsp_name, true)
+				end
 			end
 		end,
 	})
