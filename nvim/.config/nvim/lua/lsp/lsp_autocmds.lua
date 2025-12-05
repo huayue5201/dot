@@ -66,7 +66,7 @@ function M.setup()
 
 			---@diagnostic disable: need-check-nil
 			if client:supports_method("textDocument/onTypeFormatting") then
-				vim.lsp.on_type_formatting.enable() -- 启用按键格式化
+				vim.lsp.on_type_formatting.enable(true, { client_id = client.id })
 			end
 			-- 启用 LSP 折叠
 			if client:supports_method("textDocument/foldingRange") then

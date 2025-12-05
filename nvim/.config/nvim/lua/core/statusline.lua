@@ -14,7 +14,7 @@ local M = {} -- 使用 M 作为模块的局部变量
 local function setup_highlights()
 	local highlight_defs = {
 		DefaultMode = { bold = true },
-		SaveHighlight = { fg = "#f08080", bold = true }, -- 定义红色保存高亮组
+		SaveHighlight = { fg = "#E4080A", bold = true }, -- 定义红色保存高亮组
 		NormalMode = { bold = true },
 		InsertMode = { bold = true },
 		VisualMode = { bold = true },
@@ -128,7 +128,7 @@ function M.save_status()
 	for _, buf in ipairs(buffers) do
 		-- 如果该 buffer 已修改，显示保存提示
 		if vim.api.nvim_get_option_value("modified", { buf = buf }) then
-			return "%#SaveHighlight#󰆓 %*" .. " 保存"
+			return "%#SaveHighlight#󰆓 %*"
 		end
 	end
 

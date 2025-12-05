@@ -4,7 +4,7 @@ local json_store = require("user.json_store")
 local lsp_get = require("lsp.lsp_utils")
 
 -- 重启当前缓冲区的 LSP 客户端
-function M.restart_lsp()
+local function restart_lsp()
 	-- 获取所有已启动的 LSP 客户端
 	local clients = vim.lsp.get_clients()
 	-- 遍历所有 LSP 客户端并请求停止
@@ -20,13 +20,13 @@ function M.restart_lsp()
 end
 
 -- 切换lsp状态
-function M.toggle_lsp()
+local function toggle_lsp()
 	-- 获取当前缓冲区的所有相关 LSP 客户端名称
 	local lsp_names = lsp_get.get_lsp_by_filetype(vim.bo.filetype)
 
 	-- 使用 vim.ui.select 来让用户选择要停用或启动的 LSP 客户端
 	vim.ui.select(lsp_names, {
-		prompt = "🔄 选择要切换的 LSP 客户端：", -- 提示信息
+		prompt = "🔄 选择 LSP 客户端：", -- 提示信息
 		format_item = function(item)
 			-- 获取当前 LSP 的状态
 			local state = json_store.get_lsp_state(item)
@@ -94,7 +94,7 @@ local function open_buffer_diagnostics()
 end
 
 -- 复制光标处的错误信息（包括错误代码）
-function M.CopyErrorMessage()
+local function CopyErrorMessage()
 	local row = unpack(vim.api.nvim_win_get_cursor(0)) - 1
 	local diag = vim.diagnostic.get(0, { lnum = row })
 	if #diag > 0 then
@@ -178,6 +178,30 @@ M.remove_keymaps = function(bufnr)
 	for _, map in ipairs(keymaps) do
 		pcall(vim.keymap.del, "n", map[1], { buffer = bufnr })
 	end
+end
+
+M.global_keymaps = function()
+	vim.keymap.set("n", "<leader>rl", function()
+		restart_lsp()
+	end, { noremap = true, silent = true, desc = "LSP: 重启lsp" })
+
+	vim.keymap.set("n", "<leader>lt", function()
+		toggle_lsp()
+	end, { desc = "Toggle LSP for current filetype" })
+
+	vim.keymap.set("n", "<leader>yd", function()
+		CopyErrorMessage()
+	end, { noremap = true, silent = true, desc = "LSP: 复制lsp诊断" })
+
+	-- vim.keymap.set("i", "<C-CR>", function()
+	-- 	if not vim.lsp.inline_completion.get() then
+	-- 		return "<C-CR>"
+	-- 	end
+	-- end, {
+	-- 	expr = true,
+	-- 	replace_keycodes = true,
+	-- 	desc = "Get the current inline completion",
+	-- })
 end
 
 return M
