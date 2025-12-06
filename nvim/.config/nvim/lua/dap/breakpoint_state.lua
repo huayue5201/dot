@@ -305,7 +305,6 @@ function M.setup()
 		desc = "DAP: 退出时自动保存并清理断点",
 	})
 
-	-- 启动时自动恢复
 	vim.defer_fn(function()
 		-- 先清理无效的存储数据
 		M.cleanup_stored_breakpoints()

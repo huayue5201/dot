@@ -5,19 +5,6 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 	command = "%s/\\s\\+$//e",
 })
 
--- 高亮 Go 字符串中的特殊字段,不能延迟加载
-vim.cmd([[
-augroup GoStringHighlights
-    autocmd!
-    " 匹配 __XXXXX__ 格式的标记
-    autocmd FileType go syntax match goStringSpecial /__[A-Z][A-Z_]*__/ containedin=goString
-    " 匹配 %XX 格式的转义字符
-    autocmd FileType go syntax match goStringSpecial /%[0-9A-Fa-f]\{2\}/ containedin=goString
-    " 加粗字体
-    autocmd FileType go hi goStringSpecial cterm=bold gui=bold
-augroup END
-]])
-
 -- 恢复上次光标位置
 vim.cmd([[
 augroup RestoreCursor
