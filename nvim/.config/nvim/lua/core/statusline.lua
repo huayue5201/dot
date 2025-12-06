@@ -206,8 +206,8 @@ function M.active()
 		M.dap_status() .. " ",
 		M.vcs() .. "  ",
 		"%l%c   ",
-		"%p:",
 		M.get_scrollbar(),
+		"%p ",
 	})
 end
 
