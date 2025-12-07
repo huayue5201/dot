@@ -3,7 +3,7 @@ local M = {}
 function M.setup()
 	local dap = require("dap")
 	local widgets = require("dap.ui.widgets")
-	local bp = require("dap.dap_utils")
+	local bp = require("dap-config.dap_utils")
 	local sidebar = nil
 
 	-- ▶ 控制
