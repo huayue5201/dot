@@ -1,7 +1,7 @@
 -- https://probe.rs/docs/tools/debugger/
-
 return {
 	setup = function(dap)
+		-- probe-rs Adapter 配置
 		dap.adapters["probe-rs-debug"] = {
 			type = "server",
 			port = "${port}",
@@ -11,42 +11,48 @@ return {
 			},
 		}
 
-		local config = {
-			name = "probe-rs",
-			type = "probe-rs-debug",
-			request = "launch",
-			cwd = "${workspaceFolder}",
-			chip = vim.g.envCofnig.chip,
-			flashingConfig = {
-				flashingEnabled = true,
-				haltAfterReset = true,
-				formatOptions = { binaryFormat = "elf" },
-			},
-			coreConfigs = {
-				{
-					coreIndex = 0,
-					programBinary = function()
-						return require("dap.utils").pick_file()
-					end,
-					svdFile = vim.g.envCofnig.svdFile,
-					rttEnabled = true,
-					rttChannelFormats = {
-						{ channelNumber = 0, dataFormat = "String", showTimestamps = true },
-						{ channelNumber = 1, dataFormat = "BinaryLE" },
+		-- 动态 Provider
+		dap.providers.configs["probe-rs-debug"] = function(bufnr)
+			local chip = vim.g.envCofnig and vim.g.envCofnig.chip or nil
+			local svdFile = vim.g.envCofnig and vim.g.envCofnig.svdFile or nil
+
+			local function pick_program()
+				return require("dap.utils").pick_file()
+			end
+
+			local config = {
+				name = "probe-rs",
+				type = "probe-rs-debug",
+				request = "launch",
+				cwd = "${workspaceFolder}",
+				chip = chip,
+				flashingConfig = {
+					flashingEnabled = true,
+					haltAfterReset = true,
+					formatOptions = { binaryFormat = "elf" },
+				},
+				coreConfigs = {
+					{
+						coreIndex = 0,
+						programBinary = pick_program,
+						svdFile = svdFile,
+						rttEnabled = true,
+						rttChannelFormats = {
+							{ channelNumber = 0, dataFormat = "String", showTimestamps = true },
+							{ channelNumber = 1, dataFormat = "BinaryLE" },
+						},
 					},
 				},
-			},
-			env = { RUST_LOG = "info" },
-			consoleLogLevel = "Console",
-			-- probe = probe_id, -- 可选
-			runtimeExecutable = "probe-rs",
-			runtimeArgs = { "dap-server" },
-		}
+				env = { RUST_LOG = "info" },
+				consoleLogLevel = "Console",
+				runtimeExecutable = "probe-rs",
+				runtimeArgs = { "dap-server" },
+			}
 
-		dap.configurations.rust = { config }
-		dap.configurations.c = { config }
+			return { config }
+		end
 
-		-- RTT listeners
+		-- RTT listeners（保留原逻辑）
 		local function log_to_file(msg)
 			local f = io.open("probe-rs.log", "a")
 			if f then
@@ -79,5 +85,7 @@ return {
 			require("dap.repl").append(msg)
 			log_to_file(msg)
 		end
+
+		require("dap.ext.vscode").type_to_filetypes["probe-rs-debug"] = { "rust", "c", "cpp" }
 	end,
 }

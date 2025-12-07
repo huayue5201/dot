@@ -54,6 +54,6 @@ return {
 				},
 			}
 		end
-		require("dap.ext.vscode").type_to_filetypes["probe-rs-debug"] = { "rust", "c", "cpp" }
+		require("dap.ext.vscode").type_to_filetypes["PyOCD"] = { "rust", "c", "cpp" }
 	end,
 }

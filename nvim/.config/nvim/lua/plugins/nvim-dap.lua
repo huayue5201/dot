@@ -209,7 +209,8 @@ return {
 			end
 		end
 
-		require("dap-config.adapters.lldb").setup(dap)
+		-- require("dap-config.adapters.rust-gdb").setup(dap) -- gdb在macOS上有bug
+		require("dap-config.adapters.codelldb").setup(dap)
 		require("dap-config.adapters.probe_rs").setup(dap)
 		require("dap-config.adapters.pyocd").setup(dap)
 		require("dap-config.adapters.openocd").setup(dap)
