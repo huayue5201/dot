@@ -25,8 +25,8 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 -- vim.lsp.enable({ "lua_ls", "pyright" })
 -- 立即加载基础配置
 require("env") -- 环境变量配置
-require("lsp").setup() --lsp
-require("core.settings") -- 基础 Neovim 选项
+require("lsp-config").setup() --lsp
+require("core.setings") -- 基础 Neovim 选项
 require("core.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
 require("core.statusline").active() -- 状态栏
 

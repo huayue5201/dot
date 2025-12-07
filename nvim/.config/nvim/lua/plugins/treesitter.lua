@@ -31,7 +31,10 @@ return {
 			"rust",
 			"python",
 			"regex",
+			"rust",
 		}
+
+		require("nvim-treesitter").install(ensure_installed)
 
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = ensure_installed,

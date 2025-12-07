@@ -1,7 +1,7 @@
 local M = {}
 
 local json_store = require("user.json_store")
-local lsp_get = require("lsp.lsp_utils")
+local lsp_get = require("lsp-config.lsp_utils")
 
 -- 重启当前缓冲区的 LSP 客户端
 local function restart_lsp()

@@ -1,6 +1,6 @@
 local M = {}
 
-local icons = require("lsp.lsp_utils").icons.diagnostic
+local icons = require("lsp-config.lsp_utils").icons.diagnostic
 
 M.diagnostic_config = function()
 	vim.diagnostic.config({
@@ -43,7 +43,7 @@ M.global_config = function()
 end
 
 -- 根据文件类型启动 LSP
-local lsp_get = require("lsp.lsp_utils")
+local lsp_get = require("lsp-config.lsp_utils")
 local json_store = require("user.json_store")
 M.lsp_Start = function()
 	vim.api.nvim_create_autocmd("FileType", {

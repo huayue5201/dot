@@ -69,9 +69,9 @@ return {
 			args = { "-e" },
 		}
 
-		require("dap.dap_keys").setup()
+		require("dap-config.dap_keys").setup()
 		-- 断点持久化
-		require("dap.breakpoint_state").setup()
+		require("dap-config.breakpoint_state").setup()
 
 		-- 扩展 REPL 命令
 		local repl = require("dap.repl")
@@ -209,29 +209,11 @@ return {
 			end
 		end
 
-		local module_cache = {}
-		local function load_modules_from_dir(dir)
-			if not module_cache[dir] then
-				local path = vim.fn.stdpath("config") .. "/" .. dir
-				module_cache[dir] = vim.fn.globpath(path, "*.lua", false, true)
-			end
-			for _, file in ipairs(module_cache[dir]) do
-				-- 用 sub 来提取模块名
-				local module_name = file:sub(#vim.fn.stdpath("config") + 2, -5):gsub("/", ".")
-				-- 修正模块名称去掉 "lua." 前缀
-				module_name = module_name:sub(5) -- 移除前4个字符，即 "lua."
-				-- 尝试加载模块
-				local ok, mod_or_err = pcall(require, module_name)
-				if not ok then
-					print("Failed to load module '" .. module_name .. "': " .. mod_or_err)
-					vim.notify("Failed to load module '" .. module_name .. "': " .. mod_or_err, vim.log.levels.ERROR)
-				elseif mod_or_err.setup then
-					mod_or_err.setup(daps)
-				end
-			end
-		end
-		-- 加载模块
-		load_modules_from_dir("lua/dap/configs")
+		require("dap-config.adapters.lldb").setup(dap)
+		require("dap-config.adapters.probe_rs").setup(dap)
+		require("dap-config.adapters.pyocd").setup(dap)
+		require("dap-config.adapters.openocd").setup(dap)
+		require("dap-config.adapters.vscode-js-debug").setup(dap)
 
 		vim.api.nvim_create_autocmd({ "VimLeave" }, {
 			callback = function()

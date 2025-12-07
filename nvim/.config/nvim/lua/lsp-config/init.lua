@@ -2,9 +2,9 @@
 -- https://github.com/neovim/nvim-lspconfig/tree/16666f1bc40f69ce05eb1883fd8c0d076284d8a5/lua/lspconfig/configs
 
 local M = {}
-local configs = require("lsp.config")
-local autocmds = require("lsp.lsp_autocmds")
-local keymap = require("lsp.lsp_keymaps")
+local configs = require("lsp-config.setings")
+local autocmds = require("lsp-config.lsp_autocmds")
+local keymap = require("lsp-config.lsp_keymaps")
 
 function M.setup()
 	configs.lsp_Start() -- 启动lsp
