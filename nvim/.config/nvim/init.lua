@@ -39,4 +39,4 @@ vim.defer_fn(function()
 	vim.schedule(function()
 		require("user.dotenv").load() -- token加载模块
 	end)
-end, 300) -- 延迟 100ms 执行
+end, 300)
