@@ -47,7 +47,7 @@ function M.setup()
 	vim.keymap.set("n", "<leader>d?", bp.set_breakpoint, { desc = "DAP: 自定义断点" })
 	vim.keymap.set("n", "<leader>dC", function()
 		dap.clear_breakpoints()
-		require("dap.breakpoint_state").clear_breakpoints()
+		require("dap-config.breakpoint_state").clear_breakpoints()
 	end, { desc = "DAP: 清除所有断点" })
 
 	vim.keymap.set("n", "[`", dap.up, { desc = "DAP: 上一个帧" })

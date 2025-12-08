@@ -121,19 +121,24 @@ end
 -- 保存提示功能
 -- ================================
 function M.save_status()
-	-- 获取所有打开的 buffer
-	local buffers = vim.api.nvim_list_bufs()
+	local unsaved_count = 0
+	local has_unsaved = false
 
-	-- 遍历每个 buffer 检查是否有已修改的文件
-	for _, buf in ipairs(buffers) do
-		-- 如果该 buffer 已修改，显示保存提示
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		if vim.api.nvim_get_option_value("modified", { buf = buf }) then
-			return "%#SaveHighlight#󰆓 %*"
+			unsaved_count = unsaved_count + 1
+			has_unsaved = true
 		end
 	end
 
-	-- 如果所有 buffer 都未修改，显示一个空的保存图标
-	return "󰆓 "
+	local icon = "󰆓"
+	local count_text = string.format("%d", unsaved_count)
+
+	if has_unsaved then
+		return string.format("%%#SaveHighlight#%s %s%%*", icon, count_text)
+	else
+		return icon .. " " .. count_text
+	end
 end
 
 --- 获取调试器状态
