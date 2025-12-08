@@ -183,11 +183,6 @@ function M.get_scrollbar()
 	return "%#PinkHighlight#" .. PROGRESS_ICONS[icon_index] .. "%*"
 end
 
---- 获取芯片状态
-function M.env()
-	return require("env.core").EnvStatus() or ""
-end
-
 -- ================================
 -- 状态栏组装
 -- ================================
@@ -197,7 +192,6 @@ function M.active()
 	return table.concat({
 		"%#Normal#",
 		string.format("%-45s", M.mode()) .. " ", -- 模式显示区域
-		M.env() .. " ",
 		M.save_status(),
 		"  %y ",
 		lsp(),

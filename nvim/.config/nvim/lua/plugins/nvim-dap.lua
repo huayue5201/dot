@@ -209,12 +209,37 @@ return {
 			end
 		end
 
+		-- 配置加载方法
+		local function load_dap_adapter()
+			local filetype = vim.bo.filetype
+			if filetype == "rust" then
+				-- require("dap-config.adapters.rust-gdb").setup(dap) -- gdb在macOS上有bug
+				require("dap-config.adapters.codelldb").setup(dap)
+				require("dap-config.adapters.probe_rs").setup(dap)
+				-- require("dap-config.adapters.pyocd").setup(dap)
+			elseif filetype == "javascript" or filetype == "typescript" then
+				-- 如果是 JavaScript 或 TypeScript 文件，加载 vscode-js-debug 适配器
+				require("dap-config.adapters.vscode-js-debug").setup(dap)
+			elseif filetype == "c" then
+				require("dap-config.adapters.probe_rs").setup(dap)
+				require("dap-config.adapters.openocd").setup(dap)
+				require("dap-config.adapters.pyocd").setup(dap)
+			end
+		end
+
+		-- 创建自动命令，根据文件类型加载调试适配器
+		vim.api.nvim_create_autocmd("FileType", {
+			pattern = "*", -- 对所有文件类型生效
+			callback = load_dap_adapter, -- 调用加载配置的函数
+		})
+
 		-- require("dap-config.adapters.rust-gdb").setup(dap) -- gdb在macOS上有bug
-		require("dap-config.adapters.codelldb").setup(dap)
-		require("dap-config.adapters.probe_rs").setup(dap)
-		require("dap-config.adapters.pyocd").setup(dap)
-		require("dap-config.adapters.openocd").setup(dap)
-		require("dap-config.adapters.vscode-js-debug").setup(dap)
+
+		-- require("dap-config.adapters.codelldb").setup(dap)
+		-- require("dap-config.adapters.probe_rs").setup(dap)
+		-- require("dap-config.adapters.pyocd").setup(dap)
+		-- require("dap-config.adapters.openocd").setup(dap)
+		-- require("dap-config.adapters.vscode-js-debug").setup(dap)
 
 		vim.api.nvim_create_autocmd({ "VimLeave" }, {
 			callback = function()
