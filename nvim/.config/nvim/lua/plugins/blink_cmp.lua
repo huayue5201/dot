@@ -13,6 +13,22 @@ return {
 
 	---@diagnostic disable: missing-fields
 	config = function()
+		-- 1. 获取 LSP 默认能力
+		local capabilities = vim.lsp.protocol.make_client_capabilities()
+
+		-- 2. 合并 nvim-cmp 的能力（不覆盖已有设置）
+		capabilities = vim.tbl_deep_extend("force", capabilities, require("blink.cmp").get_lsp_capabilities({}, false))
+
+		-- 3. 手动添加折叠功能配置
+		capabilities = vim.tbl_deep_extend("force", capabilities, {
+			textDocument = {
+				foldingRange = {
+					dynamicRegistration = false,
+					lineFoldingOnly = true,
+				},
+			},
+		})
+
 		require("blink.cmp").setup({
 			fuzzy = { implementation = "prefer_rust_with_warning" },
 			snippets = {

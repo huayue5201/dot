@@ -1,6 +1,54 @@
 -- https://rust-analyzer.github.io/book/index.html
-
+--
 local uv = vim.uv or vim.loop
+local expand_macro = function()
+	-- 1. 修正参数：第二个参数应为字符串，并传递 position_encoding
+	vim.lsp.buf_request_all(
+		0,
+		--- @diagnostic disable-next-line: param-type-mismatch
+		"rust-analyzer/expandMacro", -- 修改点：去掉花括号，直接传递字符串
+		function(client)
+			-- 官方推荐方式：使用客户端支持的编码
+			--- @diagnostic disable-next-line: param-type-mismatch,redundant-parameter
+			return vim.lsp.util.make_position_params(nil, nil, {
+				position_encoding = client.offset_encoding or "utf-16",
+			})
+		end,
+		function(result)
+			-- 创建新分割并获取其窗口句柄
+			vim.cmd("vsplit")
+			local win = vim.api.nvim_get_current_win()
+
+			-- 创建暂存缓冲区
+			local buf = vim.api.nvim_create_buf(false, true)
+
+			-- 将新缓冲区设置到新窗口
+			vim.api.nvim_win_set_buf(win, buf)
+
+			-- 准备显示的内容
+			local lines_to_insert = {}
+			if result then
+				-- 累积所有客户端的结果
+				for client_id, res in pairs(result) do
+					if res and res.result and res.result.expansion then
+						lines_to_insert = vim.split(res.result.expansion, "\n")
+						break
+					end
+				end
+				if #lines_to_insert == 0 then
+					lines_to_insert = { "No expansion available." }
+				end
+				vim.api.nvim_set_option_value("filetype", "rust", { buf = buf })
+			else
+				lines_to_insert = { "Error: No result returned." }
+			end
+
+			-- 将内容写入缓冲区
+			vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines_to_insert)
+		end
+	)
+end
+vim.api.nvim_create_user_command("RustExpandMacro", expand_macro, {})
 
 --- 判断是否为嵌入式 Rust 项目
 local function is_embedded_project(root_dir)
@@ -15,15 +63,17 @@ local function is_embedded_project(root_dir)
 		return data
 	end
 
-	-- 检查 .cargo/config.toml 或 config 是否设置了嵌入式 target
+	-- 安全检查：如果文件读取失败，content为nil，后续操作会报错
+	-- 检查 .cargo/config.toml
 	for _, fname in ipairs({ ".cargo/config.toml", ".cargo/config" }) do
 		local content = read_file(root_dir .. "/" .. fname)
-		if content and content:find('target%s*=%s*".-(thumb[^"]*|riscv[^"]*)"') then
+		-- 增加nil检查
+		if content and content:find('target%s*=%s*".-(thumb[^"]*|riscv[^"]*|arm[^"]*)"') then
 			return true
 		end
 	end
 
-	-- 检查 target/ 下是否存在 thumb*/riscv*
+	-- 检查 target/ 目录下的目标架构（不变）
 	local handle = uv.fs_scandir(root_dir .. "/target")
 	if handle then
 		while true do
@@ -31,25 +81,21 @@ local function is_embedded_project(root_dir)
 			if not name then
 				break
 			end
-			if name:match("^thumb") or name:match("^riscv") then
+			if name:match("^thumb") or name:match("^riscv") or name:match("^arm") then
 				return true
 			end
 		end
 	end
 
-	-- 检查 Cargo.toml 中是否引入嵌入式库
+	-- 检查 Cargo.toml 中的依赖（不变）
 	local cargo_toml = read_file(root_dir .. "/Cargo.toml")
 	if cargo_toml then
-		-- 添加更多的嵌入式库检查
 		local embedded_libraries = {
-			"embedded%-hal", -- 官方 embedded-hal 库
-			"embassy", -- 第三方 embassy 库
-			"defmt%-rt", -- 如果你使用了 defmt
-			"nrf%-hal", -- 适用于 nRF 系列的嵌入式库
-			-- 在这里继续添加你希望支持的其他嵌入式库
+			"embedded%-hal",
+			"embassy",
+			"defmt%-rt",
+			"nrf%-hal",
 		}
-
-		-- 遍历所有库进行查找
 		for _, library in ipairs(embedded_libraries) do
 			if cargo_toml:find(library) then
 				return true
@@ -57,7 +103,7 @@ local function is_embedded_project(root_dir)
 		end
 	end
 
-	-- 检查裸机项目常见文件
+	-- 检查裸机项目常见文件（不变）
 	for _, f in ipairs({ "link.x", "memory.x", ".probe-rs" }) do
 		if uv.fs_stat(root_dir .. "/" .. f) then
 			return true
@@ -72,18 +118,28 @@ return {
 	filetypes = { "rust" },
 	root_markers = { "Cargo.toml" },
 	single_file_support = true,
+	commands = {
+		ExpandMacro = {
+			expand_macro,
+			description = "Expand Rust macro at cursor position",
+		},
+	},
 	settings = {
 		["rust-analyzer"] = {
 			showUnlinkedFileNotification = false,
 			check = {
 				command = "clippy",
-				allTargets = false,
+				allTargets = true,
+			},
+			diagnostics = {
+				enable = true,
+				trigger = "onSave", -- 也可根据性能考虑改为 "onType"
 			},
 			cargo = {
 				buildScripts = {
 					enable = true,
 				},
-				noDefaultFeatures = false, -- 这里初始默认值，会在 on_new_config 动态修改
+				-- 初始化时不设target，在 on_new_config 中动态设置
 			},
 			imports = {
 				granularity = { group = "module" },
@@ -100,15 +156,24 @@ return {
 			},
 			procMacro = {
 				enable = true,
+				-- 可以考虑添加 ignored 列表以优化性能，例如：
+				-- ignored = {
+				--     ["async-trait"] = { "async_trait" },
+				--     ["napi-derive"] = { "napi" },
+				-- }
 			},
 		},
 	},
-	-- 当 server 启动后，注入针对嵌入式的配置
 	on_new_config = function(config, root_dir)
 		if is_embedded_project(root_dir) then
-			config.settings["rust-analyzer"].cargo.target = "thumbv7em-none-eabihf"
+			config.settings["rust-analyzer"].cargo.target = "thumbv7em-none-eabihf" -- 或你的具体目标
 			config.settings["rust-analyzer"].cargo.noDefaultFeatures = true
 			config.settings["rust-analyzer"].check.noDefaultFeatures = true
+		else
+			-- 明确设置标准项目的配置，避免残留的嵌入式配置
+			config.settings["rust-analyzer"].cargo.target = nil
+			config.settings["rust-analyzer"].cargo.noDefaultFeatures = false
+			config.settings["rust-analyzer"].check.noDefaultFeatures = false
 		end
 	end,
 }
