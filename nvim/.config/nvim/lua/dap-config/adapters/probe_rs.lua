@@ -13,8 +13,8 @@ return {
 
 		-- 动态 Provider
 		dap.providers.configs["probe-rs-debug"] = function(bufnr)
-			local chip = vim.g.envCofnig and vim.g.envCofnig.chip or nil
-			local svdFile = vim.g.envCofnig and vim.g.envCofnig.svdFile or nil
+			local chip = vim.g.envConfig and vim.g.envConfig.chip or nil
+			local svdFile = vim.g.envConfig and vim.g.envConfig.svdFile or nil
 
 			local function pick_program()
 				return require("dap.utils").pick_file()

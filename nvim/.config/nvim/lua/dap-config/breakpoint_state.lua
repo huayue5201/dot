@@ -305,12 +305,18 @@ function M.setup()
 		desc = "DAP: 退出时自动保存并清理断点",
 	})
 
-	vim.defer_fn(function()
-		-- 先清理无效的存储数据
-		M.cleanup_stored_breakpoints()
-		-- 然后恢复有效的断点
-		M.restore_breakpoints()
-	end, 2000)
+	local group = vim.api.nvim_create_augroup("BreakpointAutoRestore", { clear = true })
+
+	vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
+		group = group,
+		callback = function()
+			-- 延时 2 秒后执行
+			vim.defer_fn(function()
+				M.cleanup_stored_breakpoints()
+				M.restore_breakpoints()
+			end, 2000)
+		end,
+	})
 
 	-- 断点变化时自动保存（使用防抖）
 	local group = vim.api.nvim_create_augroup("DapBreakpointAutoSave", { clear = true })

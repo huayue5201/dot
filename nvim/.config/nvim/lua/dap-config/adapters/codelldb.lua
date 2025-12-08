@@ -1,3 +1,4 @@
+-- ~/.config/nvim/lua/dap-config/rust-lldb.lua
 return {
 	setup = function(dap)
 		-- LLDB Adapter 配置
@@ -5,10 +6,19 @@ return {
 			type = "server",
 			port = "${port}",
 			executable = {
-				command = "codelldb", -- 或者本地 codelldb 路径
+				command = "codelldb", -- 或者你本地 codelldb 的路径
 				args = { "--port", "${port}" },
 				detached = vim.loop.os_uname().sysname ~= "Windows",
 			},
+		}
+
+		-- 默认调试配置
+		local cfg = {
+			name = "Debug",
+			type = "lldb",
+			request = "launch",
+			cwd = "${workspaceFolder}",
+			stopOnEntry = false,
 		}
 
 		-- 工具函数：从 cargo JSON 输出中获取可执行文件
@@ -30,7 +40,7 @@ return {
 			return targets
 		end
 
-		-- 工具函数：选择可执行文件
+		-- 工具函数：选择可执行文件（现代交互 API）
 		local function select_target(cmd)
 			local targets = get_targets(cmd)
 			if #targets == 0 then
@@ -38,12 +48,19 @@ return {
 			elseif #targets == 1 then
 				return targets[1]
 			else
-				local choice, done = nil, false
+				-- 异步选择
+				local choice = nil
+				local choice_made = false
+
 				local items = {}
-				for _, t in ipairs(targets) do
-					local parts = vim.split(t, package.config:sub(1, 1), { trimempty = true })
-					table.insert(items, { display = parts[#parts], value = t })
+				for i, target in ipairs(targets) do
+					local parts = vim.split(target, package.config:sub(1, 1), { trimempty = true })
+					table.insert(items, {
+						display = parts[#parts],
+						value = target,
+					})
 				end
+
 				vim.ui.select(items, {
 					prompt = "Select a target:",
 					format_item = function(item)
@@ -53,11 +70,14 @@ return {
 					if selected then
 						choice = selected.value
 					end
-					done = true
+					choice_made = true
 				end)
-				while not done do
+
+				-- 等待用户选择完成
+				while not choice_made do
 					vim.wait(50)
 				end
+
 				return choice
 			end
 		end
@@ -68,84 +88,79 @@ return {
 			return vim.split(input, " ", { trimempty = true })
 		end
 
-		-- 基础配置
-		local cfg_base = {
-			type = "lldb",
-			request = "launch",
-			cwd = "${workspaceFolder}",
-			stopOnEntry = false,
+		-- C 语言配置
+		dap.configurations.c = {
+			vim.tbl_extend("force", cfg, {
+				program = function()
+					return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+				end,
+			}),
+			vim.tbl_extend("force", cfg, {
+				name = "Debug (+args)",
+				program = function()
+					return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+				end,
+				args = read_args,
+			}),
+			vim.tbl_extend("force", cfg, { name = "Attach debugger", request = "attach" }),
 		}
 
-		-- 动态 Provider
-		dap.providers.configs["rust-lldb"] = function(bufnr)
-			return {
-				{
-					name = "Debug binary",
-					type = "lldb",
-					request = "launch",
-					cwd = vim.fn.getcwd(),
-					program = function()
-						return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
-					end,
-				},
-				{
-					name = "Debug binary (+args)",
-					type = "lldb",
-					request = "launch",
-					cwd = vim.fn.getcwd(),
-					program = function()
-						return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
-					end,
-					args = read_args,
-				},
-				{
-					name = "Debug tests",
-					type = "lldb",
-					request = "launch",
-					cwd = vim.fn.getcwd(),
-					program = function()
-						return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
-					end,
-					args = { "--test-threads=1" },
-				},
-				{
-					name = "Debug tests (+args)",
-					type = "lldb",
-					request = "launch",
-					cwd = vim.fn.getcwd(),
-					program = function()
-						return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
-					end,
-					args = function()
-						return vim.list_extend(read_args(), { "--test-threads=1" })
-					end,
-				},
-				{
-					name = "Debug test (cursor)",
-					type = "lldb",
-					request = "launch",
-					cwd = vim.fn.getcwd(),
-					program = function()
-						return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
-					end,
-					args = function()
-						local test_name = nil -- TODO: 使用 Treesitter 获取光标所在测试函数
-						return test_name and { "--exact", test_name, "--test-threads=1" } or { "--test-threads=1" }
-					end,
-				},
-				{
-					name = "Attach debugger",
-					type = "lldb",
-					request = "attach",
-					cwd = vim.fn.getcwd(),
-					program = function()
-						return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
-					end,
-				},
-			}
-		end
+		-- C++ 配置和 C 相同
+		dap.configurations.cpp = vim.tbl_extend("keep", {}, dap.configurations.c)
 
-		-- 可选：指定类型对应的文件类型
-		require("dap.ext.vscode").type_to_filetypes["rust-lldb"] = { "rust" }
+		-- Rust 配置
+		dap.configurations.rust = {
+			-- Debug二进制
+			vim.tbl_extend("force", cfg, {
+				program = function()
+					return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
+				end,
+			}),
+			-- Debug (+args)
+			vim.tbl_extend("force", cfg, {
+				name = "Debug (+args)",
+				program = function()
+					return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
+				end,
+				args = read_args,
+			}),
+			-- Debug tests
+			vim.tbl_extend("force", cfg, {
+				name = "Debug tests",
+				program = function()
+					return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
+				end,
+				args = { "--test-threads=1" },
+			}),
+			-- Debug tests (+args)
+			vim.tbl_extend("force", cfg, {
+				name = "Debug tests (+args)",
+				program = function()
+					return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
+				end,
+				args = function()
+					return vim.list_extend(read_args(), { "--test-threads=1" })
+				end,
+			}),
+			-- Debug 光标所在的测试函数
+			vim.tbl_extend("force", cfg, {
+				name = "Debug test (cursor)",
+				program = function()
+					return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
+				end,
+				args = function()
+					local test_name = nil -- TODO: 使用 Treesitter 获取光标所在测试函数
+					return test_name and { "--exact", test_name, "--test-threads=1" } or { "--test-threads=1" }
+				end,
+			}),
+			-- Attach
+			vim.tbl_extend("force", cfg, {
+				name = "Attach debugger",
+				request = "attach",
+				program = function()
+					return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
+				end,
+			}),
+		}
 	end,
 }

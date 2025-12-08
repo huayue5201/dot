@@ -20,8 +20,8 @@ return {
 					executable = function()
 						return require("dap.utils").pick_file()
 					end,
-					svdFile = vim.g.envCofnig.svdFile,
-					configFiles = vim.g.envCofnig.configFiles,
+					svdFile = vim.g.envConfig.svdFile,
+					configFiles = vim.g.envConfig.configFiles,
 					rttConfig = dap_cortex_debug.rtt_config(0),
 				},
 			}
