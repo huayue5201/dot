@@ -42,6 +42,6 @@ return {
 			highlight_overrides = {}, -- 覆盖特定 highlight 组的颜色
 		})
 
-		vim.cmd.colorscheme("oasis") -- After setup, apply theme (or a any style like "oasis-night")
+		vim.cmd.colorscheme("oasis-cactus") -- After setup, apply theme (or a any style like "oasis-night")
 	end,
 }

@@ -42,8 +42,8 @@ function M.set_breakpoint()
 				["日志点"] = "触发时输出日志",
 				["多条件断点"] = "多个条件组合触发",
 			}
-			-- 使用固定宽度，确保描述内容对齐
-			return string.format("󰁯  %-15s . %-20s", item, descriptions[item])
+			-- 使用固定宽度，确保描述内容对齐，右对齐描述内容
+			return string.format("󰁯  %-10s . %-15s", item, descriptions[item])
 		end,
 	}, function(choice)
 		if choice == "条件断点" then
