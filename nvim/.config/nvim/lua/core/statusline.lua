@@ -131,13 +131,13 @@ function M.save_status()
 		end
 	end
 
-	local icon = "󰆓"
+	local icon = "save"
 	local count_text = string.format("%d", unsaved_count)
 
 	if has_unsaved then
-		return string.format("%%#SaveHighlight#%s %s%%*", icon, count_text)
+		return string.format("%%#SaveHighlight#%s%s%%*", icon, count_text)
 	else
-		return icon .. " " .. count_text
+		return icon .. count_text
 	end
 end
 

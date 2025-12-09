@@ -12,7 +12,7 @@ M.diagnostic_config = function()
 			current_line = true,
 		},
 		severity_sort = true,
-		-- float = { source = "if_many", border = "shadow" },
+		float = { source = "if_many", border = "solid" },
 		signs = {
 			text = {
 				[vim.diagnostic.severity.ERROR] = icons.ERROR,

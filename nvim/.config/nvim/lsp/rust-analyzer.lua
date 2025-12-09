@@ -1,55 +1,6 @@
 -- https://rust-analyzer.github.io/book/index.html
---
+
 local uv = vim.uv or vim.loop
-local expand_macro = function()
-	-- 1. 修正参数：第二个参数应为字符串，并传递 position_encoding
-	vim.lsp.buf_request_all(
-		0,
-		--- @diagnostic disable-next-line: param-type-mismatch
-		"rust-analyzer/expandMacro", -- 修改点：去掉花括号，直接传递字符串
-		function(client)
-			-- 官方推荐方式：使用客户端支持的编码
-			--- @diagnostic disable-next-line: param-type-mismatch,redundant-parameter
-			return vim.lsp.util.make_position_params(nil, nil, {
-				position_encoding = client.offset_encoding or "utf-16",
-			})
-		end,
-		function(result)
-			-- 创建新分割并获取其窗口句柄
-			vim.cmd("vsplit")
-			local win = vim.api.nvim_get_current_win()
-
-			-- 创建暂存缓冲区
-			local buf = vim.api.nvim_create_buf(false, true)
-
-			-- 将新缓冲区设置到新窗口
-			vim.api.nvim_win_set_buf(win, buf)
-
-			-- 准备显示的内容
-			local lines_to_insert = {}
-			if result then
-				-- 累积所有客户端的结果
-				for client_id, res in pairs(result) do
-					if res and res.result and res.result.expansion then
-						lines_to_insert = vim.split(res.result.expansion, "\n")
-						break
-					end
-				end
-				if #lines_to_insert == 0 then
-					lines_to_insert = { "No expansion available." }
-				end
-				vim.api.nvim_set_option_value("filetype", "rust", { buf = buf })
-			else
-				lines_to_insert = { "Error: No result returned." }
-			end
-
-			-- 将内容写入缓冲区
-			vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines_to_insert)
-		end
-	)
-end
-vim.api.nvim_create_user_command("RustExpandMacro", expand_macro, {})
-
 --- 判断是否为嵌入式 Rust 项目
 local function is_embedded_project(root_dir)
 	local function read_file(path)
@@ -118,12 +69,6 @@ return {
 	filetypes = { "rust" },
 	root_markers = { "Cargo.toml" },
 	single_file_support = true,
-	commands = {
-		ExpandMacro = {
-			expand_macro,
-			description = "Expand Rust macro at cursor position",
-		},
-	},
 	settings = {
 		["rust-analyzer"] = {
 			showUnlinkedFileNotification = false,
@@ -175,5 +120,97 @@ return {
 			config.settings["rust-analyzer"].cargo.noDefaultFeatures = false
 			config.settings["rust-analyzer"].check.noDefaultFeatures = false
 		end
+	end,
+	on_attach = function(client, bufnr)
+		-- 状态变量：只记录当前预览窗口
+		local macro_preview_win = nil
+
+		-- 切换宏预览的主函数
+		local function toggle_macro_preview()
+			-- 情况1：如果窗口有效，则关闭预览
+			if macro_preview_win and vim.api.nvim_win_is_valid(macro_preview_win) then
+				vim.api.nvim_win_close(macro_preview_win, true)
+				macro_preview_win = nil
+				return
+			end
+
+			-- 情况2：否则，请求服务器展开宏并打开预览
+			vim.lsp.buf_request_all(
+				0,
+				--- @diagnostic disable-next-line: param-type-mismatch
+				"rust-analyzer/expandMacro",
+				function(lsp_client)
+					-- 修正：安全地获取编码，并正确传递参数[citation:10]
+					local encoding = lsp_client.offset_encoding
+					if encoding == nil then
+						encoding = "utf-16"
+					end
+					-- 正确调用，只传两个参数
+					return vim.lsp.util.make_position_params(0, encoding)
+				end,
+				function(result)
+					-- 创建水平分割窗口
+					vim.cmd("split")
+					local win = vim.api.nvim_get_current_win()
+					local buf = vim.api.nvim_create_buf(false, true)
+					vim.api.nvim_win_set_buf(win, buf)
+
+					-- 1. 准备并写入内容
+					local lines_to_insert = {}
+					if result then
+						for _, res in pairs(result) do
+							if res and res.result and res.result.expansion then
+								lines_to_insert = vim.split(res.result.expansion, "\n")
+								break
+							end
+						end
+						if #lines_to_insert == 0 then
+							lines_to_insert = { "No expansion available." }
+						end
+						vim.api.nvim_set_option_value("filetype", "rust", { buf = buf })
+					else
+						lines_to_insert = { "Error: No result returned." }
+					end
+					vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines_to_insert)
+
+					-- 2. 设置键映射（在设为只读前绑定）
+					local close_preview = function()
+						if vim.api.nvim_win_is_valid(macro_preview_win) then
+							vim.api.nvim_win_close(macro_preview_win, true)
+							macro_preview_win = nil
+						end
+					end
+					vim.keymap.set(
+						"n",
+						"q",
+						close_preview,
+						{ buffer = buf, noremap = true, silent = true, desc = "关闭宏预览" }
+					)
+					vim.keymap.set(
+						"n",
+						"<Esc>",
+						close_preview,
+						{ buffer = buf, noremap = true, silent = true, desc = "关闭宏预览" }
+					)
+
+					-- 4. 【关键】最后，将缓冲区设置为只读/不可修改
+					vim.api.nvim_set_option_value("readonly", true, { buf = buf })
+					vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
+
+					-- 5. 记录窗口并设置窗口选项
+					macro_preview_win = win
+					-- 假设 `win` 是您创建的预览窗口的变量
+					vim.api.nvim_set_option_value("cursorline", false, { win = win })
+				end
+			)
+		end
+
+		-- 创建缓冲区本地用户命令（推荐方式）
+		vim.api.nvim_buf_create_user_command(bufnr, "RustExpandMacro", toggle_macro_preview, {
+			desc = "切换 Rust 宏展开预览窗口（打开/关闭）",
+		})
+
+		local opts = { buffer = bufnr, noremap = true, silent = true, desc = "Toggle Rust Macro Preview" }
+		vim.keymap.set("n", "<leader>lm", toggle_macro_preview, opts)
 	end,
 }
