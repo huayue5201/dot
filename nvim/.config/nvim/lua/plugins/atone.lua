@@ -4,7 +4,7 @@ return {
 	"XXiaoA/atone.nvim",
 	event = "VeryLazy",
 	cmd = "Atone",
-	config = function(_, opts)
+	config = function()
 		require("atone").setup({
 			layout = {
 				---@type "left"|"right"
