@@ -18,7 +18,7 @@ return {
 		-- vim.api.nvim_set_hl(0, "TabbyHead", { fg = "#7FBBB3", bg = "#414B50" })
 
 		require("tabby").setup({
-			-- theme = "oasis", -- Automatically matches your current Oasis style
+			theme = "oasis", -- Automatically matches your current Oasis style
 			-- line = function(line)
 			-- 	return {
 			-- 		{
