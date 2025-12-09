@@ -163,10 +163,10 @@ end
 function M.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or not git_info.head then
-		return "%#GitIcon# %*" .. " "
+		return "%#GitIcon# %*" .. " "
 	end
 
-	local parts = { "%#GitIcon# %*" .. "[" .. git_info.head .. "]" }
+	local parts = { "%#GitIcon# %*" .. "[" .. git_info.head .. "]" }
 
 	local git_icons = {
 		added = "%#GitIconAdded#+%*",
