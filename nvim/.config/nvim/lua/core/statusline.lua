@@ -114,7 +114,16 @@ function M.mode()
 	end
 
 	-- 返回带高亮的文本
-	return "%#StatuslineIcon# %*" .. "%#" .. mode_info.hl .. "#" .. mode_info.label .. "%*"
+	return "%#StatuslineIcon# %*"
+		.. "%#"
+		.. mode_info.hl
+		.. "#"
+		.. mode_info.label
+		.. "%#StatuslineIcon#  %*"
+		.. "%#"
+		.. mode_info.hl
+		.. "#"
+		.. "%*"
 end
 
 -- ================================
@@ -131,7 +140,7 @@ function M.save_status()
 		end
 	end
 
-	local icon = "save"
+	local icon = "save."
 	local count_text = string.format("%d", unsaved_count)
 
 	if has_unsaved then
@@ -162,7 +171,7 @@ function M.vcs()
 	local git_icons = {
 		added = "%#GitIconAdded#+%*",
 		removed = "%#GitIconRemoved#-%*",
-		changed = "%#GitIconChanged#󱅅 %*",
+		changed = "%#GitIconChanged# %*",
 	}
 
 	for key, icon in pairs(git_icons) do
