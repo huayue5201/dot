@@ -13,14 +13,15 @@ return {
 		vim.cmd([[au FileType dap-repl lua require('dap.ext.autocompl').attach()]])
 
 		vim.api.nvim_set_hl(0, "DapBreakpoint", { fg = "#FF0000" })
-		vim.api.nvim_set_hl(0, "DapBreakpointCondition", { fg = "#FFDAB9" })
+		vim.api.nvim_set_hl(0, "DapBreakpointLine", { bg = "#800000" })
+		vim.api.nvim_set_hl(0, "DapBreakpointCondition", { fg = "#ff0000" })
 		vim.api.nvim_set_hl(0, "DapBreakpointRejected", { fg = "#8B8B7A" })
 		vim.api.nvim_set_hl(0, "DapLogPoint", { fg = "#00BFFF" })
 		vim.api.nvim_set_hl(0, "YellowCursor", { fg = "#FFCC00", bg = "" })
 		vim.api.nvim_set_hl(0, "YellowBack", { bg = "#4C4C19" })
 		local signs = {
-			DapBreakpoint = { text = "", texthl = "DapBreakpoint" }, -- 断点
-			DapBreakpointCondition = { text = "", texthl = "DapBreakpointCondition" }, -- 条件断点
+			DapBreakpoint = { text = "", texthl = "DapBreakpoint", linehl = "DapBreakpointLine" }, -- 断点
+			DapBreakpointCondition = { text = "󰽷", texthl = "DapBreakpointCondition", linehl = "DapBreakpointLine" }, -- 条件断点
 			DapBreakpointRejected = { text = "", texthl = "DapBreakpointRejected" }, -- 拒绝断点
 			DapLogPoint = { text = "", texthl = "DapLogPoint" }, -- 日志点
 			DapStopped = { -- 停止位置
