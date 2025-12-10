@@ -1,6 +1,6 @@
 -- LSP 配置模块
 local M = {}
-local keymaps = require("lsp-config.lsp_keymaps")
+local keymaps = require("lsp-config.lsp_keys")
 local configs = require("lsp-config.setings")
 
 -- 插入/选择模式禁用/启用诊断

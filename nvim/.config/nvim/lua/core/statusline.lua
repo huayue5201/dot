@@ -135,7 +135,6 @@ function M.save_status()
 
 	-- 定义需要忽略的缓冲区和文件类型
 	local ignore_conditions = {
-		-- 缓冲区名或文件类型
 		{ buffer = "dap", filetype = "dap" },
 		{ buffer = "fugitive", filetype = "fugitive" },
 		{ filetype = "terminal" }, -- 忽略终端文件类型
@@ -175,13 +174,15 @@ function M.save_status()
 	end
 
 	-- 设置图标和计数
-	local lable = "save."
+	local label = "save."
 	local count_text = string.format("%d", unsaved_count)
 
+	-- 只高亮数字部分
 	if has_unsaved then
-		return string.format("%%#SaveHighlight#%s%s%%*", lable, count_text)
+		-- 在Neovim状态栏中，使用 %#HLGroup# 设置高亮，%% 表示转义的 % 字符
+		return string.format("%s%%#SaveHighlight#%s%%*", label, count_text)
 	else
-		return lable .. count_text
+		return label .. count_text
 	end
 end
 
