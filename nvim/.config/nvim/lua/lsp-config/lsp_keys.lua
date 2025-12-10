@@ -117,7 +117,7 @@ end
 
 -- 定义一个函数来列出当前缓冲区的活动 LSP 客户端
 local function list_active_lsps()
-	local lsps = require("lsp.lsp_utils").get_active_lsps(0)
+	local lsps = require("lsp-config.lsp_utils").get_active_lsps(0)
 	if #lsps == 0 then
 		print("No active LSP clients for this buffer.")
 		return

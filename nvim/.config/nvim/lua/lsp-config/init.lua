@@ -4,7 +4,7 @@
 local M = {}
 local configs = require("lsp-config.setings")
 local autocmds = require("lsp-config.lsp_autocmds")
-local keymap = require("lsp-config.lsp_keymaps")
+local keymap = require("lsp-config.lsp_keys")
 
 function M.setup()
 	configs.lsp_Start() -- 启动lsp
