@@ -34,7 +34,7 @@ function M.set_breakpoint()
 		"Log Point",
 		"Multi",
 	}, {
-		prompt = "🔴 选择断点类型:",
+		prompt = " 🔴选择断点类型: ",
 		format_item = function(item)
 			local descriptions = {
 				["Conditional"] = "满足条件时才触发",
