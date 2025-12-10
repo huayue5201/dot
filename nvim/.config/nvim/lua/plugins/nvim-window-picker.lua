@@ -77,7 +77,7 @@ return {
 					filetype = { "pager", "msgmore", "snacks_picker_input" },
 
 					-- 如果缓冲区类型是以下之一，窗口将被忽略
-					-- buftype = { "terminal" },
+					buftype = {},
 				},
 
 				-- 根据窗口选项进行过滤

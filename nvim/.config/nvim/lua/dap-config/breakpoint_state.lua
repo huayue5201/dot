@@ -285,6 +285,46 @@ function M.cleanup_stored_breakpoints()
 	update_cached_bps(valid_bps)
 end
 
+-- 清除单个断点
+function M.clear_single_breakpoint(filepath, line)
+	if not filepath or line <= 0 then
+		return false
+	end
+
+	-- 获取当前存储的断点
+	local stored_bps = get_cached_stored_bps()
+
+	-- 检查该文件路径是否存在断点
+	if stored_bps[filepath] then
+		local valid_bps = {}
+
+		-- 遍历当前文件的断点，移除指定行号的断点
+		for _, bp in ipairs(stored_bps[filepath]) do
+			if bp.line ~= line then
+				table.insert(valid_bps, bp)
+			end
+		end
+
+		-- 如果移除了该行号的断点，更新存储数据
+		if #valid_bps < #stored_bps[filepath] then
+			stored_bps[filepath] = valid_bps
+			update_cached_bps(stored_bps)
+			return true
+		end
+	end
+
+	return false
+end
+
+-- 自动清除光标位置的断点
+function M.clear_breakpoint_at_cursor()
+	-- 获取当前文件路径和光标行号
+	local filepath = vim.fn.expand("%:p") -- 当前文件的绝对路径
+	local line = vim.fn.line(".") -- 当前光标所在的行号
+	-- 调用清除单个断点的函数
+	return M.clear_single_breakpoint(filepath, line)
+end
+
 -- 清除存储的断点数据
 function M.clear_breakpoints()
 	cached_bps = {}
@@ -305,10 +345,10 @@ function M.setup()
 		desc = "DAP: 退出时自动保存并清理断点",
 	})
 
-	local group = vim.api.nvim_create_augroup("BreakpointAutoRestore", { clear = true })
+	local restore_group = vim.api.nvim_create_augroup("BreakpointAutoRestore", { clear = true })
 
 	vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
-		group = group,
+		group = restore_group,
 		callback = function()
 			-- 延时 2 秒后执行
 			vim.defer_fn(function()
@@ -319,10 +359,9 @@ function M.setup()
 	})
 
 	-- 断点变化时自动保存（使用防抖）
-	local group = vim.api.nvim_create_augroup("DapBreakpointAutoSave", { clear = true })
-
+	local save_group = vim.api.nvim_create_augroup("DapBreakpointAutoSave", { clear = true })
 	vim.api.nvim_create_autocmd("User", {
-		group = group,
+		group = save_group,
 		pattern = "DapBreakpointChanged",
 		callback = function()
 			M.save_breakpoints_debounced()

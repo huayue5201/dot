@@ -23,7 +23,7 @@ return {
 			DapBreakpoint = { text = "", texthl = "DapBreakpoint", linehl = "DapBreakpointLine" }, -- 断点
 			DapBreakpointCondition = { text = "󰽷", texthl = "DapBreakpointCondition", linehl = "DapBreakpointLine" }, -- 条件断点
 			DapBreakpointRejected = { text = "", texthl = "DapBreakpointRejected" }, -- 拒绝断点
-			DapLogPoint = { text = "", texthl = "DapLogPoint" }, -- 日志点
+			DapLogPoint = { text = "󰽷", texthl = "DapLogPoint" }, -- 日志点
 			DapStopped = { -- 停止位置
 				text = " ",
 				texthl = "YellowCursor",
