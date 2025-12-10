@@ -1,6 +1,6 @@
 -- 保存时自动删除尾随空格
 vim.api.nvim_create_autocmd("BufWritePre", {
-	pattern = { "*.txt", "*.lua", "*.js", "*.py" },
+	pattern = { "*" },
 	desc = "保存前自动删除行尾空格",
 	command = "%s/\\s\\+$//e",
 })
