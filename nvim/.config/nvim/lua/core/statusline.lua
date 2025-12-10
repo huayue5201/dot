@@ -133,20 +133,55 @@ function M.save_status()
 	local unsaved_count = 0
 	local has_unsaved = false
 
+	-- 定义需要忽略的缓冲区和文件类型
+	local ignore_conditions = {
+		-- 缓冲区名或文件类型
+		{ buffer = "dap", filetype = "dap" },
+		{ buffer = "fugitive", filetype = "fugitive" },
+		{ filetype = "terminal" }, -- 忽略终端文件类型
+		{ filetype = "log" }, -- 忽略日志文件类型
+		{ filetype = "help" }, -- 忽略帮助文件类型
+	}
+
+	-- 遍历所有缓冲区
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-		if vim.api.nvim_get_option_value("modified", { buf = buf }) then
+		-- 使用 nvim_get_option_value 获取缓冲区的文件类型
+		local filetype = vim.api.nvim_get_option_value("filetype", { buf = buf })
+		local bufname = vim.api.nvim_buf_get_name(buf)
+
+		-- 检查是否满足任何忽略条件
+		local ignore = false
+		for _, cond in ipairs(ignore_conditions) do
+			if (cond.buffer and bufname == cond.buffer) or (cond.filetype and filetype == cond.filetype) then
+				ignore = true
+				break
+			end
+		end
+
+		if ignore then
+			goto continue
+		end
+
+		-- 使用 nvim_get_option_value 获取缓冲区的修改状态
+		local modified = vim.api.nvim_get_option_value("modified", { buf = buf })
+
+		-- 检查缓冲区是否已修改
+		if modified then
 			unsaved_count = unsaved_count + 1
 			has_unsaved = true
 		end
+
+		::continue::
 	end
 
-	local icon = "save."
+	-- 设置图标和计数
+	local lable = "save."
 	local count_text = string.format("%d", unsaved_count)
 
 	if has_unsaved then
-		return string.format("%%#SaveHighlight#%s%s%%*", icon, count_text)
+		return string.format("%%#SaveHighlight#%s%s%%*", lable, count_text)
 	else
-		return icon .. count_text
+		return lable .. count_text
 	end
 end
 
@@ -156,7 +191,7 @@ function M.dap_status()
 	if dap_status == "" then
 		return ""
 	end
-	return "%#DapIcon# %*" .. dap_status
+	return "%#DapIcon# %*" .. dap_status
 end
 
 --- 获取 Git 状态
