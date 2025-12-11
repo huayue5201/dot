@@ -11,26 +11,24 @@ local M = {} -- 使用 M 作为模块的局部变量
 -- ================================
 -- 高亮组配置
 -- ================================
-local function setup_highlights()
-	local highlight_defs = {
-		DefaultMode = { bold = true },
-		SaveHighlight = { fg = "#E4080A", bold = true }, -- 定义红色保存高亮组
-		NormalMode = { bold = true },
-		InsertMode = { bold = true },
-		VisualMode = { bold = true },
-		ReplaceMode = { bold = true },
-		PinkHighlight = { fg = "#ffde7d", bold = true },
-		StatuslineIcon = { fg = "#ffc125", bold = true },
-		DapIcon = { fg = "#FF0000", bold = true },
-		GitIcon = { fg = "#FF8C00", bold = true },
-		GitIconChanged = { fg = colors.yellow, bold = true },
-		GitIconRemoved = { fg = colors.red, bold = true },
-		GitIconAdded = { fg = colors.green, bold = true },
-	}
+local highlight_defs = {
+	DefaultMode = { bold = true },
+	SaveHighlight = { fg = "#E4080A", bold = true }, -- 定义红色保存高亮组
+	NormalMode = { bold = true },
+	InsertMode = { bold = true },
+	VisualMode = { bold = true },
+	ReplaceMode = { bold = true },
+	PinkHighlight = { fg = "#ffde7d", bold = true },
+	StatuslineIcon = { fg = "#ffc125", bold = true },
+	DapIcon = { fg = "#FF0000", bold = true },
+	GitIcon = { fg = "#FF8C00", bold = true },
+	GitIconChanged = { fg = colors.yellow, bold = true },
+	GitIconRemoved = { fg = colors.red, bold = true },
+	GitIconAdded = { fg = colors.green, bold = true },
+}
 
-	for group, opts in pairs(highlight_defs) do
-		vim.api.nvim_set_hl(0, group, opts)
-	end
+for group, opts in pairs(highlight_defs) do
+	vim.api.nvim_set_hl(0, group, opts)
 end
 
 -- ================================
@@ -265,9 +263,6 @@ local function refresh_statusline()
 		win = vim.api.nvim_get_current_win(),
 	})
 end
-
--- 设置高亮组
-setup_highlights()
 
 -- 创建自动命令组
 local statusline_group = vim.api.nvim_create_augroup("Statusline", { clear = true })
