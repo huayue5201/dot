@@ -67,3 +67,36 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 		end
 	end,
 })
+
+-- 自动刷新 quickfix 和 location list
+local timer = nil
+local last_refresh = 0
+
+vim.api.nvim_create_autocmd("DiagnosticChanged", {
+	callback = function()
+		local now = vim.loop.now()
+		if now - last_refresh < 300 then
+			return
+		end -- 300ms 冷却时间
+
+		if timer then
+			timer:close()
+		end
+		timer = vim.defer_fn(function()
+			-- 刷新 quickfix
+			local qf_info = vim.fn.getqflist()
+			if #qf_info > 0 and qf_info[1].winid ~= 0 then
+				require("lsp-config.lsp_keys").open_all_diagnostics()
+			end
+
+			-- 刷新当前窗口的 location list
+			local loc_info = vim.fn.getloclist(0)
+			if #loc_info > 0 and loc_info[1].winid ~= 0 then
+				require("lsp-config.lsp_keys").open_buffer_diagnostics()
+			end
+
+			last_refresh = vim.loop.now()
+			timer = nil
+		end, 150) -- 150ms 防抖延迟
+	end,
+})
