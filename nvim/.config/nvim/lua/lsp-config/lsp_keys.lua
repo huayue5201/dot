@@ -134,7 +134,7 @@ local keymaps = {
 	{
 		"gro",
 		function()
-			require("lsp-config.external_docs").open_docs()
+			require("lsp-config.externalDocs").open_docs()
 		end,
 		"LSP: open external docs",
 	},
@@ -199,6 +199,10 @@ M.global_keymaps = function()
 	vim.keymap.set("n", "<leader>yd", function()
 		CopyErrorMessage()
 	end, { noremap = true, silent = true, desc = "LSP: 复制lsp诊断" })
+
+	vim.keymap.set("n", "grh", function()
+		require("lsp-config.prepareCallHierarchy").open_call_tree()
+	end, { desc = "LSP: call tree visualization" })
 
 	-- vim.keymap.set("i", "<C-CR>", function()
 	-- 	if not vim.lsp.inline_completion.get() then
