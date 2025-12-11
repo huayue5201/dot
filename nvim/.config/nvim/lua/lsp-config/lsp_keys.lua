@@ -62,7 +62,7 @@ local function toggle_lsp()
 end
 
 -- 打开所有 buffer 的诊断（Quickfix 风格，适合全局排查）
-local function open_all_diagnostics()
+function M.open_all_diagnostics()
 	---@diagnostic disable-next-line: param-type-mismatch
 	vim.diagnostic.setqflist({
 		open = true,
@@ -81,7 +81,7 @@ local function open_all_diagnostics()
 end
 
 -- 仅当前 buffer 的诊断（Loclist 风格，适合局部修复）
-local function open_buffer_diagnostics()
+function M.open_buffer_diagnostics()
 	---@diagnostic disable-next-line: param-type-mismatch
 	vim.diagnostic.setloclist({
 		open = true,
@@ -147,14 +147,14 @@ local keymaps = {
 	{
 		"<leader>ld",
 		function()
-			open_buffer_diagnostics()
+			M.open_buffer_diagnostics()
 		end,
 		"LSP: buffer diagnostics",
 	},
 	{
 		"<leader>lD",
 		function()
-			open_all_diagnostics()
+			M.open_all_diagnostics()
 		end,
 		"LSP: workspace diagnostics",
 	},
