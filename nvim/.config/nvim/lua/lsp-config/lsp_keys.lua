@@ -131,6 +131,13 @@ end
 -- 按键映射
 local keymaps = {
 	-- { "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
+	{
+		"gro",
+		function()
+			require("lsp-config.external_docs").open_docs()
+		end,
+		"LSP: open external docs",
+	},
 
 	{
 		"<s-a-d>",
