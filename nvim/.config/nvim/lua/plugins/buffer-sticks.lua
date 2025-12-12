@@ -39,8 +39,8 @@ return {
 			active_char = "󰅹 ", -- 活动缓冲区的字符
 			inactive_char = " ", -- 非活动缓冲区的字符
 			alternate_char = "─", -- 备用缓冲区的字符
-			active_modified_char = "󰇜 󰇜 ", -- 活动修改缓冲区（未保存更改）的字符
-			inactive_modified_char = "󰩮󰩮", -- 非活动修改缓冲区（未保存更改）的字符
+			active_modified_char = "󰩮󰩮", -- 活动修改缓冲区（未保存更改）的字符
+			inactive_modified_char = "󰇜 󰇜 ", -- 非活动修改缓冲区（未保存更改）的字符
 			alternate_modified_char = "─", -- 备用修改缓冲区（未保存更改）的字符
 			transparent = true, -- 移除背景色（显示终端/编辑器背景）
 			auto_hide = true, -- 当光标移到浮动窗口上时自动隐藏（默认：true）
