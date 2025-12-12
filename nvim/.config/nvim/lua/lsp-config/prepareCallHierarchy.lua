@@ -5,6 +5,21 @@ local DEFAULT_DEPTH = 3
 local POSITION_ENCODING = "utf-16"
 local BUFFER_NAME_PREFIX = "FunctionReferences://"
 local STATE = { PENDING = 1, FETCHED = 2, ERROR = 3 }
+local MODE = {
+	OUTGOING = "outgoing", -- 当前函数调用了谁 (默认)
+	INCOMING = "incoming", -- 谁调用了当前函数
+}
+
+-- 统一图标系统
+local ICONS = {
+	ROOT_INCOMING = "", -- 被调用模式根节点
+	ROOT_OUTGOING = "", -- 调用模式根节点
+	INCOMING = " ", -- 被调用节点
+	OUTGOING = " ", -- 调用节点
+	EXPANDED = "▾", -- 已展开
+	COLLAPSED = "▸", -- 未展开
+	LEAF = " ", -- 叶节点占位（一个空格）
+}
 
 -- === 模块内部状态 ===
 local instances = {}
@@ -53,6 +68,7 @@ local function create_tree_node(item)
 		range = item.range,
 		selectionRange = item.selectionRange,
 		references = {},
+		callers = {},
 		display = item.name .. " [" .. format_location(item.uri, item.selectionRange.start.line) .. "]",
 	}
 end
@@ -86,12 +102,32 @@ end
 
 local function apply_highlights(bufnr, ns, lines)
 	for i, line in ipairs(lines) do
-		local icon_start = line.text:find("󰅲") or line.text:find("⭐")
-		if icon_start then
-			vim.api.nvim_buf_add_highlight(bufnr, ns, "Special", i - 1, icon_start - 1, icon_start)
+		local line_text = line.text
+
+		-- 1. 高亮图标：通过精确计算位置
+		local indent_chars = line.indent * 2 -- 每级缩进2个空格
+		local prefix_length = indent_chars + (line.has_refs and 1 or 0) -- 展开符可能占1个字符
+
+		-- 图标开始位置（在展开符之后，如果有的话）
+		local icon_start = indent_chars + 1
+		if line.has_refs then
+			icon_start = icon_start + 1 -- 跳过展开符
 		end
 
-		local name_start = line.text:find(line.node.name)
+		-- 确保图标位置有效
+		if icon_start <= #line_text then
+			local icon_char = line_text:sub(icon_start, icon_start)
+			local is_incoming_icon = icon_char == ICONS.INCOMING or icon_char == ICONS.ROOT_INCOMING
+			local hl_group = is_incoming_icon and "Special" or "Identifier"
+
+			-- 高亮单个图标字符
+			if icon_char ~= " " then
+				vim.api.nvim_buf_add_highlight(bufnr, ns, hl_group, i - 1, icon_start - 1, icon_start)
+			end
+		end
+
+		-- 2. 高亮函数名
+		local name_start = line_text:find(line.node.name, 1, true) -- 使用 plain 查找
 		if name_start then
 			vim.api.nvim_buf_add_highlight(
 				bufnr,
@@ -103,7 +139,13 @@ local function apply_highlights(bufnr, ns, lines)
 			)
 		end
 
-		local loc_start = line.text:find(" %[")
+		-- 3. 高亮模式标签和位置信息
+		local mode_start = line_text:find("%[OUTGOING%]") or line_text:find("%[INCOMING%]")
+		if mode_start then
+			vim.api.nvim_buf_add_highlight(bufnr, ns, "Type", i - 1, mode_start - 1, mode_start + 10)
+		end
+
+		local loc_start = line_text:find(" %[")
 		if loc_start then
 			vim.api.nvim_buf_add_highlight(bufnr, ns, "Comment", i - 1, loc_start - 1, -1)
 		end
@@ -135,6 +177,13 @@ local function setup_buffer_keymaps(bufnr, instance_id)
 			"<CR>",
 			function()
 				M._toggle_node(instance_id)
+			end,
+		},
+		{
+			"n",
+			"<tab>",
+			function()
+				M._switch_mode(instance_id)
 			end,
 		},
 		{
@@ -189,14 +238,17 @@ local function create_instance()
 		id = instance_id,
 		state = STATE.PENDING,
 		reference_tree = nil,
+		incoming_tree = nil,
 		pending_items = 0,
 		depth = DEFAULT_DEPTH,
 		current_item = nil,
+		current_mode = MODE.OUTGOING,
 		refs_buf = nil,
 		refs_win = nil,
 		ns = vim.api.nvim_create_namespace("function_references_" .. instance_id),
 		line_data = {},
 		expanded_nodes = {},
+		incoming_data = {},
 		_timer = nil,
 		_cleaned = false,
 		_cleanup = function(self)
@@ -273,25 +325,102 @@ local function process_item_calls(instance, item, current_depth, parent_node)
 	end)
 end
 
+local function process_item_callers(instance, item, current_depth, parent_node)
+	if current_depth > instance.depth then
+		instance.pending_items = instance.pending_items - 1
+		if instance.pending_items == 0 then
+			instance.state = STATE.FETCHED
+			safe_call(M._display_ui, instance)
+		end
+		return
+	end
+
+	-- 创建节点ID用于去重
+	local node_id = item.name .. ":" .. item.uri .. ":" .. item.selectionRange.start.line
+
+	local current_node = nil
+
+	-- 检查是否已处理过此节点（跨分支重复）
+	if not instance.incoming_data[node_id] then
+		current_node = {
+			name = item.name,
+			uri = item.uri,
+			range = item.range,
+			selectionRange = item.selectionRange,
+			callers = {},
+			depth = current_depth,
+			id = node_id,
+		}
+		instance.incoming_data[node_id] = current_node
+	else
+		current_node = instance.incoming_data[node_id]
+	end
+
+	-- 链接到父节点
+	if parent_node and parent_node.callers then
+		parent_node.callers[node_id] = current_node
+	end
+
+	local params = { item = item }
+
+	vim.lsp.buf_request(0, "callHierarchy/incomingCalls", params, function(err, result)
+		if err then
+			vim.notify("LSP Incoming Calls Error: " .. get_error_message(err), vim.log.levels.WARN)
+		end
+
+		if not err and result and not vim.tbl_isempty(result) then
+			for _, call in ipairs(result) do
+				local caller = call.from -- 注意：incomingCalls 返回的是 call.from
+
+				instance.pending_items = instance.pending_items + 1
+				vim.defer_fn(function()
+					process_item_callers(instance, caller, current_depth + 1, current_node)
+				end, 10)
+			end
+		end
+
+		instance.pending_items = instance.pending_items - 1
+		if instance.pending_items == 0 then
+			instance.state = STATE.FETCHED
+			safe_call(M._display_ui, instance)
+		end
+	end)
+end
+
 -- === UI 渲染层 ===
-function M._build_reference_lines(node, lines, indent, expanded_nodes)
+function M._build_reference_lines(node, lines, indent, expanded_nodes, mode, is_root)
 	indent = indent or 0
 	lines = lines or {}
 	expanded_nodes = expanded_nodes or {}
+	mode = mode or MODE.OUTGOING
 
-	local icon = "󰅲"
-	if node.name:match("[Dd]ebug") then
-		icon = "⭐"
+	-- 确定当前节点使用的数据源
+	local data_source
+	if mode == MODE.INCOMING then
+		data_source = node.callers
+	else
+		data_source = node.references
 	end
 
-	local has_refs = node.references and next(node.references) ~= nil
-	local prefix = string.rep("  ", indent)
-	local expanded = expanded_nodes[node.name .. node.uri]
-
-	if has_refs then
-		prefix = prefix .. (expanded and "ᐁ " or "ᐅ ")
+	-- 根节点特殊显示
+	local icon
+	if is_root then
+		icon = (mode == MODE.INCOMING) and ICONS.ROOT_INCOMING or ICONS.ROOT_OUTGOING
 	else
-		prefix = prefix .. "  "
+		icon = (mode == MODE.INCOMING) and ICONS.INCOMING or ICONS.OUTGOING
+	end
+
+	local has_children = data_source and next(data_source) ~= nil
+	local node_key = node.id or (node.name .. ":" .. node.uri)
+	local expanded = expanded_nodes[node_key]
+
+	-- 构建前缀：缩进 + 展开/折叠指示符
+	local prefix = string.rep("  ", indent)
+
+	if has_children then
+		prefix = prefix .. (expanded and ICONS.EXPANDED or ICONS.COLLAPSED)
+	else
+		prefix = prefix .. ICONS.LEAF
 	end
 
 	local location = ""
@@ -299,16 +428,22 @@ function M._build_reference_lines(node, lines, indent, expanded_nodes)
 		location = " [" .. format_location(node.uri, node.selectionRange.start.line) .. "]"
 	end
 
+	-- 添加模式标识
+	local mode_indicator = is_root and (" [" .. mode:upper() .. "] ") or " "
+
 	table.insert(lines, {
-		text = prefix .. icon .. " " .. node.name .. location,
+		text = prefix .. icon .. mode_indicator .. node.name .. location,
 		node = node,
 		indent = indent,
-		has_refs = has_refs,
+		has_refs = has_children,
+		mode = mode,
+		is_root = is_root or false,
+		icon_char = icon, -- 保存图标字符供高亮使用
 	})
 
-	if expanded and has_refs then
-		for _, child in pairs(node.references) do
-			M._build_reference_lines(child, lines, indent + 1, expanded_nodes)
+	if expanded and has_children then
+		for _, child in pairs(data_source) do
+			M._build_reference_lines(child, lines, indent + 1, expanded_nodes, mode, false)
 		end
 	end
 
@@ -316,8 +451,8 @@ function M._build_reference_lines(node, lines, indent, expanded_nodes)
 end
 
 function M._display_ui(instance)
-	if not instance.reference_tree or vim.tbl_isempty(instance.reference_tree.references) then
-		vim.notify("No function references found", vim.log.levels.INFO)
+	if not instance.reference_tree then
+		vim.notify("No function data found", vim.log.levels.INFO)
 		instance:_cleanup()
 		return
 	end
@@ -341,8 +476,26 @@ function M._display_ui(instance)
 	end
 
 	-- 构建并渲染内容
-	instance.expanded_nodes[instance.reference_tree.name .. instance.reference_tree.uri] = true
-	local lines = M._build_reference_lines(instance.reference_tree, {}, 0, instance.expanded_nodes)
+	local root_node_key = instance.current_item.name
+		.. ":"
+		.. instance.current_item.uri
+		.. ":"
+		.. instance.current_item.selectionRange.start.line
+
+	-- 确保根节点展开
+	if not instance.expanded_nodes[root_node_key] then
+		instance.expanded_nodes[root_node_key] = true
+	end
+
+	-- 选择要显示的根节点
+	local display_root
+	if instance.current_mode == MODE.INCOMING then
+		display_root = instance.incoming_data[root_node_key] or instance.reference_tree
+	else
+		display_root = instance.reference_tree
+	end
+
+	local lines = M._build_reference_lines(display_root, {}, 0, instance.expanded_nodes, instance.current_mode, true)
 
 	render_buffer_content(instance, lines)
 
@@ -350,10 +503,58 @@ function M._display_ui(instance)
 
 	-- 设置状态行
 	pcall(function()
+		local mode_text = instance.current_mode == MODE.OUTGOING and "OUTGOING" or "INCOMING"
 		vim.cmd(
-			"setlocal statusline=REFERENCES:\\ " .. instance.reference_tree.name:gsub("\\", "\\\\"):gsub(" ", "\\ ")
+			"setlocal statusline=CALL-TREE["
+				.. mode_text
+				.. "]:\\ "
+				.. instance.reference_tree.name:gsub("\\", "\\\\"):gsub(" ", "\\ ")
 		)
 	end)
+end
+
+-- === 模式切换功能 ===
+function M._switch_mode(instance_id)
+	local instance = instances[instance_id]
+	if not instance then
+		return
+	end
+
+	-- 切换模式
+	if instance.current_mode == MODE.OUTGOING then
+		instance.current_mode = MODE.INCOMING
+	else
+		instance.current_mode = MODE.OUTGOING
+	end
+
+	-- 如果切换到INCOMING模式且尚未加载数据，则发起请求
+	local root_node_id = instance.current_item.name
+		.. ":"
+		.. instance.current_item.uri
+		.. ":"
+		.. instance.current_item.selectionRange.start.line
+
+	if instance.current_mode == MODE.INCOMING and not instance.incoming_data[root_node_id] then
+		-- 创建incoming树的根节点
+		instance.incoming_data[root_node_id] = {
+			name = instance.current_item.name,
+			uri = instance.current_item.uri,
+			range = instance.current_item.range,
+			selectionRange = instance.current_item.selectionRange,
+			callers = {},
+			id = root_node_id,
+			is_root = true,
+		}
+
+		instance.pending_items = 1
+		instance.state = STATE.PENDING
+		process_item_callers(instance, instance.current_item, 1, instance.incoming_data[root_node_id])
+	else
+		-- 直接刷新UI
+		safe_call(M._display_ui, instance)
+	end
+
+	vim.notify("切换到模式: " .. instance.current_mode:upper(), vim.log.levels.INFO)
 end
 
 -- === 公共 API ===
@@ -378,6 +579,18 @@ function M.open_call_tree(depth)
 		local item = result[1]
 		instance.current_item = item
 		instance.reference_tree = create_tree_node(item)
+
+		-- 为incoming模式预创建根节点记录
+		local root_node_id = item.name .. ":" .. item.uri .. ":" .. item.selectionRange.start.line
+		instance.incoming_data[root_node_id] = {
+			name = item.name,
+			uri = item.uri,
+			range = item.range,
+			selectionRange = item.selectionRange,
+			callers = {},
+			id = root_node_id,
+			is_root = true,
+		}
 
 		instance.pending_items = 1
 		instance.state = STATE.PENDING
@@ -429,14 +642,27 @@ function M._toggle_node(instance_id)
 		expanded_nodes = instance.expanded_nodes or {}
 	end
 
-	local node_id = item.node.name .. item.node.uri
+	local node_id = item.node.id or (item.node.name .. ":" .. item.node.uri)
 	expanded_nodes[node_id] = not expanded_nodes[node_id]
 
 	pcall(vim.api.nvim_buf_set_var, bufnr, "expanded_nodes", expanded_nodes)
 	instance.expanded_nodes = expanded_nodes
 
 	-- 重绘
-	local lines = M._build_reference_lines(instance.reference_tree, {}, 0, expanded_nodes)
+	local root_node_id = instance.current_item.name
+		.. ":"
+		.. instance.current_item.uri
+		.. ":"
+		.. instance.current_item.selectionRange.start.line
+	local display_root
+	if instance.current_mode == MODE.INCOMING then
+		display_root = instance.incoming_data[root_node_id] or instance.reference_tree
+	else
+		display_root = instance.reference_tree
+	end
+
+	local lines = M._build_reference_lines(display_root, {}, 0, expanded_nodes, instance.current_mode, true)
+
 	render_buffer_content(instance, lines)
 	vim.api.nvim_win_set_cursor(0, { line_nr, 0 })
 end

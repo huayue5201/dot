@@ -371,7 +371,7 @@ function M.setup()
 
 	-- 文件删除时清理相关断点
 	vim.api.nvim_create_autocmd("BufDelete", {
-		group = group,
+		group = restore_group,
 		callback = function(args)
 			local filepath = vim.api.nvim_buf_get_name(args.buf)
 			local full_path = normalize_path(filepath)
@@ -395,7 +395,7 @@ function M.setup()
 
 	-- 文件重命名时更新断点
 	vim.api.nvim_create_autocmd("BufFilePost", {
-		group = group,
+		group = restore_group,
 		callback = function(args)
 			local oldname = vim.v.oldname
 			local newname = vim.api.nvim_buf_get_name(args.buf)
