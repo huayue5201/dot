@@ -29,7 +29,7 @@ local function toggle_lsp()
 		prompt = "🔄 选择 LSP 客户端：", -- 提示信息
 		format_item = function(item)
 			-- 获取当前 LSP 的状态
-			local state = json_store.get_lsp_state(item)
+			local state = json_store.get("lsp", item)
 			-- 美化显示：左对齐 LSP 名称，并展示状态，增加可读性
 			return string.format("%-20s • 状态: %s", item, state or "未知")
 		end,
@@ -40,17 +40,17 @@ local function toggle_lsp()
 		end
 
 		-- 获取当前 LSP 客户端的状态
-		local current_state = json_store.get_lsp_state(selected_lsp)
+		local current_state = json_store.get("lsp", selected_lsp)
 
 		if current_state == "inactive" then
 			-- 启动 LSP 客户端
 			vim.lsp.enable(selected_lsp, true)
-			json_store.set_lsp_state(selected_lsp, "active")
+			json_store.set("lsp", selected_lsp, "active")
 			vim.notify(string.format("LSP '%s' 已启动。", selected_lsp), vim.log.levels.INFO)
 		else
 			-- 停用 LSP 客户端
 			vim.lsp.enable(selected_lsp, false)
-			json_store.set_lsp_state(selected_lsp, "inactive")
+			json_store.set("lsp", selected_lsp, "inactive")
 			vim.notify(string.format("LSP '%s' 已停止。", selected_lsp), vim.log.levels.INFO)
 		end
 
@@ -194,13 +194,13 @@ local keymaps = {
 	{
 		"<s-a-d>",
 		function()
-			local diagnostics_enabled = json_store.get_plugin_state("diagnostics")
+			local diagnostics_enabled = json_store.get("plugins", "diagnostics")
 			if diagnostics_enabled == "off" then
 				vim.diagnostic.enable(true)
-				json_store.set_plugin_state("diagnostics", "on")
+				json_store.set("plugins", "diagnostics", "on")
 			else
 				vim.diagnostic.enable(false)
-				json_store.set_plugin_state("diagnostics", "off")
+				json_store.set("plugins", "diagnostics", "off")
 			end
 		end,
 		"LSP: toggle diagnostics",
@@ -222,13 +222,13 @@ local keymaps = {
 	{
 		"<s-a-i>",
 		function()
-			local inlay_hint_enable = json_store.get_plugin_state("inlay_hints")
+			local inlay_hint_enable = json_store.get("plugins", "inlay_hints")
 			if inlay_hint_enable == "off" then
 				vim.lsp.inlay_hint.enable(true)
-				json_store.set_plugin_state("inlay_hints", "on")
+				json_store.set("plugins", "inlay_hints", "on")
 			else
 				vim.lsp.inlay_hint.enable(false)
-				json_store.set_plugin_state("inlay_hints", "off")
+				json_store.set("plugins", "inlay_hints", "off")
 			end
 		end,
 		"LSP: toggle inlay hints",

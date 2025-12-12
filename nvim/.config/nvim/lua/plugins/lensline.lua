@@ -40,7 +40,7 @@ return {
 						},
 					},
 					style = {
-						separator = " 󰇝 ", -- 󰳾  󰇜
+						separator = "  ", -- 󰳾  󰇜
 						highlight = "Comment", -- highlight group for lens text
 						prefix = "┃ ", -- prefix before lens content
 						placement = "above", -- "above" | "inline" - where to render lenses (consider prefix = "" for inline)

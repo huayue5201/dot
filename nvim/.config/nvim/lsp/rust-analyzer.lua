@@ -1,7 +1,8 @@
 -- https://rust-analyzer.github.io/book/index.html
 
 local uv = vim.uv or vim.loop
---- 判断是否为嵌入式 Rust 项目
+
+-- 判断是否为嵌入式 Rust 项目
 local function is_embedded_project(root_dir)
 	local function read_file(path)
 		local fd = uv.fs_open(path, "r", 438)
@@ -73,24 +74,40 @@ return {
 		["rust-analyzer"] = {
 			showUnlinkedFileNotification = false,
 			check = {
-				-- command = "clippy",
 				command = "check",
 				allTargets = false,
 			},
 			diagnostics = {
 				enable = true,
-				-- trigger = "onSave", -- 也可根据性能考虑改为 "onType"
-				trigger = "onType", -- 也可根据性能考虑改为 "onType"
+				trigger = "onType", -- 设置为 "onSave" 也可以根据性能考虑
 			},
 			cargo = {
 				buildScripts = {
 					enable = true,
 				},
-				-- 初始化时不设target，在 on_new_config 中动态设置
 			},
 			imports = {
 				granularity = { group = "module" },
 				prefix = "self",
+			},
+			inlayHints = {
+				bindingModeHints = { enable = true },
+				chainingHints = { enable = true },
+				closingBraceHints = { enable = true, minLines = 25 },
+				closureCaptureHints = { enable = true },
+				closureReturnTypeHints = { enable = "never" },
+				discriminantHints = { enable = "never" },
+				expressionAdjustmentHints = {
+					enable = "never",
+					disableReborrows = true,
+				},
+				genericParameterHints = {
+					type = { enable = true },
+				},
+				implicitDrops = { enable = true },
+				lifetimeElisionHints = { enable = "never" },
+				parameterHints = { enable = true },
+				typeHints = { enable = true },
 			},
 			lens = {
 				enable = true,
@@ -103,17 +120,12 @@ return {
 			},
 			procMacro = {
 				enable = true,
-				-- 可以考虑添加 ignored 列表以优化性能，例如：
-				-- ignored = {
-				--     ["async-trait"] = { "async_trait" },
-				--     ["napi-derive"] = { "napi" },
-				-- }
 			},
 		},
 	},
 	on_new_config = function(config, root_dir)
 		if is_embedded_project(root_dir) then
-			config.settings["rust-analyzer"].cargo.target = "thumbv7em-none-eabihf" -- 或你的具体目标
+			config.settings["rust-analyzer"].cargo.target = "thumbv7em-none-eabihf" -- 或您的具体目标
 			config.settings["rust-analyzer"].cargo.noDefaultFeatures = true
 			config.settings["rust-analyzer"].check.noDefaultFeatures = true
 		else
@@ -142,12 +154,11 @@ return {
 				--- @diagnostic disable-next-line: param-type-mismatch
 				"rust-analyzer/expandMacro",
 				function(lsp_client)
-					-- 修正：安全地获取编码，并正确传递参数[citation:10]
+					-- 修正：安全地获取编码，并正确传递参数
 					local encoding = lsp_client.offset_encoding
 					if encoding == nil then
 						encoding = "utf-16"
 					end
-					-- 正确调用，只传两个参数
 					return vim.lsp.util.make_position_params(0, encoding)
 				end,
 				function(result)
@@ -201,7 +212,6 @@ return {
 
 					-- 5. 记录窗口并设置窗口选项
 					macro_preview_win = win
-					-- 假设 `win` 是您创建的预览窗口的变量
 					vim.api.nvim_set_option_value("cursorline", false, { win = win })
 				end
 			)
