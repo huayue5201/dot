@@ -26,7 +26,6 @@ return {
 			-- style = nil, -- 可选：强制使用单一主题（如 "lagoon", "desert"），禁用自动切换
 			use_legacy_comments = false, -- 是否使用 desert.vim 旧版注释颜色（仅对 "desert" 样式生效，亮天蓝色）
 
-			-- 文本样式设置 - 可以单独关闭某些效果
 			styles = {
 				bold = true, -- 是否启用粗体（关键字、函数等）
 				italic = true, -- 是否启用斜体（注释、部分关键字）

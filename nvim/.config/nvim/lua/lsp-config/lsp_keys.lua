@@ -95,24 +95,51 @@ end
 
 -- 复制光标处的错误信息（包括错误代码）
 local function CopyErrorMessage()
-	local row = unpack(vim.api.nvim_win_get_cursor(0)) - 1
-	local diag = vim.diagnostic.get(0, { lnum = row })
-	if #diag > 0 then
-		local messages = {}
-		for _, diagnostic in ipairs(diag) do
-			local code = diagnostic.code or "No code available"
-			local message = diagnostic.message or "No message available"
-			-- 可选：附加上诊断来源，便于排查
-			local source = diagnostic.source or "unknown"
-			table.insert(messages, message .. " [" .. code .. "] - " .. source)
-		end
-		local all_messages = table.concat(messages, "\n")
-		vim.fn.setreg("+", all_messages)
-		print("Error messages copied to clipboard:\n" .. all_messages)
-	else
-		-- 更详细的提示
-		print("No diagnostics found at cursor position. Ensure a language server or linter is running.")
+	local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
+	row = row - 1
+	local bufnr = vim.api.nvim_get_current_buf()
+	local diag = vim.diagnostic.get(bufnr, { lnum = row })
+	if #diag == 0 then
+		vim.notify("No diagnostics found at cursor position.", vim.log.levels.WARN)
+		return
 	end
+	local messages = {}
+	for _, diagnostic in ipairs(diag) do
+		local code = diagnostic.code or "No code"
+		local message = diagnostic.message or "No message"
+		local source = diagnostic.source or "unknown"
+		local severity = diagnostic.severity or vim.diagnostic.severity.ERROR
+		local severity_text = "ERROR"
+		if severity == vim.diagnostic.severity.WARN then
+			severity_text = "WARN"
+		elseif severity == vim.diagnostic.severity.INFO then
+			severity_text = "INFO"
+		elseif severity == vim.diagnostic.severity.HINT then
+			severity_text = "HINT"
+		end
+		table.insert(messages, {
+			text = string.format("[%s] %s [%s] - %s", severity_text, message, code, source),
+			diagnostic = diagnostic,
+		})
+	end
+	local choices = {}
+	for _, msg in ipairs(messages) do
+		table.insert(choices, msg.text)
+	end
+	vim.ui.select(choices, {
+		prompt = "Select an error message to copy:",
+		format_item = function(item)
+			return item
+		end,
+	}, function(choice, idx)
+		if choice and idx then
+			vim.fn.setreg("+", messages[idx].text)
+			vim.fn.setreg('"', messages[idx].text)
+			vim.notify("Error message copied to clipboard: " .. messages[idx].text, vim.log.levels.INFO)
+		else
+			vim.notify("No error message selected.", vim.log.levels.WARN)
+		end
+	end)
 end
 
 -- 定义一个函数来列出当前缓冲区的活动 LSP 客户端

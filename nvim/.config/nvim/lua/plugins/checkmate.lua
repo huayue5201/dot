@@ -4,6 +4,7 @@ return {
 	"bngarren/checkmate.nvim",
 	ft = { "markdown", "todo", "TDDO" }, -- Lazy loads for Markdown files matching patterns in 'files'
 	config = function()
+		---@diagnostic disable: missing-fields
 		require("checkmate").setup({
 			enabled = true, -- ✅ 是否启用 Checkmate 插件
 			notify = true, -- ✅ 是否启用消息通知
@@ -92,20 +93,7 @@ return {
 
 			default_list_marker = "-", -- 默认 TODO 列表符号
 
-			todo_states = { -- TODO 状态定义
-				unchecked = { -- 未完成
-					marker = "□", -- 状态标记符
-					order = 1, -- 顺序，用于排序
-				},
-				checked = { -- 已完成
-					marker = "✔",
-					order = 2,
-				},
-			},
-
-			style = {}, -- 自定义样式覆盖默认样式
-
-			enter_insert_after_new = true, -- 创建新 TODO 后是否自动进入插入模式
+			enter_insert_after_new = false, -- 创建新 TODO 后是否自动进入插入模式
 
 			list_continuation = { -- 列表自动延续
 				enabled = true,
