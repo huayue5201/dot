@@ -25,6 +25,58 @@ vim.api.nvim_set_keymap("n", "<leader>tml", ":+tabmove<CR>", {
 vim.keymap.set("n", "<leader>ct", "<cmd>tabclose<cr>", { silent = true, desc = "Tab: close tab" })
 vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
+local function close_other_buffers_safely()
+	local current_buf = vim.api.nvim_get_current_buf()
+	local current_win = vim.api.nvim_get_current_win()
+	local all_buffers = vim.api.nvim_list_bufs()
+	local function process_next_buffer(buffers, index)
+		if index > #buffers then
+			vim.api.nvim_set_current_win(current_win)
+			return
+		end
+		local buf = buffers[index]
+		if
+			buf ~= current_buf
+			and vim.api.nvim_buf_is_valid(buf)
+			and vim.api.nvim_buf_is_loaded(buf)
+			and vim.bo[buf].buftype == ""
+		then
+			if vim.api.nvim_buf_get_option(buf, "modified") then
+				vim.ui.select({ "保存并关闭", "不保存关闭", "跳过" }, {
+					prompt = "文件 "
+						.. vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t")
+						.. " 有未保存的修改",
+					format_item = function(item)
+						return item
+					end,
+				}, function(choice)
+					if choice == "保存并关闭" then
+						vim.api.nvim_buf_call(buf, function()
+							vim.cmd("w")
+						end)
+						vim.cmd("silent! bd " .. buf)
+					elseif choice == "不保存关闭" then
+						vim.cmd("silent! bd! " .. buf)
+					end
+					process_next_buffer(buffers, index + 1)
+				end)
+			else
+				vim.cmd("silent! bd " .. buf)
+				process_next_buffer(buffers, index + 1)
+			end
+		else
+			process_next_buffer(buffers, index + 1)
+		end
+	end
+	process_next_buffer(all_buffers, 1)
+end
+vim.api.nvim_create_user_command("CloseOtherBuffersSafe", close_other_buffers_safely, {})
+vim.keymap.set("n", "<leader>cab", ":CloseOtherBuffersSafe<CR>", {
+	noremap = true,
+	silent = true,
+	desc = "Safely close other buffers without breaking LSP",
+})
+
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>i", "<cmd>messages<cr>", { silent = true, desc = "Message: show messages" })
 vim.keymap.set("n", "<leader>re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
@@ -61,11 +113,6 @@ vim.keymap.set("n", "<leader>cam", function()
 	vim.cmd("delmarks a-z")
 	vim.cmd("delmarks A-Z")
 end, { desc = "Mark: delete all marks" })
-
--- 🔢 Tools
-vim.keymap.set("n", "<leader>ob", function()
-	require("user.bitcalc").bitcalc()
-end, { desc = "Tool: bit calculator" })
 
 -- 📌 TODO
 local todo = require("user.todo")

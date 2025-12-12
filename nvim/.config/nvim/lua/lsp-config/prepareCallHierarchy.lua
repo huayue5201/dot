@@ -14,11 +14,11 @@ local MODE = {
 local ICONS = {
 	ROOT_INCOMING = "", -- 被调用模式根节点
 	ROOT_OUTGOING = "", -- 调用模式根节点
-	INCOMING = " ", -- 被调用节点
-	OUTGOING = " ", -- 调用节点
+	INCOMING = "", -- 被调用节点
+	OUTGOING = "", -- 调用节点
 	EXPANDED = "▾", -- 已展开
 	COLLAPSED = "▸", -- 未展开
-	LEAF = " ", -- 叶节点占位（一个空格）
+	LEAF = "", -- 叶节点占位（一个空格）
 }
 
 -- === 模块内部状态 ===
