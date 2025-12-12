@@ -2,6 +2,7 @@
 local M = {}
 local keymaps = require("lsp-config.lsp_keys")
 local configs = require("lsp-config.setings")
+local json_store = require("user.json_store")
 
 -- 插入/选择模式禁用/启用诊断
 local function mode_changed_handler()
@@ -10,23 +11,19 @@ local function mode_changed_handler()
 		desc = "插入/选择模式禁用/启用诊断",
 		callback = function()
 			local bufnr = vim.api.nvim_get_current_buf()
-			local diag_enabled = vim.diagnostic.is_enabled({ bufnr = bufnr })
-			if diag_enabled then
-				-- 进入插入/选择模式时关闭诊断
-				vim.diagnostic.enable(false, { bufnr = bufnr })
-				-- 离开插入/选择模式后重新启用诊断，只启用一次自动命令
-				vim.api.nvim_create_autocmd("ModeChanged", {
-					pattern = { "i:n", "s:v" },
-					once = true,
-					desc = "离开插入/选择模式后重新启用诊断",
-					callback = function()
-						local current_buf = vim.api.nvim_get_current_buf()
-						if vim.api.nvim_buf_is_valid(current_buf) then
-							vim.diagnostic.enable(true, { bufnr = current_buf })
-						end
-					end,
-				})
-			end
+			-- 进入插入/选择模式时关闭诊断
+			vim.diagnostic.enable(false, { bufnr = bufnr })
+			vim.api.nvim_create_autocmd("ModeChanged", {
+				pattern = { "i:n", "s:v" },
+				once = true,
+				desc = "离开插入/选择模式后重新启用诊断",
+				callback = function()
+					local current_buf = vim.api.nvim_get_current_buf()
+					if vim.api.nvim_buf_is_valid(current_buf) then
+						vim.diagnostic.enable(true, { bufnr = current_buf })
+					end
+				end,
+			})
 		end,
 	})
 end
@@ -37,17 +34,14 @@ local function inlay_hint_handler()
 		desc = "Disable lsp.inlay_hint when in insert mode",
 		callback = function(args)
 			local filter = { bufnr = args.buf }
-			local inlay_hint = vim.lsp.inlay_hint
-			if inlay_hint.is_enabled(filter) then
-				inlay_hint.enable(false, filter)
-				vim.api.nvim_create_autocmd("InsertLeave", {
-					once = true,
-					desc = "Re-enable lsp.inlay_hint when leaving insert mode",
-					callback = function()
-						inlay_hint.enable(true, filter)
-					end,
-				})
-			end
+			vim.lsp.inlay_hint.enable(false, filter)
+			vim.api.nvim_create_autocmd("InsertLeave", {
+				once = true, -- 确保在离开插入模式时只触发一次
+				desc = "Re-enable lsp.inlay_hint when leaving insert mode",
+				callback = function()
+					vim.lsp.inlay_hint.enable(true, filter)
+				end,
+			})
 		end,
 	})
 end
@@ -59,9 +53,23 @@ function M.setup()
 		callback = function(args)
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
 			configs.diagnostic_config() -- 诊断ui
-			inlay_hint_handler() -- 插入模式内联提示处理
 			keymaps.set_keymaps() -- 设置 LSP 按键映射
-			mode_changed_handler() -- 设置模式变化时禁用/启用诊断
+			local inlay_hint_enable = json_store.get_plugin_state("inlay_hints")
+			if inlay_hint_enable == "on" then
+				vim.lsp.inlay_hint.enable(true)
+				inlay_hint_handler()
+			else
+				vim.lsp.inlay_hint.enable(false)
+			end
+
+			local diagnostics_enabled = json_store.get_plugin_state("diagnostics")
+			if diagnostics_enabled == "off" then
+				vim.diagnostic.enable(false, { bufnr = args.buf })
+				mode_changed_handler()
+			else
+				vim.diagnostic.enable(true, { bufnr = args.buf })
+			end
+
 			vim.lsp.document_color.enable(true, 0, { style = "virtual" }) -- 启用文档颜色高亮
 
 			---@diagnostic disable: need-check-nil

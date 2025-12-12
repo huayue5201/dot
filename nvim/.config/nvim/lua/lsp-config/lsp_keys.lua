@@ -191,10 +191,18 @@ local keymaps = {
 		end,
 		"LSP: open external docs",
 	},
-
 	{
 		"<s-a-d>",
-		"<cmd>lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<cr>",
+		function()
+			local diagnostics_enabled = json_store.get_plugin_state("diagnostics")
+			if diagnostics_enabled == "off" then
+				vim.diagnostic.enable(true)
+				json_store.set_plugin_state("diagnostics", "on")
+			else
+				vim.diagnostic.enable(false)
+				json_store.set_plugin_state("diagnostics", "off")
+			end
+		end,
 		"LSP: toggle diagnostics",
 	},
 	{
@@ -213,7 +221,16 @@ local keymaps = {
 	},
 	{
 		"<s-a-i>",
-		"<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>",
+		function()
+			local inlay_hint_enable = json_store.get_plugin_state("inlay_hints")
+			if inlay_hint_enable == "off" then
+				vim.lsp.inlay_hint.enable(true)
+				json_store.set_plugin_state("inlay_hints", "on")
+			else
+				vim.lsp.inlay_hint.enable(false)
+				json_store.set_plugin_state("inlay_hints", "off")
+			end
+		end,
 		"LSP: toggle inlay hints",
 	},
 

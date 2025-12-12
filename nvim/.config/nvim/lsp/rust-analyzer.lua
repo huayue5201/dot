@@ -73,12 +73,14 @@ return {
 		["rust-analyzer"] = {
 			showUnlinkedFileNotification = false,
 			check = {
-				command = "clippy",
-				allTargets = true,
+				-- command = "clippy",
+				command = "check",
+				allTargets = false,
 			},
 			diagnostics = {
 				enable = true,
-				trigger = "onSave", -- 也可根据性能考虑改为 "onType"
+				-- trigger = "onSave", -- 也可根据性能考虑改为 "onType"
+				trigger = "onType", -- 也可根据性能考虑改为 "onType"
 			},
 			cargo = {
 				buildScripts = {
