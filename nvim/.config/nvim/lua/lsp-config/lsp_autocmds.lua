@@ -12,7 +12,7 @@ local function auto_diagnostic()
 		callback = function()
 			local bufnr = vim.api.nvim_get_current_buf()
 			-- 获取诊断设置
-			local diagnostics_enabled = json_store.get("plugins", "diagnostics")
+			local diagnostics_enabled = json_store.get("lsp", "diagnostics")
 			if diagnostics_enabled == "on" then
 				-- 进入插入/选择模式时启用诊断
 				vim.diagnostic.enable(false, { bufnr = bufnr })
@@ -29,7 +29,6 @@ local function auto_diagnostic()
 					local current_buf = vim.api.nvim_get_current_buf()
 					if vim.api.nvim_buf_is_valid(current_buf) then
 						-- 获取诊断设置
-						local diagnostics_enabled = json_store.get("plugins", "diagnostics")
 						if diagnostics_enabled == "on" then
 							-- 离开模式后启用诊断
 							vim.diagnostic.enable(true, { bufnr = current_buf })
@@ -52,7 +51,7 @@ local function auto_inlay_hint()
 			local filter = { bufnr = args.buf }
 
 			-- 获取内联提示设置
-			local inlay_hint_enable = json_store.get("plugins", "inlay_hints")
+			local inlay_hint_enable = json_store.get("lsp", "inlay_hints")
 			if inlay_hint_enable == "on" then
 				-- 禁用内联提示
 				vim.lsp.inlay_hint.enable(false, filter)
@@ -66,9 +65,7 @@ local function auto_inlay_hint()
 				once = true, -- 确保在离开插入模式时只触发一次
 				desc = "Re-enable lsp.inlay_hint when leaving insert mode",
 				callback = function()
-					local filter = { bufnr = args.buf }
 					-- 获取内联提示设置
-					local inlay_hint_enable = json_store.get("plugins", "inlay_hints")
 					if inlay_hint_enable == "on" then
 						-- 启用内联提示
 						vim.lsp.inlay_hint.enable(true, filter)
@@ -91,14 +88,14 @@ function M.setup()
 			configs.diagnostic_config() -- 诊断ui
 			keymaps.set_keymaps() -- 设置 LSP 按键映射
 
-			local inlay_hint_enable = json_store.get("plugins", "inlay_hints")
+			local inlay_hint_enable = json_store.get("lsp", "inlay_hints")
 			if inlay_hint_enable == "on" then
 				vim.lsp.inlay_hint.enable(true)
 			else
 				vim.lsp.inlay_hint.enable(false)
 			end
 
-			local diagnostics_enabled = json_store.get("plugins", "diagnostics")
+			local diagnostics_enabled = json_store.get("lsp", "diagnostics")
 			if diagnostics_enabled == "on" then
 				vim.diagnostic.enable(true)
 			else
@@ -120,6 +117,30 @@ function M.setup()
 			end
 			if client:supports_method("textDocument/inlineCompletion") then
 				vim.lsp.inline_completion.enable(true)
+			end
+		end,
+	})
+
+	-- LSP 从缓冲区分离时的清理
+	vim.api.nvim_create_autocmd("LspDetach", {
+		group = vim.api.nvim_create_augroup("LspStopAndUnmap", { clear = true }),
+		desc = "LSP 客户端分离时停止客户端并移除键映射",
+		callback = function(args)
+			local client = vim.lsp.get_client_by_id(args.data.client_id)
+			if client then
+				-- 停止 LSP 客户端（当没有附加的缓冲区时）
+				if not client.attached_buffers then
+					client:stop()
+				else
+					for buf_id in pairs(client.attached_buffers) do
+						if buf_id == args.buf then
+							client:stop()
+							break
+						end
+					end
+				end
+				-- 移除键映射
+				keymaps.remove_keymaps()
 			end
 		end,
 	})
