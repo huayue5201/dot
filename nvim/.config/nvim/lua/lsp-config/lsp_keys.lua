@@ -194,13 +194,13 @@ local keymaps = {
 	{
 		"<s-a-d>",
 		function()
-			local diagnostics_enabled = json_store.get("plugins", "diagnostics")
+			local diagnostics_enabled = json_store.get("lsp", "diagnostics")
 			if diagnostics_enabled == "off" then
 				vim.diagnostic.enable(true)
-				json_store.set("plugins", "diagnostics", "on")
+				json_store.set("lsp", "diagnostics", "on")
 			else
 				vim.diagnostic.enable(false)
-				json_store.set("plugins", "diagnostics", "off")
+				json_store.set("lsp", "diagnostics", "off")
 			end
 		end,
 		"LSP: toggle diagnostics",
@@ -222,13 +222,13 @@ local keymaps = {
 	{
 		"<s-a-i>",
 		function()
-			local inlay_hint_enable = json_store.get("plugins", "inlay_hints")
+			local inlay_hint_enable = json_store.get("lsp", "inlay_hints")
 			if inlay_hint_enable == "off" then
 				vim.lsp.inlay_hint.enable(true)
-				json_store.set("plugins", "inlay_hints", "on")
+				json_store.set("lsp", "inlay_hints", "on")
 			else
 				vim.lsp.inlay_hint.enable(false)
-				json_store.set("plugins", "inlay_hints", "off")
+				json_store.set("lsp", "inlay_hints", "off")
 			end
 		end,
 		"LSP: toggle inlay hints",

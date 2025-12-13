@@ -71,6 +71,7 @@ vim.bo.omnifunc = "" -- 禁用 omnifunc 补全
 vim.opt.complete = "" -- 禁用补全
 -- vim.opt.completeopt = "menuone,noinsert,noselect" -- 补全菜单的选项
 vim.opt.completeopt = "menu,menuone,popup,fuzzy" -- 现代补全菜单
+-- vim.o.autocomplete = true -- 启用自动补全
 
 -- -------------- 搜索设置 --------------
 vim.opt.ignorecase = true -- 搜索时忽略大小写
