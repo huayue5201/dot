@@ -104,30 +104,9 @@ local function CopyErrorMessage()
 		return
 	end
 
-	-- 如果只有一条错误，直接复制
-	if #diag == 1 then
-		local diagnostic = diag[1]
-		local code = diagnostic.code or "No code"
-		local message = diagnostic.message or "No message"
-		local source = diagnostic.source or "unknown"
-		local severity = diagnostic.severity or vim.diagnostic.severity.ERROR
-		local severity_text = "ERROR"
-		if severity == vim.diagnostic.severity.WARN then
-			severity_text = "WARN"
-		elseif severity == vim.diagnostic.severity.INFO then
-			severity_text = "INFO"
-		elseif severity == vim.diagnostic.severity.HINT then
-			severity_text = "HINT"
-		end
-		local message_text = string.format("[%s] %s [%s] - %s", severity_text, message, code, source)
-		vim.fn.setreg("+", message_text)
-		vim.fn.setreg('"', message_text)
-		vim.notify("Error message copied to clipboard: " .. message_text, vim.log.levels.INFO)
-		return
-	end
-
-	-- 多条错误，展示选择框
+	-- 准备消息列表
 	local messages = {}
+	local all_message = ""
 	for _, diagnostic in ipairs(diag) do
 		local code = diagnostic.code or "No code"
 		local message = diagnostic.message or "No message"
@@ -141,27 +120,51 @@ local function CopyErrorMessage()
 		elseif severity == vim.diagnostic.severity.HINT then
 			severity_text = "HINT"
 		end
+		local formatted_message = string.format("[%s] %s [%s] - %s", severity_text, message, code, source)
+
+		-- 构建 'all' 错误信息
+		all_message = all_message .. formatted_message .. "\n"
+
+		-- 将每个单独的消息添加到 messages 列表
 		table.insert(messages, {
-			text = string.format("[%s] %s [%s] - %s", severity_text, message, code, source),
+			text = formatted_message,
 			diagnostic = diagnostic,
 		})
 	end
 
-	local choices = {}
+	-- 如果只有一条错误信息，直接复制
+	if #diag == 1 then
+		vim.fn.setreg("+", messages[1].text)
+		vim.fn.setreg('"', messages[1].text)
+		vim.notify("Error message copied to clipboard: " .. messages[1].text, vim.log.levels.INFO)
+		return
+	end
+
+	-- 在最前面添加 "all" 选项
+	local choices = { "󰪴  Copy all error messages" }
 	for _, msg in ipairs(messages) do
 		table.insert(choices, msg.text)
 	end
 
+	-- 选择框
 	vim.ui.select(choices, {
 		prompt = "Select an error message to copy:",
 		format_item = function(item)
 			return item
 		end,
 	}, function(choice, idx)
-		if choice and idx then
-			vim.fn.setreg("+", messages[idx].text)
-			vim.fn.setreg('"', messages[idx].text)
-			vim.notify("Error message copied to clipboard: " .. messages[idx].text, vim.log.levels.INFO)
+		if choice then
+			if choice == "󰪴  Copy all error messages" then
+				-- 如果选择了 "all"，复制全部错误信息
+				vim.fn.setreg("+", all_message)
+				vim.fn.setreg('"', all_message)
+				vim.notify("All error messages copied to clipboard.", vim.log.levels.INFO)
+			elseif idx then
+				-- 选择了单个错误消息
+				vim.fn.setreg("+", messages[idx].text)
+				vim.fn.setreg('"', messages[idx].text)
+				vim.notify("Error message copied to clipboard: " .. messages[idx].text, vim.log.levels.INFO)
+			end
 		else
 			vim.notify("No error message selected.", vim.log.levels.WARN)
 		end
