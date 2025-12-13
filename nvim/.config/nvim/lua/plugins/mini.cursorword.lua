@@ -3,6 +3,7 @@
 return {
 	"nvim-mini/mini.cursorword",
 	version = "*",
+	event = "BufReadPost",
 	config = function()
 		require("mini.cursorword").setup({
 			delay = 200,

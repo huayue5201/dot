@@ -73,6 +73,10 @@ return {
 	settings = {
 		["rust-analyzer"] = {
 			showUnlinkedFileNotification = false,
+			checkonSave = {
+				enable = true,
+				command = "clippy",
+			},
 			check = {
 				command = "check",
 				allTargets = false,
@@ -82,9 +86,17 @@ return {
 				trigger = "onType", -- 设置为 "onSave" 也可以根据性能考虑
 			},
 			cargo = {
+				autoreload = true,
 				buildScripts = {
 					enable = true,
 				},
+			},
+			formatting = {
+				enable = true,
+			},
+			assist = {
+				importGranularity = "module", -- 自动导入时的粒度，模块、类型等
+				importPrefix = "by_self", -- 自动导入时使用的前缀
 			},
 			imports = {
 				granularity = { group = "module" },
@@ -118,7 +130,7 @@ return {
 					trait = { enable = true },
 				},
 			},
-			procMacro = {
+			procMacro = { -- 启用过程宏支持
 				enable = true,
 			},
 		},

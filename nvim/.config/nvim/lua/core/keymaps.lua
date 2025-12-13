@@ -6,7 +6,7 @@ vim.keymap.set("n", "dd", function()
 end, { expr = true, desc = "Basic: delete line (empty → blackhole)" })
 
 vim.keymap.set("n", "<c-s>", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
-vim.keymap.set("n", "<c-c>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
+vim.keymap.set("n", "<c-esc>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 
 -- vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
 
@@ -29,47 +29,34 @@ local function close_other_buffers_safely()
 	local current_buf = vim.api.nvim_get_current_buf()
 	local current_win = vim.api.nvim_get_current_win()
 	local all_buffers = vim.api.nvim_list_bufs()
-	local function process_next_buffer(buffers, index)
-		if index > #buffers then
-			vim.api.nvim_set_current_win(current_win)
-			return
-		end
-		local buf = buffers[index]
+	local buffers_to_close = {}
+
+	-- 收集所有符合条件的缓冲区
+	for _, buf in ipairs(all_buffers) do
 		if
 			buf ~= current_buf
 			and vim.api.nvim_buf_is_valid(buf)
 			and vim.api.nvim_buf_is_loaded(buf)
 			and vim.bo[buf].buftype == ""
 		then
-			if vim.api.nvim_buf_get_option(buf, "modified") then
-				vim.ui.select({ "保存并关闭", "不保存关闭", "跳过" }, {
-					prompt = "文件 "
-						.. vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t")
-						.. " 有未保存的修改",
-					format_item = function(item)
-						return item
-					end,
-				}, function(choice)
-					if choice == "保存并关闭" then
-						vim.api.nvim_buf_call(buf, function()
-							vim.cmd("w")
-						end)
-						vim.cmd("silent! bd " .. buf)
-					elseif choice == "不保存关闭" then
-						vim.cmd("silent! bd! " .. buf)
-					end
-					process_next_buffer(buffers, index + 1)
-				end)
-			else
-				vim.cmd("silent! bd " .. buf)
-				process_next_buffer(buffers, index + 1)
-			end
-		else
-			process_next_buffer(buffers, index + 1)
+			table.insert(buffers_to_close, buf)
 		end
 	end
-	process_next_buffer(all_buffers, 1)
+
+	-- 关闭缓冲区
+	for _, buf in ipairs(buffers_to_close) do
+		if vim.api.nvim_set_option_value("modified", true, { buf = buf }) then
+			-- 如果有未保存的修改，Neovim 会自动询问用户保存与否
+			vim.cmd("silent! bd " .. buf)
+		else
+			vim.cmd("silent! bd " .. buf)
+		end
+	end
+
+	-- 恢复原窗口
+	vim.api.nvim_set_current_win(current_win)
 end
+
 vim.api.nvim_create_user_command("CloseOtherBuffersSafe", close_other_buffers_safely, {})
 vim.keymap.set("n", "<leader>cab", ":CloseOtherBuffersSafe<CR>", {
 	noremap = true,

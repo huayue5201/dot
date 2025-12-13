@@ -26,7 +26,8 @@ return {
 			},
 			foldKeymaps = {
 				setup = true, -- modifies `h`, `l`, and `$`
-				hOnlyOpensOnFirstColumn = false,
+				hOnlyOpensOnFirstColumn = true,
+				scrollLeftOnCaret = true, -- `^` should scroll left (basically mapped to `0^`)
 			},
 		})
 
