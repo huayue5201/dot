@@ -64,6 +64,14 @@ vim.keymap.set("n", "<leader>cab", ":CloseOtherBuffersSafe<CR>", {
 	desc = "Safely close other buffers without breaking LSP",
 })
 
+vim.keymap.set("n", "<leader>cp", function()
+	require("user.json_store").clear_project_data()
+end, {
+	noremap = true,
+	silent = true,
+	desc = "Clear project data",
+})
+
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>i", "<cmd>messages<cr>", { silent = true, desc = "Message: show messages" })
 vim.keymap.set("n", "<leader>re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })

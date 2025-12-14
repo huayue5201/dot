@@ -106,7 +106,7 @@ local function apply_highlights(bufnr, ns, lines)
 
 		-- 1. 高亮图标：通过精确计算位置
 		local indent_chars = line.indent * 2 -- 每级缩进2个空格
-		local prefix_length = indent_chars + (line.has_refs and 1 or 0) -- 展开符可能占1个字符
+		-- local prefix_length = indent_chars + (line.has_refs and 1 or 0) -- 展开符可能占1个字符
 
 		-- 图标开始位置（在展开符之后，如果有的话）
 		local icon_start = indent_chars + 1
@@ -122,32 +122,53 @@ local function apply_highlights(bufnr, ns, lines)
 
 			-- 高亮单个图标字符
 			if icon_char ~= " " then
-				vim.api.nvim_buf_add_highlight(bufnr, ns, hl_group, i - 1, icon_start - 1, icon_start)
+				vim.hl.range(
+					bufnr, -- 缓冲区 ID
+					ns, -- 命名空间 ID
+					hl_group, -- 高亮组名称
+					{ i - 1, icon_start - 1 }, -- 起始位置：行列元组（行和列从 0 开始）
+					{ i - 1, icon_start }, -- 结束位置：只高亮一个字符，即列号是 icon_start
+					{ inclusive = false } -- 可选项：是否包含结束列，默认为 false
+				)
 			end
 		end
 
 		-- 2. 高亮函数名
 		local name_start = line_text:find(line.node.name, 1, true) -- 使用 plain 查找
 		if name_start then
-			vim.api.nvim_buf_add_highlight(
-				bufnr,
-				ns,
-				"Function",
-				i - 1,
-				name_start - 1,
-				name_start + #line.node.name - 1
+			vim.hl.range(
+				bufnr, -- 缓冲区 ID
+				ns, -- 命名空间 ID
+				"Function", -- 高亮组名称
+				{ i - 1, name_start - 1 }, -- 起始位置：行列元组（行和列从 0 开始）
+				{ i - 1, name_start + #line.node.name - 1 }, -- 结束位置：结束列是 name_start + 名称的长度
+				{ inclusive = false } -- 可选项：是否包含结束列，默认为 false
 			)
 		end
 
 		-- 3. 高亮模式标签和位置信息
 		local mode_start = line_text:find("%[OUTGOING%]") or line_text:find("%[INCOMING%]")
 		if mode_start then
-			vim.api.nvim_buf_add_highlight(bufnr, ns, "Type", i - 1, mode_start - 1, mode_start + 10)
+			vim.hl.range(
+				bufnr, -- 缓冲区 ID
+				ns, -- 命名空间 ID
+				"Type", -- 高亮组名称
+				{ i - 1, mode_start - 1 }, -- 起始位置：行列元组（注意行列从 0 开始）
+				{ i - 1, mode_start + 10 }, -- 结束位置：列号 +10 代表高亮区间的结束列
+				{ inclusive = false } -- 可选项：是否包含结束列，默认为 false
+			)
 		end
 
 		local loc_start = line_text:find(" %[")
 		if loc_start then
-			vim.api.nvim_buf_add_highlight(bufnr, ns, "Comment", i - 1, loc_start - 1, -1)
+			vim.hl.range(
+				bufnr, -- 缓冲区 ID
+				ns, -- 命名空间 ID
+				"Comment", -- 高亮组名称
+				{ i - 1, loc_start - 1 }, -- 起始位置：行列元组（注意行列从 0 开始）
+				{ i - 1, -1 }, -- 结束位置：列为 -1 表示到行尾
+				{ inclusive = false } -- 可选项：是否包含结束列，默认为 false
+			)
 		end
 	end
 end
@@ -465,7 +486,7 @@ function M._display_ui(instance)
 	end
 
 	-- 获取或创建窗口
-	local win_width = math.floor(vim.api.nvim_get_option("columns") * 0.4)
+	local win_width = math.floor(vim.api.nvim_get_option_value("columns", { scope = "global" }) * 0.4)
 
 	if not instance.refs_win or not vim.api.nvim_win_is_valid(instance.refs_win) then
 		vim.cmd("vsplit")
