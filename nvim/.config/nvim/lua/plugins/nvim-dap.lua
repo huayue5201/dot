@@ -1,4 +1,4 @@
--- hDapBreakpointStoppedttps://github.com/mfussenegger/nvim-dap
+-- https://github.com/mfussenegger/nvim-dap
 
 return {
 	"mfussenegger/nvim-dap",
@@ -71,8 +71,8 @@ return {
 		}
 
 		require("dap-config.dap_keys").setup()
-		-- 断点持久化
-		require("dap-config.breakpoint_state").setup()
+
+		require("dap-config.breakpoint_state").setup_autoload()
 
 		-- 扩展 REPL 命令
 		local repl = require("dap.repl")

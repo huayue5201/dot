@@ -110,7 +110,7 @@ function M.setup()
 			---@diagnostic disable: need-check-nil
 			--- 启用 插入模式 LSP 格式化
 			if client:supports_method("textDocument/onTypeFormatting") then
-				vim.lsp.on_type_formatting.enable(true)
+				vim.lsp.on_type_formatting.enable(true, { client_id = client.id })
 			end
 			-- 启用 LSP 折叠
 			if client:supports_method("textDocument/foldingRange") then
@@ -118,18 +118,20 @@ function M.setup()
 			end
 			-- 启用内联补全
 			if client:supports_method("textDocument/inlineCompletion") then
-				vim.lsp.inline_completion.enable(true)
+				vim.lsp.inline_completion.enable(true, { client_id = client.id })
 			end
 			-- 启用关联编辑范围
 			if client:supports_method("textDocument/linkedEditingRange") then
 				vim.lsp.linked_editing_range.enable(true, { client_id = client.id })
 			end
 
-			vim.cmd([[
+			if client:supports_method("textDocument/documentHighlight") then
+				vim.cmd([[
         autocmd CursorHold <buffer> lua vim.defer_fn(function() vim.lsp.buf.document_highlight() end, 200)
         autocmd CursorHoldI <buffer> lua vim.defer_fn(function() vim.lsp.buf.document_highlight() end, 200)
         autocmd CursorMoved <buffer> lua vim.defer_fn(function() vim.lsp.buf.clear_references() end, 200)
       ]])
+			end
 		end,
 	})
 

@@ -1,6 +1,13 @@
+-- lua/dap-config/dap_utils.lua
+local dap = require("dap")
+
 local M = {}
 
-local dap = require("dap")
+local function sync_after_set()
+	vim.defer_fn(function()
+		require("dap-config.breakpoint_state").sync_breakpoints()
+	end, 10)
+end
 
 function M.set_debuglog()
 	local levels = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR" }
@@ -14,7 +21,6 @@ function M.set_debuglog()
 				WARN = "警告：警告信息",
 				ERROR = "错误：错误信息",
 			}
-			-- 增加间距，确保输出整洁
 			return string.format("📝 %-10s . %s", item, desc[item])
 		end,
 	}, function(choice)
@@ -50,12 +56,11 @@ function M.set_breakpoint()
 		end
 
 		if choice == "Conditional" then
-			vim.ui.input({
-				prompt = "⏳ 输入条件: ",
-			}, function(condition)
+			vim.ui.input({ prompt = "⏳ 输入条件: " }, function(condition)
 				if condition and condition ~= "" then
 					dap.toggle_breakpoint(condition)
-					print(string.format("✔️ 条件断点已设置：%s", condition))
+					print("✔️ 条件断点已设置：" .. condition)
+					sync_after_set()
 				else
 					vim.notify("⚠️ 条件不能为空！", vim.log.levels.ERROR)
 				end
@@ -65,7 +70,8 @@ function M.set_breakpoint()
 				local num = tonumber(hit_count)
 				if num then
 					dap.toggle_breakpoint(nil, tostring(num))
-					print(string.format("✔️ 命中次数：%d", num))
+					print("✔️ 命中次数：" .. num)
+					sync_after_set()
 				else
 					vim.notify("⚠️ 请输入有效的数字！", vim.log.levels.ERROR)
 				end
@@ -74,82 +80,55 @@ function M.set_breakpoint()
 			vim.ui.input({ prompt = "📝 输入日志: " }, function(message)
 				if message and message ~= "" then
 					dap.toggle_breakpoint(nil, nil, message)
-					print(string.format("✔️ 日志已设置：%s", message))
+					print("✔️ 日志已设置：" .. message)
+					sync_after_set()
 				else
 					vim.notify("⚠️ 日志内容不能为空！", vim.log.levels.ERROR)
 				end
 			end)
 		elseif choice == "Multi" then
-			-- 多条件断点：分步输入
 			local inputs = {
 				condition = { prompt = "⏳ 条件（可选）", default = "" },
 				hit_count = { prompt = "🔢 命中次数（可选）", default = "" },
 				log_message = { prompt = "📝 日志消息（可选）", default = "" },
 			}
+			local results, order = {}, { "condition", "hit_count", "log_message" }
 
-			local results = {}
-			local input_order = { "condition", "hit_count", "log_message" }
-
-			local function collect_input(index)
-				if index > #input_order then
-					-- 所有输入完成
+			local function collect(i)
+				if i > #order then
 					local condition = results.condition ~= "" and results.condition or nil
 					local hitCondition = results.hit_count ~= "" and results.hit_count or nil
 					local logMessage = results.log_message ~= "" and results.log_message or nil
 
-					-- 验证命中次数是否为数字
 					if hitCondition and not tonumber(hitCondition) then
 						vim.notify("⚠️ 命中次数必须为数字！", vim.log.levels.ERROR)
-						-- 如果验证失败，重新询问命中次数
 						results.hit_count = nil
-						collect_input(2) -- 重新从命中次数开始
+						collect(2)
 						return
 					end
 
-					-- 设置断点
 					dap.toggle_breakpoint(condition, hitCondition, logMessage)
-
-					-- 显示设置结果
-					local condition_str = condition or "无条件"
-					local hit_str = hitCondition or "无次数限制"
-					local log_str = logMessage or "无日志"
-
 					print(
-						string.format(
-							"✔️ 多条件断点已设置：\n  条件: %s\n  次数: %s\n  日志: %s",
-							condition_str,
-							hit_str,
-							log_str
+						("✔️ 多条件断点已设置：条件=%s 次数=%s 日志=%s"):format(
+							condition or "无条件",
+							hitCondition or "无次数限制",
+							logMessage or "无日志"
 						)
 					)
+					sync_after_set()
 					return
 				end
 
-				local key = input_order[index]
-				local spec = inputs[key]
-
-				-- 如果已经输入过且有值，直接跳到下一步
-				if results[key] ~= nil then
-					collect_input(index + 1)
-					return
-				end
-
-				vim.ui.input({
-					prompt = spec.prompt .. ": ",
-					default = spec.default,
-				}, function(input)
-					if input then
-						results[key] = input
-					else
-						results[key] = "" -- 用户取消输入，设为空字符串
-					end
-					collect_input(index + 1)
+				local key, spec = order[i], inputs[order[i]]
+				vim.ui.input({ prompt = spec.prompt .. ": ", default = spec.default }, function(input)
+					results[key] = input or ""
+					collect(i + 1)
 				end)
 			end
 
-			-- 开始收集输入
-			collect_input(1)
+			collect(1)
 		end
 	end)
 end
+
 return M

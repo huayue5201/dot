@@ -182,13 +182,16 @@ vim.api.nvim_create_autocmd({ "CursorMoved", "ModeChanged" }, {
 
 				if buf ~= selection_buf or m_starts_after_selection or m_ends_before_selection then
 					for line = m.start.line, m.stop.line do
-						vim.api.nvim_buf_add_highlight(
-							buf,
-							match_ns,
-							config.hl_group,
-							line - 1,
-							line == m.start.line and m.start.col - 1 or 0,
-							line == m.stop.line and m.stop.col or -1
+						vim.hl.range(
+							buf, -- 缓冲区 ID
+							match_ns, -- 命名空间 ID
+							config.hl_group, -- 高亮组
+							{ line - 1, line == m.start.line and m.start.col - 1 or 0 }, -- 起始位置（line, col）
+							{
+								line == m.stop.line and m.stop.line - 1 or line - 1,
+								line == m.stop.line and m.stop.col or -1,
+							}, -- 结束位置
+							{ inclusive = false } -- 可选的额外设置，是否包含结束位置
 						)
 					end
 				end
