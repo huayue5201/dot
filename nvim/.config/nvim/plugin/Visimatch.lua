@@ -7,15 +7,7 @@ local config = {
 	case_insensitive = { "markdown", "text", "help" },
 }
 
--- string.find() seems to have a bug/issue where you get a `pattern too
--- complex` error if the pattern used is too long _and_ matches the text in
--- question. NB, to see this in action you just need to use a regular
--- string.find() in the algorithm and try selecting a tonne of repeated text.
--- This is a workaround for this bug, which tries a normal `find()` call, and
--- if it fails, tries again by splitting the pattern up into ~100 character
--- chunks and checking them in sequence. This function isn't smart enough
--- to handle arbitrary patterns - but it is smart enough to handle the patterns
--- used in this plugin.
+-- Workaround for string.find() pattern complexity issue
 local find2 = function(s, pattern, init, plain)
 	local ok, start, stop = pcall(string.find, s, pattern, init, plain)
 	if ok then
@@ -32,8 +24,7 @@ local find2 = function(s, pattern, init, plain)
 		i = i + 1
 		local needle_end = needle_start + needle_length
 
-		-- If the end of the new pattern intersects either `%<anything>` or
-		-- `%s+`, we need to extend the pattern by a few chars.
+		-- Ensure patterns don't break at certain boundaries
 		local _, extra1 = pattern:find("^.?%%s%+", needle_end - 1)
 		local _, extra2 = pattern:find("^[^%%]%%.", needle_end - 1)
 		needle_end = extra1 or extra2 or needle_end
@@ -113,7 +104,6 @@ local is_case_insensitive = function(ft1, ft2)
 		return config.case_insensitive
 	end
 	if type(config.case_insensitive) == "table" then
-		---@diagnostic disable-next-line: param-type-mismatch
 		for _, special_ft in ipairs(config.case_insensitive) do
 			if ft1 == special_ft or ft2 == special_ft then
 				return true
@@ -158,8 +148,8 @@ vim.api.nvim_create_autocmd({ "CursorMoved", "ModeChanged" }, {
 		local pattern_lower
 
 		for _, win in pairs(wins) do
-			local first_line = math.max(0, vim.fn.line("w0", win) - #selection)
-			local last_line = vim.fn.line("w$", win) + #selection
+			local first_line = vim.fn.line("w0", win) - 1
+			local last_line = vim.fn.line("w$", win)
 			local buf = vim.api.nvim_win_get_buf(win)
 			local visible_text = vim.api.nvim_buf_get_lines(buf, first_line, last_line, false)
 			local case_insensitive = is_case_insensitive(vim.bo[buf].ft, vim.bo.ft)
@@ -175,23 +165,25 @@ vim.api.nvim_create_autocmd({ "CursorMoved", "ModeChanged" }, {
 			for _, m in pairs(matches) do
 				m.start.line, m.stop.line = m.start.line + first_line, m.stop.line + first_line
 
+				-- Ensure matches are after the selection region
 				local m_starts_after_selection = m.start.line > selection_stop[2]
 					or (m.start.line == selection_stop[2] and m.start.col > selection_stop[3])
+
 				local m_ends_before_selection = m.stop.line < selection_start[2]
 					or (m.stop.line == selection_start[2] and m.stop.col < selection_start[3])
 
 				if buf ~= selection_buf or m_starts_after_selection or m_ends_before_selection then
 					for line = m.start.line, m.stop.line do
 						vim.hl.range(
-							buf, -- 缓冲区 ID
-							match_ns, -- 命名空间 ID
-							config.hl_group, -- 高亮组
-							{ line - 1, line == m.start.line and m.start.col - 1 or 0 }, -- 起始位置（line, col）
+							buf, -- Buffer ID
+							match_ns, -- Namespace ID
+							config.hl_group, -- Highlight group
+							{ line - 1, line == m.start.line and m.start.col - 1 or 0 }, -- Start position (line, col)
 							{
 								line == m.stop.line and m.stop.line - 1 or line - 1,
 								line == m.stop.line and m.stop.col or -1,
-							}, -- 结束位置
-							{ inclusive = false } -- 可选的额外设置，是否包含结束位置
+							}, -- End position
+							{ inclusive = false } -- Optional extra setting for whether to include the end position
 						)
 					end
 				end
