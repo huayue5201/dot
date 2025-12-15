@@ -225,6 +225,8 @@ return {
 				require("dap-config.adapters.probe_rs").setup(dap)
 				require("dap-config.adapters.openocd").setup(dap)
 				require("dap-config.adapters.pyocd").setup(dap)
+			elseif filetype == "lua" then
+				require("dap-config.adapters.local-lua-debugger-vscode").setup(dap)
 			end
 		end
 

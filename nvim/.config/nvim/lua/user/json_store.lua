@@ -151,15 +151,28 @@ end
 
 -- ================= Public API =================
 
+--- 设置单个键值对
+-- 示例：存储项目的窗口布局
+-- json_store.set("window_layout", "main_split", {width = 800, height = 600})
+-- 示例（带文件ID）：存储文件特定的光标位置
+-- json_store.set("cursor_pos", "line_col", {20, 5}, "main.lua")
 function M.set(namespace, key, value, file_id)
 	_batch_op("set", namespace, { [key] = value }, file_id)
 end
 
+--- 获取单个键值
+-- 示例：读取窗口布局
+-- local layout = json_store.get("window_layout", "main_split")
+-- 示例（带文件ID）：读取文件特定光标位置
+-- local pos = json_store.get("cursor_pos", "line_col", "main.lua")
 function M.get(namespace, key, file_id)
 	local res = _batch_op("get", namespace, { key }, file_id)
 	return res[key]
 end
 
+--- 获取命名空间下所有数据
+-- 示例：获取所有窗口布局数据
+-- local all_layouts = json_store.get_all("window_layout")
 function M.get_all(namespace)
 	local project_key = _get_project_key()
 	local store = _ensure_store(project_key)
@@ -167,28 +180,62 @@ function M.get_all(namespace)
 	return data[namespace] or {}
 end
 
+--- 删除单个键
+-- 示例：删除特定的窗口布局
+-- json_store.delete("window_layout", "main_split")
+-- 示例（带文件ID）：删除文件特定设置
+-- json_store.delete("cursor_pos", "line_col", "main.lua")
 function M.delete(namespace, key, file_id)
 	_batch_op("delete", namespace, { key }, file_id)
 end
 
+--- 批量设置多个键值对
+-- 示例：批量设置项目配置
+-- json_store.set_many("project_config", {
+--     theme = "dark",
+--     font_size = 14,
+--     tab_width = 4
+-- })
+-- 示例（带文件ID）：批量设置文件状态
+-- json_store.set_many("file_states", {
+--     modified = true,
+--     last_accessed = os.time()
+-- }, "main.lua")
 function M.set_many(namespace, entries, file_id)
 	_batch_op("set", namespace, entries, file_id)
 end
 
+--- 批量删除多个键
+-- 示例：清理临时数据
+-- json_store.delete_many("temp_data", {"cache1", "cache2", "cache3"})
+-- 示例（带文件ID）：清理多个文件的特定设置
+-- json_store.delete_many("file_settings", {"indent", "encoding"}, "main.lua")
 function M.delete_many(namespace, keys, file_id)
 	_batch_op("delete", namespace, keys, file_id)
 end
 
+--- 批量获取多个键值
+-- 示例：同时获取多个配置项
+-- local configs = json_store.get_many("project_config", {"theme", "font_size", "tab_width"})
+-- 示例（带文件ID）：获取多个文件属性
+-- local attrs = json_store.get_many("file_attrs", {"size", "type"}, "main.lua")
 function M.get_many(namespace, keys, file_id)
 	return _batch_op("get", namespace, keys, file_id)
 end
 
+--- 立即保存数据到文件（跳过延迟）
+-- 示例：在插件卸载前确保数据已保存
+-- json_store.save()
 function M.save()
 	local project_key = _get_project_key()
 	local store = _ensure_store(project_key)
 	_save(store, project_key)
 end
 
+--- 获取当前项目的存储文件路径
+-- 示例：用于调试或备份存储文件
+-- local store_file = json_store.get_current_project_file()
+-- print("数据存储在：" .. store_file)
 function M.get_current_project_file()
 	local project_key = _get_project_key()
 	return _ensure_store(project_key).file_path .. project_key .. ".json"

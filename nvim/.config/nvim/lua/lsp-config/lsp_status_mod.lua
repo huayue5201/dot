@@ -192,7 +192,7 @@ function M.lsp_clients()
 		["ruff"] = 30,
 		["ruff_lsp"] = 30,
 		["eslint"] = 40,
-		["copilot"] = 80,
+		["copilot"] = 20,
 	}
 
 	-- 计算优先级和计数
