@@ -109,7 +109,6 @@ return {
 		"--stdio",
 	},
 	root_markers = { ".git" },
-	filetypes = { "lua", "go" }, -- 添加 .h 文件支持
 	init_options = {
 		editorInfo = {
 			name = "Neovim",

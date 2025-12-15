@@ -25,6 +25,13 @@ return {
 			require("fzf-lua").grep({ resume = true })
 		end, { desc = "fzf: grep" })
 		vim.keymap.set("n", "<leader>ft", "<cmd>FzfLua btags<cr>", { desc = "fzf: btags" })
+		vim.keymap.set("n", "<leader>fs", "<cmd>FzfLua lsp_document_symbols<cr>", { desc = "fzf: symbols" })
+		vim.keymap.set(
+			"n",
+			"<leader>fS",
+			"<cmd>FzfLua lsp_live_workspace_symbols<cr>",
+			{ desc = "fzf: workspace symbols" }
+		)
 		vim.keymap.set("n", "<leader>fT", "<cmd>FzfLua tags<cr>", { desc = "fzf: workspaces tags" })
 		vim.keymap.set("n", "<leader>fd", "<cmd>FzfLua  dap_variables<cr>", { desc = "fzf: active session variables" })
 	end,

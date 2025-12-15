@@ -84,16 +84,18 @@ function M._build_filetype_index()
 		return M._filetype_index
 	end
 
+	local configs = M.reload_lsp_configs() -- 保证最新
 	local index = {}
-	local configs = M._load_all_lsp_configs() -- 依赖主缓存
 
 	for name, config in pairs(configs) do
 		local fts = config.filetypes
-		if fts then
+		if fts == nil then
+			-- 表示全局适用，不需要特殊 key，直接在查询时处理
+			config._global = true
+		else
 			if type(fts) == "string" then
 				fts = { fts }
 			end
-
 			for _, ft in ipairs(fts) do
 				ft = string.lower(ft)
 				index[ft] = index[ft] or {}
@@ -231,7 +233,16 @@ end
 
 function M.get_lsp_by_filetype(filetype)
 	local index = M._build_filetype_index()
-	return index[string.lower(filetype)] or {}
+	local results = vim.deepcopy(index[string.lower(filetype)] or {})
+
+	-- 合并所有 filetypes = nil 的配置
+	for name, config in pairs(M._load_all_lsp_configs()) do
+		if config.filetypes == nil and not vim.tbl_contains(results, name) then
+			table.insert(results, name)
+		end
+	end
+
+	return results
 end
 
 function M.get_all_lsp_names()
