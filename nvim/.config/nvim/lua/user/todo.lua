@@ -107,7 +107,7 @@ local function calculate_task_stats(task)
 end
 
 -- ==========================
--- 高亮和虚拟文本管理
+-- 高亮和虚拟文本管理（添加删除线）
 -- ==========================
 -- 更新单个任务的高亮和统计
 local function update_task_display(bufnr, task)
@@ -118,14 +118,24 @@ local function update_task_display(bufnr, task)
 	-- 清除该行现有的高亮和虚拟文本
 	vim.api.nvim_buf_clear_namespace(bufnr, todo_ns, line_num, line_num + 1)
 
-	-- 如果任务已完成，添加灰色高亮
+	-- 如果任务已完成，添加删除线和灰色高亮
 	if task.is_done then
+		-- 添加删除线高亮（覆盖整个行）
+		vim.api.nvim_buf_set_extmark(bufnr, todo_ns, line_num, 0, {
+			end_row = line_num,
+			end_col = line_length,
+			hl_group = "TodoStrikethrough",
+			hl_mode = "combine",
+			priority = 50,
+		})
+
+		-- 添加灰色高亮
 		vim.api.nvim_buf_set_extmark(bufnr, todo_ns, line_num, 0, {
 			end_row = line_num,
 			end_col = line_length,
 			hl_group = "TodoCompleted",
 			hl_mode = "combine",
-			priority = 50,
+			priority = 49,
 		})
 	end
 
@@ -207,6 +217,32 @@ local function update_all_virtual_text_and_highlights(bufnr)
 	for _, task in ipairs(tasks) do
 		update_task_tree_display(bufnr, task)
 	end
+end
+
+-- ==========================
+-- Conceal 和高亮设置（添加删除线高亮组）
+-- ==========================
+
+local function setup_conceal_syntax(bufnr)
+	vim.cmd([[
+    syntax match markdownTodo /\[\s\]/ conceal cchar=☐
+    syntax match markdownTodoDone /\[[xX]\]/ conceal cchar=☑
+    highlight link markdownTodo Conceal
+    highlight link markdownTodoDone Conceal
+  ]])
+end
+
+local function apply_todo_conceal_to_buffer(bufnr)
+	local win = vim.fn.bufwinid(bufnr)
+	if win == -1 then
+		return -- 缓冲区没有在窗口中显示
+	end
+
+	-- 使用 API 设置窗口选项
+	vim.api.nvim_set_option_value("conceallevel", 2, { win = win })
+	vim.api.nvim_set_option_value("concealcursor", "ncv", { win = win })
+
+	setup_conceal_syntax(bufnr)
 end
 
 -- ==========================
@@ -292,7 +328,6 @@ function M.toggle_selected_tasks()
 	end
 
 	local changed_count = 0
-	local total_lines = end_line - start_line + 1
 
 	for lnum = start_line, end_line do
 		local success, _ = toggle_task_with_stats(bufnr, lnum)
@@ -314,22 +349,32 @@ function M.toggle_task()
 	end
 end
 
--- ==========================
--- 一键新建任务函数
--- ==========================
+-- 新建普通任务（无缩进）
 function M.new_task()
+	local bufnr = vim.api.nvim_get_current_buf()
+	local lnum = vim.fn.line(".")
+
+	local new_task_line = "- [ ] 新任务"
+	vim.fn.append(lnum, new_task_line)
+
+	local new_lnum = lnum + 1
+	vim.fn.cursor(new_lnum, 1)
+
+	update_all_virtual_text_and_highlights(bufnr)
+
+	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("A", true, false, true), "n", true)
+end
+
+-- 新建子任务（自动缩进）
+function M.new_subtask()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local lnum = vim.fn.line(".")
 
 	local current_line = vim.fn.getline(lnum)
 	local indent = current_line:match("^(%s*)") or ""
+	indent = indent .. "  " -- 子任务缩进两个空格
 
-	local current_task = parse_task_line(current_line)
-	if current_task then
-		indent = indent .. "  "
-	end
-
-	local new_task_line = indent .. "- [ ] 新任务"
+	local new_task_line = indent .. "- [ ] 新子任务"
 	vim.fn.append(lnum, new_task_line)
 
 	local new_lnum = lnum + 1
@@ -459,12 +504,7 @@ local function setup_keymaps(bufnr)
 			"n",
 			"<C-r>",
 			function()
-				vim.cmd([[
-          syntax match markdownTodo /\[\s\]/ conceal cchar=☐
-          syntax match markdownTodoDone /\[[xX]\]/ conceal cchar=☑
-          highlight link markdownTodo Conceal
-          highlight link markdownTodoDone Conceal
-        ]])
+				apply_todo_conceal_to_buffer(bufnr)
 				update_all_virtual_text_and_highlights(bufnr)
 				vim.cmd("redraw")
 			end,
@@ -483,7 +523,8 @@ local function setup_keymaps(bufnr)
 		},
 		{ "v", "<cr>", M.toggle_selected_tasks, "批量切换任务状态" },
 		{ "x", "<cr>", M.toggle_selected_tasks, "批量切换任务状态" },
-		{ "n", "<leader>nt", M.new_task, "新建任务" },
+		{ "n", "<leader>nT", M.new_task, "新建任务" },
+		{ "n", "<leader>nt", M.new_subtask, "新建子任务" },
 	}
 
 	for _, mapping in ipairs(keymaps) do
@@ -492,31 +533,14 @@ local function setup_keymaps(bufnr)
 end
 
 -- ==========================
--- Conceal 和高亮设置
+-- Conceal 和高亮设置（添加删除线高亮组）
 -- ==========================
 local function setup_conceal()
+	-- 添加删除线高亮组
 	vim.cmd([[
     highlight TodoCompleted guifg=#888888 gui=italic
+    highlight TodoStrikethrough gui=strikethrough cterm=strikethrough
   ]])
-
-	local function apply_conceal_syntax(bufnr)
-		-- 获取显示该缓冲区的窗口
-		local win = vim.fn.bufwinid(bufnr)
-		if win == -1 then
-			return -- 缓冲区没有在窗口中显示
-		end
-
-		-- 使用 API 设置窗口选项
-		vim.api.nvim_win_set_option(win, "conceallevel", 2)
-		vim.api.nvim_win_set_option(win, "concealcursor", "nc")
-
-		vim.cmd(string.format([[
-      syntax match markdownTodo /\[\s\]/ conceal cchar=☐
-      syntax match markdownTodoDone /\[[xX]\]/ conceal cchar=☑
-      highlight link markdownTodo Conceal
-      highlight link markdownTodoDone Conceal
-    ]]))
-	end
 
 	vim.api.nvim_create_augroup("TodoConceal", { clear = true })
 
@@ -530,7 +554,7 @@ local function setup_conceal()
 
 			-- 只有 TODO 相关文件才应用 conceal
 			if filename:match("%.todo%.md$") or filename:match("todo%.txt$") or filename:match("%.todo$") then
-				apply_conceal_syntax(bufnr)
+				apply_todo_conceal_to_buffer(bufnr)
 				vim.defer_fn(function()
 					update_all_virtual_text_and_highlights(bufnr)
 				end, 100)
@@ -548,7 +572,7 @@ local function setup_conceal()
 		},
 		callback = function(args)
 			vim.bo[args.buf].filetype = "markdown"
-			apply_conceal_syntax(args.buf)
+			apply_todo_conceal_to_buffer(args.buf)
 		end,
 	})
 end
@@ -594,15 +618,8 @@ local function show_todo_floating(path)
 		style = "minimal",
 	})
 
-	vim.wo[win].conceallevel = 2
-	vim.wo[win].concealcursor = "ncv"
-
-	vim.cmd([[
-    syntax match markdownTodo /\[\s\]/ conceal cchar=☐
-    syntax match markdownTodoDone /\[[xX]\]/ conceal cchar=☑
-    highlight link markdownTodo Conceal
-    highlight link markdownTodoDone Conceal
-  ]])
+	-- 应用 conceal 设置
+	apply_todo_conceal_to_buffer(buf)
 
 	local function update_summary()
 		local current_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)

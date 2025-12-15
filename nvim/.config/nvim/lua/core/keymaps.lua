@@ -9,6 +9,19 @@ vim.keymap.set("n", "<c-s>", "<cmd>w<cr>", { silent = true, desc = "Basic: save 
 vim.keymap.set("n", "<c-esc>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 
 -- vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
+vim.cmd("packadd nvim.undotree")
+local function undotree()
+	local close = require("undotree").open({
+		title = "undotree",
+		command = "topleft 30vnew",
+	})
+	if not close then
+		vim.bo.filetype = "undotree"
+	end
+end
+
+vim.keymap.set("n", "<leader>eu", undotree)
+vim.api.nvim_create_user_command("Undotree", undotree, {})
 
 -- 🏷 Tab operations
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
