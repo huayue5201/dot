@@ -77,6 +77,7 @@ return {
 	settings = {
 		["rust-analyzer"] = {
 			showUnlinkedFileNotification = false,
+			typing = { autoformat = true }, -- 开启 on-type formatting
 			checkOnSave = {
 				enable = true,
 				command = "clippy",
