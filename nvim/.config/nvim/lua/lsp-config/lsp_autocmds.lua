@@ -116,7 +116,7 @@ function M.setup()
 			if client:supports_method("textDocument/foldingRange") then
 				vim.wo.foldexpr = "v:lua.vim.lsp.foldexpr()"
 			end
-			-- 启用内联补全
+			-- 启用内联补全,ai常用的建议虚拟文本
 			if client:supports_method("textDocument/inlineCompletion") then
 				vim.lsp.inline_completion.enable(true, { client_id = client.id })
 			end
@@ -125,13 +125,20 @@ function M.setup()
 				vim.lsp.linked_editing_range.enable(true, { client_id = client.id })
 			end
 
-			if client:supports_method("textDocument/documentHighlight") then
-				vim.cmd([[
-        autocmd CursorHold <buffer> lua vim.defer_fn(function() vim.lsp.buf.document_highlight() end, 200)
-        autocmd CursorHoldI <buffer> lua vim.defer_fn(function() vim.lsp.buf.document_highlight() end, 200)
-        autocmd CursorMoved <buffer> lua vim.defer_fn(function() vim.lsp.buf.clear_references() end, 200)
-      ]])
-			end
+			-- if client:supports_method("textDocument/documentHighlight") then
+			-- 	vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+			-- 		buffer = 0, -- 当前 buffer
+			-- 		callback = function()
+			-- 			vim.lsp.buf.document_highlight()
+			-- 		end,
+			-- 	})
+			-- 	vim.api.nvim_create_autocmd("CursorMoved", {
+			-- 		buffer = 0,
+			-- 		callback = function()
+			-- 			vim.lsp.buf.clear_references()
+			-- 		end,
+			-- 	})
+			-- end
 		end,
 	})
 
