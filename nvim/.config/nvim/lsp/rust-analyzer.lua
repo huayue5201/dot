@@ -197,6 +197,6 @@ return {
 		})
 
 		local opts = { buffer = bufnr, noremap = true, silent = true, desc = "Toggle Rust Macro Preview" }
-		vim.keymap.set("n", "<leader>lm", toggle_macro_preview, opts)
+		vim.keymap.set("n", "grm", toggle_macro_preview, opts)
 	end,
 }

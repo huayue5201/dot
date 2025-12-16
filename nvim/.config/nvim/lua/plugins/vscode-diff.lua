@@ -2,6 +2,7 @@
 
 return {
 	"esmuellert/vscode-diff.nvim",
+	branch = "next",
 	event = "VeryLazy",
 	dependencies = { "MunifTanjim/nui.nvim" },
 	config = function()
