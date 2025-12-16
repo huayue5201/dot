@@ -22,7 +22,7 @@ vim.cmd([[
 vim.g.mapleader = vim.keycode("<space>")
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
--- vim.lsp.enable({ "lua_ls", "pyright" })
+-- vim.lsp.enable("lua_ls")
 -- 立即加载基础配置
 require("lsp-config").setup() --lsp
 require("core.setings") -- 基础 Neovim 选项
