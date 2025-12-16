@@ -137,26 +137,40 @@ return {
 			local buf_id = vim.api.nvim_win_get_buf(picked_window_id)
 			local filetype = vim.bo[buf_id].filetype
 			local buftype = vim.bo[buf_id].buftype
-			local close_commands = require("user.utils").buf_keymaps["q"]
+			-- 获取当前缓冲区的文件名
+			local bufname = vim.fn.bufname(buf_id)
 			-- 获取对应的关闭命令
-			local command = close_commands[filetype] or close_commands[buftype]
+			local close_commands = require("user.utils").buf_keymaps["q"]
+			-- 根据文件名做额外的逻辑判断（比如处理 dap-repl 特殊情况）
+			local command
+			if bufname:match("dap%-repl") then
+				command = close_commands["dap-repl"]
+			end
+			-- 如果没有根据文件名找到关闭命令，尝试使用文件类型或缓冲区类型
+			if not command then
+				command = close_commands[filetype] or close_commands[buftype]
+			end
+			-- 如果没有找到匹配的命令，则使用默认的关闭命令
+			if not command then
+				command = "bdelete " .. buf_id
+			end
 			-- 切换到目标窗口并执行命令
 			local current_win = vim.api.nvim_get_current_win()
 			if not vim.api.nvim_win_is_valid(picked_window_id) then
 				print("Picked window is no longer valid.")
 				return
 			end
+			-- 切换到目标窗口
 			vim.api.nvim_set_current_win(picked_window_id)
 			-- 执行关闭命令
-			if command then
-				if type(command) == "function" then
-					command() -- 执行函数
+			local function execute_command(cmd)
+				if type(cmd) == "function" then
+					cmd() -- 执行函数
 				else
-					vim.cmd(command) -- 执行命令字符串
+					vim.cmd(cmd) -- 执行命令字符串
 				end
-			else
-				vim.cmd(string.format("bdelete %d", buf_id)) -- 默认 bdelete
 			end
+			execute_command(command)
 			-- 恢复原窗口
 			if vim.api.nvim_win_is_valid(current_win) then
 				vim.api.nvim_set_current_win(current_win)

@@ -23,17 +23,24 @@ augroup END
 -- 快捷键映射配置
 -- =============================================
 
--- 文件类型特定的快捷键映射
 local buf_keymaps = require("user.utils").buf_keymaps
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	desc = "根据文件类型设置按键",
 	group = vim.api.nvim_create_augroup("CustomKeyMappings", { clear = true }),
 	callback = function()
 		local ft = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
+		local bufname = vim.fn.bufname("%")
 		local set_markers = vim.b.keymaps_set or {}
 
 		for key, configs in pairs(buf_keymaps) do
+			-- 优先匹配 filetype / buftype
 			local conf = configs[ft]
+
+			-- 如果没有匹配，再尝试 bufname 特殊匹配
+			if not conf and bufname:match("dap%-repl") then
+				conf = configs["dap-repl"]
+			end
+
 			if conf and not set_markers[key] then
 				local opts = { buffer = true, silent = true, noremap = true, nowait = true }
 				if type(conf.cmd) == "function" then

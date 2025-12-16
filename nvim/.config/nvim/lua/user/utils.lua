@@ -17,7 +17,6 @@ M.buf_keymaps = {
 		msgmore = { cmd = "quit" },
 		FunctionReferences = { cmd = "quit" },
 		checkhealth = { cmd = "close" },
-		gitgraph = { cmd = "bdelete!" },
 		better_term = { cmd = "close" },
 		["grug-far"] = { cmd = "bdelete" },
 		git = { cmd = "bdelete" },

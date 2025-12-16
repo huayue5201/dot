@@ -141,30 +141,6 @@ function M.setup()
 			-- end
 		end,
 	})
-
-	-- LSP 从缓冲区分离时的清理
-	vim.api.nvim_create_autocmd("LspDetach", {
-		group = vim.api.nvim_create_augroup("LspStopAndUnmap", { clear = true }),
-		desc = "LSP 客户端分离时停止客户端并移除键映射",
-		callback = function(args)
-			local client = vim.lsp.get_client_by_id(args.data.client_id)
-			if client then
-				-- 停止 LSP 客户端（当没有附加的缓冲区时）
-				if not client.attached_buffers then
-					client:stop()
-				else
-					for buf_id in pairs(client.attached_buffers) do
-						if buf_id == args.buf then
-							client:stop()
-							break
-						end
-					end
-				end
-				-- 移除键映射
-				keymaps.remove_keymaps()
-			end
-		end,
-	})
 end
 
 return M

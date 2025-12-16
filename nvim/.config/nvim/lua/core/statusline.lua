@@ -131,38 +131,59 @@ function M.save_status()
 	local unsaved_count = 0
 	local has_unsaved = false
 
-	-- 定义需要忽略的缓冲区和文件类型
-	local ignore_conditions = {
-		{ buffer = "dap", filetype = "dap" },
-		{ buffer = "fugitive", filetype = "fugitive" },
-		{ filetype = "terminal" }, -- 忽略终端文件类型
-		{ filetype = "log" }, -- 忽略日志文件类型
-		{ filetype = "help" }, -- 忽略帮助文件类型
+	-- 定义需要忽略的缓冲区类型和文件类型
+	local ignore = {
+		filetype = {
+			"dap",
+			"fugitive",
+			"terminal",
+			"log",
+			"help",
+			"dapui-scopes",
+			"dapui-stacks",
+			"dapui-breakpoints",
+			"dapui-watches",
+			"dap-repl",
+			"dapui-console",
+			"snacks_picker_input",
+			"pager",
+			"msgmore",
+		},
+		buftype = {
+			"terminal",
+			"nofile",
+			"quickfix",
+		},
+		bufname = {
+			"dap-terminal",
+		},
 	}
 
 	-- 遍历所有缓冲区
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-		-- 使用 nvim_get_option_value 获取缓冲区的文件类型
-		local filetype = vim.api.nvim_get_option_value("filetype", { buf = buf })
-		local bufname = vim.api.nvim_buf_get_name(buf)
+		local ft = vim.api.nvim_get_option_value("filetype", { buf = buf })
+		local bt = vim.api.nvim_get_option_value("buftype", { buf = buf })
+		local name = vim.fn.bufname(buf)
 
-		-- 检查是否满足任何忽略条件
-		local ignore = false
-		for _, cond in ipairs(ignore_conditions) do
-			if (cond.buffer and bufname == cond.buffer) or (cond.filetype and filetype == cond.filetype) then
-				ignore = true
+		-- 检查是否在忽略列表
+		local ignore_ft = vim.tbl_contains(ignore.filetype, ft)
+		local ignore_bt = vim.tbl_contains(ignore.buftype, bt)
+
+		-- bufname 用 match，避免完整路径不匹配
+		local ignore_name = false
+		for _, pat in ipairs(ignore.bufname) do
+			if name:match(pat) then
+				ignore_name = true
 				break
 			end
 		end
 
-		if ignore then
+		if ignore_ft or ignore_bt or ignore_name then
 			goto continue
 		end
 
-		-- 使用 nvim_get_option_value 获取缓冲区的修改状态
-		local modified = vim.api.nvim_get_option_value("modified", { buf = buf })
-
 		-- 检查缓冲区是否已修改
+		local modified = vim.api.nvim_get_option_value("modified", { buf = buf })
 		if modified then
 			unsaved_count = unsaved_count + 1
 			has_unsaved = true
@@ -175,9 +196,8 @@ function M.save_status()
 	local label = "save."
 	local count_text = string.format("%d", unsaved_count)
 
-	-- 只高亮数字部分
+	-- 高亮数字部分
 	if has_unsaved then
-		-- 在Neovim状态栏中，使用 %#HLGroup# 设置高亮，%% 表示转义的 % 字符
 		return string.format("%s%%#SaveHighlight#%s%%*", label, count_text)
 	else
 		return label .. count_text
