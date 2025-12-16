@@ -9,11 +9,18 @@ return {
 			name = "Side scroll",
 			mode = "n",
 			body = "z",
+			hint = [[
+  横向滚动:
+  移动:   _h_ ←5列     _l_ →5列
+  半屏:   _H_ ←半屏    _L_ →半屏
+  退出:   _q_
+    ]],
 			heads = {
 				{ "h", "5zh" },
-				{ "l", "5zl", { desc = "←/→" } },
+				{ "l", "5zl" },
 				{ "H", "zH" },
-				{ "L", "zL", { desc = "half screen ←/→" } },
+				{ "L", "zL" },
+				{ "q", nil, { exit = true } },
 			},
 		})
 

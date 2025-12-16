@@ -80,16 +80,15 @@ return {
 
 				-- 仅保留最基础的操作，其他通过 Hydra 访问
 				map("n", "<leader>gS", gitsigns.stage_hunk, { desc = "gitsigns：暂存当前差异区块" })
-				map("n", "<leader>gR", gitsigns.reset_hunk, { desc = "gitsigns：重置当前差异区块" })
 
 				map("v", "<leader>gs", function()
 					gitsigns.stage_hunk({ vim.fn.line("."), vim.fn.line("v") })
 				end, { desc = "gitsigns：暂存选中的差异区块" })
-
+				map("n", "<leader>gr", gitsigns.reset_hunk, { desc = "gitsigns：重置当前差异区块" })
 				map("v", "<leader>gr", function()
 					gitsigns.reset_hunk({ vim.fn.line("."), vim.fn.line("v") })
-				end, { desc = "gitsigns：重置选中的差异区块" })
-
+				end)
+				map("n", "<leader>gR", gitsigns.reset_buffer)
 				map("n", "<leader>glb", function()
 					gitsigns.blame_line({ full = true })
 				end, { desc = "gitsigns：显示当前行的 Git blame" })

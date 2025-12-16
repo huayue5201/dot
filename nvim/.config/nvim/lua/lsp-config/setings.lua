@@ -1,18 +1,24 @@
 local M = {}
 
-local icons = require("lsp-config.lsp_utils").icons.diagnostic
+-- 定义诊断图标
+local icons = {
+	ERROR = "",
+	WARN = "",
+	HINT = "",
+	INFO = "",
+}
 
+-- 配置诊断显示
 M.diagnostic_config = function()
 	vim.diagnostic.config({
-		-- virtual_text = false, -- 设置false，诊断ui交给插件rachartier/tiny-inline-diagnostic.nvim
-		virtual_text = {
-			current_line = false,
-		},
-		virtual_lines = {
-			current_line = true,
-		},
+		-- 按严重程度排序
 		severity_sort = true,
-		float = { source = "if_many", border = "solid" },
+		-- 浮动窗口配置
+		float = {
+			source = "if_many",
+			border = "solid",
+		},
+		-- signs 配置（文档支持 text/numhl/linehl）
 		signs = {
 			text = {
 				[vim.diagnostic.severity.ERROR] = icons.ERROR,
@@ -20,10 +26,14 @@ M.diagnostic_config = function()
 				[vim.diagnostic.severity.HINT] = icons.HINT,
 				[vim.diagnostic.severity.INFO] = icons.INFO,
 			},
-			linehl = { [vim.diagnostic.severity.ERROR] = "ErrorMsg" },
-			numhl = { [vim.diagnostic.severity.WARN] = "WarningMsg" },
+			numhl = {
+				[vim.diagnostic.severity.ERROR] = "ErrorMsg",
+				[vim.diagnostic.severity.WARN] = "WarningMsg",
+			},
 		},
+		-- 下划线标记
 		underline = true,
+		-- 插入模式更新诊断
 		update_in_insert = true,
 	})
 end
