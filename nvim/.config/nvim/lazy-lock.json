@@ -5,6 +5,7 @@
   "buffer-sticks.nvim": { "branch": "main", "commit": "68fdb122d2a02df5d9172bb4a42ed1ba4ba56a2c" },
   "colorful-menu.nvim": { "branch": "master", "commit": "b51a659459df8d078201aefc995db8175ed55e84" },
   "conform.nvim": { "branch": "master", "commit": "9b8fa5e0b78168f68bee9bf886dc20f287c61e02" },
+  "context.nvim": { "branch": "main", "commit": "54c30a20cb4709b0990d63c1a0ecb4290942292c" },
   "crates.nvim": { "branch": "main", "commit": "afcd1cc3eeceb5783676fc8464389b9216a29d05" },
   "dial.nvim": { "branch": "master", "commit": "f97c0c7fa7d5111bc04a91d0f693900fb2d95861" },
   "diff.nvim": { "branch": "main", "commit": "d78463f7315d9bd773acae36e8b22aafef6b9346" },

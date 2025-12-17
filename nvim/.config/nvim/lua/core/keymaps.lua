@@ -109,7 +109,6 @@ vim.keymap.set("n", "<leader>cab", close_other_buffers_safely, {
 })
 
 -- 📜 Messages & reload
-vim.keymap.set("n", "<leader>i", "<cmd>messages<cr>", { silent = true, desc = "Message: show messages" })
 vim.keymap.set("n", "<leader>re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
 vim.keymap.set("n", "<leader>rr", "<cmd>restart<cr>", { silent = true, desc = "Basic: restart Neovim" })
 
