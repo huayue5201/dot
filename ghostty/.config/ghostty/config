@@ -22,10 +22,8 @@ adjust-underline-position = 8
 # ================================================
 # https://github.com/0xhckr/ghostty-shaders
 # 主题颜色
-custom-shader = ~/.config/ghostty/shaders/galaxy.glsl
-
-# 启用自定义的着色器动画
-custom-shader-animation = true
+custom-shader = ~/.config/ghostty/shaders/cubes.glsl
+# custom-shader = ~/.config/ghostty/shaders/water.glsl
 
 # 设置窗口装饰为自动
 window-decoration = auto

@@ -5,7 +5,17 @@ vim.keymap.set("n", "dd", function()
 	return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true, desc = "Basic: delete line (empty → blackhole)" })
 
-vim.keymap.set("n", "<c-s>", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
+vim.keymap.set("n", "<localleader>s", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
+
+vim.keymap.set("n", "<localleader>S", function()
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_get_option_value("modified", { buf = buf }) then
+			vim.api.nvim_buf_call(buf, function()
+				vim.cmd.write()
+			end)
+		end
+	end
+end, { silent = true, desc = "Save all modified buffers" })
 
 -- vim.keymap.set("n", "<c-esc>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 vim.keymap.set("n", "<c-esc>", function()
