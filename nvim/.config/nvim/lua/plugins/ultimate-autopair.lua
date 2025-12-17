@@ -115,7 +115,7 @@ return {
 			-- 跳出配对配置
 			tabout = {
 				enable = true, -- 默认禁用，按需开启
-				map = "<A-tab>", -- Alt+tab 跳出当前配对
+				map = "<C-l>", -- Alt+tab 跳出当前配对
 				hopout = true, -- 从空配对中跳出
 			},
 		})
