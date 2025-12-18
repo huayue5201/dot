@@ -104,6 +104,11 @@ local function CopyErrorMessage()
 		return
 	end
 
+	-- 按严重级别排序 (ERROR > WARN > INFO > HINT)
+	table.sort(diag, function(a, b)
+		return a.severity < b.severity
+	end)
+
 	-- 准备消息列表
 	local messages = {}
 	local all_message = ""
@@ -122,10 +127,8 @@ local function CopyErrorMessage()
 		end
 		local formatted_message = string.format("[%s] %s [%s] - %s", severity_text, message, code, source)
 
-		-- 构建 'all' 错误信息
 		all_message = all_message .. formatted_message .. "\n"
 
-		-- 将每个单独的消息添加到 messages 列表
 		table.insert(messages, {
 			text = formatted_message,
 			diagnostic = diagnostic,
@@ -141,32 +144,39 @@ local function CopyErrorMessage()
 	end
 
 	-- 在最前面添加 "all" 选项
-	local choices = { "󰪴  Copy all error messages" }
+	local choices = { "Copy all error messages" }
 	for _, msg in ipairs(messages) do
 		table.insert(choices, msg.text)
 	end
 
-	-- 选择框
 	vim.ui.select(choices, {
 		prompt = "Select an error message to copy:",
 		format_item = function(item)
 			return item
 		end,
 	}, function(choice, idx)
-		if choice then
-			if choice == "󰪴  Copy all error messages" then
-				-- 如果选择了 "all"，复制全部错误信息
-				vim.fn.setreg("+", all_message)
-				vim.fn.setreg('"', all_message)
-				vim.notify("All error messages copied to clipboard.", vim.log.levels.INFO)
-			elseif idx then
-				-- 选择了单个错误消息
-				vim.fn.setreg("+", messages[idx].text)
-				vim.fn.setreg('"', messages[idx].text)
-				vim.notify("Error message copied to clipboard: " .. messages[idx].text, vim.log.levels.INFO)
-			end
-		else
+		if not choice then
 			vim.notify("No error message selected.", vim.log.levels.WARN)
+			return
+		end
+
+		if idx == 1 then
+			-- 选择了 "all"，复制全部错误信息（去掉尾部换行）
+			local trimmed = vim.trim(all_message)
+			vim.fn.setreg("+", trimmed)
+			vim.fn.setreg('"', trimmed)
+			vim.notify("All error messages copied to clipboard.", vim.log.levels.INFO)
+			return
+		end
+
+		-- 选择了单个错误消息（注意减一偏移）
+		local msg = messages[idx - 1]
+		if msg then
+			vim.fn.setreg("+", msg.text)
+			vim.fn.setreg('"', msg.text)
+			vim.notify("Error message copied to clipboard: " .. msg.text, vim.log.levels.INFO)
+		else
+			vim.notify("Invalid selection.", vim.log.levels.WARN)
 		end
 	end)
 end

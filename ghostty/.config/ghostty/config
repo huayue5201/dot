@@ -24,6 +24,7 @@ adjust-underline-position = 8
 # 主题颜色
 custom-shader = ~/.config/ghostty/shaders/cubes.glsl
 # custom-shader = ~/.config/ghostty/shaders/water.glsl
+# custom-shader = ~/.config/ghostty/shaders/sparks-from-fire.glsl
 
 # 设置窗口装饰为自动
 window-decoration = auto

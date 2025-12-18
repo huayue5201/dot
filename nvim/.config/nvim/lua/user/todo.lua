@@ -349,39 +349,28 @@ function M.toggle_task()
 	end
 end
 
--- 新建普通任务（无缩进）
-function M.new_task()
+-- 通用插入任务函数
+function M.insert_task(text, indent_extra)
 	local bufnr = vim.api.nvim_get_current_buf()
 	local lnum = vim.fn.line(".")
 
-	local new_task_line = "- [ ] 新任务"
-	vim.fn.append(lnum, new_task_line)
-
-	local new_lnum = lnum + 1
-	vim.fn.cursor(new_lnum, 1)
-
-	update_all_virtual_text_and_highlights(bufnr)
-
-	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("A", true, false, true), "n", true)
-end
-
--- 新建子任务（自动缩进）
-function M.new_subtask()
-	local bufnr = vim.api.nvim_get_current_buf()
-	local lnum = vim.fn.line(".")
-
+	-- 获取当前行缩进
 	local current_line = vim.fn.getline(lnum)
 	local indent = current_line:match("^(%s*)") or ""
-	indent = indent .. "  " -- 子任务缩进两个空格
+	indent = indent .. string.rep(" ", indent_extra or 0)
 
-	local new_task_line = indent .. "- [ ] 新子任务"
+	-- 插入任务行
+	local new_task_line = indent .. "- [ ] " .. text
 	vim.fn.append(lnum, new_task_line)
 
+	-- 移动光标到新行
 	local new_lnum = lnum + 1
 	vim.fn.cursor(new_lnum, 1)
 
+	-- 更新虚拟文本和高亮
 	update_all_virtual_text_and_highlights(bufnr)
 
+	-- 进入插入模式（在行尾）
 	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("A", true, false, true), "n", true)
 end
 
@@ -523,8 +512,30 @@ local function setup_keymaps(bufnr)
 		},
 		{ "v", "<cr>", M.toggle_selected_tasks, "批量切换任务状态" },
 		{ "x", "<cr>", M.toggle_selected_tasks, "批量切换任务状态" },
-		{ "n", "<leader>nT", M.new_task, "新建任务" },
-		{ "n", "<leader>nt", M.new_subtask, "新建子任务" },
+		{
+			"n",
+			"<leader>nt",
+			function()
+				M.insert_task("新任务", 0)
+			end,
+			"新建任务",
+		},
+		{
+			"n",
+			"<leader>nT",
+			function()
+				M.insert_task("新任务", 2)
+			end,
+			"新建子任务",
+		},
+		{
+			"n",
+			"<leader>ns",
+			function()
+				M.insert_task("新任务", 0)
+			end,
+			"新建平级任务",
+		},
 	}
 
 	for _, mapping in ipairs(keymaps) do
