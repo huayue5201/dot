@@ -27,16 +27,15 @@ M.config = {
 
 	-- 数字图标映射
 	num_icons = {
-		[1] = "󰼏",
-		[2] = "󰎨",
-		[3] = "󰎫",
-		[4] = "󰼒",
-		[5] = "󰎯",
-		[6] = "󰼔",
-		[7] = "󰼕",
-		[8] = "󰼖",
-		[9] = "󰼗",
-		[10] = "󰿪",
+		[1] = "󰬺",
+		[2] = "󰬻",
+		[3] = "󰬼",
+		[4] = "󰬽",
+		[5] = "󰬾",
+		[6] = "󰬿",
+		[7] = "󰭀",
+		[8] = "󰭁",
+		[9] = "󰭂",
 	},
 }
 
@@ -181,7 +180,7 @@ function M.lsp_clients()
 	local ok, buf_clients = pcall(vim.lsp.get_clients, { bufnr = vim.api.nvim_get_current_buf() })
 
 	if not ok or vim.tbl_isempty(buf_clients) then
-		return "%#" .. M.config.highlight_group .. "#󰼎 " .. "%*"
+		return "%#" .. M.config.highlight_group .. "# " .. "%*"
 	end
 
 	-- 客户端优先级配置
@@ -230,9 +229,9 @@ function M.lsp_clients()
 		-- 获取图标（超过10个显示"󰿪+"）
 		local icon
 		if total_clients > 10 then
-			icon = "󰿪+"
+			icon = "󰭂+"
 		else
-			icon = M.config.num_icons[total_clients] or "󰿪"
+			icon = M.config.num_icons[total_clients] or "󰭂"
 		end
 
 		local spin = spinner_icon()
@@ -242,16 +241,16 @@ function M.lsp_clients()
 	-- 获取图标（超过10个显示"󰿪+"）
 	local icon
 	if total_clients > 10 then
-		icon = "󰿪+"
+		icon = "󰭂+"
 	else
-		icon = M.config.num_icons[total_clients] or "󰿪"
+		icon = M.config.num_icons[total_clients] or "󰭂"
 	end
 
 	-- 获取动态 spinner
 	local spin = spinner_icon()
 
 	return string.format(
-		"%s %s. %s",
+		"%s*%s. %s",
 		"%#" .. M.config.highlight_group .. "#" .. icon .. "%*",
 		main_client.name,
 		spin

@@ -261,7 +261,7 @@ function M.active()
 		"%#Normal#",
 		string.format("%-45s", M.mode()) .. " ", -- 模式显示区域
 		M.save_status(),
-		"  %y ",
+		"   ",
 		lsp(),
 		"%=", -- 分隔符
 		search_status.get() .. " ",

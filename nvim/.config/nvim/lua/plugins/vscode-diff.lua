@@ -2,7 +2,6 @@
 
 return {
 	"esmuellert/vscode-diff.nvim",
-	branch = "next",
 	event = "VeryLazy",
 	dependencies = { "MunifTanjim/nui.nvim" },
 	config = function()
@@ -27,7 +26,12 @@ return {
 				disable_inlay_hints = true, -- Disable inlay hints in diff windows for cleaner view
 				max_computation_time_ms = 5000, -- Maximum time for diff computation (VSCode default)
 			},
-
+			-- Explorer panel configuration
+			explorer = {
+				position = "bottom", -- "left" or "bottom"
+				width = 40, -- Width when position is "left" (columns)
+				height = 15, -- Height when position is "bottom" (lines)
+			},
 			-- Keymaps in diff view
 			keymaps = {
 				view = {
