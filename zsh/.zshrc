@@ -53,10 +53,6 @@ setopt notify
 zinit ice depth"1" wait"0" lucid
 zinit light zdharma-continuum/fast-syntax-highlighting
 
-# https://github.com/larkery/zsh-histdb
-zinit ice depth"1" wait"2" lucid
-zinit light larkery/zsh-histdb
-
 # zsh-autosuggestions: https://github.com/zsh-users/zsh-autosuggestions
 zinit ice depth"1" wait"0" lucid
 zinit light zsh-users/zsh-autosuggestions
@@ -78,30 +74,6 @@ zinit ice depth"1" wait"1" lucid
 zinit load MichaelAquilina/zsh-auto-notify
 
 # ---------------------------------------
-# histdb 配置
-# ---------------------------------------
-# 忽略某些命令不写入数据库（同 zsh 的 HISTORY_IGNORE 机制）
-export HISTORY_IGNORE="(ls|cd|top|htop|clear)"
-# 如果你安装了 zsh‑autosuggestions，你可以让它用 histdb 做建议：
-if type _zsh_autosuggest_strategy_histdb_top_here &>/dev/null; then
-  ZSH_AUTOSUGGEST_STRATEGY=histdb_top_here
-fi
-# 在 macOS 上，如果你看到输出分隔怪异，可以加入：
-HISTDB_TABULATE_CMD=(sed -e $'s/\x1f/\t/g')
-
-_zsh_autosuggest_strategy_histdb_top_here() {
-    local query="select commands.argv from
-history left join commands on history.command_id = commands.rowid
-left join places on history.place_id = places.rowid
-where places.dir LIKE '$(sql_escape $PWD)%'
-and commands.argv LIKE '$(sql_escape $1)%'
-group by commands.argv order by count(*) desc limit 1"
-    suggestion=$(_histdb_query "$query")
-}
-
-ZSH_AUTOSUGGEST_STRATEGY=histdb_top_here
-
-# ---------------------------------------
 # fzf-tab 配置
 # ---------------------------------------
 # 禁用 git checkout 排序
@@ -113,7 +85,7 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 # 禁用原生补全菜单
 zstyle ':completion:*' menu no
 # fzf-tab 核心配置
-zstyle ':fzf-tab:*' fzf-flags --height=60% --reverse 
+zstyle ':fzf-tab:*' fzf-flags --height=60% --reverse
 zstyle ':fzf-tab:*' use-fzf-default-opts yes
 # 切换补全组
 zstyle ':fzf-tab:*' switch-group '<' '>'

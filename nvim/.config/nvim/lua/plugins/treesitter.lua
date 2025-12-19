@@ -38,9 +38,9 @@ return {
 
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = ensure_installed,
-			callback = function()
+			callback = function(arg)
 				-- 启用语法高亮
-				vim.treesitter.start()
+				vim.treesitter.start(arg.buf)
 
 				-- 启用基于 Treesitter 的代码折叠
 				vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"

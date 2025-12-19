@@ -107,6 +107,12 @@ if command_exists uv; then
 fi
 
 # -----------------------------
+# 4. json 工具并行安装
+# -----------------------------
+log "安装json工具..."
+brew_install_parallel jless jq jiq
+
+# -----------------------------
 # 5. Brew 扩展（顺序执行即可）
 # -----------------------------
 brew tap buo/cask-upgrade || true
