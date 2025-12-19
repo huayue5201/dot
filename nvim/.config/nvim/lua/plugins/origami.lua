@@ -25,21 +25,21 @@ return {
 				kinds = { "comment", "imports" }, ---@type lsp.FoldingRangeKind[]
 			},
 			foldKeymaps = {
-				setup = true, -- modifies `h`, `l`, and `$`
+				setup = false, -- modifies `h`, `l`, and `$`
 				hOnlyOpensOnFirstColumn = true,
 				scrollLeftOnCaret = true, -- `^` should scroll left (basically mapped to `0^`)
 			},
 		})
 
-		-- vim.keymap.set("n", "<Left>", function()
-		-- 	require("origami").h()
-		-- end)
-		-- vim.keymap.set("n", "<Right>", function()
-		-- 	require("origami").l()
-		-- end)
-		-- vim.keymap.set("n", "<End>", function()
-		-- 	require("origami").dollar()
-		-- end)
+		vim.keymap.set("n", "<Left>", function()
+			require("origami").h()
+		end)
+		vim.keymap.set("n", "<Right>", function()
+			require("origami").l()
+		end)
+		vim.keymap.set("n", "<End>", function()
+			require("origami").dollar()
+		end)
 	end,
 	-- recommended: disable vim's auto-folding
 	init = function()

@@ -7,8 +7,6 @@ return {
 	build = "cargo build --release",
 	dependencies = {
 		"xzbdmw/colorful-menu.nvim",
-		-- https://github.com/mikavilpas/blink-ripgrep.nvim
-		"mikavilpas/blink-ripgrep.nvim",
 	},
 
 	---@diagnostic disable: missing-fields
@@ -131,16 +129,8 @@ return {
 			},
 			-- 补全源配置：定义默认启用的补全提供者
 			sources = {
-				default = { "lazydev", "buffer", "lsp", "path", "snippets", "ripgrep", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
+				default = { "lazydev", "buffer", "lsp", "path", "snippets", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
 				providers = {
-					-- other sources
-					ripgrep = {
-						module = "blink-ripgrep",
-						name = "Ripgrep",
-						-- see the full configuration below for all available options
-						---@module "blink-ripgrep"
-						opts = {},
-					},
 					lazydev = {
 						name = "LazyDev",
 						module = "lazydev.integrations.blink",
