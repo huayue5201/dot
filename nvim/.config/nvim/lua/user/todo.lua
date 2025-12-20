@@ -592,12 +592,13 @@ end
 -- 浮窗管理
 -- ==========================
 local function show_todo_floating(path)
-	local buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_name(buf, path)
+	-- 获取或创建缓冲区
+	local buf = vim.fn.bufadd(path)
+	vim.fn.bufload(buf)
 
 	local buf_opts = {
 		buftype = "",
-		bufhidden = "wipe",
+		bufhidden = "hide",
 		modifiable = true,
 		readonly = false,
 		swapfile = false,
