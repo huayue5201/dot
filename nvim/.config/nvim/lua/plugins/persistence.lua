@@ -3,22 +3,16 @@
 return {
 	"folke/persistence.nvim",
 	event = "BufReadPre",
-	opts = {
-		-- session 存储路径（每项目自动隔离）
-		-- dir = vim.fn.stdpath("state") .. "/sessions/",
-
-		-- 保存哪些东西
-		-- options = {
-		--   "buffers",
-		--   "curdir",
-		--   "tabpages",
-		--   "winsize",
-		-- 如果你需要 folds / help / local options，也可以加：
-		-- "help",
-		-- "options",
-		-- "folds",
-		-- },
-	},
+	config = function()
+		require("persistence").setup({
+			options = {--[[<other options>,]]
+				"globals",
+			},
+			pre_save = function()
+				vim.api.nvim_exec_autocmds("User", { pattern = "SessionSavePre" })
+			end,
+		})
+	end,
 
 	keys = {
 		-- 恢复上次 session

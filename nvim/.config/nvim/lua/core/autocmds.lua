@@ -5,6 +5,23 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 	command = "%s/\\s\\+$//e",
 })
 
+-- 清除所有 Neovim 标记（包括全局）
+vim.api.nvim_create_user_command("ClearAllMarks", function()
+	-- 1. 清除所有 buffer-local marks
+	vim.cmd("delmarks a-zA-Z0-9")
+	-- 2. 清除特殊 marks
+	vim.cmd("delmarks \"'[]<>")
+	-- 3. 清除全局 marks（需要 Lua API）
+	local marks = vim.fn.getmarklist()
+	for _, mark in ipairs(marks) do
+		local m = mark.mark
+		if m:match("[A-Z]") then
+			vim.cmd("delmarks " .. m)
+		end
+	end
+	print("✅ 已清除所有标记（含全局）")
+end, {})
+
 -- 恢复上次光标位置
 vim.cmd([[
 augroup RestoreCursor
