@@ -5,9 +5,9 @@ vim.keymap.set("n", "dd", function()
 	return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true, desc = "Basic: delete line (empty → blackhole)" })
 
-vim.keymap.set("n", "<localleader>s", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
+vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
 
-vim.keymap.set("n", "<localleader>S", function()
+vim.keymap.set("n", "<C-S-s>", function()
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		if vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_get_option_value("modified", { buf = buf }) then
 			vim.api.nvim_buf_call(buf, function()
@@ -110,7 +110,7 @@ vim.keymap.set("n", "<leader>cab", close_other_buffers_safely, {
 
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
-vim.keymap.set("n", "<leader>rr", "<cmd>restart<cr>", { silent = true, desc = "Basic: restart Neovim" })
+vim.keymap.set("n", "<leader>rn", "<cmd>restart<cr>", { silent = true, desc = "Basic: restart Neovim" })
 
 -- 🔍 Search
 vim.keymap.set("x", "/", "<C-\\><C-n>`</\\%V", { desc = "Search: forward in visual range" })

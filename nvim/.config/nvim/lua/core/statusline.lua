@@ -148,6 +148,7 @@ function M.save_status()
 			"snacks_picker_input",
 			"pager",
 			"msgmore",
+			"*.todo.md",
 		},
 		buftype = {
 			"terminal",

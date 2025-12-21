@@ -23,7 +23,7 @@ return {
 	keys = {
 		-- 恢复上次 session
 		{
-			"<leader>qs",
+			"<leader>rs",
 			function()
 				require("persistence").load()
 			end,
@@ -32,7 +32,7 @@ return {
 
 		-- 恢复上一次退出的 session
 		{
-			"<leader>ql",
+			"<leader>rt",
 			function()
 				require("persistence").load({ last = true })
 			end,
@@ -41,7 +41,7 @@ return {
 
 		-- 不加载 session 启动
 		{
-			"<leader>qd",
+			"<leader>rd",
 			function()
 				require("persistence").stop()
 			end,

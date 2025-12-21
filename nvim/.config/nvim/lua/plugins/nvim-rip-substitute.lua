@@ -6,7 +6,7 @@ return {
 	opts = {},
 	keys = {
 		{
-			"<leader>rs",
+			"<leader>ss",
 			function()
 				require("rip-substitute").sub()
 			end,
