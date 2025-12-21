@@ -7,6 +7,14 @@ return {
 
 		require("symbols").setup(r.DefaultFilters, r.AsciiSymbols, {
 			sidebar = {
+				-- Side on which the sidebar will open, available options:
+				-- try-left  Opens to the left of the current window if there are no
+				--           windows there. Otherwise opens to the right.
+				-- try-right Opens to the right of the current window if there are no
+				--           windows there. Otherwise opens to the left.
+				-- right     Always opens to the right of the current window.
+				-- left      Always opens to the left of the current window.
+				open_direction = "right",
 				-- custom settings here
 				-- e.g. hide_cursor = false
 				auto_resize = {
