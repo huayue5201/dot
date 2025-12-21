@@ -25,8 +25,8 @@ function M.setup()
 	vim.keymap.set("n", "<F12>", dap.step_out, { desc = "DAP: 单步跳出" })
 
 	-- 🎯 跳转
-	vim.keymap.set("n", "<leader>dc", dap.run_to_cursor, { desc = "DAP: 运行到光标" })
-	vim.keymap.set("n", "<leader>ds", function()
+	vim.keymap.set("n", "<F2>", dap.run_to_cursor, { desc = "DAP: 运行到光标" })
+	vim.keymap.set("n", "<F3>", function()
 		vim.ui.input({ prompt = " 󰙎 输入行号: " }, function(input)
 			if input then
 				local line = tonumber(input)

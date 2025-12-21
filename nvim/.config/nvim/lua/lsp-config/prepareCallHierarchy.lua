@@ -1,5 +1,11 @@
 local M = {}
 
+vim.api.nvim_set_hl(0, "FunctionRefFold", { fg = "#c678dd" }) -- 展开/折叠符号
+vim.api.nvim_set_hl(0, "FunctionRefIcon", { fg = "#e5c07b", bold = true }) -- 节点图标
+vim.api.nvim_set_hl(0, "FunctionRefMode", { fg = "#61afef" }) -- [OUTGOING] / [INCOMING]
+vim.api.nvim_set_hl(0, "FunctionRefName", { fg = "#98c379" }) -- 函数名
+vim.api.nvim_set_hl(0, "FunctionRefLocation", { fg = "#5c6370" }) -- 文件名:行号
+
 -- === 常量与配置 ===
 local DEFAULT_DEPTH = 3
 local POSITION_ENCODING = "utf-16"
@@ -18,7 +24,7 @@ local ICONS = {
 	OUTGOING = "", -- 调用节点
 	EXPANDED = "▾", -- 已展开
 	COLLAPSED = "▸", -- 未展开
-	LEAF = "", -- 叶节点占位（一个空格）
+	LEAF = " ", -- 叶节点占位（一个空格）
 }
 
 -- === 模块内部状态 ===
@@ -100,95 +106,55 @@ local function setup_window(winid)
 	end
 end
 
-local function apply_highlights(bufnr, ns, lines)
-	for i, line in ipairs(lines) do
-		local line_text = line.text
-
-		-- 1. 高亮图标：通过精确计算位置
-		local indent_chars = line.indent * 2 -- 每级缩进2个空格
-		-- local prefix_length = indent_chars + (line.has_refs and 1 or 0) -- 展开符可能占1个字符
-
-		-- 图标开始位置（在展开符之后，如果有的话）
-		local icon_start = indent_chars + 1
-		if line.has_refs then
-			icon_start = icon_start + 1 -- 跳过展开符
-		end
-
-		-- 确保图标位置有效
-		if icon_start <= #line_text then
-			local icon_char = line_text:sub(icon_start, icon_start)
-			local is_incoming_icon = icon_char == ICONS.INCOMING or icon_char == ICONS.ROOT_INCOMING
-			local hl_group = is_incoming_icon and "Special" or "Identifier"
-
-			-- 高亮单个图标字符
-			if icon_char ~= " " then
-				vim.hl.range(
-					bufnr, -- 缓冲区 ID
-					ns, -- 命名空间 ID
-					hl_group, -- 高亮组名称
-					{ i - 1, icon_start - 1 }, -- 起始位置：行列元组（行和列从 0 开始）
-					{ i - 1, icon_start }, -- 结束位置：只高亮一个字符，即列号是 icon_start
-					{ inclusive = false } -- 可选项：是否包含结束列，默认为 false
-				)
-			end
-		end
-
-		-- 2. 高亮函数名
-		local name_start = line_text:find(line.node.name, 1, true) -- 使用 plain 查找
-		if name_start then
-			vim.hl.range(
-				bufnr, -- 缓冲区 ID
-				ns, -- 命名空间 ID
-				"Function", -- 高亮组名称
-				{ i - 1, name_start - 1 }, -- 起始位置：行列元组（行和列从 0 开始）
-				{ i - 1, name_start + #line.node.name - 1 }, -- 结束位置：结束列是 name_start + 名称的长度
-				{ inclusive = false } -- 可选项：是否包含结束列，默认为 false
-			)
-		end
-
-		-- 3. 高亮模式标签和位置信息
-		local mode_start = line_text:find("%[OUTGOING%]") or line_text:find("%[INCOMING%]")
-		if mode_start then
-			vim.hl.range(
-				bufnr, -- 缓冲区 ID
-				ns, -- 命名空间 ID
-				"Type", -- 高亮组名称
-				{ i - 1, mode_start - 1 }, -- 起始位置：行列元组（注意行列从 0 开始）
-				{ i - 1, mode_start + 10 }, -- 结束位置：列号 +10 代表高亮区间的结束列
-				{ inclusive = false } -- 可选项：是否包含结束列，默认为 false
-			)
-		end
-
-		local loc_start = line_text:find(" %[")
-		if loc_start then
-			vim.hl.range(
-				bufnr, -- 缓冲区 ID
-				ns, -- 命名空间 ID
-				"Comment", -- 高亮组名称
-				{ i - 1, loc_start - 1 }, -- 起始位置：行列元组（注意行列从 0 开始）
-				{ i - 1, -1 }, -- 结束位置：列为 -1 表示到行尾
-				{ inclusive = false } -- 可选项：是否包含结束列，默认为 false
-			)
-		end
-	end
-end
-
 local function render_buffer_content(instance, lines)
+	local bufnr = instance.refs_buf
+	local ns = instance.ns
+
 	local text_lines = {}
-	for _, line in ipairs(lines) do
-		table.insert(text_lines, line.text)
+	local extmarks = {}
+
+	for i, line in ipairs(lines) do
+		local segments = line.text
+		local full = ""
+		local col = 0
+		extmarks[i] = {}
+
+		for _, seg in ipairs(segments) do
+			full = full .. seg.text
+			if seg.hl then
+				table.insert(extmarks[i], {
+					start_col = col,
+					end_col = col + #seg.text,
+					hl = seg.hl,
+				})
+			end
+			col = col + #seg.text
+		end
+
+		text_lines[i] = full
 	end
 
-	vim.api.nvim_set_option_value("modifiable", true, { buf = instance.refs_buf })
-	vim.api.nvim_buf_set_lines(instance.refs_buf, 0, -1, false, text_lines)
-	vim.api.nvim_set_option_value("modifiable", false, { buf = instance.refs_buf })
+	-- 写入 buffer
+	vim.api.nvim_set_option_value("modifiable", true, { buf = bufnr })
+	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, text_lines)
+	vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
+
+	-- 清除旧高亮
+	vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+
+	-- 应用 extmarks
+	for i, marks in pairs(extmarks) do
+		for _, m in ipairs(marks) do
+			vim.api.nvim_buf_set_extmark(bufnr, ns, i - 1, m.start_col, {
+				end_col = m.end_col,
+				hl_group = m.hl,
+			})
+		end
+	end
 
 	instance.line_data = lines
-	pcall(vim.api.nvim_buf_set_var, instance.refs_buf, "line_data", lines)
-	pcall(vim.api.nvim_buf_set_var, instance.refs_buf, "expanded_nodes", instance.expanded_nodes)
-
-	vim.api.nvim_buf_clear_namespace(instance.refs_buf, instance.ns, 0, -1)
-	apply_highlights(instance.refs_buf, instance.ns, lines)
+	pcall(vim.api.nvim_buf_set_var, bufnr, "line_data", lines)
+	pcall(vim.api.nvim_buf_set_var, bufnr, "expanded_nodes", instance.expanded_nodes)
 end
 
 local function setup_buffer_keymaps(bufnr, instance_id)
@@ -415,16 +381,11 @@ function M._build_reference_lines(node, lines, indent, expanded_nodes, mode, is_
 	expanded_nodes = expanded_nodes or {}
 	mode = mode or MODE.OUTGOING
 
-	-- 确定当前节点使用的数据源
-	local data_source
-	if mode == MODE.INCOMING then
-		data_source = node.callers
-	else
-		data_source = node.references
-	end
+	-- 数据源
+	local data_source = (mode == MODE.INCOMING) and node.callers or node.references
 
-	-- 根节点特殊显示
-	local icon
+	-- 图标
+	local icon = ""
 	if is_root then
 		icon = (mode == MODE.INCOMING) and ICONS.ROOT_INCOMING or ICONS.ROOT_OUTGOING
 	else
@@ -435,33 +396,40 @@ function M._build_reference_lines(node, lines, indent, expanded_nodes, mode, is_
 	local node_key = node.id or (node.name .. ":" .. node.uri)
 	local expanded = expanded_nodes[node_key]
 
-	-- 构建前缀：缩进 + 展开/折叠指示符
+	-- 缩进 + 展开符
 	local prefix = string.rep("  ", indent)
+	local fold_icon = has_children and (expanded and ICONS.EXPANDED or ICONS.COLLAPSED) or ICONS.LEAF
 
-	if has_children then
-		prefix = prefix .. (expanded and ICONS.EXPANDED or ICONS.COLLAPSED)
-	else
-		prefix = prefix .. ICONS.LEAF
-	end
-
+	-- 位置
 	local location = ""
 	if node.uri then
 		location = " [" .. format_location(node.uri, node.selectionRange.start.line) .. "]"
 	end
 
-	-- 添加模式标识
+	-- 模式标签
 	local mode_indicator = is_root and (" [" .. mode:upper() .. "] ") or " "
 
+	-- ✅ 结构化 segments
+	local segments = {
+		{ text = prefix },
+		{ text = fold_icon, hl = "FunctionRefFold" },
+		{ text = icon, hl = "FunctionRefIcon" },
+		{ text = mode_indicator, hl = "FunctionRefMode" },
+		{ text = node.name, hl = "FunctionRefName" },
+		{ text = location, hl = "FunctionRefLocation" },
+	}
+
 	table.insert(lines, {
-		text = prefix .. icon .. mode_indicator .. node.name .. location,
+		text = segments,
 		node = node,
 		indent = indent,
 		has_refs = has_children,
 		mode = mode,
 		is_root = is_root or false,
-		icon_char = icon, -- 保存图标字符供高亮使用
+		icon_char = icon,
 	})
 
+	-- 递归
 	if expanded and has_children then
 		for _, child in pairs(data_source) do
 			M._build_reference_lines(child, lines, indent + 1, expanded_nodes, mode, false)

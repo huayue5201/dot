@@ -482,15 +482,6 @@ local function setup_keymaps(bufnr)
 		},
 		{
 			"n",
-			"<C-s>",
-			function()
-				local path = vim.api.nvim_buf_get_name(bufnr)
-				vim.fn.writefile(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), path)
-			end,
-			"保存",
-		},
-		{
-			"n",
 			"<C-r>",
 			function()
 				apply_todo_conceal_to_buffer(bufnr)
@@ -598,11 +589,10 @@ local function show_todo_floating(path)
 
 	local buf_opts = {
 		buftype = "",
-		bufhidden = "hide",
+		bufhidden = "wipe",
 		modifiable = true,
 		readonly = false,
 		swapfile = false,
-		filetype = "markdown",
 	}
 
 	for opt, val in pairs(buf_opts) do

@@ -13,8 +13,8 @@ return {
 		vim.cmd([[au FileType dap-repl lua require('dap.ext.autocompl').attach()]])
 
 		vim.api.nvim_set_hl(0, "DapBreakpoint", { fg = "#FF0000" })
-		vim.api.nvim_set_hl(0, "DapBreakpointLine", { bg = "#800000" })
-		vim.api.nvim_set_hl(0, "DapBreakpointCondition", { fg = "#ff0000" })
+		vim.api.nvim_set_hl(0, "DapBreakpointLine", { bg = "#A52A2A" })
+		vim.api.nvim_set_hl(0, "DapBreakpointCondition", { fg = "#9370DB" })
 		vim.api.nvim_set_hl(0, "DapBreakpointRejected", { fg = "#8B8B7A" })
 		vim.api.nvim_set_hl(0, "DapLogPoint", { fg = "#00BFFF" })
 		vim.api.nvim_set_hl(0, "YellowCursor", { fg = "#FFCC00", bg = "" })

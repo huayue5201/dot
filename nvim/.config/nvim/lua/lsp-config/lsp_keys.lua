@@ -219,14 +219,14 @@ local keymaps = {
 		"LSP: toggle diagnostics",
 	},
 	{
-		"<leader>ld",
+		"<leader>sd",
 		function()
 			M.open_buffer_diagnostics()
 		end,
 		"LSP: buffer diagnostics",
 	},
 	{
-		"<leader>lD",
+		"<leader>sD",
 		function()
 			M.open_all_diagnostics()
 		end,
@@ -248,7 +248,7 @@ local keymaps = {
 	},
 
 	{
-		"<leader>lw",
+		"<leader>sw",
 		function()
 			list_active_lsps()
 		end,
@@ -275,9 +275,13 @@ M.global_keymaps = function()
 		restart_lsp()
 	end, { noremap = true, silent = true, desc = "LSP: 重启lsp" })
 
-	vim.keymap.set("n", "<leader>lt", function()
+	vim.keymap.set("n", "<leader>st", function()
 		toggle_lsp()
 	end, { desc = "Toggle LSP for current filetype" })
+
+	vim.keymap.set("n", "<leader>sg", function()
+		vim.cmd("tabnew " .. vim.lsp.log.get_filename())
+	end, { desc = "lsp log" })
 
 	vim.keymap.set("n", "<leader>yd", function()
 		CopyErrorMessage()
