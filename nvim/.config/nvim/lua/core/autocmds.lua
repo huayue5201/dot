@@ -22,6 +22,20 @@ vim.api.nvim_create_user_command("ClearAllMarks", function()
 	print("✅ 已清除所有标记（含全局）")
 end, {})
 
+vim.api.nvim_create_user_command("SmartClose", function()
+	-- 使用 vim.schedule 来确保命令在事件循环中异步执行，避免阻塞
+	vim.schedule(function()
+		-- 检查当前是否有多个窗口
+		if vim.fn.winnr("$") > 1 then
+			-- 如果有多个窗口，关闭当前窗口
+			vim.cmd("quit")
+		else
+			-- 如果只有一个窗口，删除当前缓冲区
+			vim.cmd("bdelete")
+		end
+	end)
+end, {})
+
 -- 恢复上次光标位置
 vim.cmd([[
 augroup RestoreCursor

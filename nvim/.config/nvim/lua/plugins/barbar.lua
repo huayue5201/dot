@@ -2,6 +2,7 @@
 
 return {
 	"romgrk/barbar.nvim",
+	event = "UIEnter",
 	dependencies = {
 		"lewis6991/gitsigns.nvim", -- OPTIONAL: for git status
 		"nvim-tree/nvim-web-devicons", -- OPTIONAL: for file icons
@@ -24,16 +25,16 @@ return {
 				button = "",
 				-- 启用/禁用诊断符号
 				diagnostics = {
-					[vim.diagnostic.severity.ERROR] = { enabled = true, icon = "ﬀ" },
+					[vim.diagnostic.severity.ERROR] = { enabled = true },
 					[vim.diagnostic.severity.WARN] = { enabled = false },
 					[vim.diagnostic.severity.INFO] = { enabled = false },
-					[vim.diagnostic.severity.HINT] = { enabled = true },
+					[vim.diagnostic.severity.HINT] = { enabled = false },
 				},
-				gitsigns = {
-					added = { enabled = true, icon = "+" },
-					changed = { enabled = true, icon = "~" },
-					deleted = { enabled = true, icon = "-" },
-				},
+				-- gitsigns = {
+				-- 	added = { enabled = true, icon = "+" },
+				-- 	changed = { enabled = true, icon = "~" },
+				-- 	deleted = { enabled = true, icon = "-" },
+				-- },
 				filetype = {
 					-- 设置图标的高亮组。
 					-- 如果设置为 false，则使用 nvim-web-devicons 的颜色

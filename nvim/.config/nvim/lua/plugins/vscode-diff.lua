@@ -61,6 +61,6 @@ return {
 				},
 			},
 		})
-		vim.keymap.set("n", "<leader>gf", "<cmd>CodeDiff<cr>", { desc = "vscode-diff: Diff" })
+		vim.keymap.set("n", "<leader>hf", "<cmd>CodeDiff<cr>", { desc = "vscode-diff: Diff" })
 	end,
 }

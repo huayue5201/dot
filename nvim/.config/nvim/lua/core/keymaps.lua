@@ -17,7 +17,7 @@ vim.keymap.set("n", "<C-S-s>", function()
 	end
 end, { silent = true, desc = "Save all modified buffers" })
 
-vim.keymap.set("n", "dm", function()
+vim.keymap.set("n", "<leader>cm", function()
 	local mark = vim.fn.input("Delete mark: ")
 	if mark ~= "" then
 		vim.cmd("delmarks " .. mark)
@@ -25,7 +25,7 @@ vim.keymap.set("n", "dm", function()
 	end
 end, { desc = "Delete specific mark" })
 
-vim.keymap.set("n", "dam", ":ClearAllMarks<CR>", { desc = "Delete all marks" })
+vim.keymap.set("n", "<leader>cam", ":ClearAllMarks<CR>", { desc = "Delete all marks" })
 
 -- vim.keymap.set("n", "<c-esc>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 vim.keymap.set("n", "<c-esc>", function()
@@ -45,7 +45,7 @@ vim.keymap.set("n", "<c-esc>", function()
 		end
 	else
 		-- 如果没有找到对应的命令，执行默认的 bdelete 命令
-		vim.cmd(":bd") -- 默认关闭缓冲区
+		vim.cmd(":SmartClose") -- 默认关闭缓冲区
 	end
 end, { silent = true, desc = "Close buffer using defined commands or default" })
 
@@ -75,6 +75,7 @@ vim.keymap.set("n", "<leader>tml", ":+tabmove<CR>", {
 	silent = true,
 	desc = "Tab: 右移",
 })
+
 vim.keymap.set("n", "<leader>ct", "<cmd>tabclose<cr>", { silent = true, desc = "Tab: close tab" })
 vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 

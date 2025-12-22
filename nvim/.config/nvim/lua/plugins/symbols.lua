@@ -2,6 +2,7 @@
 
 return {
 	"oskarrrrrrr/symbols.nvim",
+	event = "BufReadPost",
 	config = function()
 		local r = require("symbols.recipes")
 
