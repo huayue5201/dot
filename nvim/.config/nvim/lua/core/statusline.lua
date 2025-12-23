@@ -13,11 +13,19 @@ local M = {} -- 使用 M 作为模块的局部变量
 -- ================================
 local highlight_defs = {
 	DefaultMode = { bold = true },
-	SaveHighlight = { fg = "#E4080A", bold = true }, -- 定义红色保存高亮组
+
+	-- 保存状态相关
+	SaveHighlight = { fg = "#E4080A", bold = true }, -- 未保存数量的红色数字
+	SaveDotDirty = { fg = "#E4080A", bold = true }, -- 当前 buffer 未保存（红点）
+	SaveDotClean = { fg = "#50fa7b", bold = true }, -- 当前 buffer 已保存（绿点）
+
+	-- 模式高亮
 	NormalMode = { bold = true },
 	InsertMode = { bold = true },
 	VisualMode = { bold = true },
 	ReplaceMode = { bold = true },
+
+	-- 其他高亮
 	PinkHighlight = { fg = "#ffde7d", bold = true },
 	StatuslineIcon = { fg = "#ffc125", bold = true },
 	DapIcon = { fg = "#FF0000", bold = true },
@@ -193,15 +201,26 @@ function M.save_status()
 		::continue::
 	end
 
+	-- 当前 buffer 是否已保存
+	local current_modified = vim.api.nvim_get_option_value("modified", { buf = 0 })
+
+	-- 状态点（变色）
+	local dot
+	if current_modified then
+		dot = "%#SaveDotDirty#%*" -- 未保存：红色
+	else
+		dot = "%#SaveDotClean#%*" -- 已保存：绿色
+	end
+
 	-- 设置图标和计数
 	local label = "save."
 	local count_text = string.format("%d", unsaved_count)
 
 	-- 高亮数字部分
 	if has_unsaved then
-		return string.format("%s%%#SaveHighlight#%s%%*", label, count_text)
+		return string.format("%s%s%%#SaveHighlight#%s%%*", dot, label, count_text)
 	else
-		return label .. count_text
+		return string.format("%s%s%s", dot, label, count_text)
 	end
 end
 

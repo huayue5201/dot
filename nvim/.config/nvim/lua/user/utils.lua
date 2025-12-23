@@ -25,18 +25,8 @@ M.buf_keymaps = {
 		["dap-view-term"] = { cmd = "close" },
 		["gitsigns-blame"] = { cmd = "bdelete!" },
 		terminal = { cmd = "bdelete" },
-		["nvim-undotree"] = { cmd = "close" },
 		["vscode-diff-explorer"] = { cmd = "tabclose" },
-		["neotest-summary"] = {
-			cmd = function()
-				require("neotest").summary.toggle()
-			end,
-		},
-		["neotest-output-panel"] = {
-			cmd = function()
-				require("neotest").output_panel.toggle()
-			end,
-		},
+		SymbolsSidebar = { cmd = "SymbolsClose" },
 	},
 }
 
