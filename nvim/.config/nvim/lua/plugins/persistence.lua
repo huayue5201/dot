@@ -4,16 +4,8 @@ return {
 	"folke/persistence.nvim",
 	event = "BufReadPre",
 	config = function()
-		require("persistence").setup({
-			options = {--[[<other options>,]]
-				"globals",
-			},
-			pre_save = function()
-				vim.api.nvim_exec_autocmds("User", { pattern = "SessionSavePre" })
-			end,
-		})
+		require("persistence").setup()
 	end,
-
 	keys = {
 		-- 恢复上次 session
 		{

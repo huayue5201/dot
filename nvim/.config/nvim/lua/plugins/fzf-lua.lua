@@ -20,6 +20,7 @@ return {
 		})
 		vim.keymap.set("n", "<leader>ff", "<cmd>FzfLua files<cr>", { desc = "fzf: files" })
 		vim.keymap.set("n", "<leader>fb", "<cmd>FzfLua buffers<cr>", { desc = "fzf: buffer" })
+		vim.keymap.set("n", "<leader>fB", "<cmd>FzfLua tabs<cr>", { desc = "fzf: tab" })
 		vim.keymap.set("n", "<leader>fo", "<cmd>FzfLua oldfiles<cr>", { desc = "fzf: oldfiles" })
 		vim.keymap.set("n", "<leader>fr", function()
 			require("fzf-lua").grep({ resume = true })

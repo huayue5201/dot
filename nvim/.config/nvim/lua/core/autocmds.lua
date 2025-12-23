@@ -23,14 +23,18 @@ vim.api.nvim_create_user_command("ClearAllMarks", function()
 end, {})
 
 vim.api.nvim_create_user_command("SmartClose", function()
-	-- 使用 vim.schedule 来确保命令在事件循环中异步执行，避免阻塞
 	vim.schedule(function()
-		-- 检查当前是否有多个窗口
+		local win = vim.api.nvim_get_current_win()
+		local cfg = vim.api.nvim_win_get_config(win)
+		-- 如果是浮动窗口（relative 不为空）
+		if cfg.relative ~= "" then
+			vim.api.nvim_win_close(win, false)
+			return
+		end
+		-- 普通窗口逻辑
 		if vim.fn.winnr("$") > 1 then
-			-- 如果有多个窗口，关闭当前窗口
 			vim.cmd("quit")
 		else
-			-- 如果只有一个窗口，删除当前缓冲区
 			vim.cmd("bdelete")
 		end
 	end)
