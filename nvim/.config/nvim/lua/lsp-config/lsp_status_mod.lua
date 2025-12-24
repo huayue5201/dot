@@ -250,7 +250,7 @@ function M.lsp_clients()
 	local spin = spinner_icon()
 
 	return string.format(
-		"%s*%s. %s",
+		"%s.%s. %s",
 		"%#" .. M.config.highlight_group .. "#" .. icon .. "%*",
 		main_client.name,
 		spin
