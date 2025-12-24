@@ -25,6 +25,7 @@ M.buf_keymaps = {
 		["dap-view-term"] = { cmd = "close" },
 		["gitsigns-blame"] = { cmd = "bdelete!" },
 		terminal = { cmd = "bdelete" },
+		["nvim-undotree"] = { cmd = "close" },
 		["vscode-diff-explorer"] = { cmd = "tabclose" },
 		SymbolsSidebar = { cmd = "SymbolsClose" },
 	},

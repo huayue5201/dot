@@ -37,14 +37,14 @@ return {
 			mode = { "n", "t", "i", "x" },
 		},
 		{
-			"<leader>aa",
+			"<localleader>aa",
 			function()
 				require("sidekick.cli").toggle()
 			end,
 			desc = "Sidekick Toggle CLI",
 		},
 		{
-			"<leader>as",
+			"<localleader>as",
 			function()
 				require("sidekick.cli").select()
 			end,
@@ -53,14 +53,14 @@ return {
 			desc = "Select CLI",
 		},
 		{
-			"<leader>ad",
+			"<localleader>ad",
 			function()
 				require("sidekick.cli").close()
 			end,
 			desc = "Detach a CLI Session",
 		},
 		{
-			"<leader>at",
+			"<localleader>at",
 			function()
 				require("sidekick.cli").send({ msg = "{this}" })
 			end,
@@ -68,14 +68,14 @@ return {
 			desc = "Send This",
 		},
 		{
-			"<leader>af",
+			"<localleader>af",
 			function()
 				require("sidekick.cli").send({ msg = "{file}" })
 			end,
 			desc = "Send File",
 		},
 		{
-			"<leader>av",
+			"<localleader>av",
 			function()
 				require("sidekick.cli").send({ msg = "{selection}" })
 			end,
@@ -83,7 +83,7 @@ return {
 			desc = "Send Visual Selection",
 		},
 		{
-			"<leader>ap",
+			"<localleader>ap",
 			function()
 				require("sidekick.cli").prompt()
 			end,
@@ -92,7 +92,7 @@ return {
 		},
 		-- Example of a keybinding to open Claude directly
 		{
-			"<leader>ac",
+			"<localleader>ac",
 			function()
 				require("sidekick.cli").toggle({ name = "claude", focus = true })
 			end,
