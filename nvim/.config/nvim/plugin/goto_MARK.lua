@@ -105,51 +105,65 @@ local function show_preview()
 end
 
 -- 跳转函数，确保跳转前的文件加载和缓冲区状态正确
+local last_cursor = {}
+
+vim.api.nvim_create_autocmd("CursorMoved", {
+	callback = function()
+		local bufnr = vim.api.nvim_get_current_buf()
+		last_cursor[bufnr] = vim.api.nvim_win_get_cursor(0)
+	end,
+})
+
 local function do_jump()
 	if not current_index or not marks[current_index] then
 		return
 	end
 
-	local m = marks[current_index]
+	-- ⭐ 记录当前 buffer 的光标位置
 	local cur_buf = vim.api.nvim_get_current_buf()
+	last_cursor[cur_buf] = vim.api.nvim_win_get_cursor(0)
 
-	-- ⭐ 如果 mark 属于当前 buffer，则跳到下一个 mark
-	if vim.api.nvim_buf_is_valid(m.buf) and m.buf == cur_buf then
-		-- 移动到下一个 index
+	local tried = 0
+
+	while tried < #marks do
+		local m = marks[current_index]
+
+		if not (vim.api.nvim_buf_is_valid(m.buf) and m.buf == cur_buf) then
+			local bufnr
+
+			if not vim.api.nvim_buf_is_valid(m.buf) then
+				vim.cmd("edit " .. vim.fn.fnameescape(m.file))
+				bufnr = vim.api.nvim_get_current_buf()
+			else
+				bufnr = m.buf
+				vim.api.nvim_set_current_buf(bufnr)
+			end
+
+			vim.bo[bufnr].buflisted = true
+
+			-- ⭐ 跳转后恢复该 buffer 的上一次光标位置
+			if last_cursor[bufnr] then
+				pcall(vim.api.nvim_win_set_cursor, 0, last_cursor[bufnr])
+			end
+
+			-- 关闭预览窗口
+			if preview_win then
+				vim.api.nvim_win_close(preview_win, true)
+				preview_win = nil
+			end
+
+			return
+		end
+
+		tried = tried + 1
 		current_index = current_index + 1
 		if current_index > #marks then
 			current_index = 1
 		end
-		return do_jump() -- 递归跳到下一个
 	end
 
-	local bufnr
-
-	-- 如果 buffer 无效，尝试打开文件
-	if not vim.api.nvim_buf_is_valid(m.buf) then
-		vim.cmd("edit " .. vim.fn.fnameescape(m.file))
-		bufnr = vim.api.nvim_get_current_buf()
-	else
-		bufnr = m.buf
-		vim.api.nvim_set_current_buf(bufnr)
-	end
-
-	-- 确保 buffer 出现在 :ls
-	vim.bo[bufnr].buflisted = true
-
-	-- 修正行号
-	local line_count = vim.api.nvim_buf_line_count(bufnr)
-	local target_line = math.max(1, math.min(m.line, line_count))
-
-	-- 修正列号
-	local line_text = vim.api.nvim_buf_get_lines(bufnr, target_line - 1, target_line, false)[1] or ""
-	local max_col = #line_text
-	local target_col = math.max(0, math.min(m.col, max_col))
-
-	-- 最终跳转
-	vim.api.nvim_win_set_cursor(0, { target_line, target_col })
-
-	-- 关闭预览窗口
+	-- 如果走到这里，说明所有大写 mark 都在当前 buffer → 不跳
+	-- 你可以选择在这里关闭预览窗口或者什么都不做
 	if preview_win then
 		vim.api.nvim_win_close(preview_win, true)
 		preview_win = nil
