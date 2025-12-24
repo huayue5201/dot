@@ -17,7 +17,7 @@ return {
 			-- force_buffers = true, -- 防止其他缓冲区加载到 dap-ui 的专属窗口
 		})
 
-		vim.keymap.set({ "n", "x" }, "<M-k>", "<Cmd>lua require('dapui').eval()<CR>")
+		vim.keymap.set({ "n", "x" }, "<leader>dk", "<Cmd>lua require('dapui').eval()<CR>")
 		vim.keymap.set("n", "<leader>du", dapui.toggle, { desc = "DAP UI: Toggle" })
 		vim.keymap.set("n", "<leader>df", dapui.float_element, { desc = "DAP UI: Float element" })
 		vim.keymap.set("n", "<leader>de", dapui.eval, { desc = "DAP UI: Eval under cursor" })

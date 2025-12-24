@@ -6,7 +6,7 @@ return {
 	dependencies = "nvim-tree/nvim-web-devicons",
 	config = function()
 		require("tabby").setup({
-			-- theme = "oasis", -- Automatically matches your current Oasis style
+			theme = "oasis", -- Automatically matches your current Oasis style
 		})
 
 		vim.keymap.set("n", "<leader>trn", ":Tabby rename_tab ", { desc = "tabby: 重命名 Tab" })
