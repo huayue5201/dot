@@ -157,6 +157,7 @@ function M.save_status()
 			"pager",
 			"msgmore",
 			"*.todo.md",
+			"neo-tree-popup",
 		},
 		buftype = {
 			"terminal",
@@ -279,7 +280,7 @@ end
 function M.active()
 	return table.concat({
 		"%#Normal#",
-		string.format("%-45s", M.mode()) .. " ", -- 模式显示区域
+		string.format("%-45s", M.mode()) .. "  ", -- 模式显示区域
 		M.save_status(),
 		"   ",
 		lsp(),
