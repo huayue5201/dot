@@ -63,22 +63,27 @@ local function analyze_task_tree(lines)
 			local task = parse_task_line(line)
 			if task then
 				task.line_num = i
+				task.children = {}
+				task.parent = nil
 
-				-- 找到父任务
-				while #stack > 0 and stack[#stack].indent >= task.indent do
-					table.remove(stack)
-				end
-
+				-- 如果栈不为空，找到正确的父任务
 				if #stack > 0 then
-					task.parent = stack[#stack]
-					if not task.parent.children then
-						task.parent.children = {}
+					-- 弹出栈顶元素，直到找到缩进级别小于当前任务的父任务
+					while #stack > 0 and stack[#stack].indent >= task.indent do
+						table.remove(stack)
 					end
-					table.insert(task.parent.children, task)
-				else
-					task.parent = nil
+
+					-- 设置父任务
+					if #stack > 0 then
+						task.parent = stack[#stack]
+						table.insert(task.parent.children, task)
+					else
+						-- 没有父任务，这是一个根任务
+						task.parent = nil
+					end
 				end
 
+				-- 将当前任务添加到任务列表和栈中
 				table.insert(tasks, task)
 				table.insert(stack, task)
 			end
@@ -88,29 +93,34 @@ local function analyze_task_tree(lines)
 	return tasks
 end
 
+-- 计算任务统计信息的辅助函数
 local function calculate_task_stats(task)
-	local stats = { total = 0, done = 0 }
+	if not task.stats then
+		local stats = { total = 0, done = 0 }
 
-	if task.children and #task.children > 0 then
-		for _, child in ipairs(task.children) do
-			local child_stats = calculate_task_stats(child)
-			stats.total = stats.total + child_stats.total
-			stats.done = stats.done + child_stats.done
+		if task.children and #task.children > 0 then
+			for _, child in ipairs(task.children) do
+				local child_stats = calculate_task_stats(child)
+				stats.total = stats.total + child_stats.total
+				stats.done = stats.done + child_stats.done
+			end
+		else
+			stats.total = 1
+			stats.done = task.is_done and 1 or 0
 		end
-	else
-		stats.total = 1
-		stats.done = task.is_done and 1 or 0
+
+		task.stats = stats
 	end
 
-	task.stats = stats
-	return stats
+	return task.stats
 end
 
 -- ==========================
 -- 高亮和虚拟文本管理（添加删除线）
 -- ==========================
--- 更新单个任务的高亮和统计
-local function update_task_display(bufnr, task)
+-- 更新任务及其所有子任务的高亮和统计
+local function update_task_tree_display(bufnr, task)
+	-- 更新当前任务
 	local line_num = task.line_num - 1
 	local line = vim.fn.getline(task.line_num)
 	local line_length = #line
@@ -141,7 +151,7 @@ local function update_task_display(bufnr, task)
 
 	-- 如果是父任务且有子任务，添加虚拟文本统计
 	if task.children and #task.children > 0 then
-		local stats = task.stats or { done = 0, total = 0 }
+		local stats = calculate_task_stats(task)
 		vim.api.nvim_buf_set_extmark(bufnr, todo_ns, line_num, -1, {
 			virt_text = { { string.format(" (%d/%d)", stats.done, stats.total), "Comment" } },
 			virt_text_pos = "eol",
@@ -150,11 +160,6 @@ local function update_task_display(bufnr, task)
 			priority = 100,
 		})
 	end
-end
-
--- 更新任务及其所有子任务的高亮和统计
-local function update_task_tree_display(bufnr, task)
-	update_task_display(bufnr, task)
 
 	-- 递归更新子任务
 	if task.children then
@@ -172,7 +177,7 @@ local function update_all_virtual_text_and_highlights(bufnr)
 	-- 清除所有虚拟文本和高亮
 	vim.api.nvim_buf_clear_namespace(bufnr, todo_ns, 0, -1)
 
-	-- 计算所有任务的统计信息
+	-- 计算所有根任务的统计信息
 	for _, task in ipairs(tasks) do
 		if not task.parent then
 			calculate_task_stats(task)
@@ -213,41 +218,34 @@ local function update_all_virtual_text_and_highlights(bufnr)
 		end
 	end
 
-	-- 更新所有任务的显示
+	-- 更新所有根任务的显示
 	for _, task in ipairs(tasks) do
-		update_task_tree_display(bufnr, task)
+		if not task.parent then
+			update_task_tree_display(bufnr, task)
+		end
 	end
 end
 
 -- ==========================
--- Conceal 和高亮设置（添加删除线高亮组）
+-- 任务切换函数（支持多层嵌套）
 -- ==========================
+-- 递归收集所有子任务
+local function collect_all_descendants(task)
+	local descendants = {}
 
-local function setup_conceal_syntax(bufnr)
-	vim.cmd([[
-    syntax match markdownTodo /\[\s\]/ conceal cchar=☐
-    syntax match markdownTodoDone /\[[xX]\]/ conceal cchar=☑
-    highlight link markdownTodo Conceal
-    highlight link markdownTodoDone Conceal
-  ]])
-end
-
-local function apply_todo_conceal_to_buffer(bufnr)
-	local win = vim.fn.bufwinid(bufnr)
-	if win == -1 then
-		return -- 缓冲区没有在窗口中显示
+	if task.children and #task.children > 0 then
+		for _, child in ipairs(task.children) do
+			table.insert(descendants, child)
+			local child_descendants = collect_all_descendants(child)
+			for _, desc in ipairs(child_descendants) do
+				table.insert(descendants, desc)
+			end
+		end
 	end
 
-	-- 使用 API 设置窗口选项
-	vim.api.nvim_set_option_value("conceallevel", 2, { win = win })
-	vim.api.nvim_set_option_value("concealcursor", "ncv", { win = win })
-
-	setup_conceal_syntax(bufnr)
+	return descendants
 end
 
--- ==========================
--- 任务切换函数（支持父子任务同步）
--- ==========================
 local function toggle_task_with_stats(bufnr, lnum)
 	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 	local tasks = analyze_task_tree(lines)
@@ -276,14 +274,15 @@ local function toggle_task_with_stats(bufnr, lnum)
 		current_task.is_done = true
 		is_now_done = true
 
-		-- 如果这是父任务，完成所有子任务
+		-- 如果这是父任务，递归完成所有后代任务
 		if current_task.children and #current_task.children > 0 then
-			for _, child in ipairs(current_task.children) do
-				local child_line = vim.fn.getline(child.line_num)
+			local descendants = collect_all_descendants(current_task)
+			for _, descendant in ipairs(descendants) do
+				local child_line = vim.fn.getline(descendant.line_num)
 				if child_line:match("^%s*[-*]%s+%[ %]") then
 					local new_child_line = child_line:gsub("%[ %]", "[x]")
-					vim.fn.setline(child.line_num, new_child_line)
-					child.is_done = true
+					vim.fn.setline(descendant.line_num, new_child_line)
+					descendant.is_done = true
 				end
 			end
 		end
@@ -294,14 +293,15 @@ local function toggle_task_with_stats(bufnr, lnum)
 		current_task.is_done = false
 		is_now_done = false
 
-		-- 如果这是父任务，取消完成所有子任务
+		-- 如果这是父任务，递归取消完成所有后代任务
 		if current_task.children and #current_task.children > 0 then
-			for _, child in ipairs(current_task.children) do
-				local child_line = vim.fn.getline(child.line_num)
+			local descendants = collect_all_descendants(current_task)
+			for _, descendant in ipairs(descendants) do
+				local child_line = vim.fn.getline(descendant.line_num)
 				if child_line:match("^%s*[-*]%s+%[[xX]%]") then
 					local new_child_line = child_line:gsub("%[[xX]%]", "[ ]")
-					vim.fn.setline(child.line_num, new_child_line)
-					child.is_done = false
+					vim.fn.setline(descendant.line_num, new_child_line)
+					descendant.is_done = false
 				end
 			end
 		end
@@ -313,6 +313,32 @@ local function toggle_task_with_stats(bufnr, lnum)
 	update_all_virtual_text_and_highlights(bufnr)
 
 	return true, is_now_done and "已完成" or "未完成"
+end
+
+-- ==========================
+-- Conceal 和高亮设置（添加删除线高亮组）
+-- ==========================
+
+local function setup_conceal_syntax(bufnr)
+	vim.cmd([[
+    syntax match markdownTodo /\[\s\]/ conceal cchar=☐
+    syntax match markdownTodoDone /\[[xX]\]/ conceal cchar=☑
+    highlight link markdownTodo Conceal
+    highlight link markdownTodoDone Conceal
+  ]])
+end
+
+local function apply_todo_conceal_to_buffer(bufnr)
+	local win = vim.fn.bufwinid(bufnr)
+	if win == -1 then
+		return -- 缓冲区没有在窗口中显示
+	end
+
+	-- 使用 API 设置窗口选项
+	vim.api.nvim_set_option_value("conceallevel", 2, { win = win })
+	vim.api.nvim_set_option_value("concealcursor", "ncv", { win = win })
+
+	setup_conceal_syntax(bufnr)
 end
 
 -- ==========================
