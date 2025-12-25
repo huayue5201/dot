@@ -17,16 +17,6 @@ vim.keymap.set("n", "<C-S-s>", function()
 	end
 end, { silent = true, desc = "Save all modified buffers" })
 
-vim.keymap.set("n", "<leader>cm", function()
-	local mark = vim.fn.input("Delete mark: ")
-	if mark ~= "" then
-		vim.cmd("delmarks " .. mark)
-		print("Deleted mark " .. mark)
-	end
-end, { desc = "Delete specific mark" })
-
-vim.keymap.set("n", "<leader>cam", ":ClearAllMarks<CR>", { desc = "Delete all marks" })
-
 -- vim.keymap.set("n", "<c-esc>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 vim.keymap.set("n", "<c-esc>", function()
 	local current_buf = vim.api.nvim_get_current_buf() -- 获取当前缓冲区ID
