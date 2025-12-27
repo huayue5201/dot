@@ -120,84 +120,35 @@ return {
 			},
 		})
 
-		vim.keymap.set(
-			"n",
-			"<Leader>cw",
-			function()
-				-- 尝试加载 window-picker 插件
-				local success, picker = pcall(require, "window-picker")
-				if not success then
-					print("You'll need to install window-picker to use this command.")
-					return
-				end
-
-				-- 获取选中的窗口 ID
-				local picked_window_id = picker.pick_window()
-				if not picked_window_id then
-					print("No window picked!")
-					return
-				end
-
-				-- 获取窗口的缓冲区 ID 和类型信息
-				local buf_id = vim.api.nvim_win_get_buf(picked_window_id)
-				local filetype = vim.bo[buf_id].filetype
-				local buftype = vim.bo[buf_id].buftype
-				local bufname = vim.fn.bufname(buf_id)
-
-				-- 获取对应的关闭命令
-				local close_commands = require("user.utils").buf_keymaps["q"]
-
-				-- 根据文件名做额外的逻辑判断（比如处理 dap-repl 特殊情况）
-				local command
-				if bufname:match("dap%-repl") then
-					command = close_commands["dap-repl"]
-				end
-
-				-- 如果没有根据文件名找到关闭命令，尝试使用文件类型或缓冲区类型
-				if not command then
-					command = close_commands[filetype] or close_commands[buftype]
-				end
-
-				-- ⭐ 默认行为：智能关闭 SmartClose
-				if not command then
-					command = function()
-						vim.schedule(function()
-							if vim.fn.winnr("$") > 1 then
-								vim.cmd("quit")
-							else
-								vim.cmd("bdelete " .. buf_id)
-							end
-						end)
-					end
-				end
-
-				-- 切换到目标窗口并执行命令
-				local current_win = vim.api.nvim_get_current_win()
-				if not vim.api.nvim_win_is_valid(picked_window_id) then
-					print("Picked window is no longer valid.")
-					return
-				end
-
-				vim.api.nvim_set_current_win(picked_window_id)
-
-				-- 执行关闭命令
-				local function execute_command(cmd)
-					if type(cmd) == "function" then
-						cmd()
-					else
-						vim.cmd(cmd)
-					end
-				end
-
-				execute_command(command)
-
-				-- 恢复原窗口
-				if vim.api.nvim_win_is_valid(current_win) then
-					vim.api.nvim_set_current_win(current_win)
-				end
-			end,
-			{ silent = true, desc = "window: 删除选中的窗口（支持 close_commands 表 + 默认智能关闭）" }
-		)
+		vim.keymap.set("n", "<Leader>cw", function()
+			-- 尝试加载 window-picker 插件
+			local ok, picker = pcall(require, "window-picker")
+			if not ok then
+				print("You'll need to install window-picker to use this command.")
+				return
+			end
+			-- 选择窗口
+			local picked_window_id = picker.pick_window()
+			if not picked_window_id then
+				print("No window picked!")
+				return
+			end
+			-- 记录当前窗口
+			local current_win = vim.api.nvim_get_current_win()
+			-- 确保目标窗口有效
+			if not vim.api.nvim_win_is_valid(picked_window_id) then
+				print("Picked window is no longer valid.")
+				return
+			end
+			-- 切换到目标窗口
+			vim.api.nvim_set_current_win(picked_window_id)
+			-- ⭐ 使用统一关闭逻辑
+			require("user.utils").smart_close(picked_window_id)
+			-- 恢复原窗口
+			if vim.api.nvim_win_is_valid(current_win) then
+				vim.api.nvim_set_current_win(current_win)
+			end
+		end, { silent = true, desc = "window: 删除选中的窗口（统一 smart_close）" })
 
 		vim.keymap.set("n", "<Leader>w", function()
 			local success, picker = pcall(require, "window-picker")

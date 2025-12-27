@@ -6,7 +6,26 @@ local timer = vim.loop.new_timer()
 local ns = vim.api.nvim_create_namespace("mark_preview")
 local mark_display_ns = vim.api.nvim_create_namespace("mark_display")
 
--- 获取所有大写 mark
+-- 缓存：用于增量更新 & 预览
+local last_marks_by_buf = {} -- [bufnr][line] = "a,b,C"
+local last_preview_index = nil -- 上次高亮的行
+
+-- 防抖工具函数
+local function debounce(fn, delay)
+	local timer = vim.loop.new_timer()
+	return function(...)
+		local args = { ... }
+		timer:stop()
+		timer:start(delay, 0, function()
+			vim.schedule(function()
+				fn(unpack(args))
+			end)
+		end)
+	end
+end
+
+-- 获取所有大写 mark（全局）
+-- 注意：m.pos = { bufnr, lnum(1-based), col(0-based), off }
 local function get_upper_marks()
 	local raw = vim.fn.getmarklist()
 	local result = {}
@@ -29,7 +48,7 @@ local function get_upper_marks()
 				name = name,
 				buf = bufnr,
 				line = lnum,
-				col = col,
+				col = col, -- 0-based
 				file = file,
 			})
 		end
@@ -74,7 +93,7 @@ local function get_all_marks()
 				name = name,
 				buf = cur_buf,
 				line = m.pos[2],
-				col = m.pos[3],
+				col = m.pos[3], -- 0-based
 				file = vim.api.nvim_buf_get_name(cur_buf),
 				is_upper = false,
 			})
@@ -103,7 +122,7 @@ local function setup_preview_win(win_width, win_height, win_col)
 	end
 end
 
--- 显示预览浮窗
+-- 显示预览浮窗（优化版：尽量复用窗口，只更新高亮）
 local function show_preview()
 	if not preview_buf or not vim.api.nvim_buf_is_valid(preview_buf) then
 		preview_buf = vim.api.nvim_create_buf(false, true)
@@ -115,7 +134,6 @@ local function show_preview()
 	for _, m in ipairs(marks) do
 		local line = string.format("%s %s:%d", m.name, m.file, m.line)
 		table.insert(lines, line)
-
 		local w = vim.fn.strdisplaywidth(line)
 		if w > max_width then
 			max_width = w
@@ -130,28 +148,34 @@ local function show_preview()
 
 	setup_preview_win(win_width, win_height, win_col)
 
+	-- 只更新高亮
 	vim.api.nvim_buf_clear_namespace(preview_buf, ns, 0, -1)
-
 	if current_index and current_index >= 1 and current_index <= #lines then
 		vim.api.nvim_buf_set_extmark(preview_buf, ns, current_index - 1, 0, {
 			hl_group = "Visual",
 			end_line = current_index,
 		})
+		last_preview_index = current_index
+	else
+		last_preview_index = nil
 	end
 end
 
--- 在行首左侧悬浮显示标记符号（不挤压代码）
-local function display_marks_at_left_side()
+-- 内部函数：真正更新左侧 mark 显示（增量版）
+local function _display_marks_at_left_side()
 	local cur_buf = vim.api.nvim_get_current_buf()
 	if not vim.api.nvim_buf_is_valid(cur_buf) then
 		return
 	end
 
-	vim.api.nvim_buf_clear_namespace(cur_buf, mark_display_ns, 0, -1)
+	if not last_marks_by_buf[cur_buf] then
+		last_marks_by_buf[cur_buf] = {}
+	end
+	local cache = last_marks_by_buf[cur_buf]
 
 	local all_marks = get_all_marks()
-
 	local marks_by_line = {}
+
 	for _, m in ipairs(all_marks) do
 		if m.buf == cur_buf then
 			marks_by_line[m.line] = marks_by_line[m.line] or {}
@@ -159,6 +183,15 @@ local function display_marks_at_left_side()
 		end
 	end
 
+	-- 1. 清理已经没有 mark 的行
+	for line, _ in pairs(cache) do
+		if not marks_by_line[line] then
+			vim.api.nvim_buf_clear_namespace(cur_buf, mark_display_ns, line - 1, line)
+			cache[line] = nil
+		end
+	end
+
+	-- 2. 更新有变化的行
 	for line_num, marks_in_line in pairs(marks_by_line) do
 		local line_index = line_num - 1
 
@@ -169,51 +202,49 @@ local function display_marks_at_left_side()
 			return a.name < b.name
 		end)
 
+		local is_upper = marks_in_line[1].is_upper
 		local mark_texts = {}
 		for _, m in ipairs(marks_in_line) do
 			table.insert(mark_texts, m.name)
 		end
-		local display_text = table.concat(mark_texts, ",")
 
-		local has_upper = false
-		for _, m in ipairs(marks_in_line) do
-			if m.is_upper then
-				has_upper = true
-				break
-			end
+		local text_key = table.concat(mark_texts, ",")
+		if cache[line_num] ~= text_key then
+			local hl_group = is_upper and "MarkSignUpper" or "MarkSignLower"
+
+			vim.api.nvim_buf_set_extmark(cur_buf, mark_display_ns, line_index, 0, {
+				virt_text = {
+					{ text_key, hl_group },
+				},
+				-- virt_text_pos = "right_align", -- 更兼容的显示方式
+				virt_text_pos = "overlay",
+				virt_text_win_col = -2,
+				hl_mode = "combine",
+				priority = 50,
+			})
+
+			cache[line_num] = text_key
 		end
-		local hl_group = has_upper and "MarkSignUpper" or "MarkSignLower"
-
-		vim.api.nvim_buf_set_extmark(cur_buf, mark_display_ns, line_index, 0, {
-			virt_text = { { display_text, hl_group } },
-			virt_text_pos = "overlay",
-			virt_text_win_col = -1,
-			hl_mode = "blend",
-			priority = 50,
-		})
 	end
 end
 
--- 跳转函数
+-- 防抖后的显示函数（减少频繁刷新）
+local display_marks_at_left_side = debounce(_display_marks_at_left_side, 80)
+
+-- Harpoon 风格跳转：只切 buffer，不跳行列
 local function do_jump()
 	if not current_index or not marks[current_index] then
 		return
 	end
-
-	-- 记录跳转前的光标位置（即上次位置）
-	local last_line = vim.fn.line("'\"")
-	local last_col = vim.fn.col("'\"")
 
 	local m = marks[current_index]
 
 	pcall(function()
 		if m.buf ~= 0 and vim.api.nvim_buf_is_valid(m.buf) then
 			vim.api.nvim_set_current_buf(m.buf)
-			vim.api.nvim_win_set_cursor(0, { m.line, m.col })
 		else
 			if m.file and m.file ~= "" then
 				vim.cmd("edit " .. vim.fn.fnameescape(m.file))
-				vim.api.nvim_win_set_cursor(0, { m.line, m.col })
 			end
 		end
 	end)
@@ -224,17 +255,13 @@ local function do_jump()
 		preview_win = nil
 	end
 
-	display_marks_at_left_side()
+	-- 重置索引，避免下次从旧位置开始
+	-- current_index = nil
 
-	-- ⭐ 跳回上次光标位置（精确到行列）
-	if last_line > 0 and last_col > 0 then
-		pcall(function()
-			vim.api.nvim_win_set_cursor(0, { last_line, last_col })
-		end)
-	end
+	display_marks_at_left_side()
 end
 
--- 防抖跳转
+-- 防抖跳转（避免快速 H/L 时频繁切换）
 local pending = false
 local function schedule_jump()
 	if pending then
@@ -283,6 +310,7 @@ local function prev_mark()
 	update_mark(-1)
 end
 
+-- 用大写 mark 填充 quickfix 列表
 local function populate_qf_list()
 	marks = get_upper_marks()
 	if #marks == 0 then
@@ -293,8 +321,8 @@ local function populate_qf_list()
 	for _, m in ipairs(marks) do
 		table.insert(qf_items, {
 			filename = m.file,
-			lnum = m.line,
-			col = m.col + 1,
+			lnum = m.line, -- 1-based
+			col = m.col + 1, -- 转为 1-based
 			text = string.format("%s:%d %s", m.file, m.line, m.name),
 		})
 	end
@@ -303,24 +331,54 @@ local function populate_qf_list()
 	vim.cmd("copen")
 end
 
+-- 用小写 mark 填充 loclist
+local function populate_loclist_lower_marks()
+	local cur_buf = vim.api.nvim_get_current_buf()
+	local raw = vim.fn.getmarklist(cur_buf)
+	local items = {}
+
+	for _, m in ipairs(raw) do
+		local name = m.mark:match("%l")
+		if name then
+			table.insert(items, {
+				bufnr = cur_buf,
+				lnum = m.pos[2], -- 1-based
+				col = m.pos[3] + 1, -- 0-based -> 1-based
+				text = string.format("%s:%d %s", vim.api.nvim_buf_get_name(cur_buf), m.pos[2], name),
+			})
+		end
+	end
+
+	if #items == 0 then
+		print("No lowercase marks in current buffer")
+		return
+	end
+
+	vim.fn.setloclist(0, items)
+	vim.cmd("lopen")
+end
+
 -- 高亮定义
 vim.cmd([[
-  highlight MarkSignUpper guifg=#FFFFFF guibg=#DAA520 gui=italic
+  highlight MarkSignUpper guifg=#FFFFFF guibg=#8B6969 gui=italic
   highlight MarkSignLower guifg=#FFFFFF guibg=#0088FF gui=italic
+  highlight MarkIconUpperPrefix guifg=#DAA520 guibg=NONE gui=bold
+  highlight MarkIconLowerPrefix guifg=#0088FF guibg=NONE gui=bold
+  highlight MarkIconUpper guifg=#DAA520 guibg=NONE gui=bold
+  highlight MarkIconLower guifg=#0088FF guibg=NONE gui=bold
 ]])
 
--- 监听标记设置事件
+-- 监听标记设置事件：mark 变动时刷新（走防抖）
 vim.api.nvim_create_autocmd("MarkSet", {
 	callback = function()
 		display_marks_at_left_side()
 	end,
 })
 
--- 监听各种事件以确保标记显示刷新
+-- 监听各种事件以确保标记显示刷新（走防抖）
 vim.api.nvim_create_autocmd({
 	"BufEnter",
 	"BufWritePost",
-	"BufLeave",
 	"CursorMoved",
 	"TextChanged",
 	"TextChangedI",
@@ -340,6 +398,7 @@ vim.api.nvim_create_user_command("ClearAllMarks", function()
 			vim.cmd("delmarks " .. m)
 		end
 	end
+	last_marks_by_buf = {}
 	display_marks_at_left_side()
 end, {})
 
@@ -362,3 +421,6 @@ vim.keymap.set("n", "<leader>cam", ":ClearAllMarks<CR>", { desc = "Delete all ma
 vim.keymap.set("n", "H", next_mark)
 vim.keymap.set("n", "L", prev_mark)
 vim.keymap.set("n", "<leader>mq", populate_qf_list, { desc = "Populate quickfix list with uppercase marks" })
+vim.keymap.set("n", "<leader>ml", populate_loclist_lower_marks, {
+	desc = "Populate loclist with lowercase marks",
+})

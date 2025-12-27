@@ -5,24 +5,6 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 	command = "%s/\\s\\+$//e",
 })
 
-vim.api.nvim_create_user_command("SmartClose", function()
-	vim.schedule(function()
-		local win = vim.api.nvim_get_current_win()
-		local cfg = vim.api.nvim_win_get_config(win)
-		-- 如果是浮动窗口（relative 不为空）
-		if cfg.relative ~= "" then
-			vim.api.nvim_win_close(win, false)
-			return
-		end
-		-- 普通窗口逻辑
-		if vim.fn.winnr("$") > 1 then
-			vim.cmd("quit")
-		else
-			vim.cmd("bdelete")
-		end
-	end)
-end, {})
-
 -- 恢复上次光标位置
 vim.cmd([[
 augroup RestoreCursor
@@ -37,11 +19,16 @@ augroup RestoreCursor
 augroup END
 ]])
 
+vim.api.nvim_create_user_command("SmartClose", function()
+	require("user.utils").smart_close()
+end, {})
+
 -- =============================================
 -- 快捷键映射配置
 -- =============================================
+local utils = require("user.utils")
+local buf_keymaps = utils.buf_keymaps
 
-local buf_keymaps = require("user.utils").buf_keymaps
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	desc = "根据文件类型设置按键",
 	group = vim.api.nvim_create_augroup("CustomKeyMappings", { clear = true }),
@@ -51,23 +38,18 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 		local set_markers = vim.b.keymaps_set or {}
 
 		for key, configs in pairs(buf_keymaps) do
-			-- 优先匹配 filetype / buftype
+			-- 只判断是否需要绑定按键，不再处理关闭逻辑
 			local conf = configs[ft]
 
-			-- 如果没有匹配，再尝试 bufname 特殊匹配
 			if not conf and bufname:match("dap%-repl") then
 				conf = configs["dap-repl"]
 			end
 
 			if conf and not set_markers[key] then
-				local opts = { buffer = true, silent = true, noremap = true, nowait = true }
-				if type(conf.cmd) == "function" then
-					vim.keymap.set("n", key, conf.cmd, opts)
-				else
-					vim.keymap.set("n", key, function()
-						vim.cmd(conf.cmd)
-					end, opts)
-				end
+				vim.keymap.set("n", key, function()
+					utils.smart_close()
+				end, { buffer = true, silent = true, noremap = true, nowait = true })
+
 				set_markers[key] = true
 			end
 		end
