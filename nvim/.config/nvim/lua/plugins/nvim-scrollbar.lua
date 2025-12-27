@@ -22,7 +22,7 @@ return {
 			},
 			marks = {
 				Cursor = {
-					text = " ",
+					text = "",
 					priority = 0,
 					gui = nil,
 					color = nil,

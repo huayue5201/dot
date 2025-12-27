@@ -19,25 +19,22 @@ end, { silent = true, desc = "Save all modified buffers" })
 
 -- vim.keymap.set("n", "<c-esc>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 vim.keymap.set("n", "<c-esc>", function()
-	local current_buf = vim.api.nvim_get_current_buf() -- 获取当前缓冲区ID
-	local filetype = vim.bo[current_buf].filetype -- 获取当前缓冲区的filetype
-	local buftype = vim.bo[current_buf].buftype -- 获取当前缓冲区的buftype
-	-- 检查 M.buf_keymaps 中是否有对应的关闭命令
-	local conf = require("user.utils").buf_keymaps["q"]
-	-- 查找命令：优先检查文件类型和缓冲区类型
-	local command = conf[filetype] or conf[buftype] or conf[filetype] or conf[buftype]
-	if command then
-		-- 如果找到对应的命令，执行该命令
-		if type(command.cmd) == "function" then
-			command.cmd() -- 执行函数命令
-		else
-			vim.cmd(command.cmd) -- 执行字符串命令
+	require("user.utils").smart_close()
+end, { silent = true, desc = "Smart close buffer/window" })
+
+vim.keymap.set("n", "<leader>cab", function()
+	local utils = require("user.utils")
+	local current = vim.api.nvim_get_current_buf()
+
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if buf ~= current and vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "" then
+			local win = vim.fn.bufwinid(buf)
+			if win ~= -1 then
+				utils.smart_close(win)
+			end
 		end
-	else
-		-- 如果没有找到对应的命令，执行默认的 bdelete 命令
-		vim.cmd(":SmartClose") -- 默认关闭缓冲区
 	end
-end, { silent = true, desc = "Close buffer using defined commands or default" })
+end, { silent = true, desc = "Close other buffers safely" })
 
 -- vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
 vim.cmd("packadd nvim.undotree")
@@ -68,46 +65,6 @@ vim.keymap.set("n", "<leader>tml", ":+tabmove<CR>", {
 
 vim.keymap.set("n", "<leader>ct", "<cmd>tabclose<cr>", { silent = true, desc = "Tab: close tab" })
 vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
-
-local function close_other_buffers_safely()
-	local current_buf = vim.api.nvim_get_current_buf()
-	local all_buffers = vim.api.nvim_list_bufs()
-
-	for _, buf in ipairs(all_buffers) do
-		if
-			buf ~= current_buf
-			and vim.api.nvim_buf_is_valid(buf)
-			and vim.api.nvim_buf_is_loaded(buf)
-			and vim.bo[buf].buftype == ""
-		then
-			-- 获取文件类型和缓冲区类型
-			local filetype = vim.bo[buf].filetype
-			local buftype = vim.bo[buf].buftype
-
-			-- 从 M.buf_keymaps 中查找关闭命令
-			local conf = require("user.utils").buf_keymaps["q"]
-			local command = conf[filetype] or conf[buftype] or conf[filetype] or conf[buftype]
-
-			if command then
-				-- 如果找到命令，执行命令
-				if type(command.cmd) == "function" then
-					command.cmd() -- 执行函数命令
-				else
-					vim.cmd(command.cmd) -- 执行命令字符串
-				end
-			else
-				-- 如果没有找到对应命令，执行默认的关闭命令
-				vim.cmd("confirm bd " .. buf) -- 有未保存修改才交互确认，没修改直接关闭
-			end
-		end
-	end
-end
-
-vim.keymap.set("n", "<leader>cab", close_other_buffers_safely, {
-	noremap = true,
-	silent = true,
-	desc = "Safely close other buffers without breaking LSP",
-})
 
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
@@ -177,42 +134,20 @@ vim.api.nvim_set_keymap(
 
 -- 🪟 Window management
 vim.keymap.set("n", "<Leader>caw", function()
-	local current_win = vim.api.nvim_get_current_win()
-	local current_buf = vim.api.nvim_win_get_buf(current_win)
-	local current_dir = vim.fn.fnamemodify(vim.fn.bufname(current_buf), ":p:h")
+	local utils = require("user.utils")
+	local cur_win = vim.api.nvim_get_current_win()
+	local cur_buf = vim.api.nvim_win_get_buf(cur_win)
+	local cur_dir = vim.fn.fnamemodify(vim.fn.bufname(cur_buf), ":p:h")
 
-	local windows_to_close = {}
-	for _, win_id in ipairs(vim.api.nvim_list_wins()) do
-		if win_id ~= current_win then
-			local buf_id = vim.api.nvim_win_get_buf(win_id)
-			local buf_dir = vim.fn.fnamemodify(vim.fn.bufname(buf_id), ":p:h")
-			-- 根据目录判断是否需要关闭
-			if buf_dir ~= current_dir then
-				table.insert(windows_to_close, win_id)
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		if win ~= cur_win then
+			local buf = vim.api.nvim_win_get_buf(win)
+			local dir = vim.fn.fnamemodify(vim.fn.bufname(buf), ":p:h")
+			if dir ~= cur_dir then
+				utils.smart_close(win)
 			end
 		end
 	end
-	-- 查找关闭命令的逻辑
-	local conf = require("user.utils").buf_keymaps["q"]
-	for _, win_id in ipairs(windows_to_close) do
-		if vim.api.nvim_win_is_valid(win_id) then
-			local buf_id = vim.api.nvim_win_get_buf(win_id)
-			local filetype = vim.bo[buf_id].filetype
-			local buftype = vim.bo[buf_id].buftype
-			-- 查找命令：优先匹配文件类型和缓冲区类型
-			local command = conf[filetype] or conf[buftype] or conf[filetype] or conf[buftype]
-			if command then
-				-- 如果找到命令，执行该命令
-				if type(command.cmd) == "function" then
-					command.cmd() -- 执行函数命令
-				else
-					vim.cmd(command.cmd) -- 执行命令字符串
-				end
-			else
-				-- 如果没有找到对应命令，执行默认的关闭命令
-				vim.api.nvim_win_close(win_id, true) -- 默认关闭窗口
-			end
-		end
-	end
+
 	print("Deleted windows outside the current directory!")
 end, { silent = true, desc = "Window: close outside windows" })

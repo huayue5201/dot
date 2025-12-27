@@ -2,10 +2,13 @@
 
 return {
 	"jake-stewart/diff.nvim",
-	cmd = "Diff",
-	opts = {
-		unified = false,
-		split = "below",
-		cursorline = false,
-	},
+	event = "BufReadPost",
+	config = function()
+		require("diff").setup({
+			unified = false,
+			split = "below",
+			cursorline = false,
+		})
+		vim.keymap.set("n", "<localleader>D", ":Diff<CR>", { noremap = true, silent = true })
+	end,
 }

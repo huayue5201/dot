@@ -3,7 +3,7 @@
 return {
 	"Jorenar/nvim-dap-disasm",
 	dependencies = { "mfussenegger/nvim-dap", "rcarriga/nvim-dap-ui" },
-
+	event = "VeryLazy",
 	config = function()
 		local disasm = require("dap-disasm")
 

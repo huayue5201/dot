@@ -9,8 +9,10 @@ M.settings = {
 	},
 }
 
+-- ============================
+-- 关闭策略表（你原来的）
+-- ============================
 M.buf_keymaps = {
-	-- 统一使用按键作为顶级键
 	["q"] = {
 		help = { cmd = "quit" },
 		man = { cmd = "quit" },
@@ -30,6 +32,66 @@ M.buf_keymaps = {
 		SymbolsSidebar = { cmd = "SymbolsClose" },
 	},
 }
+
+-- ============================
+-- 辅助：判断是否浮动窗口
+-- ============================
+local function is_float(win)
+	local cfg = vim.api.nvim_win_get_config(win)
+	return cfg.relative ~= ""
+end
+
+-- ============================
+-- ⭐统一关闭函数（核心）
+-- ============================
+function M.smart_close(target_win)
+	local win = target_win or vim.api.nvim_get_current_win()
+	if not vim.api.nvim_win_is_valid(win) then
+		return
+	end
+
+	local buf = vim.api.nvim_win_get_buf(win)
+	local ft = vim.bo[buf].filetype
+	local bt = vim.bo[buf].buftype
+	local name = vim.fn.bufname(buf)
+
+	local close_map = M.buf_keymaps["q"]
+
+	-- ① 特殊匹配 dap-repl
+	local command
+	if name:match("dap%-repl") then
+		command = close_map["dap-repl"]
+	end
+
+	-- ② filetype / buftype 匹配
+	command = command or close_map[ft] or close_map[bt]
+
+	-- ③ fallback：SmartClose 行为
+	if not command then
+		local cfg = vim.api.nvim_win_get_config(win)
+
+		-- 浮动窗口
+		if cfg.relative ~= "" then
+			vim.api.nvim_win_close(win, { force = false, noautocmd = true })
+			return
+		end
+
+		-- 普通窗口
+		if vim.fn.winnr("$") > 1 then
+			vim.api.nvim_win_close(win, { force = true, noautocmd = true })
+		else
+			vim.cmd("bdelete " .. buf)
+		end
+		return
+	end
+
+	-- ④ 执行关闭命令
+	if type(command.cmd) == "function" then
+		command.cmd()
+	else
+		vim.cmd(command.cmd)
+	end
+end
 
 M.palette = {
 	-- 基础颜色

@@ -11,21 +11,25 @@ return {
 
 	---@diagnostic disable: missing-fields
 	config = function()
-		-- 1. 获取 LSP 默认能力
 		local capabilities = vim.lsp.protocol.make_client_capabilities()
 
-		-- 2. 合并 nvim-cmp 的能力（不覆盖已有设置）
-		capabilities = vim.tbl_deep_extend("force", capabilities, require("blink.cmp").get_lsp_capabilities({}, false))
+		-- ❌ 强烈建议：不要启用 onTypeFormatting
+		-- rust-analyzer + blink.cmp + preview 下极易出 offset 问题
+		capabilities.textDocument.onTypeFormatting = nil
 
-		-- 3. 手动添加折叠功能配置
-		capabilities = vim.tbl_deep_extend("force", capabilities, {
-			textDocument = {
-				foldingRange = {
-					dynamicRegistration = false,
-					lineFoldingOnly = true,
-				},
-			},
-		})
+		-- 先让 blink.cmp 扩展能力（它只管补全）
+		capabilities = vim.tbl_deep_extend(
+			"keep", -- 注意：不是 force
+			capabilities,
+			require("blink.cmp").get_lsp_capabilities()
+		)
+
+		-- 再补充你自己的能力（只补充，不覆盖）
+		capabilities.textDocument = capabilities.textDocument or {}
+		capabilities.textDocument.foldingRange = {
+			dynamicRegistration = false,
+			lineFoldingOnly = true,
+		}
 
 		require("blink.cmp").setup({
 			fuzzy = { implementation = "prefer_rust_with_warning" },
