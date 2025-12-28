@@ -4,6 +4,8 @@ local preview_win = nil
 local preview_buf = nil
 local timer = vim.loop.new_timer()
 local ns = vim.api.nvim_create_namespace("mark_preview")
+-- 每行绑定 extmark id：cache[bufnr][line] = { key = "A,a", id = 123 }
+local mark_cache = {}
 local mark_display_ns = vim.api.nvim_create_namespace("mark_display")
 
 -- 缓存：用于增量更新 & 预览
@@ -161,70 +163,90 @@ local function show_preview()
 	end
 end
 
--- 内部函数：真正更新左侧 mark 显示（增量版）
-local function _display_marks_at_left_side()
-	local cur_buf = vim.api.nvim_get_current_buf()
-	if not vim.api.nvim_buf_is_valid(cur_buf) then
+local function render_mark_line(buf, line, marks)
+	mark_cache[buf] = mark_cache[buf] or {}
+	local buf_cache = mark_cache[buf]
+	local old = buf_cache[line]
+
+	-- 生成 key，例如 "A,a"
+	local names = {}
+	for _, m in ipairs(marks) do
+		table.insert(names, m.name)
+	end
+	table.sort(names)
+	local key = table.concat(names, ",")
+
+	-- 如果内容没变，跳过
+	if old and old.key == key then
 		return
 	end
 
-	if not last_marks_by_buf[cur_buf] then
-		last_marks_by_buf[cur_buf] = {}
+	-- 删除旧 extmark（精确删除）
+	if old and old.id then
+		pcall(vim.api.nvim_buf_del_extmark, buf, mark_display_ns, old.id)
 	end
-	local cache = last_marks_by_buf[cur_buf]
+
+	-- 高亮组
+	local is_upper = marks[1].is_upper
+	local hl_group = is_upper and "MarkSignUpper" or "MarkSignLower"
+
+	-- 设置新的 extmark
+	local id = vim.api.nvim_buf_set_extmark(buf, mark_display_ns, line - 1, 0, {
+		virt_text = { { key, hl_group } },
+		virt_text_pos = "overlay",
+		virt_text_win_col = -2,
+		hl_mode = "combine",
+		priority = 50,
+	})
+
+	-- 更新缓存
+	buf_cache[line] = { key = key, id = id }
+end
+
+local function clear_mark_line(buf, line)
+	local buf_cache = mark_cache[buf]
+	if not buf_cache then
+		return
+	end
+
+	local entry = buf_cache[line]
+	if entry and entry.id then
+		pcall(vim.api.nvim_buf_del_extmark, buf, mark_display_ns, entry.id)
+	end
+
+	buf_cache[line] = nil
+end
+
+-- 内部函数：真正更新左侧 mark 显示（增量版）
+local function _display_marks_at_left_side()
+	local buf = vim.api.nvim_get_current_buf()
+	if not vim.api.nvim_buf_is_valid(buf) then
+		return
+	end
 
 	local all_marks = get_all_marks()
 	local marks_by_line = {}
 
 	for _, m in ipairs(all_marks) do
-		if m.buf == cur_buf then
+		if m.buf == buf then
 			marks_by_line[m.line] = marks_by_line[m.line] or {}
 			table.insert(marks_by_line[m.line], m)
 		end
 	end
 
-	-- 1. 清理已经没有 mark 的行
-	for line, _ in pairs(cache) do
+	mark_cache[buf] = mark_cache[buf] or {}
+	local buf_cache = mark_cache[buf]
+
+	-- 1. 清理不再有 mark 的行
+	for line, _ in pairs(buf_cache) do
 		if not marks_by_line[line] then
-			vim.api.nvim_buf_clear_namespace(cur_buf, mark_display_ns, line - 1, line)
-			cache[line] = nil
+			clear_mark_line(buf, line)
 		end
 	end
 
-	-- 2. 更新有变化的行
-	for line_num, marks_in_line in pairs(marks_by_line) do
-		local line_index = line_num - 1
-
-		table.sort(marks_in_line, function(a, b)
-			if a.is_upper ~= b.is_upper then
-				return a.is_upper
-			end
-			return a.name < b.name
-		end)
-
-		local is_upper = marks_in_line[1].is_upper
-		local mark_texts = {}
-		for _, m in ipairs(marks_in_line) do
-			table.insert(mark_texts, m.name)
-		end
-
-		local text_key = table.concat(mark_texts, ",")
-		if cache[line_num] ~= text_key then
-			local hl_group = is_upper and "MarkSignUpper" or "MarkSignLower"
-
-			vim.api.nvim_buf_set_extmark(cur_buf, mark_display_ns, line_index, 0, {
-				virt_text = {
-					{ text_key, hl_group },
-				},
-				-- virt_text_pos = "right_align", -- 更兼容的显示方式
-				virt_text_pos = "overlay",
-				virt_text_win_col = -2,
-				hl_mode = "combine",
-				priority = 50,
-			})
-
-			cache[line_num] = text_key
-		end
+	-- 2. 渲染有 mark 的行
+	for line, marks in pairs(marks_by_line) do
+		render_mark_line(buf, line, marks)
 	end
 end
 
