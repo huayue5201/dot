@@ -133,6 +133,10 @@ return {
 		dap.listeners.after["event_initialized"]["me"] = function()
 			-- 关闭lsp内嵌提示
 			vim.lsp.inlay_hint.enable(false)
+			-- 关闭诊断提示
+			vim.diagnostic.enable(false)
+			-- 关闭rachartier/tiny-inline-diagnostic.nvim
+			require("tiny-inline-diagnostic").disable()
 			-- 保存全局 K 键映射
 			local global_maps = vim.api.nvim_get_keymap("n")
 			for _, map in ipairs(global_maps) do
@@ -165,6 +169,10 @@ return {
 		dap.listeners.after["event_terminated"]["me"] = function()
 			-- 开启lsp内嵌提示
 			vim.lsp.inlay_hint.enable(true)
+			-- 开启诊断提示
+			vim.diagnostic.enable(true)
+			--开启rachartier/tiny-inline-diagnostic.nvim
+			require("tiny-inline-diagnostic").enable()
 			-- 恢复缓冲区映射
 			for _, keymap in ipairs(keymap_restore) do
 				if keymap.rhs then
