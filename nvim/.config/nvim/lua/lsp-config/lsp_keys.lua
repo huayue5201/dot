@@ -287,10 +287,6 @@ M.global_keymaps = function()
 		CopyErrorMessage()
 	end, { noremap = true, silent = true, desc = "LSP: 复制lsp诊断" })
 
-	vim.keymap.set("n", "grh", function()
-		require("lsp-config.prepareCallHierarchy").open_call_tree()
-	end, { desc = "LSP: call tree visualization" })
-
 	-- vim.keymap.set("i", "<C-CR>", function()
 	-- 	if not vim.lsp.inline_completion.get() then
 	-- 		return "<C-CR>"
