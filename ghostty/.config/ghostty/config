@@ -5,7 +5,8 @@
 # 设置字体
 # font-family = Victor Mono
 # font-family = FiraCode Nerd Font
-font-family = FantasqueSansM Nerd Font
+# font-family = FantasqueSansM Nerd Font
+font-family = monofur Nerd Font
 # 启用加粗字体
 # font-thicken = true
 
