@@ -210,9 +210,11 @@ local keymaps = {
 			local diagnostics_enabled = json_store.get("lsp", "diagnostics")
 			if diagnostics_enabled == "off" then
 				vim.diagnostic.enable(true)
+				require("tiny-inline-diagnostic").enable()
 				json_store.set("lsp", "diagnostics", "on")
 			else
 				vim.diagnostic.enable(false)
+				require("tiny-inline-diagnostic").disable()
 				json_store.set("lsp", "diagnostics", "off")
 			end
 		end,
