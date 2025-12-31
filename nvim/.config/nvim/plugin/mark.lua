@@ -133,22 +133,49 @@ end
 local function show_preview(marks, idx)
 	if not preview_buf or not vim.api.nvim_buf_is_valid(preview_buf) then
 		preview_buf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = preview_buf })
 	end
 
+	---------------------------------------------------------
+	-- 构造内容（两行结构：路径行 + 代码行）
+	---------------------------------------------------------
 	local lines = {}
 	local max_width = 0
 
 	for _, m in ipairs(marks) do
-		local line = string.format("%s %s:%d", m.name, m.file, m.line)
-		table.insert(lines, line)
-		max_width = math.max(max_width, vim.fn.strdisplaywidth(line))
+		local path = vim.fn.fnamemodify(m.file, ":p")
+
+		-- 读取代码行
+		local code = ""
+		if m.buf ~= 0 and vim.api.nvim_buf_is_valid(m.buf) then
+			local ok, text = pcall(vim.api.nvim_buf_get_lines, m.buf, m.line - 1, m.line, false)
+			if ok and text and text[1] then
+				code = text[1]:gsub("^%s+", "")
+			end
+		end
+
+		-- 第一行：路径
+		local line1 = string.format("%s  %s  %d", m.name, path, m.line)
+
+		-- 第二行：缩进 4 空格 + 代码
+		local line2 = "     " .. code
+
+		table.insert(lines, line1)
+		table.insert(lines, line2)
+
+		max_width = math.max(max_width, vim.fn.strdisplaywidth(line1), vim.fn.strdisplaywidth(line2))
 	end
 
 	vim.api.nvim_buf_set_lines(preview_buf, 0, -1, false, lines)
 
-	local win_width = math.min(max_width + 4, math.floor(vim.o.columns * 0.5))
-	local win_height = math.min(#lines, 10)
-	local win_col = math.max(2, vim.o.columns - win_width - 2)
+	---------------------------------------------------------
+	-- 自动匹配内容宽度
+	---------------------------------------------------------
+	local content_width = max_width + 4
+	local max_allowed = vim.o.columns - 4
+	local win_width = math.min(content_width, max_allowed)
+	local win_height = math.min(#lines, 20)
+	local win_col = vim.o.columns - win_width - 2
 
 	local config = {
 		relative = "editor",
@@ -158,6 +185,7 @@ local function show_preview(marks, idx)
 		col = win_col,
 		style = "minimal",
 		border = "shadow",
+		focusable = false,
 	}
 
 	if not preview_win or not vim.api.nvim_win_is_valid(preview_win) then
@@ -166,11 +194,70 @@ local function show_preview(marks, idx)
 		vim.api.nvim_win_set_config(preview_win, config)
 	end
 
+	---------------------------------------------------------
+	-- 清除旧高亮
+	---------------------------------------------------------
 	vim.api.nvim_buf_clear_namespace(preview_buf, ns_preview, 0, -1)
+
+	---------------------------------------------------------
+	-- 高亮（路径行 + 代码行）
+	---------------------------------------------------------
+	local row = 0
+	for _, m in ipairs(marks) do
+		local path = vim.fn.fnamemodify(m.file, ":p")
+		local dir = vim.fn.fnamemodify(path, ":h") .. "/"
+		local file = vim.fn.fnamemodify(path, ":t")
+
+		-- 第一行：路径行
+		local name_col = 0
+		local dir_col_start = 3
+		local dir_col_end = dir_col_start + #dir
+		local file_col_start = dir_col_end
+		local file_col_end = file_col_start + #file
+		local line_col = file_col_end + 2
+		local line_len = #tostring(m.line)
+
+		-- mark 名字
+		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, name_col, {
+			end_col = 1,
+			hl_group = "MarkPreviewName",
+		})
+
+		-- 目录
+		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, dir_col_start, {
+			end_col = dir_col_end,
+			hl_group = "MarkPreviewDir",
+		})
+
+		-- 文件名
+		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, file_col_start, {
+			end_col = file_col_end,
+			hl_group = "MarkPreviewFile",
+		})
+
+		-- 行号
+		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, line_col, {
+			end_col = line_col + line_len,
+			hl_group = "MarkPreviewLine",
+		})
+
+		-- 第二行：代码行（整行高亮）
+		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row + 1, 4, {
+			end_col = #lines[row + 2] or 999,
+			hl_group = "MarkPreviewCode",
+		})
+
+		row = row + 2
+	end
+
+	---------------------------------------------------------
+	-- 高亮当前项（整行背景）
+	---------------------------------------------------------
 	if idx then
-		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, idx - 1, 0, {
-			hl_group = "Visual",
-			end_line = idx,
+		local start_row = (idx - 1) * 2
+		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, start_row, 0, {
+			hl_group = "MarkPreviewCurrent",
+			end_line = start_row + 2,
 		})
 	end
 end
@@ -191,12 +278,12 @@ local function do_jump(mark)
 				vim.cmd("edit " .. vim.fn.fnameescape(mark.file))
 			end
 		end
-		vim.api.nvim_win_set_cursor(0, { mark.line, mark.col })
+		-- vim.api.nvim_win_set_cursor(0, { mark.line, mark.col })
+		vim.api.nvim_win_set_cursor(0, { mark.line, mark.col + 1 })
 	end)
 
 	if preview_win and vim.api.nvim_win_is_valid(preview_win) then
 		vim.api.nvim_win_close(preview_win, true)
-		preview_win = nil
 	end
 
 	display_marks_at_left_side()
@@ -210,7 +297,7 @@ local function schedule_jump(fn)
 
 	timer:stop()
 	timer:start(
-		200,
+		300,
 		0,
 		vim.schedule_wrap(function()
 			pending = false
@@ -301,6 +388,12 @@ end
 vim.cmd([[
   highlight MarkSignUpper guifg=#FFFFFF guibg=#8B6969 gui=italic
   highlight MarkSignLower guifg=#FFFFFF guibg=#0088FF gui=italic
+   highlight MarkPreviewDir  guifg=#de773f
+  highlight MarkPreviewFile guifg=#00D7FF gui=bold
+  highlight MarkPreviewLine guifg=#87FF5F gui=bold
+  highlight MarkPreviewName guifg=#d64f44 gui=bold
+  highlight MarkPreviewCode   guifg=#7c8577
+  highlight MarkPreviewCurrent guibg=#3A3A3A
 ]])
 
 ---------------------------------------------------------
@@ -326,7 +419,23 @@ end, { desc = "Delete all marks" })
 -- 删除单个标记
 ---------------------------------------------------------
 vim.keymap.set("n", "<leader>cm", function()
+	local marks = get_all_marks()
+	if #marks == 0 then
+		print("No marks to delete")
+		return
+	end
+
+	-- 打开预览窗口（复用你已有的 show_preview）
+	show_preview(marks, nil)
+
+	-- 输入 mark 名字
 	local mark = vim.fn.input("Delete mark: ")
+
+	-- 输入结束后关闭预览窗口
+	if preview_win and vim.api.nvim_win_is_valid(preview_win) then
+		vim.api.nvim_win_close(preview_win, true)
+	end
+
 	if mark ~= "" then
 		vim.cmd("delmarks " .. mark)
 		vim.schedule(function()

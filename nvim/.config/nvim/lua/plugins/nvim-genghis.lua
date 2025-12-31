@@ -58,7 +58,7 @@ return {
 
 		vim.keymap.set(
 			"n",
-			"<leader>ec",
+			"<leader>ea",
 			":Genghis createNewFile<CR>",
 			{ desc = "Create a new file in the same directory" }
 		)
@@ -92,7 +92,7 @@ return {
 		vim.keymap.set("n", "<leader>et", ":Genghis trashFile<CR>", { desc = "Move the current file to the trash" })
 		vim.keymap.set(
 			"n",
-			"<leader>es",
+			"<leader>eo",
 			":Genghis showInSystemExplorer<CR>",
 			{ desc = "Show the file in the system explorer" }
 		)

@@ -5,7 +5,7 @@ return {
 	event = "VeryLazy",
 	config = function()
 		require("which-key").setup({
-			preset = "helix",
+			-- preset = "helix",
 			show_help = false,
 			show_keys = false,
 		})

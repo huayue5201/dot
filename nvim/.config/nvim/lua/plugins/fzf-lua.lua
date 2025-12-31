@@ -34,5 +34,6 @@ return {
 		)
 		vim.keymap.set("n", "<leader>fT", "<cmd>FzfLua tags<cr>", { desc = "fzf: workspaces tags" })
 		vim.keymap.set("n", "<leader>fd", "<cmd>FzfLua  dap_variables<cr>", { desc = "fzf: active session variables" })
+		vim.keymap.set("n", "<leader>fu", "<cmd>FzfLua undotree<cr>", { desc = "fzf: undotree" })
 	end,
 }
