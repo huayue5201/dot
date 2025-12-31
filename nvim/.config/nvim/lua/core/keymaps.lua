@@ -96,35 +96,6 @@ vim.keymap.set("n", "<leader>yt", function()
 	print("Copied: " .. vim.fn.expand("%:t"))
 end, { silent = true, desc = "Path: copy filename" })
 
--- 🗂 Marks
-vim.keymap.set("n", "<leader>cam", function()
-	vim.cmd("delmarks a-z")
-	vim.cmd("delmarks A-Z")
-end, { desc = "Mark: delete all marks" })
-
--- 📌 TODO
-local todo = require("user.todo")
-
-vim.keymap.set("n", "<leader>tdo", function()
-	todo.select_todo_file("current", function(choice)
-		if choice then
-			todo.open_todo_file(choice.path, true)
-		end
-	end)
-end, { desc = "TODO: open list" })
-
-vim.keymap.set("n", "<leader>tdc", function()
-	todo.create_todo_file()
-end, { desc = "TODO: create file" })
-
-vim.keymap.set("n", "<leader>tdd", function()
-	todo.select_todo_file("current", function(choice)
-		if choice then
-			todo.delete_todo_file(choice.path)
-		end
-	end)
-end, { desc = "TODO: delete file" })
-
 vim.api.nvim_set_keymap(
 	"n",
 	"<leader>fp",

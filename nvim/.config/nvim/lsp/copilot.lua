@@ -131,5 +131,14 @@ return {
 		vim.api.nvim_buf_create_user_command(bufnr, "LspCopilotSignOut", function()
 			sign_out(bufnr, client)
 		end, { desc = "Sign out Copilot with GitHub" })
+
+		-- 及时清理node进程，防止同时多个进程占用过多资源
+		vim.api.nvim_create_autocmd("VimLeavePre", {
+			callback = function()
+				for _, pid in ipairs(vim.fn.systemlist("pgrep -f copilot")) do
+					vim.fn.system("kill -9 " .. pid)
+				end
+			end,
+		})
 	end,
 }

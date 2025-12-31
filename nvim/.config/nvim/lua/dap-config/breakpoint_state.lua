@@ -56,33 +56,40 @@ function M.sync_breakpoints()
 		store.delete(NAMESPACE, path)
 	end
 
-	store.save()
+	-- 新版本自动保存，不需要手动调用 store.save()
 end
 
 -- 恢复断点
 function M.load_breakpoints()
 	local all_bps = store.get_all(NAMESPACE)
+
+	if not all_bps then
+		return
+	end
+
 	for path, buf_bps in pairs(all_bps) do
 		local bufnr = vim.fn.bufnr(path, true)
 		if bufnr ~= -1 then
 			local line_count = vim.api.nvim_buf_line_count(bufnr)
 			local valid_bps = {}
-			for _, bp in pairs(buf_bps) do
+
+			for _, bp in ipairs(buf_bps) do
 				if bp.line <= line_count then
 					breakpoints.set({
 						condition = bp.condition,
 						log_message = bp.log_message,
 						hit_condition = bp.hit_condition,
 					}, bufnr, bp.line)
+
 					table.insert(valid_bps, bp)
 				end
 			end
+
 			if #valid_bps > 0 then
 				store.set(NAMESPACE, path, valid_bps)
 			else
 				store.delete(NAMESPACE, path)
 			end
-			store.save()
 		end
 	end
 end
@@ -94,15 +101,19 @@ function M.clear_breakpoints()
 	if path and path ~= "" then
 		breakpoints.clear(bufnr)
 		store.delete(NAMESPACE, path)
-		store.save()
 	end
 end
 
 -- 清除所有断点
 function M.clear_all_breakpoints()
 	breakpoints.clear()
-	store.delete(NAMESPACE)
-	store.save()
+	-- 清空整个命名空间
+	local all = store.get_all(NAMESPACE)
+	if all then
+		for path, _ in pairs(all) do
+			store.delete(NAMESPACE, path)
+		end
+	end
 end
 
 -- 自动恢复 + 自动同步
@@ -112,12 +123,12 @@ function M.setup_autoload()
 		callback = function(args)
 			local path = vim.api.nvim_buf_get_name(args.buf)
 			if path and path ~= "" then
-				local all_bps = store.get_all(NAMESPACE)
-				local buf_bps = all_bps[path]
+				local buf_bps = store.get(NAMESPACE, path)
 				if buf_bps then
 					local line_count = vim.api.nvim_buf_line_count(args.buf)
 					local valid_bps = {}
-					for _, bp in pairs(buf_bps) do
+
+					for _, bp in ipairs(buf_bps) do
 						if bp.line <= line_count then
 							breakpoints.set({
 								condition = bp.condition,
@@ -127,12 +138,12 @@ function M.setup_autoload()
 							table.insert(valid_bps, bp)
 						end
 					end
+
 					if #valid_bps > 0 then
 						store.set(NAMESPACE, path, valid_bps)
 					else
 						store.delete(NAMESPACE, path)
 					end
-					store.save()
 				end
 			end
 		end,

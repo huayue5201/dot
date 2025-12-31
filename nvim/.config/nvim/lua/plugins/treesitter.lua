@@ -32,6 +32,7 @@ return {
 			"python",
 			"regex",
 			"rust",
+			"comment", -- 用于注释高亮
 		}
 
 		require("nvim-treesitter").install(ensure_installed)
