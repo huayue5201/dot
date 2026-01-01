@@ -34,6 +34,25 @@ local function find_task_insert_position(lines)
 end
 
 ---------------------------------------------------------------------
+-- 查找已存在的 TODO 分屏窗口
+---------------------------------------------------------------------
+local function find_existing_todo_split()
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		local config = vim.api.nvim_win_get_config(win)
+		-- 检查是否为普通窗口（非浮窗）
+		if config.relative == "" then
+			local bufnr = vim.api.nvim_win_get_buf(win)
+			local bufname = vim.api.nvim_buf_get_name(bufnr)
+			-- 检查是否是 TODO 文件
+			if bufname:match("%.todo%.md$") then
+				return win
+			end
+		end
+	end
+	return nil
+end
+
+---------------------------------------------------------------------
 -- 创建代码 → TODO 链接
 ---------------------------------------------------------------------
 local function get_comment_prefix()
@@ -102,12 +121,13 @@ function M.create_link()
 		-- 保存 TODO 位置（绝对路径）
 		store.save_todo_link(id, todo_path, insert_line)
 
-		-- 打开 TODO 文件
-		require("todo.ui").open_todo_file(todo_path, true, insert_line)
+		-- 打开 TODO 文件（默认浮窗，并进入插入模式）
+		require("todo.ui").open_todo_file(todo_path, "floating", insert_line, { enter_insert = true })
 
 		print("✅ 已创建 TODO 链接: " .. id)
 	end)
 end
+
 ---------------------------------------------------------------------
 -- 跳转：代码 → TODO
 ---------------------------------------------------------------------
@@ -120,21 +140,26 @@ function M.jump_to_todo()
 		return
 	end
 
-	-- 首先使用 store.get_todo_link 查找（使用全局存储）
+	-- 获取链接信息（新版 json_store 已将所有 todo_links 设为全局）
 	local link = store.get_todo_link(id)
 
-	-- 如果没找到，尝试在所有项目中查找
-	if not link then
-		local json_store = require("user.json_store")
-		link = json_store.find_in_all_projects("todo_links", id)
-	end
-
+	-- 新版不需要跨项目查找，因为 todo_links 已经是全局命名空间
 	if not link then
 		print("未找到 TODO 链接记录")
 		return
 	end
 
-	require("todo.ui").open_todo_file(link.path, true, link.line, { enter_insert = false })
+	-- 检查是否有已存在的 TODO 分屏
+	local existing_todo_split = find_existing_todo_split()
+
+	if existing_todo_split then
+		-- 在已存在的 TODO 分屏中打开
+		vim.api.nvim_set_current_win(existing_todo_split)
+		require("todo.ui").open_todo_file(link.path, "current", link.line, { enter_insert = false })
+	else
+		-- 默认浮窗打开
+		require("todo.ui").open_todo_file(link.path, "floating", link.line, { enter_insert = false })
+	end
 end
 
 ---------------------------------------------------------------------
@@ -149,14 +174,8 @@ function M.jump_to_code()
 		return
 	end
 
-	-- 获取链接信息
+	-- 获取链接信息（新版 json_store 已将所有 code_links 设为全局）
 	local link = store.get_code_link(id)
-
-	-- 如果没找到，尝试在所有项目中查找
-	if not link then
-		local json_store = require("user.json_store")
-		link = json_store.find_in_all_projects("code_links", id)
-	end
 
 	if not link then
 		print("未找到代码链接记录: " .. id)
@@ -229,14 +248,8 @@ function M.render_code_status(bufnr)
 
 		local id = line:match("TODO:ref:(%w+)")
 		if id then
-			-- 首先尝试当前存储
+			-- 直接从全局存储获取（新版 json_store 已将 todo_links 设为全局）
 			local todo = store.get_todo_link(id)
-
-			-- 如果没找到，尝试在所有项目中查找
-			if not todo then
-				local json_store = require("user.json_store")
-				todo = json_store.find_in_all_projects("todo_links", id)
-			end
 
 			if todo then
 				local file_ok, todo_lines = pcall(vim.fn.readfile, todo.path)
@@ -278,15 +291,14 @@ function M.sync_code_links()
 		end
 	end
 
-	-- 同步当前文件的链接
-	local json_store = require("user.json_store")
-	local all_code_links = json_store.get_all_in_namespace("code_links")
+	-- 新版 json_store 已将所有 code_links 设为全局，不再需要跨项目查找
+	-- 直接使用 store 模块提供的函数
+	local all_code_links = store.get_all_code_links()
 
-	for id, data in pairs(all_code_links) do
-		local info = data.value
+	for id, info in pairs(all_code_links) do
 		if info.path == path then
 			if not found[id] then
-				json_store.delete("code_links", id)
+				store.delete_code_link(id)
 			elseif found[id] ~= info.line then
 				store.save_code_link(id, path, found[id])
 			end
@@ -416,19 +428,17 @@ end
 -- 清理无效链接
 ---------------------------------------------------------------------
 function M.cleanup_all_links()
-	local json_store = require("user.json_store")
-
 	local todo_cleaned = 0
 	local code_cleaned = 0
 
-	-- 清理 todo_links 命名空间
-	local all_todo = json_store.get_all("todo_links")
+	-- 清理 todo_links 命名空间（新版使用全局存储）
+	local all_todo = store.get_all_todo_links()
 	if all_todo then
 		for id, info in pairs(all_todo) do
 			-- 检查TODO文件是否存在
 			local file_ok, todo_lines = pcall(vim.fn.readfile, info.path)
 			if not file_ok then
-				json_store.delete("todo_links", id)
+				store.delete_todo_link(id)
 				todo_cleaned = todo_cleaned + 1
 			else
 				-- 检查ID是否还在文件中
@@ -440,21 +450,21 @@ function M.cleanup_all_links()
 					end
 				end
 				if not found then
-					json_store.delete("todo_links", id)
+					store.delete_todo_link(id)
 					todo_cleaned = todo_cleaned + 1
 				end
 			end
 		end
 	end
 
-	-- 清理 code_links 命名空间
-	local all_code = json_store.get_all("code_links")
+	-- 清理 code_links 命名空间（新版使用全局存储）
+	local all_code = store.get_all_code_links()
 	if all_code then
 		for id, info in pairs(all_code) do
 			-- 检查代码文件是否存在
 			local file_ok, code_lines = pcall(vim.fn.readfile, info.path)
 			if not file_ok then
-				json_store.delete("code_links", id)
+				store.delete_code_link(id)
 				code_cleaned = code_cleaned + 1
 			else
 				-- 检查TODO标记是否还在文件中
@@ -466,7 +476,7 @@ function M.cleanup_all_links()
 					end
 				end
 				if not found then
-					json_store.delete("code_links", id)
+					store.delete_code_link(id)
 					code_cleaned = code_cleaned + 1
 				end
 			end
@@ -482,6 +492,7 @@ end
 -- 搜索功能
 ---------------------------------------------------------------------
 function M.search_links_by_file(filepath)
+	-- 新版使用全局存储，不需要跨项目搜索
 	local todo_results = store.find_todo_links_by_file(filepath)
 	local code_results = store.find_code_links_by_file(filepath)
 
@@ -492,6 +503,7 @@ function M.search_links_by_file(filepath)
 end
 
 function M.search_links_by_pattern(pattern)
+	-- 新版使用全局存储
 	local todo_all = store.get_all_todo_links()
 	local code_all = store.get_all_code_links()
 	local results = {}

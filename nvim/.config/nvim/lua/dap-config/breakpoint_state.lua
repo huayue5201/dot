@@ -1,6 +1,6 @@
 -- lua/dap-config/breakpoint_state.lua
 local breakpoints = require("dap.breakpoints")
-local store = require("user.json_store")
+local store = require("json_store")
 
 local M = {}
 local NAMESPACE = "dap_breakpoints"
@@ -55,8 +55,6 @@ function M.sync_breakpoints()
 	else
 		store.delete(NAMESPACE, path)
 	end
-
-	-- 新版本自动保存，不需要手动调用 store.save()
 end
 
 -- 恢复断点

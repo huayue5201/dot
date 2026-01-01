@@ -54,7 +54,7 @@ end
 
 -- 根据文件类型启动 LSP
 local lsp_get = require("lsp-config.lsp_utils")
-local json_store = require("user.json_store")
+local json_store = require("json_store")
 
 M.lsp_Start = function()
 	vim.api.nvim_create_autocmd("FileType", {
@@ -63,14 +63,14 @@ M.lsp_Start = function()
 		callback = function()
 			local lsp_names = lsp_get.get_lsp_by_filetype(vim.bo.filetype)
 			for _, lsp_name in ipairs(lsp_names) do
-				-- 获取 LSP 当前状态
-				local lsp_state = json_store.get("lsp", lsp_name)
+				-- 获取 LSP 当前状态（项目级存储）
+				local lsp_state = json_store.get("lsp", lsp_name) -- 不传 use_global 参数
 
 				if lsp_state == "inactive" then
 					-- 停止 LSP 客户端
 					vim.lsp.enable(lsp_name, false)
 				else
-					-- 启动 LSP 客户端
+					-- 启动 LSP 客户端（默认或 active 状态）
 					vim.lsp.enable(lsp_name, true)
 				end
 			end

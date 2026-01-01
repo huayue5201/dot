@@ -1,5 +1,5 @@
 ---------------------------------------------------------
--- State
+-- 1. State
 ---------------------------------------------------------
 local current_index = nil
 local preview_win = nil
@@ -11,8 +11,10 @@ local ns_preview = vim.api.nvim_create_namespace("mark_preview")
 local ns_display = vim.api.nvim_create_namespace("mark_display")
 
 ---------------------------------------------------------
--- 获取所有大写 mark（全局）
+-- 2. Mark 数据获取（大写、小写）
 ---------------------------------------------------------
+
+-- 获取所有大写 mark（全局）
 local function get_upper_marks()
 	local raw = vim.fn.getmarklist()
 	local result = {}
@@ -43,9 +45,7 @@ local function get_upper_marks()
 	return result
 end
 
----------------------------------------------------------
 -- 获取所有标记（大小写）
----------------------------------------------------------
 local function get_all_marks()
 	local result = {}
 	local cur_buf = vim.api.nvim_get_current_buf()
@@ -84,7 +84,7 @@ local function get_all_marks()
 end
 
 ---------------------------------------------------------
--- 左侧 UI：直接清空 namespace 再渲染
+-- 3. UI：左侧显示
 ---------------------------------------------------------
 local function display_marks_at_left_side()
 	local buf = vim.api.nvim_get_current_buf()
@@ -128,7 +128,7 @@ local function display_marks_at_left_side()
 end
 
 ---------------------------------------------------------
--- 预览窗口（纯函数）
+-- 4. 预览窗口
 ---------------------------------------------------------
 local function show_preview(marks, idx)
 	if not preview_buf or not vim.api.nvim_buf_is_valid(preview_buf) then
@@ -136,16 +136,12 @@ local function show_preview(marks, idx)
 		vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = preview_buf })
 	end
 
-	---------------------------------------------------------
-	-- 构造内容（两行结构：路径行 + 代码行）
-	---------------------------------------------------------
 	local lines = {}
 	local max_width = 0
 
 	for _, m in ipairs(marks) do
 		local path = vim.fn.fnamemodify(m.file, ":p")
 
-		-- 读取代码行
 		local code = ""
 		if m.buf ~= 0 and vim.api.nvim_buf_is_valid(m.buf) then
 			local ok, text = pcall(vim.api.nvim_buf_get_lines, m.buf, m.line - 1, m.line, false)
@@ -154,10 +150,7 @@ local function show_preview(marks, idx)
 			end
 		end
 
-		-- 第一行：路径
 		local line1 = string.format("%s  %s  %d", m.name, path, m.line)
-
-		-- 第二行：缩进 4 空格 + 代码
 		local line2 = "     " .. code
 
 		table.insert(lines, line1)
@@ -168,9 +161,6 @@ local function show_preview(marks, idx)
 
 	vim.api.nvim_buf_set_lines(preview_buf, 0, -1, false, lines)
 
-	---------------------------------------------------------
-	-- 自动匹配内容宽度
-	---------------------------------------------------------
 	local content_width = max_width + 4
 	local max_allowed = vim.o.columns - 4
 	local win_width = math.min(content_width, max_allowed)
@@ -194,21 +184,14 @@ local function show_preview(marks, idx)
 		vim.api.nvim_win_set_config(preview_win, config)
 	end
 
-	---------------------------------------------------------
-	-- 清除旧高亮
-	---------------------------------------------------------
 	vim.api.nvim_buf_clear_namespace(preview_buf, ns_preview, 0, -1)
 
-	---------------------------------------------------------
-	-- 高亮（路径行 + 代码行）
-	---------------------------------------------------------
 	local row = 0
 	for _, m in ipairs(marks) do
 		local path = vim.fn.fnamemodify(m.file, ":p")
 		local dir = vim.fn.fnamemodify(path, ":h") .. "/"
 		local file = vim.fn.fnamemodify(path, ":t")
 
-		-- 第一行：路径行
 		local name_col = 0
 		local dir_col_start = 3
 		local dir_col_end = dir_col_start + #dir
@@ -217,31 +200,26 @@ local function show_preview(marks, idx)
 		local line_col = file_col_end + 2
 		local line_len = #tostring(m.line)
 
-		-- mark 名字
 		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, name_col, {
 			end_col = 1,
 			hl_group = "MarkPreviewName",
 		})
 
-		-- 目录
 		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, dir_col_start, {
 			end_col = dir_col_end,
 			hl_group = "MarkPreviewDir",
 		})
 
-		-- 文件名
 		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, file_col_start, {
 			end_col = file_col_end,
 			hl_group = "MarkPreviewFile",
 		})
 
-		-- 行号
 		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, line_col, {
 			end_col = line_col + line_len,
 			hl_group = "MarkPreviewLine",
 		})
 
-		-- 第二行：代码行（整行高亮）
 		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row + 1, 4, {
 			end_col = #lines[row + 2] or 999,
 			hl_group = "MarkPreviewCode",
@@ -250,9 +228,6 @@ local function show_preview(marks, idx)
 		row = row + 2
 	end
 
-	---------------------------------------------------------
-	-- 高亮当前项（整行背景）
-	---------------------------------------------------------
 	if idx then
 		local start_row = (idx - 1) * 2
 		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, start_row, 0, {
@@ -263,7 +238,7 @@ local function show_preview(marks, idx)
 end
 
 ---------------------------------------------------------
--- 跳转 + 防抖
+-- 5. 跳转逻辑（H / L）
 ---------------------------------------------------------
 local function do_jump(mark)
 	if not mark then
@@ -278,7 +253,6 @@ local function do_jump(mark)
 				vim.cmd("edit " .. vim.fn.fnameescape(mark.file))
 			end
 		end
-		-- vim.api.nvim_win_set_cursor(0, { mark.line, mark.col })
 		vim.api.nvim_win_set_cursor(0, { mark.line, mark.col + 1 })
 	end)
 
@@ -329,12 +303,13 @@ end
 local function next_mark()
 	update_mark(1)
 end
+
 local function prev_mark()
 	update_mark(-1)
 end
 
 ---------------------------------------------------------
--- Quickfix / Loclist
+-- 6. Quickfix / Loclist
 ---------------------------------------------------------
 local function populate_qf_list()
 	local marks = get_upper_marks()
@@ -383,40 +358,155 @@ local function populate_loclist_lower_marks()
 end
 
 ---------------------------------------------------------
--- 高亮
+-- 7. Highlight
 ---------------------------------------------------------
 vim.cmd([[
   highlight MarkSignUpper guifg=#FFFFFF guibg=#8B6969 gui=italic
   highlight MarkSignLower guifg=#FFFFFF guibg=#0088FF gui=italic
-   highlight MarkPreviewDir  guifg=#de773f
+  highlight MarkPreviewDir  guifg=#de773f
   highlight MarkPreviewFile guifg=#00D7FF gui=bold
   highlight MarkPreviewLine guifg=#87FF5F gui=bold
   highlight MarkPreviewName guifg=#d64f44 gui=bold
-  highlight MarkPreviewCode   guifg=#7c8577
+  highlight MarkPreviewCode guifg=#7c8577
   highlight MarkPreviewCurrent guibg=#3A3A3A
 ]])
 
 ---------------------------------------------------------
--- 自动刷新事件
+-- 8. 小写 mark 持久化（v6）
 ---------------------------------------------------------
-vim.api.nvim_create_autocmd({ "MarkSet" }, {
+local json_store = require("json_store")
+
+-- 保存小写 mark
+local function persist_lower_mark(mark)
+	if not mark or not mark.mark or type(mark.mark) ~= "string" then
+		return
+	end
+
+	local name = mark.mark:match("%l")
+	if not name then
+		return
+	end
+
+	local bufnr = mark.pos and mark.pos[1]
+	if not bufnr or bufnr == 0 or not vim.api.nvim_buf_is_valid(bufnr) then
+		return
+	end
+
+	local file = vim.api.nvim_buf_get_name(bufnr)
+	if file == "" then
+		return
+	end
+
+	local line = mark.pos[2]
+	local col = mark.pos[3]
+
+	-- v6：行级数据自动 anchor + diff 重定位
+	json_store.set_line_data(file, line, {
+		mark = name,
+		col = col,
+	})
+end
+
+vim.api.nvim_create_autocmd("MarkSet", {
+	callback = function(args)
+		persist_lower_mark(args.data)
+	end,
+})
+
+---------------------------------------------------------
+-- 9. 打开文件时恢复小写 mark（v6）
+---------------------------------------------------------
+local function restore_lower_marks(bufnr)
+	local file = vim.api.nvim_buf_get_name(bufnr)
+	if file == "" then
+		return
+	end
+
+	local line_count = vim.api.nvim_buf_line_count(bufnr)
+
+	for lnum = 1, line_count do
+		local data = json_store.get_line_data(file, lnum)
+		if data and data.mark then
+			vim.fn.setpos("'" .. data.mark, { bufnr, lnum, data.col or 0, 0 })
+		end
+	end
+end
+
+vim.api.nvim_create_autocmd("BufReadPost", {
+	callback = function(args)
+		restore_lower_marks(args.buf)
+	end,
+})
+
+---------------------------------------------------------
+-- 10. 删除 mark 时自动清理（v6）
+---------------------------------------------------------
+local function cleanup_deleted_marks(bufnr)
+	local file = vim.api.nvim_buf_get_name(bufnr)
+	if file == "" then
+		return
+	end
+
+	-- 当前 buffer 的小写 mark 列表
+	local raw = vim.fn.getmarklist(bufnr)
+	local existing = {}
+	for _, m in ipairs(raw) do
+		local name = m.mark:match("%l")
+		if name then
+			existing[name] = true
+		end
+	end
+
+	local line_count = vim.api.nvim_buf_line_count(bufnr)
+	for lnum = 1, line_count do
+		local data = json_store.get_line_data(file, lnum)
+		if data and data.mark and not existing[data.mark] then
+			-- mark 已被删除 → 清除该行的数据
+			json_store.set_line_data(file, lnum, nil)
+		end
+	end
+end
+
+vim.api.nvim_create_autocmd("BufWritePost", {
+	callback = function(args)
+		cleanup_deleted_marks(args.buf)
+	end,
+})
+
+---------------------------------------------------------
+-- 11. 文件删除时自动清理 json_store 数据
+---------------------------------------------------------
+vim.api.nvim_create_autocmd("BufDelete", {
+	callback = function(args)
+		local file = vim.api.nvim_buf_get_name(args.buf)
+		if file ~= "" then
+			json_store.cleanup_file_refs(file)
+		end
+	end,
+})
+
+vim.api.nvim_create_autocmd("FileChangedShellPost", {
+	callback = function(args)
+		local file = args.file
+		if file and file ~= "" then
+			json_store.cleanup_file_refs(file)
+		end
+	end,
+})
+
+---------------------------------------------------------
+-- 12. 自动刷新事件（UI）
+---------------------------------------------------------
+vim.api.nvim_create_autocmd("MarkSet", {
 	callback = display_marks_at_left_side,
 })
 
--- 使用 CursorHold 替代 CursorMoved 事件
 vim.api.nvim_create_autocmd("CursorHold", {
 	callback = display_marks_at_left_side,
 })
----------------------------------------------------------
--- 清除所有标记
----------------------------------------------------------
-vim.keymap.set("n", "<leader>cam", function()
-	vim.cmd("delmarks a-zA-Z0-9")
-	-- vim.cmd("delmarks \"'[]<>")
-end, { desc = "Delete all marks" })
 
 ---------------------------------------------------------
--- 删除单个标记
+-- 13. 删除单个标记（你的原逻辑）
 ---------------------------------------------------------
 vim.keymap.set("n", "<leader>cm", function()
 	local marks = get_all_marks()
@@ -425,13 +515,10 @@ vim.keymap.set("n", "<leader>cm", function()
 		return
 	end
 
-	-- 打开预览窗口（复用你已有的 show_preview）
 	show_preview(marks, nil)
 
-	-- 输入 mark 名字
 	local mark = vim.fn.input("Delete mark: ")
 
-	-- 输入结束后关闭预览窗口
 	if preview_win and vim.api.nvim_win_is_valid(preview_win) then
 		vim.api.nvim_win_close(preview_win, true)
 	end
@@ -445,12 +532,19 @@ vim.keymap.set("n", "<leader>cm", function()
 end, { desc = "Delete specific mark" })
 
 ---------------------------------------------------------
--- 初始化
+-- 14. 清除所有标记
+---------------------------------------------------------
+vim.keymap.set("n", "<leader>cam", function()
+	vim.cmd("delmarks a-zA-Z0-9")
+end, { desc = "Delete all marks" })
+
+---------------------------------------------------------
+-- 15. 初始化
 ---------------------------------------------------------
 vim.schedule(display_marks_at_left_side)
 
 ---------------------------------------------------------
--- 键映射
+-- 16. 键位绑定
 ---------------------------------------------------------
 vim.keymap.set("n", "H", next_mark, {
 	desc = "Jump to next uppercase mark",

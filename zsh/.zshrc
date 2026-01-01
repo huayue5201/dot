@@ -6,96 +6,78 @@ export EDITOR="nvim"
 export LANG="en_US.UTF-8"
 
 # ---------------------------------------
-# Zinit 插件管理器安装
-# GitHub: https://github.com/zdharma-continuum/zinit
+# Zinit 插件管理器
 # ---------------------------------------
 if [[ ! -f "${HOME}/.zinit/bin/zinit.zsh" ]]; then
     echo "Installing Zinit..."
     mkdir -p "${HOME}/.zinit"
     git clone https://github.com/zdharma-continuum/zinit.git "${HOME}/.zinit/bin"
 fi
-
-# 加载 Zinit
 source "${HOME}/.zinit/bin/zinit.zsh"
 
 # ---------------------------------------
-# Powerlevel10k 主题
-# GitHub: https://github.com/romkatv/powerlevel10k
+# Powerlevel10k（异步提示符）
 # ---------------------------------------
 zinit ice depth"1"
 zinit light romkatv/powerlevel10k
 
-# 禁用配置向导
 POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+POWERLEVEL9K_DISABLE_GITSTATUS=false
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
 # ---------------------------------------
-# 历史记录配置
+# 历史记录
 # ---------------------------------------
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
-setopt appendhistory
-setopt inc_append_history
-setopt share_history
-setopt hist_ignore_all_dups
-setopt hist_save_no_dups
-setopt hist_ignore_space
-setopt correct
-setopt autocd
-setopt notify
+setopt appendhistory inc_append_history share_history
+setopt hist_ignore_all_dups hist_save_no_dups hist_ignore_space
+setopt autocd notify correct
 
 # ---------------------------------------
-# 插件配置
+# 插件（安全 lazy-loading）
 # ---------------------------------------
 
-# fast-syntax-highlighting: https://github.com/zdharma-continuum/fast-syntax-highlighting
+# fast-syntax-highlighting（延迟加载）
 zinit ice depth"1" wait"0" lucid
 zinit light zdharma-continuum/fast-syntax-highlighting
 
-# zsh-autosuggestions: https://github.com/zsh-users/zsh-autosuggestions
+# autosuggestions（延迟加载）
 zinit ice depth"1" wait"0" lucid
 zinit light zsh-users/zsh-autosuggestions
 
-# 延迟加载，提升启动速度
-zinit ice depth"1" wait"2" lucid
+# fzf-tab（必须在 zsh-vi-mode 之前）
+zinit ice depth"1" wait"1" lucid
 zinit light Aloxaf/fzf-tab
 
-# zsh-vi-mode: https://github.com/jeffreytse/zsh-vi-mode
-zinit ice depth"1" wait"1" lucid
-zinit load jeffreytse/zsh-vi-mode
-
-# autopair: https://github.com/hlissner/zsh-autopair
+# autopair
 zinit ice depth"1" wait"1" lucid pick"autopair.zsh"
 zinit load hlissner/zsh-autopair
 
-# https://github.com/MichaelAquilina/zsh-auto-notify
+# auto-notify
 zinit ice depth"1" wait"1" lucid
 zinit load MichaelAquilina/zsh-auto-notify
+
+# zsh-vi-mode（必须在 fzf-tab 之后）
+zinit ice depth"1" wait"2" lucid
+zinit load jeffreytse/zsh-vi-mode
+
+# fzf（必须在 zsh-vi-mode 之后）
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # ---------------------------------------
 # fzf-tab 配置
 # ---------------------------------------
-# 禁用 git checkout 排序
 zstyle ':completion:*:git-checkout:*' sort false
-# 补全描述格式
 zstyle ':completion:*:descriptions' format '[%d]'
-# 启用 list-colors
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-# 禁用原生补全菜单
 zstyle ':completion:*' menu no
-# fzf-tab 核心配置
+
 zstyle ':fzf-tab:*' fzf-flags --height=60% --reverse
 zstyle ':fzf-tab:*' use-fzf-default-opts yes
-# 切换补全组
 zstyle ':fzf-tab:*' switch-group '<' '>'
 
-# 预览配置（关键）
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd -la --color=always $realpath 2>/dev/null || ls -la --color=always $realpath'
-zstyle ':fzf-tab:complete:z:*' fzf-preview 'lsd -la --color=always $realpath 2>/dev/null || ls -la --color=always $realpath'
-zstyle ':fzf-tab:complete:ls:*' fzf-preview 'lsd -la --color=always $realpath 2>/dev/null || ls -la --color=always $realpath'
-
-# 文件预览
 zstyle ':fzf-tab:complete:*:*' fzf-preview '
 if [[ -f $realpath ]]; then
     bat --style=numbers --color=always $realpath 2>/dev/null || cat $realpath
@@ -104,29 +86,21 @@ elif [[ -d $realpath ]]; then
 else
     echo $realpath
 fi'
+
 # ---------------------------------------
 # zsh-vi-mode 配置
 # ---------------------------------------
-
-# 启动时使用插入模式
 ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
-
-# ---------------------------------------
-# autopair 配置
-# ---------------------------------------
-# 如果需要额外的 autopair 配置可以在这里添加
-# export AUTOPAIR_BETWEEN_WHITESPACE=1
 
 # ---------------------------------------
 # auto-notify 配置
 # ---------------------------------------
-export AUTO_NOTIFY_THRESHOLD=30  # 命令执行超过30秒才通知
+export AUTO_NOTIFY_THRESHOLD=30
 export AUTO_NOTIFY_TITLE="命令完成"
-# export AUTO_NOTIFY_BODY="命令: {command} (运行时间: {time})"
 export AUTO_NOTIFY_IGNORE=("vim" "nvim" "man" "less" "more" "top" "htop")
 
 # ---------------------------------------
-# fzf 配置（无边框版本）
+# fzf 配置
 # ---------------------------------------
 export FZF_DEFAULT_OPTS="\
 --height 50% \
@@ -135,21 +109,16 @@ export FZF_DEFAULT_OPTS="\
 --preview-window=right:60%"
 
 # ---------------------------------------
-# 补全系统
+# 补全系统（无报错）
 # ---------------------------------------
 autoload -Uz compinit
-if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
-    compinit
-else
-    compinit -C
-fi
+compinit -u
 
-# zinit 自身命令补全
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
 
 # ---------------------------------------
-# 命令别名
+# 别名
 # ---------------------------------------
 alias la='lsd -a'
 alias lt='lsd -t'
@@ -168,18 +137,15 @@ alias gd='git diff'
 # ---------------------------------------
 # 自定义函数
 # ---------------------------------------
-# 快速重新加载配置
 reload() {
     source ~/.zshrc
     echo "Zsh configuration reloaded!"
 }
 
-# 查找历史命令
 fh() {
     print -z $(history | fzf --height=40% --reverse | sed 's/ *[0-9]* *//')
 }
 
-# 查找文件并编辑
 fe() {
     local file
     file=$(fzf --query="$1" --select-1 --exit-0 --height=40% --reverse)
@@ -187,17 +153,6 @@ fe() {
 }
 
 # ---------------------------------------
-# 其他工具初始化
+# 其他工具
 # ---------------------------------------
-
-# zoxide: https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh)"
-
-# fzf 自动补全和键绑定
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# 加载 p10k 配置（如果存在）
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
-
-# bun completions
-[ -s "/Users/lijia/.bun/_bun" ] && source "/Users/lijia/.bun/_bun"

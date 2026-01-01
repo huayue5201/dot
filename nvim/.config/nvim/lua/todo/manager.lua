@@ -94,7 +94,6 @@ local function scan_buffer_links()
 	local links = {}
 
 	for lnum, line in ipairs(lines) do
-		-- 代码引用 TODO:ref:id
 		local id = line:match("TODO:ref:(%w+)")
 		if id then
 			local todo = store.get_todo_link(id)
@@ -105,7 +104,6 @@ local function scan_buffer_links()
 			})
 		end
 
-		-- TODO 引用 {#id}
 		local id2 = line:match("{#(%w+)}")
 		if id2 then
 			local code = store.get_code_link(id2)
