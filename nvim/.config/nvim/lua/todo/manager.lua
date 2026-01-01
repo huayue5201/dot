@@ -1,15 +1,48 @@
 -- lua/todo/manager.lua
 local store = require("todo.store")
-local json_store = require("json_store")
 local M = {}
+
+---------------------------------------------------------------------
+-- 扫描当前缓冲区中的链接
+---------------------------------------------------------------------
+local function scan_buffer_links()
+	local bufnr = vim.api.nvim_get_current_buf()
+	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+	local links = {}
+
+	for lnum, line in ipairs(lines) do
+		-- 代码引用 TODO:ref:id
+		local id = line:match("TODO:ref:(%w+)")
+		if id then
+			local todo = store.get_todo_link(id)
+			table.insert(links, {
+				filename = vim.api.nvim_buf_get_name(bufnr),
+				lnum = lnum,
+				text = todo and string.format("CODE → TODO %s:%d", todo.path, todo.line) or "孤立的代码标记",
+			})
+		end
+
+		-- TODO 引用 {#id}
+		local id2 = line:match("{#(%w+)}")
+		if id2 then
+			local code = store.get_code_link(id2)
+			table.insert(links, {
+				filename = vim.api.nvim_buf_get_name(bufnr),
+				lnum = lnum,
+				text = code and string.format("TODO → CODE %s:%d", code.path, code.line) or "孤立的 TODO 标记",
+			})
+		end
+	end
+
+	return links
+end
 
 ---------------------------------------------------------------------
 -- qf: QuickFix 显示当前项目中代码文件的双链标记
 ---------------------------------------------------------------------
 function M.show_project_links_qf()
-	-- 获取当前项目信息
-	local project_info = json_store.get_current_project()
-	local project_root = project_info.root
+	-- 直接使用当前目录作为项目根目录（简化版）
+	local project_root = vim.fn.getcwd()
 
 	-- 获取所有代码链接
 	local all_code = store.get_all_code_links() or {}
@@ -88,36 +121,6 @@ end
 ---------------------------------------------------------------------
 -- fx: LocList 显示当前 buffer 双链标记
 ---------------------------------------------------------------------
-local function scan_buffer_links()
-	local bufnr = vim.api.nvim_get_current_buf()
-	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-	local links = {}
-
-	for lnum, line in ipairs(lines) do
-		local id = line:match("TODO:ref:(%w+)")
-		if id then
-			local todo = store.get_todo_link(id)
-			table.insert(links, {
-				filename = vim.api.nvim_buf_get_name(bufnr),
-				lnum = lnum,
-				text = todo and string.format("CODE → TODO %s:%d", todo.path, todo.line) or "孤立的代码标记",
-			})
-		end
-
-		local id2 = line:match("{#(%w+)}")
-		if id2 then
-			local code = store.get_code_link(id2)
-			table.insert(links, {
-				filename = vim.api.nvim_buf_get_name(bufnr),
-				lnum = lnum,
-				text = code and string.format("TODO → CODE %s:%d", code.path, code.line) or "孤立的 TODO 标记",
-			})
-		end
-	end
-
-	return links
-end
-
 function M.show_buffer_links_loclist()
 	local items = scan_buffer_links()
 	if #items == 0 then
@@ -179,9 +182,8 @@ end
 -- 简单统计：只统计当前项目的代码标记
 ---------------------------------------------------------------------
 function M.show_stats()
-	-- 获取当前项目信息
-	local project_info = json_store.get_current_project()
-	local project_root = project_info.root
+	-- 使用当前目录作为项目根目录
+	local project_root = vim.fn.getcwd()
 
 	-- 获取所有代码链接
 	local all_code = store.get_all_code_links() or {}

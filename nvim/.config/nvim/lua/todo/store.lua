@@ -1,5 +1,5 @@
 -- lua/todo/store.lua
--- 使用新版 json_store 模块
+-- 移除 require("user.json_store")，使用新的 json_store
 local json_store = require("json_store")
 
 local M = {}
@@ -8,45 +8,42 @@ local M = {}
 local TODO_NS = "todo_links"
 local CODE_NS = "code_links"
 
--- 在新版中初始化全局命名空间
--- 确保在 Neovim 配置中调用 json_store.setup() 时包含这些命名空间
-
 ---------------------------------------------------------------------
 -- 保存链接（使用全局存储）
 ---------------------------------------------------------------------
 function M.save_todo_link(id, path, line)
-	-- 确保存储绝对路径
 	local abs_path = vim.fn.fnamemodify(path, ":p")
+	-- 使用全局存储（use_global = true）
 	json_store.set(TODO_NS, id, {
 		path = abs_path,
 		line = line,
 		created_at = os.time(),
-	}, nil, true) -- 最后一个参数 true 表示使用全局存储
+	}, nil, true)
 end
 
 function M.save_code_link(id, path, line)
-	-- 确保存储绝对路径
 	local abs_path = vim.fn.fnamemodify(path, ":p")
+	-- 使用全局存储（use_global = true）
 	json_store.set(CODE_NS, id, {
 		path = abs_path,
 		line = line,
 		created_at = os.time(),
-	}, nil, true) -- 使用全局存储
+	}, nil, true)
 end
 
 ---------------------------------------------------------------------
--- 获取单个链接（从全局获取）
+-- 获取单个链接（从全局存储）
 ---------------------------------------------------------------------
 function M.get_todo_link(id)
-	return json_store.get(TODO_NS, id, nil, true) -- 从全局获取
+	return json_store.get(TODO_NS, id, nil, true)
 end
 
 function M.get_code_link(id)
-	return json_store.get(CODE_NS, id, nil, true) -- 从全局获取
+	return json_store.get(CODE_NS, id, nil, true)
 end
 
 ---------------------------------------------------------------------
--- 删除链接
+-- 删除链接（从全局存储）
 ---------------------------------------------------------------------
 function M.delete_todo_link(id)
 	json_store.delete(TODO_NS, id, nil, true)
@@ -57,14 +54,14 @@ function M.delete_code_link(id)
 end
 
 ---------------------------------------------------------------------
--- 获取全部链接
+-- 获取全部链接（从全局存储）
 ---------------------------------------------------------------------
 function M.get_all_todo_links()
-	return json_store.get_all(TODO_NS, true) or {} -- 从全局获取
+	return json_store.get_all(TODO_NS, true) or {}
 end
 
 function M.get_all_code_links()
-	return json_store.get_all(CODE_NS, true) or {} -- 从全局获取
+	return json_store.get_all(CODE_NS, true) or {}
 end
 
 ---------------------------------------------------------------------
@@ -73,11 +70,9 @@ end
 function M.find_todo_links_by_file(filepath)
 	local all_links = M.get_all_todo_links()
 	local results = {}
-	local target_path = vim.fn.fnamemodify(filepath, ":p") -- 统一为绝对路径
 
 	for id, link in pairs(all_links) do
-		local link_path = vim.fn.fnamemodify(link.path, ":p")
-		if link_path == target_path then
+		if link.path == filepath then
 			results[id] = link
 		end
 	end
@@ -88,16 +83,28 @@ end
 function M.find_code_links_by_file(filepath)
 	local all_links = M.get_all_code_links()
 	local results = {}
-	local target_path = vim.fn.fnamemodify(filepath, ":p") -- 统一为绝对路径
 
 	for id, link in pairs(all_links) do
-		local link_path = vim.fn.fnamemodify(link.path, ":p")
-		if link_path == target_path then
+		if link.path == filepath then
 			results[id] = link
 		end
 	end
 
 	return results
+end
+
+---------------------------------------------------------------------
+-- 跨项目查找函数（新添加）
+---------------------------------------------------------------------
+function M.find_in_all_projects(namespace, key)
+	-- 对于 todo_links 和 code_links，我们已经使用全局存储
+	-- 所以直接调用 get 即可
+	return json_store.get(namespace, key, nil, true)
+end
+
+function M.get_all_in_namespace(namespace)
+	-- 获取全局命名空间的所有数据
+	return json_store.get_all(namespace, true) or {}
 end
 
 ---------------------------------------------------------------------
