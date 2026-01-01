@@ -188,6 +188,29 @@ function M.save_status()
 			end
 		end
 
+		-- 如果是当前 buffer，进行额外检查
+		if buf == 0 then
+			local current_ft = vim.api.nvim_get_option_value("filetype", { buf = buf })
+			local current_bt = vim.api.nvim_get_option_value("buftype", { buf = buf })
+			local current_name = vim.fn.bufname(buf)
+
+			-- 检查当前 buffer 是否应该被忽略
+			local current_ignore_ft = vim.tbl_contains(ignore.filetype, current_ft)
+			local current_ignore_bt = vim.tbl_contains(ignore.buftype, current_bt)
+
+			local current_ignore_name = false
+			for _, pat in ipairs(ignore.bufname) do
+				if current_name:match(pat) then
+					current_ignore_name = true
+					break
+				end
+			end
+
+			if current_ignore_ft or current_ignore_bt or current_ignore_name then
+				return "" -- 如果当前 buffer 也在黑名单中，直接返回空
+			end
+		end
+
 		if ignore_ft or ignore_bt or ignore_name then
 			goto continue
 		end

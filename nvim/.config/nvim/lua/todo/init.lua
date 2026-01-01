@@ -78,20 +78,39 @@ function M.setup()
 	end, { desc = "预览 TODO 或代码" })
 
 	-------------------------------------------------------------------
-	-- TODO 文件管理
+	-- TODO 文件管理 - 增强版：支持多种打开方式
 	-------------------------------------------------------------------
-	vim.keymap.set("n", "<leader>tdo", function()
+	-- 选择并浮窗打开
+	vim.keymap.set("n", "<leader>tdf", function()
+		ui.select_and_open("current", "floating")
+	end, { desc = "TODO: 浮窗打开列表" })
+
+	-- 选择并下分屏打开
+	vim.keymap.set("n", "<leader>tds", function()
+		ui.select_and_open("current", "split")
+	end, { desc = "TODO: 下分屏打开列表" })
+
+	-- 在当前窗口打开（保持原有功能）
+	vim.keymap.set("n", "<leader>tde", function()
 		ui.select_todo_file("current", function(choice)
 			if choice then
-				ui.open_todo_file(choice.path, true)
+				ui.open_todo_file(choice.path, "current")
 			end
 		end)
-	end, { desc = "TODO: 打开列表" })
+	end, { desc = "TODO: 当前窗口打开列表" })
 
+	-- 创建 TODO 文件
 	vim.keymap.set("n", "<leader>tdn", function()
-		ui.create_todo_file()
+		local path = ui.create_todo_file()
+		if path then
+			-- 创建后自动用下分屏打开
+			vim.defer_fn(function()
+				ui.open_todo_file_split(path)
+			end, 100)
+		end
 	end, { desc = "TODO: 创建文件" })
 
+	-- 删除 TODO 文件
 	vim.keymap.set("n", "<leader>tdd", function()
 		ui.select_todo_file("current", function(choice)
 			if choice then
@@ -99,6 +118,12 @@ function M.setup()
 			end
 		end)
 	end, { desc = "TODO: 删除文件" })
+
+	-- 快速打开最近的文件（新增功能）
+	vim.keymap.set("n", "<leader>tdh", function()
+		-- 这里可以扩展为打开最近编辑的 TODO 文件
+		vim.notify("TODO: 最近文件功能待实现", vim.log.levels.INFO)
+	end, { desc = "TODO: 打开最近文件" })
 
 	-------------------------------------------------------------------
 	-- 自动同步：代码文件
@@ -111,10 +136,10 @@ function M.setup()
 			end, 0)
 		end,
 	})
+
 	-------------------------------------------------------------------
 	-- 自动同步：TODO 文件
 	-------------------------------------------------------------------
-
 	vim.api.nvim_create_autocmd("BufWritePost", {
 		pattern = { "*.todo.md", "*.todo", "todo.txt" },
 		callback = function()
@@ -134,6 +159,22 @@ function M.setup()
 			end)
 		end,
 	})
+
+	-------------------------------------------------------------------
+	-- 自动设置 TODO 文件窗口特性
+	-------------------------------------------------------------------
+	vim.api.nvim_create_autocmd("FileType", {
+		pattern = "markdown",
+		callback = function(args)
+			local bufname = vim.api.nvim_buf_get_name(args.buf)
+			if bufname:match("%.todo%.md$") then
+				-- 如果是 TODO 文件，应用 conceal 设置
+				vim.schedule(function()
+					require("todo.ui").refresh(args.buf)
+				end)
+			end
+		end,
+	})
 end
 
 ---------------------------------------------------------------------
@@ -143,6 +184,19 @@ M.core = core
 M.render = render
 M.link = link
 M.ui = ui
-M.manager = require("todo.manager") -- 新增
+M.manager = require("todo.manager")
+
+-- 提供便捷的打开方式函数
+function M.open_split_todo()
+	ui.select_and_open("current", "split")
+end
+
+function M.open_floating_todo()
+	ui.select_and_open("current", "floating")
+end
+
+function M.open_current_todo()
+	ui.select_and_open("current", "current")
+end
 
 return M

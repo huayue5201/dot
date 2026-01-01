@@ -26,7 +26,7 @@ local function setup_conceal_syntax(bufnr)
 		[[
         buffer %d
         syntax match markdownTodo /\[\s\]/ conceal cchar=☐
-        syntax match markdownTodoDone /\[[xX]\]/ conceal cchar=☑
+        syntax match markdownTodoDone /\[[xX]\]/ conceal cchar=✓
         highlight default link markdownTodo Conceal
         highlight default link markdownTodoDone Conceal
     ]],
@@ -391,11 +391,90 @@ local function show_floating(path, line_number, enter_insert)
 end
 
 ---------------------------------------------------------------------
+-- 下分屏模式
+---------------------------------------------------------------------
+local function show_split_window(path, line_number, enter_insert)
+	-- 创建下分屏
+	vim.cmd("below split")
+
+	-- 打开文件
+	vim.cmd("edit " .. vim.fn.fnameescape(path))
+
+	local bufnr = vim.api.nvim_get_current_buf()
+	local win = vim.api.nvim_get_current_win()
+
+	-- 设置窗口高度（根据文件行数，但有限制）
+	local lines = vim.fn.line("$")
+	local max_height = math.floor(vim.o.lines * 0.6)
+	local win_height = math.min(math.max(10, lines + 2), max_height)
+	vim.api.nvim_win_set_height(win, win_height)
+
+	-- 设置缓冲区选项
+	local buf_opts = {
+		buftype = "",
+		bufhidden = "hide",
+		modifiable = true,
+		readonly = false,
+		swapfile = false,
+		filetype = "markdown",
+	}
+
+	for opt, val in pairs(buf_opts) do
+		vim.bo[bufnr][opt] = val
+	end
+
+	-- 应用conceal设置
+	apply_conceal(bufnr)
+
+	-- 设置键映射
+	setup_keymaps(bufnr, win)
+
+	-- 更新显示
+	vim.defer_fn(function()
+		M.refresh(bufnr)
+
+		if line_number then
+			vim.api.nvim_win_set_cursor(win, { line_number, 0 })
+			vim.cmd("normal! zz")
+
+			-- 进入插入模式（如果指定）
+			if enter_insert then
+				vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("A", true, false, true), "n", true)
+			end
+		end
+	end, 50)
+
+	-- 创建自动命令组
+	local augroup = vim.api.nvim_create_augroup("TodoSplit_" .. path:gsub("[^%w]", "_"), { clear = true })
+
+	-- 监听文本变化来刷新
+	vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "BufWritePost" }, {
+		group = augroup,
+		buffer = bufnr,
+		callback = function()
+			M.refresh(bufnr)
+		end,
+	})
+
+	-- 窗口关闭时清理自动命令
+	vim.api.nvim_create_autocmd("WinClosed", {
+		group = augroup,
+		pattern = tostring(win),
+		once = true,
+		callback = function()
+			vim.api.nvim_del_augroup_by_id(augroup)
+		end,
+	})
+
+	return bufnr, win
+end
+
+---------------------------------------------------------------------
 -- 公开 API
 ---------------------------------------------------------------------
-function M.open_todo_file(path, floating, line_number, opts)
+function M.open_todo_file(path, mode, line_number, opts)
 	opts = opts or {}
-	local enter_insert = opts.enter_insert ~= false -- ⭐ 默认 true，传 false 则关闭
+	local enter_insert = opts.enter_insert or false
 
 	-- 确保是绝对路径
 	path = vim.fn.fnamemodify(path, ":p")
@@ -405,9 +484,12 @@ function M.open_todo_file(path, floating, line_number, opts)
 		return
 	end
 
-	if floating then
+	if mode == "floating" then
 		return show_floating(path, line_number, enter_insert)
-	else
+	elseif mode == "split" then
+		return show_split_window(path, line_number, enter_insert)
+	elseif mode == "current" or not mode then
+		-- 在当前窗口打开
 		vim.cmd("edit " .. vim.fn.fnameescape(path))
 		local bufnr = vim.api.nvim_get_current_buf()
 		if line_number then
@@ -416,7 +498,29 @@ function M.open_todo_file(path, floating, line_number, opts)
 		apply_conceal(bufnr)
 		M.refresh(bufnr)
 		return bufnr
+	else
+		vim.notify("未知的打开模式: " .. mode, vim.log.levels.ERROR)
+		return
 	end
+end
+
+-- 提供便捷的下分屏打开函数
+function M.open_todo_file_split(path, line_number, opts)
+	return M.open_todo_file(path, "split", line_number, opts)
+end
+
+-- 提供便捷的浮窗打开函数（保持向后兼容）
+function M.open_todo_file_floating(path, line_number, opts)
+	return M.open_todo_file(path, "floating", line_number, opts)
+end
+
+-- 提供便捷的选择并打开函数
+function M.select_and_open(scope, mode)
+	M.select_todo_file(scope, function(choice)
+		if choice then
+			M.open_todo_file(choice.path, mode, nil, { enter_insert = false })
+		end
+	end)
 end
 
 function M.create_todo_file()

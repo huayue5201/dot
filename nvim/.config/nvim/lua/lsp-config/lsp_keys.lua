@@ -1,6 +1,6 @@
 local M = {}
 
-local json_store = require("user.json_store")
+local json_store = require("json_store")
 local lsp_get = require("lsp-config.lsp_utils")
 
 -- 重启当前缓冲区的 LSP 客户端
@@ -19,7 +19,7 @@ local function restart_lsp()
 	end, 500)
 end
 
--- 切换lsp状态
+-- 切换lsp状态（项目级存储）
 local function toggle_lsp()
 	-- 获取当前缓冲区的所有相关 LSP 客户端名称
 	local lsp_names = lsp_get.get_lsp_by_filetype(vim.bo.filetype)
@@ -28,10 +28,11 @@ local function toggle_lsp()
 	vim.ui.select(lsp_names, {
 		prompt = "🔄 选择 LSP 客户端：", -- 提示信息
 		format_item = function(item)
-			-- 获取当前 LSP 的状态
+			-- 获取当前 LSP 的状态（使用项目级存储）
+			-- 不传最后一个参数，默认为 false，表示使用项目级存储
 			local state = json_store.get("lsp", item)
 			-- 美化显示：左对齐 LSP 名称，并展示状态，增加可读性
-			return string.format("%-20s • 状态: %s", item, state or "未知")
+			return string.format("%-20s • 状态: %s", item, state or "active") -- 默认为 active
 		end,
 	}, function(selected_lsp)
 		if not selected_lsp then
@@ -39,18 +40,18 @@ local function toggle_lsp()
 			return
 		end
 
-		-- 获取当前 LSP 客户端的状态
+		-- 获取当前 LSP 客户端的状态（项目级存储）
 		local current_state = json_store.get("lsp", selected_lsp)
 
 		if current_state == "inactive" then
 			-- 启动 LSP 客户端
 			vim.lsp.enable(selected_lsp, true)
-			json_store.set("lsp", selected_lsp, "active")
+			json_store.set("lsp", selected_lsp, "active") -- 保存到项目级存储
 			vim.notify(string.format("LSP '%s' 已启动。", selected_lsp), vim.log.levels.INFO)
 		else
 			-- 停用 LSP 客户端
 			vim.lsp.enable(selected_lsp, false)
-			json_store.set("lsp", selected_lsp, "inactive")
+			json_store.set("lsp", selected_lsp, "inactive") -- 保存到项目级存储
 			vim.notify(string.format("LSP '%s' 已停止。", selected_lsp), vim.log.levels.INFO)
 		end
 
