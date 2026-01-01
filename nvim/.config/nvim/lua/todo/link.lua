@@ -34,25 +34,6 @@ local function find_task_insert_position(lines)
 end
 
 ---------------------------------------------------------------------
--- 查找已存在的 TODO 分屏窗口
----------------------------------------------------------------------
-local function find_existing_todo_split()
-	for _, win in ipairs(vim.api.nvim_list_wins()) do
-		local config = vim.api.nvim_win_get_config(win)
-		-- 检查是否为普通窗口（非浮窗）
-		if config.relative == "" then
-			local bufnr = vim.api.nvim_win_get_buf(win)
-			local bufname = vim.api.nvim_buf_get_name(bufnr)
-			-- 检查是否是 TODO 文件
-			if bufname:match("%.todo%.md$") then
-				return win
-			end
-		end
-	end
-	return nil
-end
-
----------------------------------------------------------------------
 -- 创建代码 → TODO 链接
 ---------------------------------------------------------------------
 local function get_comment_prefix()
@@ -121,8 +102,8 @@ function M.create_link()
 		-- 保存 TODO 位置（绝对路径）
 		store.save_todo_link(id, todo_path, insert_line)
 
-		-- 打开 TODO 文件（默认浮窗，并进入插入模式）
-		require("todo.ui").open_todo_file(todo_path, "floating", insert_line, { enter_insert = true })
+		-- 打开 TODO 文件
+		require("todo.ui").open_todo_file(todo_path, true, insert_line)
 
 		print("✅ 已创建 TODO 链接: " .. id)
 	end)
@@ -140,26 +121,15 @@ function M.jump_to_todo()
 		return
 	end
 
-	-- 获取链接信息（新版 json_store 已将所有 todo_links 设为全局）
+	-- 使用 store.get_todo_link 查找（使用全局存储）
 	local link = store.get_todo_link(id)
 
-	-- 新版不需要跨项目查找，因为 todo_links 已经是全局命名空间
 	if not link then
 		print("未找到 TODO 链接记录")
 		return
 	end
 
-	-- 检查是否有已存在的 TODO 分屏
-	local existing_todo_split = find_existing_todo_split()
-
-	if existing_todo_split then
-		-- 在已存在的 TODO 分屏中打开
-		vim.api.nvim_set_current_win(existing_todo_split)
-		require("todo.ui").open_todo_file(link.path, "current", link.line, { enter_insert = false })
-	else
-		-- 默认浮窗打开
-		require("todo.ui").open_todo_file(link.path, "floating", link.line, { enter_insert = false })
-	end
+	require("todo.ui").open_todo_file(link.path, true, link.line, { enter_insert = false })
 end
 
 ---------------------------------------------------------------------
@@ -174,7 +144,7 @@ function M.jump_to_code()
 		return
 	end
 
-	-- 获取链接信息（新版 json_store 已将所有 code_links 设为全局）
+	-- 获取链接信息
 	local link = store.get_code_link(id)
 
 	if not link then
@@ -224,31 +194,6 @@ end
 ---------------------------------------------------------------------
 local ns = vim.api.nvim_create_namespace("todo_status")
 
--- 简单的 todo 文件缓存（当前 Neovim 会话内）
-local todo_file_cache = {}
-
-local function read_todo_file(path)
-	local stat = vim.uv and vim.uv.fs_stat(path) or vim.loop and vim.loop.fs_stat(path)
-	local mtime = stat and stat.mtime and (stat.mtime.sec or stat.mtime) or nil
-
-	local cache = todo_file_cache[path]
-	if cache and cache.mtime == mtime and cache.lines then
-		return cache.lines
-	end
-
-	local ok, lines = pcall(vim.fn.readfile, path)
-	if not ok then
-		return nil
-	end
-
-	todo_file_cache[path] = {
-		lines = lines,
-		mtime = mtime,
-	}
-
-	return lines
-end
-
 function M.render_code_status(bufnr)
 	if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
 		return
@@ -266,46 +211,30 @@ function M.render_code_status(bufnr)
 		return
 	end
 
-	-- 预扫描：收集所有 id → { line_idx }
-	local id_to_lines = {}
 	for i, line in ipairs(lines) do
+		if not vim.api.nvim_buf_is_valid(bufnr) then
+			return
+		end
+
 		local id = line:match("TODO:ref:(%w+)")
 		if id then
-			id_to_lines[id] = id_to_lines[id] or {}
-			table.insert(id_to_lines[id], i)
-		end
-	end
+			-- 使用 store 模块获取 TODO 链接
+			local todo = store.get_todo_link(id)
 
-	if vim.tbl_isempty(id_to_lines) then
-		return
-	end
+			if todo then
+				local file_ok, todo_lines = pcall(vim.fn.readfile, todo.path)
+				if file_ok then
+					local todo_line = todo_lines[todo.line]
+					local status = todo_line and todo_line:match("%[(.)%]")
 
-	-- 一次性获取所有 todo 链接
-	local store = require("todo.store")
+					local icon = (status == "x" or status == "X") and "✓" or "☐" -- ☑
+					local text = (status == "x" or status == "X") and "已完成" or "未完成"
 
-	-- 为每个 id 找到对应 todo 行状态
-	local todo_line_cache = {}
+					-- 根据状态选择颜色
+					local hl_group = (status == "x" or status == "X") and "String" or "Error"
 
-	for id, code_lines in pairs(id_to_lines) do
-		local todo = store.get_todo_link(id)
-		if todo and todo.path and todo.line then
-			local todo_lines = todo_line_cache[todo.path]
-			if not todo_lines then
-				todo_lines = read_todo_file(todo.path)
-				todo_line_cache[todo.path] = todo_lines
-			end
-
-			if todo_lines then
-				local todo_line = todo_lines[todo.line]
-				local status = todo_line and todo_line:match("%[(.)%]")
-
-				local icon = (status == "x" or status == "X") and "✓" or "☐"
-				local text = (status == "x" or status == "X") and "已完成" or "未完成"
-				local hl_group = (status == "x" or status == "X") and "String" or "Error"
-
-				for _, code_lnum in ipairs(code_lines) do
 					if vim.api.nvim_buf_is_valid(bufnr) then
-						vim.api.nvim_buf_set_extmark(bufnr, ns, code_lnum - 1, -1, {
+						vim.api.nvim_buf_set_extmark(bufnr, ns, i - 1, -1, {
 							virt_text = {
 								{ "  " .. icon .. " " .. text, hl_group },
 							},
@@ -332,8 +261,7 @@ function M.sync_code_links()
 		end
 	end
 
-	-- 新版 json_store 已将所有 code_links 设为全局，不再需要跨项目查找
-	-- 直接使用 store 模块提供的函数
+	-- 同步当前文件的链接
 	local all_code_links = store.get_all_code_links()
 
 	for id, info in pairs(all_code_links) do
@@ -472,7 +400,7 @@ function M.cleanup_all_links()
 	local todo_cleaned = 0
 	local code_cleaned = 0
 
-	-- 清理 todo_links 命名空间（新版使用全局存储）
+	-- 清理 todo_links 命名空间
 	local all_todo = store.get_all_todo_links()
 	if all_todo then
 		for id, info in pairs(all_todo) do
@@ -498,7 +426,7 @@ function M.cleanup_all_links()
 		end
 	end
 
-	-- 清理 code_links 命名空间（新版使用全局存储）
+	-- 清理 code_links 命名空间
 	local all_code = store.get_all_code_links()
 	if all_code then
 		for id, info in pairs(all_code) do
@@ -533,7 +461,6 @@ end
 -- 搜索功能
 ---------------------------------------------------------------------
 function M.search_links_by_file(filepath)
-	-- 新版使用全局存储，不需要跨项目搜索
 	local todo_results = store.find_todo_links_by_file(filepath)
 	local code_results = store.find_code_links_by_file(filepath)
 
@@ -544,7 +471,6 @@ function M.search_links_by_file(filepath)
 end
 
 function M.search_links_by_pattern(pattern)
-	-- 新版使用全局存储
 	local todo_all = store.get_all_todo_links()
 	local code_all = store.get_all_code_links()
 	local results = {}

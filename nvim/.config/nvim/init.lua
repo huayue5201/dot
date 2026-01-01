@@ -47,6 +47,11 @@ vim.defer_fn(function()
 			-- 重要：将 todo 相关的命名空间设为全局
 			global_namespaces = { "todo_links", "code_links" },
 
+			-- 新增配置项（如果需要）
+			ignore_paths = {
+				"*.todo.md$",
+				"todo%.txt$",
+			},
 			-- 其他配置...
 			auto_save = true,
 			save_delay_ms = 1500,
