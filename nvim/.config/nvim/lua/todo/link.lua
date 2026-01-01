@@ -224,6 +224,31 @@ end
 ---------------------------------------------------------------------
 local ns = vim.api.nvim_create_namespace("todo_status")
 
+-- 简单的 todo 文件缓存（当前 Neovim 会话内）
+local todo_file_cache = {}
+
+local function read_todo_file(path)
+	local stat = vim.uv and vim.uv.fs_stat(path) or vim.loop and vim.loop.fs_stat(path)
+	local mtime = stat and stat.mtime and (stat.mtime.sec or stat.mtime) or nil
+
+	local cache = todo_file_cache[path]
+	if cache and cache.mtime == mtime and cache.lines then
+		return cache.lines
+	end
+
+	local ok, lines = pcall(vim.fn.readfile, path)
+	if not ok then
+		return nil
+	end
+
+	todo_file_cache[path] = {
+		lines = lines,
+		mtime = mtime,
+	}
+
+	return lines
+end
+
 function M.render_code_status(bufnr)
 	if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
 		return
@@ -241,30 +266,46 @@ function M.render_code_status(bufnr)
 		return
 	end
 
+	-- 预扫描：收集所有 id → { line_idx }
+	local id_to_lines = {}
 	for i, line in ipairs(lines) do
-		if not vim.api.nvim_buf_is_valid(bufnr) then
-			return
-		end
-
 		local id = line:match("TODO:ref:(%w+)")
 		if id then
-			-- 直接从全局存储获取（新版 json_store 已将 todo_links 设为全局）
-			local todo = store.get_todo_link(id)
+			id_to_lines[id] = id_to_lines[id] or {}
+			table.insert(id_to_lines[id], i)
+		end
+	end
 
-			if todo then
-				local file_ok, todo_lines = pcall(vim.fn.readfile, todo.path)
-				if file_ok then
-					local todo_line = todo_lines[todo.line]
-					local status = todo_line and todo_line:match("%[(.)%]")
+	if vim.tbl_isempty(id_to_lines) then
+		return
+	end
 
-					local icon = (status == "x" or status == "X") and "✓" or "☐" -- ☑
-					local text = (status == "x" or status == "X") and "已完成" or "未完成"
+	-- 一次性获取所有 todo 链接
+	local store = require("todo.store")
 
-					-- 根据状态选择颜色
-					local hl_group = (status == "x" or status == "X") and "String" or "Error"
+	-- 为每个 id 找到对应 todo 行状态
+	local todo_line_cache = {}
 
+	for id, code_lines in pairs(id_to_lines) do
+		local todo = store.get_todo_link(id)
+		if todo and todo.path and todo.line then
+			local todo_lines = todo_line_cache[todo.path]
+			if not todo_lines then
+				todo_lines = read_todo_file(todo.path)
+				todo_line_cache[todo.path] = todo_lines
+			end
+
+			if todo_lines then
+				local todo_line = todo_lines[todo.line]
+				local status = todo_line and todo_line:match("%[(.)%]")
+
+				local icon = (status == "x" or status == "X") and "✓" or "☐"
+				local text = (status == "x" or status == "X") and "已完成" or "未完成"
+				local hl_group = (status == "x" or status == "X") and "String" or "Error"
+
+				for _, code_lnum in ipairs(code_lines) do
 					if vim.api.nvim_buf_is_valid(bufnr) then
-						vim.api.nvim_buf_set_extmark(bufnr, ns, i - 1, -1, {
+						vim.api.nvim_buf_set_extmark(bufnr, ns, code_lnum - 1, -1, {
 							virt_text = {
 								{ "  " .. icon .. " " .. text, hl_group },
 							},

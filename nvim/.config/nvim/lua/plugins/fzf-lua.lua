@@ -21,9 +21,10 @@ return {
 		vim.keymap.set("n", "<leader>fb", "<cmd>FzfLua buffers<cr>", { desc = "fzf: buffer" })
 		vim.keymap.set("n", "<leader>fB", "<cmd>FzfLua tabs<cr>", { desc = "fzf: tab" })
 		vim.keymap.set("n", "<leader>fo", "<cmd>FzfLua oldfiles<cr>", { desc = "fzf: oldfiles" })
-		vim.keymap.set("n", "<leader>fr", function()
+		vim.keymap.set("n", "<leader>fR", function()
 			require("fzf-lua").grep({ resume = true })
 		end, { desc = "fzf: grep" })
+		vim.keymap.set("n", "<leader>fr", "<cmd>FzfLua grep_curbuf<cr>", { desc = "fzf: grep buffer" })
 		vim.keymap.set("n", "<leader>ft", "<cmd>FzfLua btags<cr>", { desc = "fzf: btags" })
 		vim.keymap.set("n", "<leader>fs", "<cmd>FzfLua lsp_document_symbols<cr>", { desc = "fzf: symbols" })
 		vim.keymap.set(
