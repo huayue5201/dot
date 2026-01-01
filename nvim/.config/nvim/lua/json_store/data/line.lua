@@ -14,12 +14,11 @@ function M.set_line_data(filepath, line, data)
 	end
 
 	local _, project_obj = project.get_current_project()
-	local store_obj, file_id = file.get_file_store(project_obj, filepath)
+	local store_obj = file.get_file_store(project_obj, filepath)
 	local file_data = store.load(store_obj)
 
 	file_data.lines = file_data.lines or {}
 
-	-- 生成 anchor
 	local anchor_obj = anchor.create_anchor(bufnr, line)
 
 	file_data.lines[tostring(line)] = {

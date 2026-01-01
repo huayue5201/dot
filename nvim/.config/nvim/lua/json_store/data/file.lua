@@ -27,7 +27,6 @@ function M.get_file_store(project_obj, filepath)
 			file_id = file_id,
 		}
 
-		-- 写入 file_mappings
 		local proj_store = project_obj.stores.project
 		if not proj_store then
 			proj_store = {
