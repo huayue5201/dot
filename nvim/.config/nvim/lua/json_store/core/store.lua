@@ -1,12 +1,10 @@
 -- json_store/core/store.lua
 local M = {}
 
--- 读取 JSON
 function M.load(store)
 	if store.data ~= nil then
-		local mtime = vim.loop.fs_stat(store.path)
-		mtime = mtime and mtime.mtime and mtime.mtime.sec or nil
-
+		local stat = vim.loop.fs_stat(store.path)
+		local mtime = stat and stat.mtime and stat.mtime.sec or nil
 		if mtime and store.mtime and mtime == store.mtime then
 			return store.data
 		end
@@ -27,12 +25,12 @@ function M.load(store)
 	local json = table.concat(content, "\n")
 	local ok2, decoded = pcall(vim.json.decode, json)
 	store.data = ok2 and decoded or {}
-	store.mtime = vim.loop.fs_stat(store.path).mtime.sec
+	local stat = vim.loop.fs_stat(store.path)
+	store.mtime = stat and stat.mtime and stat.mtime.sec or nil
 
 	return store.data
 end
 
--- 写入 JSON
 function M.write(store)
 	if not store.data then
 		return
@@ -45,10 +43,10 @@ function M.write(store)
 
 	pcall(vim.fn.writefile, vim.split(json, "\n"), store.path)
 	store.dirty = false
-	store.mtime = vim.loop.fs_stat(store.path).mtime.sec
+	local stat = vim.loop.fs_stat(store.path)
+	store.mtime = stat and stat.mtime and stat.mtime.sec or nil
 end
 
--- 标记脏并自动保存
 function M.mark_dirty(store)
 	store.dirty = true
 

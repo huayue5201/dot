@@ -2,7 +2,7 @@
 local M = {}
 local keymaps = require("lsp-config.lsp_keys")
 local configs = require("lsp-config.setings")
-local json_store = require("user.json_store")
+local json_store = require("json_store")
 
 -- 插入/选择模式禁用/启用诊断
 local function auto_diagnostic()

@@ -71,6 +71,7 @@ return {
 				},
 			})
 			vim.keymap.set("n", "<leader>ef", "<Cmd>Neotree toggle<CR>")
+			vim.keymap.set("n", "<leader>ee", "<Cmd>Neotree filesystem reveal<CR>")
 			vim.keymap.set("n", "<leader>eb", "<Cmd>Neotree buffers toggle<CR>")
 			vim.keymap.set("n", "<leader>eg", "<Cmd>Neotree git_status toggle<CR>")
 		end,

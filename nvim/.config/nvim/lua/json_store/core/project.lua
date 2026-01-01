@@ -18,7 +18,7 @@ local function file_exists(path)
 	return vim.fn.filereadable(path) == 1 or vim.fn.isdirectory(path) == 1
 end
 
--- 查找项目根目录
+-- 查找项目根目录（简单版）
 function M.find_project_root(filepath)
 	local cfg = config.get()
 	filepath = filepath or vim.api.nvim_buf_get_name(0)
@@ -31,7 +31,7 @@ function M.find_project_root(filepath)
 	local prev = nil
 
 	while dir and dir ~= prev do
-		for _, marker in ipairs(cfg.root_markers) do
+		for _, marker in ipairs(cfg.root_markers or { ".git" }) do
 			if file_exists(join(dir, marker)) then
 				return dir
 			end
@@ -43,7 +43,6 @@ function M.find_project_root(filepath)
 	return vim.loop.cwd()
 end
 
--- 生成 project_key
 local function get_project_key(root)
 	local name = vim.fn.fnamemodify(root, ":t")
 	local hash = sha256(root):sub(1, 8)
@@ -142,17 +141,14 @@ function M.flush_project(project_obj)
 
 	local store_mod = require("json_store.core.store")
 
-	-- project.json
 	if project_obj.stores.project then
 		store_mod.write(project_obj.stores.project)
 	end
 
-	-- namespaces
 	for _, ns_store in pairs(project_obj.stores.namespaces or {}) do
 		store_mod.write(ns_store)
 	end
 
-	-- files
 	for _, file_store in pairs(project_obj.stores.files or {}) do
 		store_mod.write(file_store)
 	end
@@ -160,19 +156,14 @@ end
 
 -- 写入所有项目（包括 global）
 function M.flush_all_projects()
-	local store_mod = require("json_store.core.store")
-
-	-- global
 	local _, global_project = M.ensure_project("global", true)
 	M.flush_project(global_project)
 
-	-- normal projects
 	for _, proj in pairs(_projects) do
 		M.flush_project(proj)
 	end
 end
 
--- 可选：暴露内部表（如果你想调试方便）
 M._projects = _projects
 M._global_project = _global_project
 

@@ -1,6 +1,6 @@
 -- lua/todo/manager.lua
 local store = require("todo.store")
-local json_store = require("user.json_store")
+local json_store = require("json_store")
 local M = {}
 
 ---------------------------------------------------------------------
