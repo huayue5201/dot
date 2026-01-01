@@ -474,27 +474,6 @@ vim.api.nvim_create_autocmd("BufWritePost", {
 })
 
 ---------------------------------------------------------
--- 11. 文件删除时自动清理 json_store 数据
----------------------------------------------------------
-vim.api.nvim_create_autocmd("BufDelete", {
-	callback = function(args)
-		local file = vim.api.nvim_buf_get_name(args.buf)
-		if file ~= "" then
-			json_store.cleanup_file_refs(file)
-		end
-	end,
-})
-
-vim.api.nvim_create_autocmd("FileChangedShellPost", {
-	callback = function(args)
-		local file = args.file
-		if file and file ~= "" then
-			json_store.cleanup_file_refs(file)
-		end
-	end,
-})
-
----------------------------------------------------------
 -- 12. 自动刷新事件（UI）
 ---------------------------------------------------------
 vim.api.nvim_create_autocmd("MarkSet", {
