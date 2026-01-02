@@ -11,7 +11,7 @@ function M.sync_parent_child_state(tasks, bufnr)
 		if #task.children > 0 then
 			-- 确保有统计信息
 			if not task.stats then
-				local stats_module = require("todo.core.stats")
+				local stats_module = require("todo2.core.stats")
 				stats_module.calculate_all_stats({ task })
 			end
 
@@ -45,9 +45,9 @@ end
 -- 刷新函数（集成解析、统计、同步）
 ---------------------------------------------------------------------
 function M.refresh(bufnr, core_module)
-	local parser = require("todo.core.parser")
-	local stats = require("todo.core.stats")
-	local sync = require("todo.core.sync")
+	local parser = require("todo2.core.parser")
+	local stats = require("todo2.core.stats")
+	local sync = require("todo2.core.sync")
 
 	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 	local tasks = parser.parse_tasks(lines)

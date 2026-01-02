@@ -1,7 +1,15 @@
 -- lua/todo/link/renderer.lua
 local M = {}
 
-local store = require("todo.store")
+-- ✅ 新写法（lazy require）
+local store
+
+local function get_store()
+	if not store then
+		store = require("todo2.store")
+	end
+	return store
+end
 
 ---------------------------------------------------------------------
 -- 自动同步：代码文件状态渲染
@@ -33,7 +41,7 @@ function M.render_code_status(bufnr)
 		local id = line:match("TODO:ref:(%w+)")
 		if id then
 			-- 使用 store 模块获取 TODO 链接
-			local todo = store.get_todo_link(id)
+			local todo = get_store().get_todo_link(id)
 
 			if todo then
 				local file_ok, todo_lines = pcall(vim.fn.readfile, todo.path)

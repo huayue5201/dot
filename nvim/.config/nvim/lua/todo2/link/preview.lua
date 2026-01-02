@@ -1,7 +1,15 @@
 -- lua/todo/link/preview.lua
 local M = {}
 
-local store = require("todo.store")
+-- ✅ 新写法（lazy require）
+local store
+
+local function get_store()
+	if not store then
+		store = require("todo2.store")
+	end
+	return store
+end
 
 function M.preview_todo()
 	local line = vim.fn.getline(".")
@@ -11,7 +19,7 @@ function M.preview_todo()
 		return
 	end
 
-	local link = store.get_todo_link(id)
+	local link = get_store().get_todo_link(id)
 	if not link then
 		return
 	end
@@ -45,7 +53,7 @@ function M.preview_code()
 		return
 	end
 
-	local link = store.get_code_link(id)
+	local link = get_store().get_code_link(id)
 	if not link then
 		return
 	end

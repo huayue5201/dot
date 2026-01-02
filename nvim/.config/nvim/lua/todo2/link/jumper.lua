@@ -1,16 +1,45 @@
 -- lua/todo/link/jumper.lua
 local M = {}
 
-local store = require("todo.store")
-local utils = require("todo.link.utils")
-local ui = require("todo.ui")
+-- ✅ 新写法（lazy require）
+local store
+local utils
+local ui
+local link_module
+
+local function get_store()
+	if not store then
+		store = require("todo2.store")
+	end
+	return store
+end
+
+local function get_utils()
+	if not utils then
+		utils = require("todo2.link.utils")
+	end
+	return utils
+end
+
+local function get_ui()
+	if not ui then
+		ui = require("todo2.ui")
+	end
+	return ui
+end
+
+local function get_link_module()
+	if not link_module then
+		link_module = require("todo2.link")
+	end
+	return link_module
+end
 
 ---------------------------------------------------------------------
 -- 获取配置
 ---------------------------------------------------------------------
 local function get_config()
-	local link = require("todo.link")
-	return link.get_jump_config()
+	return get_link_module().get_jump_config()
 end
 
 ---------------------------------------------------------------------
@@ -51,7 +80,7 @@ function M.jump_to_todo()
 	end
 
 	-- 使用 store.get_todo_link 查找
-	local link = store.get_todo_link(id)
+	local link = get_store().get_todo_link(id)
 
 	if not link then
 		print("未找到 TODO 链接记录")
@@ -88,7 +117,7 @@ function M.jump_to_todo()
 	end
 
 	-- 2. 没有任何分屏窗口，使用配置的默认模式打开
-	ui.open_todo_file(todo_path, default_mode, todo_line, { enter_insert = false })
+	get_ui().open_todo_file(todo_path, default_mode, todo_line, { enter_insert = false })
 end
 
 ---------------------------------------------------------------------
@@ -104,7 +133,7 @@ function M.jump_to_code()
 	end
 
 	-- 获取链接信息
-	local link = store.get_code_link(id)
+	local link = get_store().get_code_link(id)
 
 	if not link then
 		print("未找到代码链接记录: " .. id)
@@ -119,7 +148,7 @@ function M.jump_to_code()
 	local current_win = vim.api.nvim_get_current_win()
 
 	-- 判断当前是否在 TODO 浮窗中
-	local is_todo_floating = utils.is_todo_floating_window(current_win)
+	local is_todo_floating = get_utils().is_todo_floating_window(current_win)
 
 	-- 获取配置
 	local config = get_config()

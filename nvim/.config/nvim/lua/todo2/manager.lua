@@ -1,6 +1,14 @@
 -- lua/todo/manager.lua
-local store = require("todo.store")
 local M = {}
+
+-- 懒加载 store 模块
+local store
+local function get_store()
+	if not store then
+		store = require("todo2.store")
+	end
+	return store
+end
 
 ---------------------------------------------------------------------
 -- 扫描当前缓冲区中的链接
@@ -14,7 +22,7 @@ local function scan_buffer_links()
 		-- 代码引用 TODO:ref:id
 		local id = line:match("TODO:ref:(%w+)")
 		if id then
-			local todo = store.get_todo_link(id)
+			local todo = get_store().get_todo_link(id)
 			table.insert(links, {
 				filename = vim.api.nvim_buf_get_name(bufnr),
 				lnum = lnum,
@@ -25,7 +33,7 @@ local function scan_buffer_links()
 		-- TODO 引用 {#id}
 		local id2 = line:match("{#(%w+)}")
 		if id2 then
-			local code = store.get_code_link(id2)
+			local code = get_store().get_code_link(id2)
 			table.insert(links, {
 				filename = vim.api.nvim_buf_get_name(bufnr),
 				lnum = lnum,
@@ -45,7 +53,7 @@ function M.show_project_links_qf()
 	local project_root = vim.fn.getcwd()
 
 	-- 获取所有代码链接
-	local all_code = store.get_all_code_links() or {}
+	local all_code = get_store().get_all_code_links() or {}
 
 	local qf = {}
 
@@ -55,7 +63,7 @@ function M.show_project_links_qf()
 
 		if is_in_project then
 			-- 获取对应的 TODO 链接信息
-			local todo_link = store.get_todo_link(id)
+			local todo_link = get_store().get_todo_link(id)
 
 			-- 构建显示文本
 			local display_text = string.format("[%s] ", id)
@@ -145,7 +153,7 @@ function M.fix_orphan_links_in_buffer()
 		local line = lines[i]
 		local id = line:match("TODO:ref:(%w+)")
 		if id then
-			local todo = store.get_todo_link(id)
+			local todo = get_store().get_todo_link(id)
 			if not todo then
 				-- 询问是否删除
 				local confirm =
@@ -159,7 +167,7 @@ function M.fix_orphan_links_in_buffer()
 
 		local id2 = line:match("{#(%w+)}")
 		if id2 then
-			local code = store.get_code_link(id2)
+			local code = get_store().get_code_link(id2)
 			if not code then
 				local confirm =
 					vim.fn.input(string.format("删除孤立的 TODO 标记 '%s'? (y/n): ", line:sub(1, 40)))
@@ -186,8 +194,8 @@ function M.show_stats()
 	local project_root = vim.fn.getcwd()
 
 	-- 获取所有代码链接
-	local all_code = store.get_all_code_links() or {}
-	local all_todo = store.get_all_todo_links() or {}
+	local all_code = get_store().get_all_code_links() or {}
+	local all_todo = get_store().get_all_todo_links() or {}
 
 	-- 统计当前项目的代码标记
 	local project_code_count = 0
@@ -271,6 +279,15 @@ function M.show_stats()
 			vim.api.nvim_win_close(win, true)
 		end
 	end, { buffer = buf })
+end
+
+---------------------------------------------------------------------
+-- 工具函数：重新加载 store 模块
+---------------------------------------------------------------------
+function M.reload_store()
+	store = nil
+	package.loaded["todo.store"] = nil
+	print("🔄 manager: store 模块已重新加载")
 end
 
 return M

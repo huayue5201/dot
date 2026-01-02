@@ -1,11 +1,19 @@
 -- lua/todo/link/searcher.lua
 local M = {}
 
-local store = require("todo.store")
+-- ✅ 新写法（lazy require）
+local store
+
+local function get_store()
+	if not store then
+		store = require("todo2.store")
+	end
+	return store
+end
 
 function M.search_links_by_file(filepath)
-	local todo_results = store.find_todo_links_by_file(filepath)
-	local code_results = store.find_code_links_by_file(filepath)
+	local todo_results = get_store().find_todo_links_by_file(filepath)
+	local code_results = get_store().find_code_links_by_file(filepath)
 
 	return {
 		todo_links = todo_results,
@@ -14,8 +22,8 @@ function M.search_links_by_file(filepath)
 end
 
 function M.search_links_by_pattern(pattern)
-	local todo_all = store.get_all_todo_links()
-	local code_all = store.get_all_code_links()
+	local todo_all = get_store().get_all_todo_links()
+	local code_all = get_store().get_all_code_links()
 	local results = {}
 
 	-- 搜索TODO链接

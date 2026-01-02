@@ -41,7 +41,7 @@ end
 
 function M.summarize(lines)
 	-- 需要导入 parser 来解析任务
-	local parser = require("todo.core.parser")
+	local parser = require("todo2.core.parser")
 	local tasks = parser.parse_tasks(lines)
 
 	local count = {

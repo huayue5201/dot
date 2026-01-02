@@ -52,18 +52,6 @@ end
 -- 检查是否在 TODO 浮动窗口中
 ---------------------------------------------------------------------
 function M.is_todo_floating_window(win_id)
-	local win_config = vim.api.nvim_win_get_config(win_id)
-	local is_float = win_config.relative ~= ""
-
-	if is_float then
-		local bufname = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win_id))
-		return bufname:match("%.todo%.md$") or bufname:match("todo")
-	end
-
-	return false
-end
-
-function M.is_todo_floating_window(win_id)
 	win_id = win_id or vim.api.nvim_get_current_win()
 
 	if not vim.api.nvim_win_is_valid(win_id) then
@@ -83,4 +71,5 @@ function M.is_todo_floating_window(win_id)
 
 	return bufname:match("%.todo%.md$") or bufname:match("todo")
 end
+
 return M

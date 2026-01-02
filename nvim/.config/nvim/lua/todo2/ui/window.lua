@@ -1,15 +1,15 @@
 -- lua/todo/ui/window.lua
 local M = {}
 
-local keymaps = require("todo.ui.keymaps")
+local keymaps = require("todo2.ui.keymaps")
 
 ---------------------------------------------------------------------
 -- 内部函数：创建浮动窗口
 ---------------------------------------------------------------------
 local function create_floating_window(bufnr, path, line_number, ui_module)
-	local core = require("todo.core")
-	local conceal = require("todo.ui.conceal")
-	local statistics = require("todo.ui.statistics")
+	local core = require("todo2.core")
+	local conceal = require("todo2.ui.conceal")
+	local statistics = require("todo2.ui.statistics")
 
 	local ok, lines = pcall(vim.fn.readfile, path)
 	if not ok then
@@ -174,7 +174,7 @@ function M.show_split(path, line_number, enter_insert, split_direction, ui_modul
 	end
 
 	-- 应用conceal设置
-	local conceal = require("todo.ui.conceal")
+	local conceal = require("todo2.ui.conceal")
 	conceal.apply_conceal(bufnr)
 
 	-- 刷新渲染
@@ -246,7 +246,7 @@ function M.show_edit(path, line_number, enter_insert, ui_module)
 	end
 
 	-- 应用conceal设置
-	local conceal = require("todo.ui.conceal")
+	local conceal = require("todo2.ui.conceal")
 	conceal.apply_conceal(bufnr)
 
 	-- 刷新渲染
