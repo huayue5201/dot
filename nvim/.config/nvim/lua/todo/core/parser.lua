@@ -5,8 +5,43 @@ local M = {}
 local task_cache = {}
 local CACHE_TTL = 5000 -- 5 秒缓存
 
+-- 缓存 sha256 函数的可用性
+local sha256_available = nil
+
+local function compute_cache_key(bufnr, lines)
+	if #lines == 0 then
+		return bufnr .. ":empty"
+	end
+
+	local text = table.concat(lines, "\n")
+	local length = #text
+
+	-- 只检查一次 sha256 是否可用
+	if sha256_available == nil then
+		sha256_available = pcall(vim.fn.sha256, "test")
+	end
+
+	-- 对于小文件，使用简单方法；对于大文件，使用哈希
+	if length < 1000 then
+		-- 小文件：直接使用文本（性能更好）
+		return bufnr .. ":" .. length .. ":" .. text
+	else
+		-- 大文件：使用哈希（内存更友好）
+		if sha256_available then
+			local hash = vim.fn.sha256(text)
+			return bufnr .. ":" .. hash
+		else
+			-- 回退：使用文本的前中后部分
+			local prefix = text:sub(1, 50)
+			local middle = text:sub(math.floor(length / 2) - 25, math.floor(length / 2) + 25)
+			local suffix = text:sub(length - 49, length)
+			return string.format("%d:%d:%s%s%s", bufnr, length, prefix, middle, suffix)
+		end
+	end
+end
+
 local function get_cached_tasks(bufnr, lines)
-	local cache_key = bufnr .. ":" .. table.concat(lines, "")
+	local cache_key = compute_cache_key(bufnr, lines)
 	local cached = task_cache[cache_key]
 
 	if cached and cached.timestamp + CACHE_TTL > os.time() then
