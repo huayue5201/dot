@@ -5,9 +5,9 @@ local M = {}
 -- 键位设置函数
 ---------------------------------------------------------------------
 function M.setup_keymaps(bufnr, win, ui_module)
-	local core = require("todo.core")
-	local constants = require("todo.ui.constants")
-	local operations = require("todo.ui.operations")
+	local core = require("todo2.core")
+	local constants = require("todo2.ui.constants")
+	local operations = require("todo2.ui.operations")
 
 	-- 安全的刷新函数
 	local function safe_refresh()
@@ -23,7 +23,7 @@ function M.setup_keymaps(bufnr, win, ui_module)
 			end
 		end,
 		refresh = function()
-			local conceal = require("todo.ui.conceal")
+			local conceal = require("todo2.ui.conceal")
 			conceal.apply_conceal(bufnr)
 			safe_refresh()
 			vim.cmd("redraw")

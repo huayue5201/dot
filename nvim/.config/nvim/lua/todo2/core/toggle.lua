@@ -40,7 +40,7 @@ local function toggle_task_and_children(task, bufnr, new_status)
 end
 
 function M.toggle_line(bufnr, lnum)
-	local parser = require("todo.core.parser")
+	local parser = require("todo2.core.parser")
 	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 	local tasks = parser.parse_tasks(lines)
 

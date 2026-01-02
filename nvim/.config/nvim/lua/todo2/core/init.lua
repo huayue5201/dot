@@ -12,7 +12,7 @@ local modules = {
 -- 动态获取模块
 local function get_module(name)
 	if not modules[name] then
-		modules[name] = require("todo.core." .. name)
+		modules[name] = require("todo2.core." .. name)
 	end
 	return modules[name]
 end

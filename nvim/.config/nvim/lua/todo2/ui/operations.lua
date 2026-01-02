@@ -1,7 +1,7 @@
 -- lua/todo/ui/operations.lua
 local M = {}
 
-local core = require("todo.core")
+local core = require("todo2.core")
 
 ---------------------------------------------------------------------
 -- 批量切换任务状态（统一处理可视模式）

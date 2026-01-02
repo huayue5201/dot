@@ -15,13 +15,13 @@ local modules = {
 -- 动态获取模块
 local function get_module(name)
 	if not modules[name] then
-		modules[name] = require("todo.ui." .. name)
+		modules[name] = require("todo2.ui." .. name)
 	end
 	return modules[name]
 end
 
 -- 导入 render 模块（外部依赖）
-local render = require("todo.render")
+local render = require("todo2.render")
 
 -- 内部状态
 local window_switcher = nil
@@ -30,7 +30,7 @@ local window_switcher = nil
 -- 刷新渲染
 ---------------------------------------------------------------------
 function M.refresh(bufnr)
-	local core = require("todo.core")
+	local core = require("todo2.core")
 	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 
 	local tasks = core.parse_tasks(lines)
@@ -173,7 +173,7 @@ function M.reload_modules()
 	window_switcher = nil
 
 	-- 重新加载当前模块
-	return require("todo.ui")
+	return require("todo2.ui")
 end
 
 return M
