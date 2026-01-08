@@ -24,9 +24,9 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
 -- vim.lsp.enable("lua_ls")
 -- 立即加载基础配置
-require("lsp-config").setup() --lsp
 require("core.setings") -- 基础 Neovim 选项
 require("core.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
+require("lsp-config").setup() --lsp
 require("core.statusline").active() -- 状态栏
 
 -- 延迟执行不必要的设置，提升启动速度
@@ -36,7 +36,6 @@ vim.defer_fn(function()
 
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
-		require("todo2").setup()
 		require("user.dotenv").load() -- token加载模块
 
 		-- JSON Store 配置

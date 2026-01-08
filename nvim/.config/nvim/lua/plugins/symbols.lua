@@ -30,6 +30,6 @@ return {
 				},
 			},
 		})
-		vim.keymap.set("n", ",s", "<cmd>SymbolsToggle<CR>")
+		vim.keymap.set("n", "<leader>sf", "<cmd>SymbolsToggle<CR>")
 	end,
 }
