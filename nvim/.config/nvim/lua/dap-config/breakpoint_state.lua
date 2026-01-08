@@ -1,12 +1,47 @@
+--- File: /Users/lijia/nvim-store3/lua/dap-config/breakpoint_state.lua ---
 -- lua/dap-config/breakpoint_state.lua
-local breakpoints = require("dap.breakpoints")
-local store = require("json_store")
+-- DAP 断点状态管理（精简版，使用新架构）
 
+local breakpoints = require("dap.breakpoints")
 local M = {}
 local NAMESPACE = "dap_breakpoints"
 
--- 同步当前 buffer 的断点状态到 json_store
+---------------------------------------------------------------------
+-- 获取存储实例
+---------------------------------------------------------------------
+local function get_store()
+	-- 只需基础存储功能
+	return require("nvim-store3").project()
+end
+
+---------------------------------------------------------------------
+-- 安全的断点数据提取
+---------------------------------------------------------------------
+local function safe_breakpoint_data(bp)
+	return {
+		line = type(bp.line) == "number" and bp.line or nil,
+		condition = type(bp.condition) == "string" and bp.condition or nil,
+		log_message = type(bp.log_message) == "string" and bp.log_message or nil,
+		hit_condition = type(bp.hit_condition) == "string" and bp.hit_condition or nil,
+	}
+end
+
+---------------------------------------------------------------------
+-- 路径编码辅助函数
+---------------------------------------------------------------------
+local function encode_path(path)
+	return require("nvim-store3.util.path_key").encode(path)
+end
+
+local function decode_path(encoded)
+	return require("nvim-store3.util.path_key").decode(encoded)
+end
+
+---------------------------------------------------------------------
+-- 同步当前 buffer 的断点状态
+---------------------------------------------------------------------
 function M.sync_breakpoints()
+	local store = get_store()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local path = vim.api.nvim_buf_get_name(bufnr)
 	if not path or path == "" then
@@ -14,133 +49,118 @@ function M.sync_breakpoints()
 	end
 
 	local by_buf = breakpoints.get()
-	local buf_bps = by_buf[bufnr]
+	local buf_bps = by_buf and by_buf[bufnr]
 
 	if buf_bps and #buf_bps > 0 then
 		local enriched = {}
 		local line_count = vim.api.nvim_buf_line_count(bufnr)
 
 		for _, bp in ipairs(buf_bps) do
-			if bp.line <= line_count then
-				local condition = bp.condition
-				local log_message = bp.log_message or bp.logMessage
-				local hit_condition = bp.hit_condition or bp.hitCondition
-
-				local bp_type = "normal"
-				if condition and condition ~= "" then
-					bp_type = "condition"
-				elseif log_message and log_message ~= "" then
-					bp_type = "log"
-				elseif hit_condition and hit_condition ~= "" then
-					bp_type = "hit"
+			if bp.line and type(bp.line) == "number" and bp.line <= line_count then
+				local safe_bp = safe_breakpoint_data(bp)
+				if safe_bp.line then
+					table.insert(enriched, safe_bp)
 				end
-
-				table.insert(enriched, {
-					line = bp.line,
-					condition = condition,
-					log_message = log_message,
-					hit_condition = hit_condition,
-					type = bp_type,
-				})
-			else
+			elseif bp.line then
 				breakpoints.clear(bufnr, bp.line)
 			end
 		end
 
 		if #enriched > 0 then
-			store.set(NAMESPACE, path, enriched)
+			store:set(NAMESPACE .. "." .. encode_path(path), enriched)
 		else
-			store.delete(NAMESPACE, path)
+			store:delete(NAMESPACE .. "." .. encode_path(path))
 		end
 	else
-		store.delete(NAMESPACE, path)
+		store:delete(NAMESPACE .. "." .. encode_path(path))
 	end
 end
 
+---------------------------------------------------------------------
 -- 恢复断点
+---------------------------------------------------------------------
 function M.load_breakpoints()
-	local all_bps = store.get_all(NAMESPACE)
+	local store = get_store()
+	local all_breakpoints = store:get(NAMESPACE) or {}
 
-	if not all_bps then
-		return
-	end
+	for encoded_path, buf_bps in pairs(all_breakpoints) do
+		if type(buf_bps) == "table" then
+			local path = decode_path(encoded_path)
+			local bufnr = vim.fn.bufnr(path, true)
 
-	for path, buf_bps in pairs(all_bps) do
-		local bufnr = vim.fn.bufnr(path, true)
-		if bufnr ~= -1 then
-			local line_count = vim.api.nvim_buf_line_count(bufnr)
-			local valid_bps = {}
+			if bufnr ~= -1 then
+				for _, bp in ipairs(buf_bps) do
+					if bp.line and type(bp.line) == "number" then
+						local bp_config = {}
+						if bp.condition then
+							bp_config.condition = bp.condition
+						end
+						if bp.log_message then
+							bp_config.log_message = bp.log_message
+						end
+						if bp.hit_condition then
+							bp_config.hit_condition = bp.hit_condition
+						end
 
-			for _, bp in ipairs(buf_bps) do
-				if bp.line <= line_count then
-					breakpoints.set({
-						condition = bp.condition,
-						log_message = bp.log_message,
-						hit_condition = bp.hit_condition,
-					}, bufnr, bp.line)
-
-					table.insert(valid_bps, bp)
+						breakpoints.set(bp_config, bufnr, bp.line)
+					end
 				end
-			end
-
-			if #valid_bps > 0 then
-				store.set(NAMESPACE, path, valid_bps)
-			else
-				store.delete(NAMESPACE, path)
 			end
 		end
 	end
 end
 
+---------------------------------------------------------------------
 -- 清除当前 buffer 的断点
+---------------------------------------------------------------------
 function M.clear_breakpoints()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local path = vim.api.nvim_buf_get_name(bufnr)
+
 	if path and path ~= "" then
 		breakpoints.clear(bufnr)
-		store.delete(NAMESPACE, path)
+		get_store():delete(NAMESPACE .. "." .. encode_path(path))
 	end
 end
 
+---------------------------------------------------------------------
 -- 清除所有断点
+---------------------------------------------------------------------
 function M.clear_all_breakpoints()
 	breakpoints.clear()
-	-- 清空整个命名空间
-	local all = store.get_all(NAMESPACE)
-	if all then
-		for path, _ in pairs(all) do
-			store.delete(NAMESPACE, path)
-		end
-	end
+	get_store():delete(NAMESPACE)
 end
 
--- 自动恢复 + 自动同步
+---------------------------------------------------------------------
+-- 自动恢复和同步
+---------------------------------------------------------------------
 function M.setup_autoload()
 	-- 打开文件时恢复断点
 	vim.api.nvim_create_autocmd("BufReadPost", {
 		callback = function(args)
+			local store = get_store()
 			local path = vim.api.nvim_buf_get_name(args.buf)
+
 			if path and path ~= "" then
-				local buf_bps = store.get(NAMESPACE, path)
+				local encoded_path = encode_path(path)
+				local buf_bps = store:get(NAMESPACE .. "." .. encoded_path)
+
 				if buf_bps then
-					local line_count = vim.api.nvim_buf_line_count(args.buf)
-					local valid_bps = {}
-
 					for _, bp in ipairs(buf_bps) do
-						if bp.line <= line_count then
-							breakpoints.set({
-								condition = bp.condition,
-								log_message = bp.log_message,
-								hit_condition = bp.hit_condition,
-							}, args.buf, bp.line)
-							table.insert(valid_bps, bp)
-						end
-					end
+						if bp.line and type(bp.line) == "number" then
+							local bp_config = {}
+							if bp.condition then
+								bp_config.condition = bp.condition
+							end
+							if bp.log_message then
+								bp_config.log_message = bp.log_message
+							end
+							if bp.hit_condition then
+								bp_config.hit_condition = bp.hit_condition
+							end -- 这里添加闭合括号
 
-					if #valid_bps > 0 then
-						store.set(NAMESPACE, path, valid_bps)
-					else
-						store.delete(NAMESPACE, path)
+							breakpoints.set(bp_config, args.buf, bp.line)
+						end
 					end
 				end
 			end
@@ -148,19 +168,25 @@ function M.setup_autoload()
 		desc = "自动恢复 DAP 断点",
 	})
 
-	-- 编辑或保存时同步断点状态
+	-- 编辑或保存时同步断点
 	vim.api.nvim_create_autocmd({ "TextChanged", "BufWritePost" }, {
-		callback = function()
-			M.sync_breakpoints()
-		end,
+		callback = M.sync_breakpoints,
 		desc = "同步并清理已删除行的断点",
 	})
 
-	-- 提供手动命令 :DapSyncBreakpoints
+	-- 添加用户命令
 	vim.api.nvim_create_user_command("DapSyncBreakpoints", function()
 		M.sync_breakpoints()
-		vim.notify("断点已同步并清理", vim.log.levels.INFO)
-	end, { desc = "手动同步并清理断点" })
+		vim.notify("断点已同步", vim.log.levels.INFO)
+	end, { desc = "手动同步断点" })
+end
+
+---------------------------------------------------------------------
+-- 初始化
+---------------------------------------------------------------------
+function M.setup()
+	M.setup_autoload()
+	return M
 end
 
 return M

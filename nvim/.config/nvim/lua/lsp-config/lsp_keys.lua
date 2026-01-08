@@ -1,275 +1,185 @@
 local M = {}
 
-local json_store = require("json_store")
+local Store = require("nvim-store3").project()
 local lsp_get = require("lsp-config.lsp_utils")
 
--- 重启当前缓冲区的 LSP 客户端
+---------------------------------------------------------
+-- 重启 LSP
+---------------------------------------------------------
 local function restart_lsp()
-	-- 获取所有已启动的 LSP 客户端
 	local clients = vim.lsp.get_clients()
-	-- 遍历所有 LSP 客户端并请求停止
 	for _, client in ipairs(clients) do
-		client:stop(true) -- 使用 `true` 表示强制停止客户端
+		client:stop(true)
 	end
-	-- 延迟启动 LSP
+
 	vim.defer_fn(function()
 		local lsp_name = lsp_get.get_lsp_name()
-		-- 假设 lsp.enable() 已经处理了启动逻辑
 		vim.lsp.enable(lsp_name, true)
 	end, 500)
 end
 
--- 切换lsp状态（项目级存储）
+---------------------------------------------------------
+-- 切换 LSP 状态（项目级）
+---------------------------------------------------------
 local function toggle_lsp()
-	-- 获取当前缓冲区的所有相关 LSP 客户端名称
 	local lsp_names = lsp_get.get_lsp_by_filetype(vim.bo.filetype)
 
-	-- 使用 vim.ui.select 来让用户选择要停用或启动的 LSP 客户端
 	vim.ui.select(lsp_names, {
-		prompt = "🔄 选择 LSP 客户端：", -- 提示信息
+		prompt = "选择 LSP 客户端：",
 		format_item = function(item)
-			-- 获取当前 LSP 的状态（使用项目级存储）
-			-- 不传最后一个参数，默认为 false，表示使用项目级存储
-			local state = json_store.get("lsp", item)
-			-- 美化显示：左对齐 LSP 名称，并展示状态，增加可读性
-			return string.format("%-20s • 状态: %s", item, state or "active") -- 默认为 active
+			local state = Store:get("lsp." .. item)
+			return string.format("%-20s • 状态: %s", item, state or "active")
 		end,
-	}, function(selected_lsp)
-		if not selected_lsp then
-			vim.notify("未选择 LSP 客户端.", vim.log.levels.INFO)
+	}, function(selected)
+		if not selected then
 			return
 		end
 
-		-- 获取当前 LSP 客户端的状态（项目级存储）
-		local current_state = json_store.get("lsp", selected_lsp)
+		local key = "lsp." .. selected
+		local state = Store:get(key)
 
-		if current_state == "inactive" then
-			-- 启动 LSP 客户端
-			vim.lsp.enable(selected_lsp, true)
-			json_store.set("lsp", selected_lsp, "active") -- 保存到项目级存储
-			vim.notify(string.format("LSP '%s' 已启动。", selected_lsp), vim.log.levels.INFO)
+		if state == "inactive" then
+			vim.lsp.enable(selected, true)
+			Store:set(key, "active")
 		else
-			-- 停用 LSP 客户端
-			vim.lsp.enable(selected_lsp, false)
-			json_store.set("lsp", selected_lsp, "inactive") -- 保存到项目级存储
-			vim.notify(string.format("LSP '%s' 已停止。", selected_lsp), vim.log.levels.INFO)
+			vim.lsp.enable(selected, false)
+			Store:set(key, "inactive")
 		end
 
-		-- 刷新状态栏
-		vim.schedule(function()
-			vim.cmd.redrawstatus()
-		end)
+		vim.schedule(vim.cmd.redrawstatus)
 	end)
 end
 
--- 打开所有 buffer 的诊断（Quickfix 风格，适合全局排查）
+---------------------------------------------------------
+-- 诊断 Quickfix / Loclist
+---------------------------------------------------------
 function M.open_all_diagnostics()
-	---@diagnostic disable-next-line: param-type-mismatch
 	vim.diagnostic.setqflist({
 		open = true,
 		title = "Project Diagnostics",
 		severity = { min = vim.diagnostic.severity.WARN },
-		format = function(d)
-			return string.format(
-				"[%s] %s (%s:%d)",
-				vim.diagnostic.severity[d.severity],
-				d.message,
-				d.source or "?",
-				d.lnum + 1
-			)
-		end,
 	})
 end
 
--- 仅当前 buffer 的诊断（Loclist 风格，适合局部修复）
 function M.open_buffer_diagnostics()
-	---@diagnostic disable-next-line: param-type-mismatch
 	vim.diagnostic.setloclist({
 		open = true,
 		title = "Buffer Diagnostics",
 		severity = { min = vim.diagnostic.severity.HINT },
-		format = function(d)
-			return string.format("[%s] %s (%s)", vim.diagnostic.severity[d.severity], d.message, d.source or "?")
-		end,
 	})
 end
 
--- 复制光标处的错误信息（包括错误代码）
+---------------------------------------------------------
+-- 复制错误信息
+---------------------------------------------------------
 local function CopyErrorMessage()
-	local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
-	row = row - 1
+	local row = vim.api.nvim_win_get_cursor(0)[1] - 1
 	local bufnr = vim.api.nvim_get_current_buf()
 	local diag = vim.diagnostic.get(bufnr, { lnum = row })
+
 	if #diag == 0 then
-		vim.notify("No diagnostics found at cursor position.", vim.log.levels.WARN)
+		vim.notify("No diagnostics found.", vim.log.levels.WARN)
 		return
 	end
 
-	-- 按严重级别排序 (ERROR > WARN > INFO > HINT)
 	table.sort(diag, function(a, b)
 		return a.severity < b.severity
 	end)
 
-	-- 准备消息列表
 	local messages = {}
-	local all_message = ""
-	for _, diagnostic in ipairs(diag) do
-		local code = diagnostic.code or "No code"
-		local message = diagnostic.message or "No message"
-		local source = diagnostic.source or "unknown"
-		local severity = diagnostic.severity or vim.diagnostic.severity.ERROR
-		local severity_text = "ERROR"
-		if severity == vim.diagnostic.severity.WARN then
-			severity_text = "WARN"
-		elseif severity == vim.diagnostic.severity.INFO then
-			severity_text = "INFO"
-		elseif severity == vim.diagnostic.severity.HINT then
-			severity_text = "HINT"
-		end
-		local formatted_message = string.format("[%s] %s [%s] - %s", severity_text, message, code, source)
+	local all = ""
 
-		all_message = all_message .. formatted_message .. "\n"
-
-		table.insert(messages, {
-			text = formatted_message,
-			diagnostic = diagnostic,
-		})
+	for _, d in ipairs(diag) do
+		local msg = string.format(
+			"[%s] %s [%s] - %s",
+			vim.diagnostic.severity[d.severity],
+			d.message,
+			d.code or "No code",
+			d.source or "?"
+		)
+		all = all .. msg .. "\n"
+		table.insert(messages, msg)
 	end
 
-	-- 如果只有一条错误信息，直接复制
-	if #diag == 1 then
-		vim.fn.setreg("+", messages[1].text)
-		vim.fn.setreg('"', messages[1].text)
-		vim.notify("Error message copied to clipboard: " .. messages[1].text, vim.log.levels.INFO)
+	if #messages == 1 then
+		vim.fn.setreg("+", messages[1])
+		vim.fn.setreg('"', messages[1])
 		return
 	end
 
-	-- 在最前面添加 "all" 选项
-	local choices = { "Copy all error messages" }
-	for _, msg in ipairs(messages) do
-		table.insert(choices, msg.text)
-	end
+	local choices = { "Copy all" }
+	vim.list_extend(choices, messages)
 
 	vim.ui.select(choices, {
-		prompt = "Select an error message to copy:",
-		format_item = function(item)
-			return item
-		end,
+		prompt = "Select message to copy:",
 	}, function(choice, idx)
 		if not choice then
-			vim.notify("No error message selected.", vim.log.levels.WARN)
 			return
 		end
 
 		if idx == 1 then
-			-- 选择了 "all"，复制全部错误信息（去掉尾部换行）
-			local trimmed = vim.trim(all_message)
+			local trimmed = vim.trim(all)
 			vim.fn.setreg("+", trimmed)
 			vim.fn.setreg('"', trimmed)
-			vim.notify("All error messages copied to clipboard.", vim.log.levels.INFO)
-			return
-		end
-
-		-- 选择了单个错误消息（注意减一偏移）
-		local msg = messages[idx - 1]
-		if msg then
-			vim.fn.setreg("+", msg.text)
-			vim.fn.setreg('"', msg.text)
-			vim.notify("Error message copied to clipboard: " .. msg.text, vim.log.levels.INFO)
 		else
-			vim.notify("Invalid selection.", vim.log.levels.WARN)
+			local msg = messages[idx - 1]
+			vim.fn.setreg("+", msg)
+			vim.fn.setreg('"', msg)
 		end
 	end)
 end
 
--- 定义一个函数来列出当前缓冲区的活动 LSP 客户端
-local function list_active_lsps()
-	local lsps = require("lsp-config.lsp_utils").get_active_lsps(0)
-	if #lsps == 0 then
-		print("No active LSP clients for this buffer.")
-		return
-	end
-	print("Active LSPs:")
-	for _, lsp in ipairs(lsps) do
-		print(string.format("- %s (root: %s)", lsp.name, lsp.root_dir or "nil"))
-	end
-end
-
+---------------------------------------------------------
 -- 按键映射
+---------------------------------------------------------
 local keymaps = {
-	-- { "gd", "<Cmd>lua vim.lsp.buf.definition()<CR>", "跳转到定义" },
-	{
-		"gro",
-		function()
-			require("lsp-config.externalDocs").open_docs()
-		end,
-		"LSP: open external docs",
-	},
 	{
 		"<s-a-d>",
 		function()
-			local diagnostics_enabled = json_store.get("lsp", "diagnostics")
-			if diagnostics_enabled == "off" then
+			local key = "lsp.diagnostics"
+			local state = Store:get(key)
+
+			if state == "off" then
 				vim.diagnostic.enable(true)
-				require("tiny-inline-diagnostic").enable()
-				json_store.set("lsp", "diagnostics", "on")
+				Store:set(key, "on")
 			else
 				vim.diagnostic.enable(false)
-				require("tiny-inline-diagnostic").disable()
-				json_store.set("lsp", "diagnostics", "off")
+				Store:set(key, "off")
 			end
 		end,
 		"LSP: toggle diagnostics",
 	},
 	{
-		"<leader>sd",
-		function()
-			M.open_buffer_diagnostics()
-		end,
-		"LSP: buffer diagnostics",
-	},
-	{
-		"<leader>sD",
-		function()
-			M.open_all_diagnostics()
-		end,
-		"LSP: workspace diagnostics",
-	},
-	{
 		"<s-a-i>",
 		function()
-			local inlay_hint_enable = json_store.get("lsp", "inlay_hints")
-			if inlay_hint_enable == "off" then
+			local key = "lsp.inlay_hints"
+			local state = Store:get(key)
+
+			if state == "off" then
 				vim.lsp.inlay_hint.enable(true)
-				json_store.set("lsp", "inlay_hints", "on")
+				Store:set(key, "on")
 			else
 				vim.lsp.inlay_hint.enable(false)
-				json_store.set("lsp", "inlay_hints", "off")
+				Store:set(key, "off")
 			end
 		end,
 		"LSP: toggle inlay hints",
 	},
-
 	{
-		"<leader>sw",
-		function()
-			list_active_lsps()
-		end,
-		"LSP: list workspace folders",
+		"<leader>yd",
+		CopyErrorMessage,
+		"LSP: copy diagnostics",
 	},
 }
 
--- 设置按键映射
 M.set_keymaps = function(bufnr)
 	for _, map in ipairs(keymaps) do
-		vim.keymap.set("n", map[1], map[2], { noremap = true, silent = true, desc = map[3], buffer = bufnr })
-	end
-end
-
--- 删除按键映射
-M.remove_keymaps = function(bufnr)
-	for _, map in ipairs(keymaps) do
-		pcall(vim.keymap.del, "n", map[1], { buffer = bufnr })
+		vim.keymap.set("n", map[1], map[2], {
+			noremap = true,
+			silent = true,
+			desc = map[3],
+			buffer = bufnr,
+		})
 	end
 end
 

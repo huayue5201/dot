@@ -121,7 +121,7 @@ autoload -Uz _zinit
 # 别名
 # ---------------------------------------
 alias la='lsd -a'
-alias lt='lsd -t'
+alias lt='lsd --tree'
 alias ls='lsd'
 alias ff='bash ~/ff.sh'
 alias update-all='bash ~/update-all.sh'
@@ -156,3 +156,5 @@ fe() {
 # 其他工具
 # ---------------------------------------
 eval "$(zoxide init zsh)"
+
+source /Users/lijia/.config/broot/launcher/bash/br

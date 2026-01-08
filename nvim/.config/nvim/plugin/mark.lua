@@ -372,9 +372,25 @@ vim.cmd([[
 ]])
 
 ---------------------------------------------------------
--- 8. 小写 mark 持久化（v6）
+-- 8. 小写 mark 持久化（使用 nvim-store3）
 ---------------------------------------------------------
-local json_store = require("json_store")
+local ok, StoreMod = pcall(require, "nvim-store3")
+if not ok then
+	vim.notify("nvim-store3 not available, mark persistence disabled", vim.log.levels.WARN)
+	return
+end
+
+-- 项目级存储实例
+local store = StoreMod.project()
+local MARKS_NS = "lowercase_marks"
+
+-- 构建扁平 key：namespace + file + name
+local function make_key(file, name)
+	if not file or file == "" or not name or name == "" then
+		return nil
+	end
+	return string.format("%s:%s:%s", MARKS_NS, file, name)
+end
 
 -- 保存小写 mark
 local function persist_lower_mark(mark)
@@ -400,10 +416,18 @@ local function persist_lower_mark(mark)
 	local line = mark.pos[2]
 	local col = mark.pos[3]
 
-	-- v6：行级数据自动 anchor + diff 重定位
-	json_store.set_line_data(file, line, {
-		mark = name,
+	local key = make_key(file, name)
+	if not key then
+		return
+	end
+
+	store:set(key, {
+		name = name,
+		bufnr = bufnr,
+		line = line,
 		col = col,
+		file = file,
+		created_at = os.time(),
 	})
 end
 
@@ -414,7 +438,7 @@ vim.api.nvim_create_autocmd("MarkSet", {
 })
 
 ---------------------------------------------------------
--- 9. 打开文件时恢复小写 mark（v6）
+-- 9. 打开文件时恢复小写 mark
 ---------------------------------------------------------
 local function restore_lower_marks(bufnr)
 	local file = vim.api.nvim_buf_get_name(bufnr)
@@ -422,12 +446,22 @@ local function restore_lower_marks(bufnr)
 		return
 	end
 
-	local line_count = vim.api.nvim_buf_line_count(bufnr)
+	if not store.keys then
+		return
+	end
 
-	for lnum = 1, line_count do
-		local data = json_store.get_line_data(file, lnum)
-		if data and data.mark then
-			vim.fn.setpos("'" .. data.mark, { bufnr, lnum, data.col or 0, 0 })
+	local prefix = MARKS_NS .. ":" .. file .. ":"
+	for _, key in ipairs(store:keys()) do
+		if vim.startswith(key, prefix) then
+			local data = store:get(key)
+			if data and data.name and data.line then
+				vim.fn.setpos("'" .. data.name, {
+					bufnr,
+					data.line,
+					(data.col or 0),
+					0,
+				})
+			end
 		end
 	end
 end
@@ -439,7 +473,7 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 })
 
 ---------------------------------------------------------
--- 10. 删除 mark 时自动清理（v6）
+-- 10. 删除 mark 时自动清理
 ---------------------------------------------------------
 local function cleanup_deleted_marks(bufnr)
 	local file = vim.api.nvim_buf_get_name(bufnr)
@@ -457,13 +491,24 @@ local function cleanup_deleted_marks(bufnr)
 		end
 	end
 
-	local line_count = vim.api.nvim_buf_line_count(bufnr)
-	for lnum = 1, line_count do
-		local data = json_store.get_line_data(file, lnum)
-		if data and data.mark and not existing[data.mark] then
-			-- mark 已被删除 → 清除该行的数据
-			json_store.set_line_data(file, lnum, nil)
+	if not store.keys then
+		return
+	end
+
+	local prefix = MARKS_NS .. ":" .. file .. ":"
+	local to_delete = {}
+
+	for _, key in ipairs(store:keys()) do
+		if vim.startswith(key, prefix) then
+			local data = store:get(key)
+			if data and data.name and not existing[data.name] then
+				table.insert(to_delete, key)
+			end
 		end
+	end
+
+	for _, key in ipairs(to_delete) do
+		store:delete(key)
 	end
 end
 
@@ -485,7 +530,7 @@ vim.api.nvim_create_autocmd("CursorHold", {
 })
 
 ---------------------------------------------------------
--- 13. 删除单个标记（你的原逻辑）
+-- 13. 删除单个标记
 ---------------------------------------------------------
 vim.keymap.set("n", "<leader>cm", function()
 	local marks = get_all_marks()
