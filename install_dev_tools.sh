@@ -72,7 +72,7 @@ fi
 # 1. 基础工具并行安装
 # -----------------------------
 log "安装基础工具..."
-brew_install_parallel stow git difftastic lazygit fzf fd ripgrep bat btop tmux aria2 llvm lsusb zoxide
+brew_install_parallel stow git lazygit fzf fd ripgrep bat btop tmux aria2 llvm lsusb zoxide jless otree jiq jq rust universal-ctags
 brew install --HEAD neovim # neovim 建议单独安装，避免 HEAD 并行冲突
 
 # -----------------------------
@@ -110,7 +110,7 @@ fi
 # 4. json 工具并行安装
 # -----------------------------
 log "安装json工具..."
-brew_install_parallel jless jq jiq
+brew_install_parallel jless jq jiq otree
 
 # -----------------------------
 # 5. Brew 扩展（顺序执行即可）
