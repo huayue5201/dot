@@ -1,4 +1,3 @@
---- File: /Users/lijia/nvim-store3/lua/dap-config/breakpoint_state.lua ---
 -- lua/dap-config/breakpoint_state.lua
 -- DAP 断点状态管理（精简版，使用新架构）
 
@@ -10,7 +9,7 @@ local NAMESPACE = "dap_breakpoints"
 -- 获取存储实例
 ---------------------------------------------------------------------
 local function get_store()
-	-- 只需基础存储功能
+	-- 使用新版本的 project 方法
 	return require("nvim-store3").project()
 end
 
@@ -24,17 +23,6 @@ local function safe_breakpoint_data(bp)
 		log_message = type(bp.log_message) == "string" and bp.log_message or nil,
 		hit_condition = type(bp.hit_condition) == "string" and bp.hit_condition or nil,
 	}
-end
-
----------------------------------------------------------------------
--- 路径编码辅助函数
----------------------------------------------------------------------
-local function encode_path(path)
-	return require("nvim-store3.util.path_key").encode(path)
-end
-
-local function decode_path(encoded)
-	return require("nvim-store3.util.path_key").decode(encoded)
 end
 
 ---------------------------------------------------------------------
@@ -67,12 +55,15 @@ function M.sync_breakpoints()
 		end
 
 		if #enriched > 0 then
-			store:set(NAMESPACE .. "." .. encode_path(path), enriched)
+			-- 使用新的 API：store:set(key, value)
+			store:set(NAMESPACE .. "." .. path, enriched)
 		else
-			store:delete(NAMESPACE .. "." .. encode_path(path))
+			-- 使用新的 API：store:delete(key)
+			store:delete(NAMESPACE .. "." .. path)
 		end
 	else
-		store:delete(NAMESPACE .. "." .. encode_path(path))
+		-- 使用新的 API：store:delete(key)
+		store:delete(NAMESPACE .. "." .. path)
 	end
 end
 
@@ -81,11 +72,16 @@ end
 ---------------------------------------------------------------------
 function M.load_breakpoints()
 	local store = get_store()
-	local all_breakpoints = store:get(NAMESPACE) or {}
 
-	for encoded_path, buf_bps in pairs(all_breakpoints) do
+	-- 使用新的 API：store:namespace_keys(namespace) 获取该命名空间下的所有键
+	local keys = store:namespace_keys(NAMESPACE)
+
+	for _, key in ipairs(keys) do
+		-- key 是 path，不需要解码
+		local path = key
+		local buf_bps = store:get(NAMESPACE .. "." .. path)
+
 		if type(buf_bps) == "table" then
-			local path = decode_path(encoded_path)
 			local bufnr = vim.fn.bufnr(path, true)
 
 			if bufnr ~= -1 then
@@ -119,7 +115,7 @@ function M.clear_breakpoints()
 
 	if path and path ~= "" then
 		breakpoints.clear(bufnr)
-		get_store():delete(NAMESPACE .. "." .. encode_path(path))
+		get_store():delete(NAMESPACE .. "." .. path)
 	end
 end
 
@@ -128,7 +124,14 @@ end
 ---------------------------------------------------------------------
 function M.clear_all_breakpoints()
 	breakpoints.clear()
-	get_store():delete(NAMESPACE)
+
+	-- 删除整个命名空间的数据
+	local store = get_store()
+	local keys = store:namespace_keys(NAMESPACE)
+
+	for _, key in ipairs(keys) do
+		store:delete(NAMESPACE .. "." .. key)
+	end
 end
 
 ---------------------------------------------------------------------
@@ -142,8 +145,7 @@ function M.setup_autoload()
 			local path = vim.api.nvim_buf_get_name(args.buf)
 
 			if path and path ~= "" then
-				local encoded_path = encode_path(path)
-				local buf_bps = store:get(NAMESPACE .. "." .. encoded_path)
+				local buf_bps = store:get(NAMESPACE .. "." .. path)
 
 				if buf_bps then
 					for _, bp in ipairs(buf_bps) do
@@ -157,8 +159,7 @@ function M.setup_autoload()
 							end
 							if bp.hit_condition then
 								bp_config.hit_condition = bp.hit_condition
-							end -- 这里添加闭合括号
-
+							end
 							breakpoints.set(bp_config, args.buf, bp.line)
 						end
 					end
@@ -173,12 +174,6 @@ function M.setup_autoload()
 		callback = M.sync_breakpoints,
 		desc = "同步并清理已删除行的断点",
 	})
-
-	-- 添加用户命令
-	vim.api.nvim_create_user_command("DapSyncBreakpoints", function()
-		M.sync_breakpoints()
-		vim.notify("断点已同步", vim.log.levels.INFO)
-	end, { desc = "手动同步断点" })
 end
 
 ---------------------------------------------------------------------

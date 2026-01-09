@@ -37,25 +37,5 @@ vim.defer_fn(function()
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
 		require("user.dotenv").load() -- token加载模块
-
-		-- JSON Store 配置
-		require("json_store").setup({
-			root_markers = { ".git", ".hg", ".svn", "package.json", "pyproject.toml", "Cargo.toml", "go.mod" },
-			cache_root = vim.fn.stdpath("cache") .. "/project_states_v6/",
-
-			-- 重要：将 todo 相关的命名空间设为全局
-			global_namespaces = { "todo_links", "code_links" },
-
-			-- 新增配置项（如果需要）
-			ignore_paths = {
-				"*.todo.md$",
-				"todo%.txt$",
-			},
-			-- 其他配置...
-			auto_save = true,
-			save_delay_ms = 1500,
-			max_projects = 20,
-			max_cache_age = 86400, -- 24小时
-		})
 	end)
 end, 300)
