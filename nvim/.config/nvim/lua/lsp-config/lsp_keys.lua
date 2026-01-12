@@ -2,22 +2,6 @@ local M = {}
 
 local Store = require("nvim-store3").project()
 local lsp_get = require("lsp-config.lsp_utils")
-
----------------------------------------------------------
--- 重启 LSP
----------------------------------------------------------
-local function restart_lsp()
-	local clients = vim.lsp.get_clients()
-	for _, client in ipairs(clients) do
-		client:stop(true)
-	end
-
-	vim.defer_fn(function()
-		local lsp_name = lsp_get.get_lsp_name()
-		vim.lsp.enable(lsp_name, true)
-	end, 500)
-end
-
 ---------------------------------------------------------
 -- 切换 LSP 状态（项目级）
 ---------------------------------------------------------
@@ -48,6 +32,21 @@ local function toggle_lsp()
 
 		vim.schedule(vim.cmd.redrawstatus)
 	end)
+end
+
+---------------------------------------------------------
+-- 重启 LSP
+---------------------------------------------------------
+local function restart_lsp()
+	local clients = vim.lsp.get_clients()
+	for _, client in ipairs(clients) do
+		client:stop(true)
+	end
+
+	vim.defer_fn(function()
+		local lsp_name = lsp_get.get_lsp_name()
+		vim.lsp.enable(lsp_name, true)
+	end, 500)
 end
 
 ---------------------------------------------------------
@@ -133,6 +132,28 @@ end
 -- 按键映射
 ---------------------------------------------------------
 local keymaps = {
+
+	{
+		"gro",
+		function()
+			require("lsp-config.externalDocs").open_docs()
+		end,
+		"LSP: open external docs",
+	},
+	{
+		"<leader>sd",
+		function()
+			M.open_buffer_diagnostics()
+		end,
+		"LSP: buffer diagnostics",
+	},
+	{
+		"<leader>sD",
+		function()
+			M.open_all_diagnostics()
+		end,
+		"LSP: workspace diagnostics",
+	},
 	{
 		"<s-a-d>",
 		function()
