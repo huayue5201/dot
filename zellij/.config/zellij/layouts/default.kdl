@@ -5,67 +5,67 @@ layout {
     // 默认标签页模板
     default_tab_template {
         // 第一个 pane：vim-zellij-navigator 插件
-        pane size=1 borderless=true {
-            plugin location="file:~/Downloads/vim-zellij-navigator.wasm" {
-                keybinds {
-                    // 全局绑定，除了被锁定的 pane
-                    shared_except "locked" {
-                        // Ctrl + h/j/k/l: 切换焦点
-                        bind "Ctrl h" {
-                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
-                                name "move_focus";
-                                payload "left";
-                            };
-                        }
-                        bind "Ctrl j" {
-                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
-                                name "move_focus";
-                                payload "down";
-                            };
-                        }
-                        bind "Ctrl k" {
-                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
-                                name "move_focus";
-                                payload "up";
-                            };
-                        }
-                        bind "Ctrl l" {
-                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
-                                name "move_focus";
-                                payload "right";
-                            };
-                        }
-
-                        // Alt + h/j/k/l: 调整 pane 大小
-                        bind "Alt h" {
-                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
-                                name "resize";
-                                payload "left";
-                            };
-                        }
-                        bind "Alt j" {
-                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
-                                name "resize";
-                                payload "down";
-                            };
-                        }
-                        bind "Alt k" {
-                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
-                                name "resize";
-                                payload "up";
-                            };
-                        }
-                        bind "Alt l" {
-                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
-                                name "resize";
-                                payload "right";
-                            };
-                        }
-                    }
-                }
-            }
-        }
-
+        // pane size=1 borderless=true {
+        //     plugin location="file:~/Downloads/vim-zellij-navigator.wasm" {
+        //         keybinds {
+        //             // 全局绑定，除了被锁定的 pane
+        //             shared_except "locked" {
+        //                 // Ctrl + h/j/k/l: 切换焦点
+        //                 bind "Ctrl h" {
+        //                     MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+        //                         name "move_focus";
+        //                         payload "left";
+        //                     };
+        //                 }
+        //                 bind "Ctrl j" {
+        //                     MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+        //                         name "move_focus";
+        //                         payload "down";
+        //                     };
+        //                 }
+        //                 bind "Ctrl k" {
+        //                     MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+        //                         name "move_focus";
+        //                         payload "up";
+        //                     };
+        //                 }
+        //                 bind "Ctrl l" {
+        //                     MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+        //                         name "move_focus";
+        //                         payload "right";
+        //                     };
+        //                 }
+        //
+        //                 // Alt + h/j/k/l: 调整 pane 大小
+        //                 bind "Alt h" {
+        //                     MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+        //                         name "resize";
+        //                         payload "left";
+        //                     };
+        //                 }
+        //                 bind "Alt j" {
+        //                     MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+        //                         name "resize";
+        //                         payload "down";
+        //                     };
+        //                 }
+        //                 bind "Alt k" {
+        //                     MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+        //                         name "resize";
+        //                         payload "up";
+        //                     };
+        //                 }
+        //                 bind "Alt l" {
+        //                     MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+        //                         name "resize";
+        //                         payload "right";
+        //                     };
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        //
         // 第二个 pane：zjstatus 插件，用于状态栏显示
         children
         pane size=1 borderless=false {
