@@ -91,9 +91,11 @@ return {
 				trigger = "onType",
 			},
 			cargo = {
+				allFeatures = true,
 				autoreload = true,
 				buildScripts = { enable = true },
 			},
+			procMacro = { enable = true },
 			formatting = { enable = true },
 			assist = {
 				importGranularity = "module",
@@ -126,7 +128,6 @@ return {
 					trait = { enable = true },
 				},
 			},
-			procMacro = { enable = true },
 		},
 	},
 	on_new_config = function(config, root_dir)

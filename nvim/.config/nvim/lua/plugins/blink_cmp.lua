@@ -15,7 +15,9 @@ return {
 
 		-- ❌ 强烈建议：不要启用 onTypeFormatting
 		-- rust-analyzer + blink.cmp + preview 下极易出 offset 问题
-		capabilities.textDocument.onTypeFormatting = nil
+		capabilities
+			.textDocument--[[@cast -?]]
+			.onTypeFormatting = nil
 
 		-- 先让 blink.cmp 扩展能力（它只管补全）
 		capabilities = vim.tbl_deep_extend(
@@ -31,6 +33,7 @@ return {
 			lineFoldingOnly = true,
 		}
 
+		---@diagnostic disable-next-line: param-type-mismatch
 		require("blink.cmp").setup({
 			fuzzy = { implementation = "prefer_rust_with_warning" },
 			snippets = {
@@ -143,7 +146,8 @@ return {
 					},
 				},
 				transform_items = function(ctx, items)
-					local line = ctx.cursor[1] - 1
+					local line = ctx.cursor[1]--[[@cast -?]]
+						- 1
 					local col = ctx.cursor[2]
 					for _, item in ipairs(items) do
 						if item.textEdit then
@@ -155,6 +159,7 @@ return {
 									range_end.character = col
 								end
 							elseif item.textEdit.insert then
+								---@diagnostic disable-next-line: inject-field
 								-- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#insertReplaceEdit
 								-- always use insert range
 								item.textEdit.range = item.textEdit.insert

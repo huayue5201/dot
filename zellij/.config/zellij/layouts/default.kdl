@@ -1,0 +1,127 @@
+simplified_ui false  // 关闭简化 UI 模式
+pane_frames false    // 不显示 pane 边框
+
+layout {
+    // 默认标签页模板
+    default_tab_template {
+        // 第一个 pane：vim-zellij-navigator 插件
+        pane size=1 borderless=true {
+            plugin location="file:~/Downloads/vim-zellij-navigator.wasm" {
+                keybinds {
+                    // 全局绑定，除了被锁定的 pane
+                    shared_except "locked" {
+                        // Ctrl + h/j/k/l: 切换焦点
+                        bind "Ctrl h" {
+                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                                name "move_focus";
+                                payload "left";
+                            };
+                        }
+                        bind "Ctrl j" {
+                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                                name "move_focus";
+                                payload "down";
+                            };
+                        }
+                        bind "Ctrl k" {
+                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                                name "move_focus";
+                                payload "up";
+                            };
+                        }
+                        bind "Ctrl l" {
+                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                                name "move_focus";
+                                payload "right";
+                            };
+                        }
+
+                        // Alt + h/j/k/l: 调整 pane 大小
+                        bind "Alt h" {
+                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                                name "resize";
+                                payload "left";
+                            };
+                        }
+                        bind "Alt j" {
+                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                                name "resize";
+                                payload "down";
+                            };
+                        }
+                        bind "Alt k" {
+                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                                name "resize";
+                                payload "up";
+                            };
+                        }
+                        bind "Alt l" {
+                            MessagePlugin "https://github.com/hiasr/vim-zellij-navigator/releases/download/0.2.1/vim-zellij-navigator.wasm" {
+                                name "resize";
+                                payload "right";
+                            };
+                        }
+                    }
+                }
+            }
+        }
+
+        // 第二个 pane：zjstatus 插件，用于状态栏显示
+        children
+        pane size=1 borderless=false {
+            plugin location="file:~/Downloads/zjstatus.wasm" {
+                // 左中右显示格式
+                format_left   "{mode}#[fg=black]{tabs}"
+                format_center ""
+                format_right  "#[fg=#6867AF,bold]  {datetime}#[fg=cyan]↖ "
+                format_space  "#[fg=yellow] "
+
+                // 面板显示设置
+                hide_frame_for_single_pane "true"  // 单 pane 时隐藏边框
+                border_enabled  "false"
+
+                // 不同模式显示图标
+                mode_normal  "#[fg=yellow]   "
+                mode_locked  "#[fg=red]   "
+                mode_tmux    "#[bg=cyan]"
+
+                // Tab 样式：非激活
+                tab_normal              "#[fg=#6C7086]{name}"
+                tab_normal_fullscreen   "#[fg=#6C7086]{name}"
+                tab_normal_sync         "#[fg=#6C7086]{name}"
+
+                // Tab 样式：当前激活
+                tab_active              "#[fg=blue,bold]{name}#[fg=yellow,bold]{floating_indicator}"
+                tab_active_fullscreen   "#[fg=yellow,bold]{name}#[fg=yellow,bold]{fullscreen_indicator}"
+                tab_active_sync         "#[fg=green,bold]{name}#[fg=yellow,bold]{sync_indicator}"
+
+                // Tab 分隔符
+                tab_separator           "#[fg=cyan,bold] ⋮ "
+
+                // 各种状态指示符
+                tab_sync_indicator       " "
+                tab_fullscreen_indicator " "
+                tab_floating_indicator   ""
+
+                // 日期时间显示
+                datetime        "#[fg=#6C7086,bold] {format} "
+                datetime_format "%A, %d %b %Y %H:%M"
+                datetime_timezone "Europe/Berlin"
+            }
+        }
+    }
+
+    // 标签页定义
+    tab name="󰎦" focus=true borderless=true
+    tab name="󰎩"
+    tab name="󰎬"
+}
+
+// 全局快捷键
+keybinds {
+    shared {
+        bind "Alt 1" { NewTab; }       // 新建标签页
+        bind "Alt 2" { GoToNextTab; }  // 下一个标签页
+        bind "Alt 3" { CloseTab; }     // 关闭标签页
+    }
+}

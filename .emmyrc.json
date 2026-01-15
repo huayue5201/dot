@@ -1,0 +1,9 @@
+{
+  "diagnostics": {
+    "disable": [
+      "deprecated",
+      "param-type-mismatch",
+      "unnecessary-if"
+    ]
+  }
+}
