@@ -1,9 +1,10 @@
 -- 📝 Basic operations
 vim.keymap.set("n", "c", '"_c', { desc = "Basic: change to blackhole" })
 
-vim.keymap.set("n", "dd", function()
-	return vim.fn.getline(".") == "" and '"_dd' or "dd"
-end, { expr = true, desc = "Basic: delete line (empty → blackhole)" })
+-- TODO:ref:4bb713
+-- vim.keymap.set("n", "dd", function()
+-- 	return vim.fn.getline(".") == "" and '"_dd' or "dd"
+-- end, { expr = true, desc = "Basic: delete line (empty → blackhole)" })
 
 vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
 

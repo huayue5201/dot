@@ -1,3 +1,4 @@
+---@diagnostic disable: need-check-nil
 -- LSP 配置模块
 local M = {}
 local keymaps = require("lsp-config.lsp_keys")
@@ -109,9 +110,9 @@ function M.setup()
 				vim.wo.foldexpr = "v:lua.vim.lsp.foldexpr()"
 			end
 
-			if client:supports_method("textDocument/inlineCompletion") then
-				vim.lsp.inline_completion.enable(true, { client_id = client.id })
-			end
+			-- if client:supports_method("textDocument/inlineCompletion") then
+			-- 	vim.lsp.inline_completion.enable(true, { client_id = client.id })
+			-- end
 
 			if client:supports_method("textDocument/linkedEditingRange") then
 				vim.lsp.linked_editing_range.enable(true, { client_id = client.id })

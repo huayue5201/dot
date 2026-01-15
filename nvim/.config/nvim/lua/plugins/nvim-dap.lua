@@ -76,6 +76,7 @@ return {
 
 		-- 扩展 REPL 命令
 		local repl = require("dap.repl")
+		---@diagnostic disable-next-line: inject-field
 		repl.commands = vim.tbl_extend("force", repl.commands, {
 			-- 添加 .copy 命令
 			custom_commands = {
@@ -125,7 +126,6 @@ return {
 			end,
 		})
 
-		local api = vim.api
 		-- 使用局部变量避免全局污染
 		local keymap_restore = {}
 		local original_global_k = nil
@@ -150,12 +150,12 @@ return {
 			pcall(vim.keymap.del, "n", "K")
 
 			-- 保存并删除缓冲区本地映射
-			for _, buf in ipairs(api.nvim_list_bufs()) do
-				local keymaps = api.nvim_buf_get_keymap(buf, "n")
+			for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+				local keymaps = vim.api.nvim_buf_get_keymap(buf, "n")
 				for _, keymap in ipairs(keymaps) do
 					if keymap.lhs == "K" then
 						table.insert(keymap_restore, keymap)
-						pcall(api.nvim_buf_del_keymap, buf, "n", "K")
+						pcall(vim.api.nvim_buf_del_keymap, buf, "n", "K")
 					end
 				end
 			end
@@ -177,7 +177,7 @@ return {
 			for _, keymap in ipairs(keymap_restore) do
 				if keymap.rhs then
 					pcall(
-						api.nvim_buf_set_keymap,
+						vim.api.nvim_buf_set_keymap,
 						keymap.buffer,
 						keymap.mode,
 						keymap.lhs,

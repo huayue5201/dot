@@ -10,7 +10,7 @@ return {
 				-- (everything after the first non-leading dot is treated as the extension)
 				autoAddExt = true,
 
-				trashCmd = function() ---@type fun(): string|string[]
+				trashCmd = function()
 					if jit.os == "OSX" then
 						return "trash"
 					end -- builtin since macOS 14

@@ -1,3 +1,4 @@
+---@diagnostic disable: need-check-nil, undefined-field
 -- https://github.com/nvim-neo-tree/neo-tree.nvim
 
 return {
@@ -24,6 +25,7 @@ return {
 				grug_far.get_instance("explorer"):update_input_values(prefills, false)
 			end
 
+			---@diagnostic disable-next-line: missing-fields
 			require("neo-tree").setup({
 				close_if_last_window = true,
 				popup_border_style = "rounded",
@@ -96,7 +98,7 @@ return {
 						open_grug_far(prefills)
 					end,
 					-- https://github.com/nvim-neo-tree/neo-tree.nvim/blob/fbb631e818f48591d0c3a590817003d36d0de691/doc/neo-tree.txt#L535
-					grug_far_replace_visual = function(state, selected_nodes, callback)
+					grug_far_replace_visual = function(selected_nodes)
 						local paths = {}
 						for _, node in pairs(selected_nodes) do
 							-- also escape the paths if space is there
