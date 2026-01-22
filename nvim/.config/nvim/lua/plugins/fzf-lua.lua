@@ -34,7 +34,9 @@ return {
 			{ desc = "fzf: workspace symbols" }
 		)
 		vim.keymap.set("n", "<leader>fT", "<cmd>FzfLua tags<cr>", { desc = "fzf: workspaces tags" })
-		vim.keymap.set("n", "<leader>fd", "<cmd>FzfLua  dap_variables<cr>", { desc = "fzf: active session variables" })
+		vim.keymap.set("n", "<leader>fdc", "<cmd>FzfLua  dap_commands<cr>", { desc = "fzf: dap cmd" })
+		vim.keymap.set("n", "<leader>fdb", "<cmd>FzfLua  dap_breakpoints<cr>", { desc = "fzf: dap breakpoints" })
 		vim.keymap.set("n", "<leader>fu", "<cmd>FzfLua undotree<cr>", { desc = "fzf: undotree" })
+		vim.keymap.set("n", "<leader>fk", "<cmd>FzfLua keymaps<cr>", { desc = "fzf: keymaps" })
 	end,
 }

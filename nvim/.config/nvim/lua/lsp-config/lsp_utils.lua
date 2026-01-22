@@ -136,9 +136,9 @@ function M._extract_field_value(config, field, filename, quiet)
 	end
 
 	local value = config[field]
-	if value == nil and not quiet then
-		vim.notify("Field '" .. field .. "' not found in config: " .. filename, vim.log.levels.DEBUG)
-	end
+	-- if value == nil and not quiet then
+	-- 	vim.notify("Field '" .. field .. "' not found in config: " .. filename, vim.log.levels.DEBUG)
+	-- end
 	return value
 end
 

@@ -158,3 +158,6 @@ fe() {
 eval "$(zoxide init zsh)"
 
 source /Users/lijia/.config/broot/launcher/bash/br
+
+# bun completions
+[ -s "/Users/lijia/.bun/_bun" ] && source "/Users/lijia/.bun/_bun"
