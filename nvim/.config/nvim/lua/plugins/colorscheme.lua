@@ -5,8 +5,8 @@
 return {
 	-- "oxfist/night-owl.nvim",
 	-- "EdenEast/nightfox.nvim",
-	-- "uhs-robert/oasis.nvim",
-	"serhez/teide.nvim",
+	"uhs-robert/oasis.nvim",
+	-- "serhez/teide.nvim",
 	lazy = false,
 	priority = 1000,
 	config = function()
@@ -21,33 +21,33 @@ return {
 		-- })
 		-- vim.cmd("colorscheme Carbonfox")
 
-		vim.cmd([[colorscheme teide]])
+		-- vim.cmd([[colorscheme teide]])
 
-		-- require("oasis").setup({
-		-- 	-- dark_style = "lagoon", -- 当 vim.o.background 为 "dark" 时使用的主题样式
-		-- 	-- light_style = "dawn", -- 当 vim.o.background 为 "light" 时使用的主题样式
-		-- 	-- style = nil, -- 可选：强制使用单一主题（如 "lagoon", "desert"），禁用自动切换
-		-- 	use_legacy_comments = false, -- 是否使用 desert.vim 旧版注释颜色（仅对 "desert" 样式生效，亮天蓝色）
-		--
-		-- 	styles = {
-		-- 		bold = true, -- 是否启用粗体（关键字、函数等）
-		-- 		italic = true, -- 是否启用斜体（注释、部分关键字）
-		-- 		underline = true, -- 是否启用下划线（匹配单词等）
-		-- 		undercurl = true, -- 是否启用波浪线（诊断、拼写错误提示）
-		-- 		strikethrough = true, -- 是否启用删除线（废弃内容）
-		-- 	},
-		--
-		-- 	-- 显示选项
-		-- 	transparent = false, -- 启用透明背景（去掉主题的背景色）
-		-- 	terminal_colors = true, -- 将 Oasis 的配色应用到 Neovim 内置终端
-		--
-		-- 	palette_overrides = {}, -- 覆盖调色板中的特定颜色
-		-- 	highlight_overrides = {}, -- 覆盖特定 highlight 组的颜色
-		-- })
-		--
-		-- vim.o.background = "dark" -- 可选：设置背景为 "dark" 或 "light"
+		require("oasis").setup({
+			-- dark_style = "lagoon", -- 当 vim.o.background 为 "dark" 时使用的主题样式
+			-- light_style = "dawn", -- 当 vim.o.background 为 "light" 时使用的主题样式
+			-- style = nil, -- 可选：强制使用单一主题（如 "lagoon", "desert"），禁用自动切换
+			use_legacy_comments = false, -- 是否使用 desert.vim 旧版注释颜色（仅对 "desert" 样式生效，亮天蓝色）
+
+			styles = {
+				bold = true, -- 是否启用粗体（关键字、函数等）
+				italic = true, -- 是否启用斜体（注释、部分关键字）
+				underline = true, -- 是否启用下划线（匹配单词等）
+				undercurl = true, -- 是否启用波浪线（诊断、拼写错误提示）
+				strikethrough = true, -- 是否启用删除线（废弃内容）
+			},
+
+			-- 显示选项
+			transparent = false, -- 启用透明背景（去掉主题的背景色）
+			terminal_colors = true, -- 将 Oasis 的配色应用到 Neovim 内置终端
+
+			palette_overrides = {}, -- 覆盖调色板中的特定颜色
+			highlight_overrides = {}, -- 覆盖特定 highlight 组的颜色
+		})
+
+		vim.o.background = "dark" -- 可选：设置背景为 "dark" 或 "light"
 		-- -- vim.cmd.colorscheme("oasis-abyss") -- After setup, apply theme (or a any style like "oasis-night")
-		-- vim.cmd.colorscheme("oasis-midnight") -- After setup, apply theme (or a any style like "oasis-night")
+		vim.cmd.colorscheme("oasis-midnight") -- After setup, apply theme (or a any style like "oasis-night")
 		-- vim.cmd.colorscheme("oasis-starlight") -- After setup, apply theme (or a any style like "oasis-night")
 	end,
 }
