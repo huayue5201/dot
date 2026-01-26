@@ -52,25 +52,25 @@ return {
 		-- 在窗口 / tmux 面板之间移动光标
 		vim.keymap.set(
 			"n",
-			"<C-h>",
+			"<S-C-h>",
 			require("smart-splits").move_cursor_left,
 			{ desc = "移动到左侧窗口 / tmux 面板" }
 		)
 		vim.keymap.set(
 			"n",
-			"<C-j>",
+			"<S-C-j>",
 			require("smart-splits").move_cursor_down,
 			{ desc = "移动到下方窗口 / tmux 面板" }
 		)
 		vim.keymap.set(
 			"n",
-			"<C-k>",
+			"<S-C-k>",
 			require("smart-splits").move_cursor_up,
 			{ desc = "移动到上方窗口 / tmux 面板" }
 		)
 		vim.keymap.set(
 			"n",
-			"<C-l>",
+			"<S-C-l>",
 			require("smart-splits").move_cursor_right,
 			{ desc = "移动到右侧窗口 / tmux 面板" }
 		)

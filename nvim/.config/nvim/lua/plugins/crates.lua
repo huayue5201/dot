@@ -22,7 +22,7 @@ return {
 			expand_crate_moves_cursor = true,
 			enable_update_available_warning = true,
 			on_attach = function(bufnr) end,
-			text = { searching = "   Searching", loading = "   Loading" },
+			text = { searching = "   搜索中", loading = "   加载中" },
 			popup = { autofocus = true, hide_on_select = true, style = "minimal", border = "shadow" },
 			lsp = { enabled = true, actions = true, completion = true, hover = true },
 		})
@@ -41,39 +41,39 @@ return {
 			})
 		end
 
-		-- Crates keymaps
-		map_filetype("toml", "n", "<leader>ot", crates.toggle, { desc = "Crates: toggle" })
-		map_filetype("toml", "n", "<leader>or", crates.reload, { desc = "Crates: reload" })
-		map_filetype("toml", "n", "<leader>ov", crates.show_versions_popup, { desc = "Crates: show versions" })
-		map_filetype("toml", "n", "<leader>of", crates.show_features_popup, { desc = "Crates: show features" })
-		map_filetype("toml", "n", "<leader>od", crates.show_dependencies_popup, { desc = "Crates: show dependencies" })
-		map_filetype("toml", "n", "<leader>ou", crates.update_crate, { desc = "Crates: update crate" })
-		map_filetype("v", "<leader>ou", crates.update_crates, { desc = "Crates: update selected crates" })
-		map_filetype("toml", "n", "<leader>oa", crates.update_all_crates, { desc = "Crates: update all crates" })
-		map_filetype("toml", "n", "<leader>oU", crates.upgrade_crate, { desc = "Crates: upgrade crate" })
-		map_filetype("v", "<leader>oU", crates.upgrade_crates, { desc = "Crates: upgrade selected crates" })
-		map_filetype("toml", "n", "<leader>oA", crates.upgrade_all_crates, { desc = "Crates: upgrade all crates" })
+		-- Crates 按键映射
+		map_filetype("toml", "n", "<leader>ot", crates.toggle, { desc = "依赖: 切换" })
+		map_filetype("toml", "n", "<leader>or", crates.reload, { desc = "依赖: 重载" })
+		map_filetype("toml", "n", "<leader>ov", crates.show_versions_popup, { desc = "依赖: 显示版本" })
+		map_filetype("toml", "n", "<leader>of", crates.show_features_popup, { desc = "依赖: 显示功能" })
+		map_filetype("toml", "n", "<leader>od", crates.show_dependencies_popup, { desc = "依赖: 显示依赖项" })
+		map_filetype("toml", "n", "<leader>ou", crates.update_crate, { desc = "依赖: 更新当前包" })
+		map_filetype("v", "<leader>ou", crates.update_crates, { desc = "依赖: 更新选中包" })
+		map_filetype("toml", "n", "<leader>oa", crates.update_all_crates, { desc = "依赖: 更新所有包" })
+		map_filetype("toml", "n", "<leader>oU", crates.upgrade_crate, { desc = "依赖: 升级当前包" })
+		map_filetype("v", "<leader>oU", crates.upgrade_crates, { desc = "依赖: 升级选中包" })
+		map_filetype("toml", "n", "<leader>oA", crates.upgrade_all_crates, { desc = "依赖: 升级所有包" })
 		map_filetype(
 			"toml",
 			"n",
 			"<leader>ox",
 			crates.expand_plain_crate_to_inline_table,
-			{ desc = "Crates: expand crate to inline table" }
+			{ desc = "依赖: 展开到内联表" }
 		)
 		map_filetype(
 			"toml",
 			"n",
 			"<leader>oX",
 			crates.extract_crate_into_table,
-			{ desc = "Crates: extract crate to table" }
+			{ desc = "依赖: 提取到独立表" }
 		)
-		map_filetype("toml", "n", "<leader>oH", crates.open_homepage, { desc = "Crates: open homepage" })
-		map_filetype("toml", "n", "<leader>oR", crates.open_repository, { desc = "Crates: open repository" })
-		map_filetype("toml", "n", "<leader>oD", crates.open_documentation, { desc = "Crates: open documentation" })
-		map_filetype("toml", "n", "<leader>oC", crates.open_crates_io, { desc = "Crates: open crates.io" })
-		map_filetype("toml", "n", "<leader>oL", crates.open_lib_rs, { desc = "Crates: open lib.rs" })
+		map_filetype("toml", "n", "<leader>oH", crates.open_homepage, { desc = "依赖: 打开主页" })
+		map_filetype("toml", "n", "<leader>oR", crates.open_repository, { desc = "依赖: 打开仓库" })
+		map_filetype("toml", "n", "<leader>oD", crates.open_documentation, { desc = "依赖: 打开文档" })
+		map_filetype("toml", "n", "<leader>oC", crates.open_crates_io, { desc = "依赖: 打开 crates.io" })
+		map_filetype("toml", "n", "<leader>oL", crates.open_lib_rs, { desc = "依赖: 打开 lib.rs" })
 
-		-- Show documentation (fallback to LSP hover)
+		-- 显示文档（回退到 LSP 悬停提示）
 		local function show_documentation()
 			if vim.fn.expand("%:t") == "Cargo.toml" and require("crates").popup_available() then
 				require("crates").show_popup()
@@ -81,6 +81,6 @@ return {
 				vim.lsp.buf.hover()
 			end
 		end
-		map_filetype("toml", "n", "K", show_documentation, { desc = "Crates: show documentation", silent = true })
+		map_filetype("toml", "n", "K", show_documentation, { desc = "依赖: 显示文档", silent = true })
 	end,
 }
