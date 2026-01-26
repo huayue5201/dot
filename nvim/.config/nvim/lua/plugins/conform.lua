@@ -23,6 +23,7 @@ return {
 				-- https://github.com/jqlang/jq
 				json = { "jq" },
 				c = { "clang-format" },
+				html = { "dprint" },
 				-- c={ "astyle" },
 				rust = { "rustfmt" },
 				javascript = { "biome" },

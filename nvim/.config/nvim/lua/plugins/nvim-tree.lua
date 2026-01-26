@@ -99,19 +99,6 @@ return {
 				ignore = false,
 				timeout = 200,
 			},
-
-			-- 🧠 文件诊断集成（LSP）
-			diagnostics = {
-				enable = true,
-				show_on_dirs = true,
-				-- icons = {
-				-- 	hint = icon.HINT,
-				-- 	info = icon.INFO,
-				-- 	warning = icon.WARN,
-				-- 	error = icon.ERROR,
-				-- },
-			},
-
 			-- 🔑 打开文件行为
 			actions = {
 				open_file = {

@@ -1,3 +1,5 @@
+-- https://github.com/folke/trouble.nvim
+
 return {
 	"folke/trouble.nvim",
 	event = "VeryLazy",
@@ -13,32 +15,32 @@ return {
 		{
 			"<leader>xx",
 			"<cmd>Trouble diagnostics toggle<cr>",
-			desc = "Diagnostics (Trouble)",
+			desc = "诊断信息 (Trouble)",
 		},
 		{
 			"<leader>xX",
 			"<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
-			desc = "Buffer Diagnostics (Trouble)",
+			desc = "当前缓冲区诊断 (Trouble)",
 		},
 		{
-			"<leader>sf",
+			"<leader>xf",
 			"<cmd>Trouble symbols toggle focus=false<cr>",
-			desc = "Symbols (Trouble)",
+			desc = "符号列表 (Trouble)",
 		},
 		{
-			"<leader>sF",
+			"<leader>xF",
 			"<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
-			desc = "LSP Definitions / references / ... (Trouble)",
+			desc = "LSP 定义/引用/... (Trouble)",
 		},
 		{
-			"<leader>xL",
-			"<cmd>Trouble loclist toggle<cr>",
-			desc = "Location List (Trouble)",
+			"<leader>xi",
+			"<cmd>Trouble lsp_incoming_calls<cr>",
+			desc = "LSP 被调用位置 (Trouble)",
 		},
 		{
-			"<leader>xQ",
-			"<cmd>Trouble qflist toggle<cr>",
-			desc = "Quickfix List (Trouble)",
+			"<leader>xo",
+			"<cmd>Trouble lsp_outgoing_calls<cr>",
+			desc = "LSP 调用位置 (Trouble)",
 		},
 	},
 }
