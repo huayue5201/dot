@@ -3,6 +3,12 @@ return {
 	dependencies = { "nvim-store3" },
 	name = "todo2",
 	config = function()
-		require("todo2").setup()
+		require("todo2").setup({
+			ui = {
+				conceal = {
+					enable = false,
+				},
+			},
+		})
 	end,
 }
