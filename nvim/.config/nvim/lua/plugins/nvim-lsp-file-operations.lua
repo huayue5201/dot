@@ -5,8 +5,8 @@ return {
 	event = "VeryLazy",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
-		"nvim-tree/nvim-tree.lua",
-		-- "nvim-neo-tree/neo-tree.nvim", -- makes sure that this loads after Neo-tree.
+		-- "nvim-tree/nvim-tree.lua",
+		"nvim-neo-tree/neo-tree.nvim", -- makes sure that this loads after Neo-tree.
 	},
 	config = function()
 		require("lsp-file-operations").setup()
