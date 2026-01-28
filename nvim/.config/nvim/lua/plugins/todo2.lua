@@ -6,7 +6,7 @@ return {
 		require("todo2").setup({
 			ui = {
 				conceal = {
-					enable = false,
+					enable = true,
 				},
 			},
 		})
