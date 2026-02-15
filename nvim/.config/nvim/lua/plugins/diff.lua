@@ -9,6 +9,6 @@ return {
 			split = "below",
 			cursorline = false,
 		})
-		vim.keymap.set("n", "<localleader>D", ":Diff<CR>", { noremap = true, silent = true })
+		vim.keymap.set("x", "<localleader>D", ":Diff<CR>", { noremap = true, silent = true })
 	end,
 }

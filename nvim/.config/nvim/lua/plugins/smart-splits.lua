@@ -26,25 +26,25 @@ return {
 		-- 调整窗口 / tmux pane 大小
 		vim.keymap.set(
 			"n",
-			"<A-h>",
+			"<S-C-h>",
 			require("smart-splits").resize_left,
 			{ desc = "向左调整窗口 / tmux 面板大小" }
 		)
 		vim.keymap.set(
 			"n",
-			"<A-j>",
+			"<S-C-j>",
 			require("smart-splits").resize_down,
 			{ desc = "向下调整窗口 / tmux 面板大小" }
 		)
 		vim.keymap.set(
 			"n",
-			"<A-k>",
+			"<S-C-k>",
 			require("smart-splits").resize_up,
 			{ desc = "向上调整窗口 / tmux 面板大小" }
 		)
 		vim.keymap.set(
 			"n",
-			"<A-l>",
+			"<S-C-l>",
 			require("smart-splits").resize_right,
 			{ desc = "向右调整窗口 / tmux 面板大小" }
 		)
@@ -52,25 +52,25 @@ return {
 		-- 在窗口 / tmux 面板之间移动光标
 		vim.keymap.set(
 			"n",
-			"<S-C-h>",
+			"<A-h>",
 			require("smart-splits").move_cursor_left,
 			{ desc = "移动到左侧窗口 / tmux 面板" }
 		)
 		vim.keymap.set(
 			"n",
-			"<S-C-j>",
+			"<A-j>",
 			require("smart-splits").move_cursor_down,
 			{ desc = "移动到下方窗口 / tmux 面板" }
 		)
 		vim.keymap.set(
 			"n",
-			"<S-C-k>",
+			"<A-k>",
 			require("smart-splits").move_cursor_up,
 			{ desc = "移动到上方窗口 / tmux 面板" }
 		)
 		vim.keymap.set(
 			"n",
-			"<S-C-l>",
+			"<A-l>",
 			require("smart-splits").move_cursor_right,
 			{ desc = "移动到右侧窗口 / tmux 面板" }
 		)

@@ -2,6 +2,7 @@
 tnoremap <C-l> <C-\><C-n>:call term_sendkeys(0, 'clear' . "\r")<CR>
 
 " 映射 <leader>sw 删除当前文件的.swp文件
+" FIX:ref:71830f
 nnoremap <leader>csw :call DeleteCurrentSwapFile()<CR>
 
 " 映射 <leader>sW 递归删除当前目录下所有.swp文件 (谨慎使用)

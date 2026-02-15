@@ -4,7 +4,7 @@ return {
 	event = "BufWinEnter",
 	config = function()
 		require("bento").setup({
-			main_keymap = "<tab>", -- 主切换/展开键
+			main_keymap = "<S-tab>", -- 主切换/展开键
 			lock_char = "🔒", -- 锁定缓冲区名前显示的字符
 			max_open_buffers = nil, -- 最大缓冲区数量（nil = 无限制）
 			buffer_deletion_metric = "frecency_access", -- 缓冲区删除的衡量指标（见下文）
