@@ -58,14 +58,14 @@ return {
 			-- 自定义 keymaps（在 quickfix buffer 中）
 			keys = {
 				{
-					">",
+					"<localleader>i",
 					function()
 						require("quicker").expand({ before = 2, after = 2, add_to_existing = true })
 					end,
 					desc = "Expand quickfix context",
 				},
 				{
-					"<",
+					"<localleader>c",
 					function()
 						require("quicker").collapse()
 					end,
