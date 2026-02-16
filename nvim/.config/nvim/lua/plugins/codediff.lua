@@ -105,5 +105,6 @@ return {
 			},
 		})
 		vim.keymap.set("n", "<leader>hf", "<cmd>CodeDiff<cr>", { desc = "codediff: Diff" })
+		vim.keymap.set("n", "<leader>hh", "<cmd>CodeDiff history<cr>", { desc = "codediff: history" })
 	end,
 }

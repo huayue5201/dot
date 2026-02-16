@@ -6,14 +6,14 @@ return {
 	config = function()
 		require("genghis").setup({
 			fileOperations = {
-				-- automatically keep the extension when no file extension is given
-				-- (everything after the first non-leading dot is treated as the extension)
+				-- 没有扩展名时自动保持原有扩展名
+				-- （第一个非开头的点之后的所有内容被视为扩展名）
 				autoAddExt = true,
 
 				trashCmd = function()
 					if jit.os == "OSX" then
 						return "trash"
-					end -- builtin since macOS 14
+					end -- macOS 14 内置命令
 					if jit.os == "Windows" then
 						return "trash"
 					end
@@ -23,12 +23,12 @@ return {
 					return "trash-cli"
 				end,
 
-				ignoreInFolderSelection = { -- using lua pattern matching (e.g., escape `-` as `%-`)
-					"/node_modules/", -- nodejs
-					"/typings/", -- python
-					"/doc/", -- vim help files folders
-					"%.app/", -- macOS pseudo-folders
-					"/%.", -- hidden folders
+				ignoreInFolderSelection = { -- 使用 Lua 模式匹配（例如，需要转义 `-` 为 `%-`）
+					"/node_modules/", -- Node.js
+					"/typings/", -- Python
+					"/doc/", -- Vim 帮助文件文件夹
+					"%.app/", -- macOS 伪文件夹
+					"/%.", -- 隐藏文件夹
 				},
 			},
 
@@ -41,7 +41,7 @@ return {
 
 			successNotifications = true,
 
-			icons = { -- set an icon to empty string to disable it
+			icons = { -- 设为空字符串以禁用图标
 				chmodx = "󰒃",
 				copyFile = "󱉥",
 				copyPath = "󰅍",
@@ -56,45 +56,35 @@ return {
 			},
 		})
 
-		vim.keymap.set(
-			"n",
-			"<leader>ea",
-			":Genghis createNewFile<CR>",
-			{ desc = "Create a new file in the same directory" }
-		)
+		vim.keymap.set("n", "<leader>ea", ":Genghis createNewFile<CR>", { desc = "在当前目录创建新文件" })
 		vim.keymap.set(
 			"n",
 			"<leader>en",
 			":Genghis createNewFileInFolder<CR>",
-			{ desc = "Create a new file in a folder" }
+			{ desc = "在选择的文件夹中创建新文件" }
 		)
-		vim.keymap.set("n", "<leader>ed", ":Genghis duplicateFile<CR>", { desc = "Duplicate the current file" })
+		vim.keymap.set("n", "<leader>ed", ":Genghis duplicateFile<CR>", { desc = "复制当前文件" })
 		vim.keymap.set(
 			"n",
 			"<leader>em",
 			":Genghis moveSelectionToNewFile<CR>",
-			{ desc = "Move the current selection to a new file" }
+			{ desc = "将选中内容移动到新文件" }
 		)
-		vim.keymap.set("n", "<leader>er", ":Genghis renameFile<CR>", { desc = "Rename the current file" })
+		vim.keymap.set("n", "<leader>er", ":Genghis renameFile<CR>", { desc = "重命名当前文件" })
 		vim.keymap.set(
 			"n",
 			"<leader>ev",
 			":Genghis moveToFolderInCwd<CR>",
-			{ desc = "Move the current file to a folder" }
+			{ desc = "将当前文件移动到工作目录下的文件夹" }
 		)
-		vim.keymap.set(
-			"n",
-			"<leader>ew",
-			":Genghis moveAndRenameFile<CR>",
-			{ desc = "Move and rename the current file" }
-		)
-		vim.keymap.set("n", "<leader>ex", ":Genghis chmodx<CR>", { desc = "Make current file executable" })
-		vim.keymap.set("n", "<leader>et", ":Genghis trashFile<CR>", { desc = "Move the current file to the trash" })
+		vim.keymap.set("n", "<leader>ew", ":Genghis moveAndRenameFile<CR>", { desc = "移动并重命名当前文件" })
+		vim.keymap.set("n", "<leader>ex", ":Genghis chmodx<CR>", { desc = "设置当前文件为可执行" })
+		vim.keymap.set("n", "<leader>et", ":Genghis trashFile<CR>", { desc = "将当前文件移动到回收站" })
 		vim.keymap.set(
 			"n",
 			"<leader>eo",
 			":Genghis showInSystemExplorer<CR>",
-			{ desc = "Show the file in the system explorer" }
+			{ desc = "在系统资源管理器中显示文件" }
 		)
 	end,
 }
