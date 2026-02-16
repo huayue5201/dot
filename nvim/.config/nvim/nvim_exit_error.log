@@ -1,0 +1,100 @@
+=== Neovim Exit Error ===
+Time: Mon Feb 16 07:07:32 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E5108: Lua: ...ia/nvim-store3/lua/nvim-store3/plugins/project_query.lua:160: attempt to perform arithmetic on a string value
+stack traceback:
+	...ia/nvim-store3/lua/nvim-store3/plugins/project_query.lua:160: in function 'show'
+	...ia/nvim-store3/lua/nvim-store3/plugins/project_query.lua:243: in function 'on_choice'
+	.../share/nvim/lazy/dropbar.nvim/lua/dropbar/utils/menu.lua:168: in function 'on_click'
+	....local/share/nvim/lazy/dropbar.nvim/lua/dropbar/menu.lua:349: in function 'click_on'
+	...cal/share/nvim/lazy/dropbar.nvim/lua/dropbar/configs.lua:418: in function <...cal/share/nvim/lazy/dropbar.nvim/lua/dropbar/configs.lua:410>
+
+Error/Warning Messages:
+  E5108: Lua: ...ia/nvim-store3/lua/nvim-store3/plugins/project_query.lua:160: attempt to perform arithmetic on a string value
+
+=== Neovim Exit Error ===
+Time: Mon Feb 16 07:14:50 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E492: Not an editor command: StoreQuery
+
+Error/Warning Messages:
+  E492: Not an editor command: StoreQuery
+  E492: Not an editor command: StoreQuery
+
+=== Neovim Exit Error ===
+Time: Mon Feb 16 07:18:09 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: 未找到代码链接记录: 71830f
+
+=== Neovim Exit Error ===
+Time: Mon Feb 16 07:22:58 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+
+Error/Warning Messages:
+  Client copilot quit with exit code 0 and signal 9. Check log for errors: /Users/lijia/.local/state/nvim/lsp.log
+
+=== Neovim Exit Error ===
+Time: Mon Feb 16 07:27:38 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+
+Error/Warning Messages:
+  Client copilot quit with exit code 0 and signal 9. Check log for errors: /Users/lijia/.local/state/nvim/lsp.log
+
+=== Neovim Exit Error ===
+Time: Mon Feb 16 07:29:17 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+
+Error/Warning Messages:
+  Client copilot quit with exit code 0 and signal 9. Check log for errors: /Users/lijia/.local/state/nvim/lsp.log
+
+=== Neovim Exit Error ===
+Time: Mon Feb 16 07:38:15 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: vim.schedule callback: ...nvim-macos-arm64/share/nvim/runtime/lua/vim/lsp/util.lua:403: Buffer is not 'modifiable'
+stack traceback:
+	[C]: in function 'nvim_buf_set_text'
+	...nvim-macos-arm64/share/nvim/runtime/lua/vim/lsp/util.lua:403: in function 'apply_text_edits'
+	...nvim-macos-arm64/share/nvim/runtime/lua/vim/lsp/util.lua:453: in function 'apply_text_edits'
+	...ocal/share/nvim/lazy/conform.nvim/lua/conform/runner.lua:280: in function 'apply_format'
+	...ocal/share/nvim/lazy/conform.nvim/lua/conform/runner.lua:568: in function 'callback'
+	...ocal/share/nvim/lazy/conform.nvim/lua/conform/runner.lua:600: in function 'run_next_formatter'
+	...ocal/share/nvim/lazy/conform.nvim/lua/conform/runner.lua:613: in function 'cb'
+	....local/share/nvim/lazy/conform.nvim/lua/conform/util.lua:100: in function 'callback'
+	...ocal/share/nvim/lazy/conform.nvim/lua/conform/runner.lua:429: in function ''
+	vim/_core/editor.lua: in function <vim/_core/editor.lua:0>
+
+=== Neovim Exit Error ===
+Time: Mon Feb 16 09:33:40 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+
+Error/Warning Messages:
+  Client copilot quit with exit code 0 and signal 9. Check log for errors: /Users/lijia/.local/state/nvim/lsp.log
+
+=== Neovim Exit Error ===
+Time: Mon Feb 16 09:34:42 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E803: ID not found: 1001
+
+=== Neovim Exit Error ===
+Time: Mon Feb 16 12:34:18 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E117: Unknown function: repeat#set
+
+=== Neovim Exit Error ===
+Time: Mon Feb 16 14:08:57 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+
+Error/Warning Messages:
+  Client copilot quit with exit code 0 and signal 9. Check log for errors: /Users/lijia/.local/state/nvim/lsp.log
+

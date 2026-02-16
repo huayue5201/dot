@@ -195,7 +195,28 @@ return {
 			},
 			-- 补全源配置：定义默认启用的补全提供者
 			sources = {
-				default = { "lazydev", "buffer", "lsp", "path", "snippets", "cmdline" }, -- 默认补全源：LSP、文件路径、代码片段、缓冲区内容
+				-- 动态配置补全源，根据上下文返回不同的源列表
+				default = function(ctx)
+					-- 尝试获取光标位置的 treesitter 节点
+					local success, node = pcall(vim.treesitter.get_node)
+
+					-- 如果成功获取节点，且节点类型是注释类型
+					if
+						success
+						and node
+						and vim.tbl_contains({ "comment", "line_comment", "block_comment" }, node:type())
+					then
+						return { "buffer" } -- 在注释中，只使用缓冲区补全
+
+					-- 如果是 Lua 文件
+					elseif vim.bo.filetype == "lua" then
+						return { "lsp", "path" } -- 在 Lua 文件中，使用 LSP 和路径补全
+
+					-- 其他情况
+					else
+						return { "lsp", "path", "snippets", "buffer" } -- 使用所有补全源
+					end
+				end,
 				providers = {
 					lazydev = {
 						name = "LazyDev",

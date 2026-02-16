@@ -23,6 +23,60 @@ vim.api.nvim_create_user_command("SmartClose", function()
 	require("user.utils").smart_close()
 end, {})
 
+-- 退出时捕获错误并写入当前项目根目录
+-- vim.api.nvim_create_autocmd("VimLeavePre", {
+-- 	pattern = "*",
+-- 	callback = function()
+-- 		-- 获取当前工作目录（项目根目录）
+-- 		local project_root = vim.fn.getcwd()
+--
+-- 		-- 获取所有消息
+-- 		local messages = vim.fn.execute("messages")
+--
+-- 		-- 筛选错误相关的消息
+-- 		local errors = {}
+-- 		for line in messages:gmatch("[^\r\n]+") do
+-- 			if line:match("E%d+") or line:match("[Ee]rror") or line:match("[Ww]arning") or line:match("[Ff]ail") then
+-- 				table.insert(errors, line)
+-- 			end
+-- 		end
+--
+-- 		-- 获取 v:errmsg
+-- 		local errmsg = vim.fn.eval("v:errmsg")
+--
+-- 		-- 如果有错误,写入项目根目录
+-- 		if #errors > 0 or (errmsg and errmsg ~= "") then
+-- 			local log_file = project_root .. "/nvim_exit_error.log"
+--
+-- 			-- 构建日志内容
+-- 			local log_content = {}
+-- 			table.insert(log_content, "=== Neovim Exit Error ===")
+-- 			table.insert(log_content, "Time: " .. os.date())
+-- 			table.insert(log_content, "Project: " .. project_root)
+-- 			table.insert(log_content, "=================================")
+--
+-- 			if errmsg and errmsg ~= "" then
+-- 				table.insert(log_content, "v:errmsg: " .. errmsg)
+-- 			end
+--
+-- 			if #errors > 0 then
+-- 				table.insert(log_content, "\nError/Warning Messages:")
+-- 				for _, err in ipairs(errors) do
+-- 					table.insert(log_content, "  " .. err)
+-- 				end
+-- 			end
+--
+-- 			-- 追加到文件（每次退出都追加）
+-- 			local file = io.open(log_file, "a")
+-- 			if file then
+-- 				file:write(table.concat(log_content, "\n") .. "\n\n")
+-- 				file:close()
+-- 				-- 在 Neovim 退出前打印提示（如果还能看到的话）
+-- 				print("Error log saved to: " .. log_file)
+-- 			end
+-- 		end
+-- 	end,
+-- })
 -- =============================================
 -- 快捷键映射配置
 -- =============================================

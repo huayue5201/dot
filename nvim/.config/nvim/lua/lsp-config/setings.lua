@@ -1,3 +1,4 @@
+---@diagnostic disable: assign-type-mismatch, missing-fields
 local M = {}
 
 local icons = {
@@ -29,6 +30,7 @@ M.diagnostic_config = function()
 		underline = true,
 		update_in_insert = true,
 	})
+	vim.lsp.log.set_level("warn")
 end
 
 M.global_config = function()
