@@ -1,0 +1,9 @@
+=== Neovim 错误日志 ===
+时间: 2026-02-23 09:59:14
+工作目录: /Users/lijia/dotfile/nvim/.config/nvim/todo
+Neovim版本: 0.12.0
+============================
+
+1. ✅ 错误捕获模块已加载，日志文件: /Users/lijia/dotfile/nvim/.config/nvim/todo/nvim_error.log
+2. 全局错误信息(v:errmsg): E116: Invalid arguments for function dictwatcherdel
+

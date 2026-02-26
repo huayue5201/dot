@@ -3,7 +3,6 @@
 return {
 	"esmuellert/codediff.nvim",
 	event = "BufReadPost",
-	dependencies = { "MunifTanjim/nui.nvim" },
 	cmd = "CodeDiff",
 	config = function()
 		require("codediff").setup({

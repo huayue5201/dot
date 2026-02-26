@@ -30,7 +30,7 @@ M.diagnostic_config = function()
 		underline = true,
 		update_in_insert = true,
 	})
-	vim.lsp.log.set_level("warn")
+	vim.lsp.log.set_level(4) -- 日志等级,只记录错误输出
 end
 
 M.global_config = function()

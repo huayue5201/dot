@@ -1,0 +1,154 @@
+=== Neovim Exit Error ===
+Time: Fri Feb 20 09:09:53 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+
+Error/Warning Messages:
+  Client copilot quit with exit code 0 and signal 9. Check log for errors: /Users/lijia/.local/state/nvim/lsp.log
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:32:39 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E117: Unknown function: repeat#set
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:39:32 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:40:56 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:42:18 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E117: Unknown function: repeat#set
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:44:54 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:45:19 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:45:37 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:46:44 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:48:30 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: vim.schedule callback: /Users/lijia/todo2/lua/todo2/autocmds.lua:48: Invalid buffer id: 166
+stack traceback:
+	[C]: in function 'nvim_buf_get_lines'
+	/Users/lijia/todo2/lua/todo2/autocmds.lua:48: in function 'extract_ids_from_current_line'
+	/Users/lijia/todo2/lua/todo2/autocmds.lua:101: in function ''
+	vim/_core/editor.lua: in function <vim/_core/editor.lua:0>
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:50:27 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:57:14 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:59:20 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 12:59:57 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 13:00:12 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 13:01:17 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 13:02:02 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 13:04:01 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 13:04:47 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 13:05:20 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 13:05:33 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 21:08:26 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Fri Feb 20 21:08:46 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E116: Invalid arguments for function dictwatcherdel
+
+=== Neovim Exit Error ===
+Time: Sat Feb 21 06:42:55 2026
+Project: /Users/lijia/dotfile/nvim/.config/nvim
+=================================
+v:errmsg: E117: Unknown function: repeat#set
+
+Error/Warning Messages:
+  "~/dotfile/nvim/.config/nvim/lua/user/nvim_exit_error.lua" 83L, 2368B written
+

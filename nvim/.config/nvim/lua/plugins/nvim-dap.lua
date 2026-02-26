@@ -38,16 +38,16 @@ return {
 		local dap = require("dap")
 
 		-- 自动开启和关闭调试界面[citation:3]
-		local daps, dapui = dap, require("dapui")
-		daps.listeners.after.event_initialized["dapui_config"] = function()
-			dapui.open({})
-		end
-		daps.listeners.before.event_terminated["dapui_config"] = function()
-			dapui.close({})
-		end
-		daps.listeners.before.event_exited["dapui_config"] = function()
-			dapui.close({})
-		end
+		-- local daps, dapui = dap, require("dapui")
+		-- daps.listeners.after.event_initialized["dapui_config"] = function()
+		-- 	dapui.open({})
+		-- end
+		-- daps.listeners.before.event_terminated["dapui_config"] = function()
+		-- 	dapui.close({})
+		-- end
+		-- daps.listeners.before.event_exited["dapui_config"] = function()
+		-- 	dapui.close({})
+		-- end
 
 		--  nvim-dap配置
 		local dap_defaults = {
@@ -86,7 +86,7 @@ return {
 					-- 将结果放入系统剪贴板（+寄存器）
 					vim.fn.setreg("+", result)
 					-- 输出信息到 REPL
-					daps.repl.append("Copied to clipboard: " .. result)
+					dap.repl.append("Copied to clipboard: " .. result)
 				end,
 			},
 		})
@@ -126,11 +126,20 @@ return {
 			end,
 		})
 
+		-- 使用 nvim-store3
+		local Store = require("nvim-store3").project()
+		-- 初始化调试状态
+		if Store:get("dap.active") == nil then
+			Store:set("dap.active", false)
+		end
+
 		-- 使用局部变量避免全局污染
 		local keymap_restore = {}
 		local original_global_k = nil
 
 		dap.listeners.after["event_initialized"]["me"] = function()
+			-- 设置调试状态为激活
+			Store:set("dap.active", true)
 			-- 关闭lsp内嵌提示
 			vim.lsp.inlay_hint.enable(false)
 			-- 关闭诊断提示
@@ -167,6 +176,8 @@ return {
 		end
 
 		dap.listeners.after["event_terminated"]["me"] = function()
+			-- 设置调试状态为非激活
+			Store:set("dap.active", false)
 			-- 开启lsp内嵌提示
 			vim.lsp.inlay_hint.enable(true)
 			-- 开启诊断提示

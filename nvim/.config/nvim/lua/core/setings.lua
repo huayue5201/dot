@@ -1,4 +1,7 @@
--- -------------- Neovim 插件加载相关 --------------
+-------------- Neovim 插件加载相关 --------------
+-- 错误捕捉模块
+require("user.error_catcher").setup()
+
 -- 禁用 Perl 和 Ruby 提供者
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_ruby_provider = 0
@@ -27,17 +30,19 @@ vim.opt.smoothscroll = true -- 开启平滑滚动
 vim.opt.undofile = true -- 启用持久撤销
 vim.opt.confirm = true -- 未保存退出确认
 vim.opt.spelloptions = "camel" -- 开启驼峰拼写检查
-vim.opt.messagesopt = "wait:200,history:1000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
+-- vim.opt.messagesopt = "wait:200,history:1000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
 -- https://github.com/neovim/neovim/pull/27855
-require("vim._extui").enable({
-	enable = true, -- Whether to enable or disable the UI.
-	msg = { -- Options related to the message module.
-		---@type 'cmd'|'msg' Where to place regular messages, either in the
-		---cmdline or in a separate ephemeral message window.
-		target = "msg",
-		timeout = 4000, -- Time a message is visible in the message window.
-	},
-})
+-- require("vim._extui").enable({
+-- 	enable = true, -- Whether to enable or disable the UI.
+-- 	msg = { -- Options related to the message module.
+-- 		---@type 'box'|'cmd' Type of window used to place messages, either in the
+-- 		---cmdline or in a separate message box window with ephemeral messages.
+-- 		pos = "cmd",
+-- 		box = { -- Options related to the message box window.
+-- 			timeout = 4000, -- Time a message is visible.
+-- 		},
+-- 	},
+-- })
 
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式

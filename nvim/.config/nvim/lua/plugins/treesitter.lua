@@ -11,6 +11,7 @@ return {
 	},
 	config = function()
 		require("nvim-dap-repl-highlights").setup()
+
 		-- 1. 确保安装需要的语言解析器
 		local ensure_installed = {
 			"c",
@@ -29,13 +30,33 @@ return {
 			"dap_repl",
 			"go",
 			"rust",
-			"python",
 			"regex",
-			"rust",
 			"comment", -- 用于注释高亮
 		}
 
 		require("nvim-treesitter").install(ensure_installed)
+
+		-- 添加重装指定语法文件的命令（只重装 ensure_installed 中的语言）
+		vim.api.nvim_create_user_command("TSReinstall", function()
+			local total = #ensure_installed
+			for i, lang in ipairs(ensure_installed) do
+				vim.cmd("TSInstall! " .. lang)
+				print(string.format("[%d/%d] Reinstalled %s parser", i, total, lang))
+			end
+			print("All configured treesitter parsers reinstalled")
+		end, {
+			desc = "Reinstall all treesitter parsers from ensure_installed list",
+		})
+
+		-- 添加重装单个语法文件的命令（方便调试）
+		vim.api.nvim_create_user_command("TSReinstallLang", function(opts)
+			local lang = opts.args
+			vim.cmd("TSInstall! " .. lang)
+			print("Reinstalled " .. lang .. " parser")
+		end, {
+			nargs = 1,
+			desc = "Reinstall a specific treesitter parser",
+		})
 
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = ensure_installed,

@@ -9,6 +9,17 @@ return {
 			position = "bottom", -- 位置
 			size = 50, -- ← 这里可以设置大小（行数）
 		},
+		modes = {
+			test = {
+				mode = "diagnostics",
+				preview = {
+					type = "split",
+					relative = "win",
+					position = "right",
+					size = 0.3,
+				},
+			},
+		},
 	}, -- for default options, refer to the configuration section for custom setup.
 	cmd = "Trouble",
 	keys = {

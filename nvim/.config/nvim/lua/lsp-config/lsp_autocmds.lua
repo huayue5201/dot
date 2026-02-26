@@ -1,4 +1,4 @@
---- File: /Users/lijia/dotfile/nvim/.config/nvim/lua/lsp-config/lsp_autocmds.lua ---
+--- File: /Users/lijia/dotfile/nvim/.config/nvim/lua/lsp-config/lsp_autocmds.lua
 ---@diagnostic disable: need-check-nil
 -- LSP 配置模块
 local M = {}
@@ -15,6 +15,10 @@ end
 if Store:get("lsp.diagnostics") == nil then
 	Store:set("lsp.diagnostics", "on")
 end
+-- 初始化调试状态
+if Store:get("dap.active") == nil then
+	Store:set("dap.active", false)
+end
 
 -- 存储当前缓冲区的状态
 local buffer_states = {}
@@ -29,6 +33,12 @@ local function auto_diagnostic()
 		callback = function(args)
 			local bufnr = args.buf
 			local mode = vim.fn.mode()
+
+			-- 如果调试处于活动状态，不做任何操作
+			if Store:get("dap.active") then
+				return
+			end
+
 			local diagnostics_enabled = Store:get("lsp.diagnostics")
 
 			-- 只在诊断启用时才进行切换
@@ -57,6 +67,12 @@ local function auto_inlay_hint()
 		desc = "Disable lsp.inlay_hint when in insert mode",
 		callback = function(args)
 			local bufnr = args.buf
+
+			-- 如果调试处于活动状态，不做任何操作
+			if Store:get("dap.active") then
+				return
+			end
+
 			local inlay_hint_enable = Store:get("lsp.inlay_hints")
 
 			if inlay_hint_enable == "on" then
@@ -71,6 +87,12 @@ local function auto_inlay_hint()
 		desc = "Re-enable lsp.inlay_hint when leaving insert mode",
 		callback = function(args)
 			local bufnr = args.buf
+
+			-- 如果调试处于活动状态，不做任何操作
+			if Store:get("dap.active") then
+				return
+			end
+
 			local inlay_hint_enable = Store:get("lsp.inlay_hints")
 
 			if inlay_hint_enable == "on" then
@@ -86,7 +108,17 @@ end
 -- 应用当前缓冲区的设置
 ---------------------------------------------------------
 local function apply_buffer_settings(bufnr)
-	-- 获取设置
+	-- 如果调试处于活动状态，强制禁用 LSP 功能
+	if Store:get("dap.active") then
+		vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
+		vim.diagnostic.enable(false, { bufnr = bufnr })
+		buffer_states[bufnr] = buffer_states[bufnr] or {}
+		buffer_states[bufnr].inlay_hint_enabled = false
+		buffer_states[bufnr].diagnostics_enabled = false
+		return
+	end
+
+	-- 正常模式下的设置
 	local inlay_hint_enable = Store:get("lsp.inlay_hints")
 	local diagnostics_enabled = Store:get("lsp.diagnostics")
 
@@ -116,8 +148,23 @@ end
 -- 处理设置变化
 ---------------------------------------------------------
 local function setup_settings_watcher()
+	-- 监听调试状态变化（新增！）
+	Store:on("dap.active", function(value)
+		local clients = vim.lsp.get_clients()
+		for _, client in ipairs(clients) do
+			for _, bufnr in ipairs(client.attached_buffers or {}) do
+				apply_buffer_settings(bufnr)
+			end
+		end
+	end)
+
 	-- 监听内联提示设置变化
 	Store:on("lsp.inlay_hints", function(value)
+		-- 如果调试处于活动状态，忽略设置变化
+		if Store:get("dap.active") then
+			return
+		end
+
 		local clients = vim.lsp.get_clients()
 		for _, client in ipairs(clients) do
 			for _, bufnr in ipairs(client.attached_buffers or {}) do
@@ -138,6 +185,11 @@ local function setup_settings_watcher()
 
 	-- 监听诊断设置变化
 	Store:on("lsp.diagnostics", function(value)
+		-- 如果调试处于活动状态，忽略设置变化
+		if Store:get("dap.active") then
+			return
+		end
+
 		local clients = vim.lsp.get_clients()
 		for _, client in ipairs(clients) do
 			for _, bufnr in ipairs(client.attached_buffers or {}) do

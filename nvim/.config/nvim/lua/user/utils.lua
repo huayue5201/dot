@@ -34,14 +34,6 @@ M.buf_keymaps = {
 }
 
 -- ============================
--- 辅助：判断是否浮动窗口
--- ============================
-local function is_float(win)
-	local cfg = vim.api.nvim_win_get_config(win)
-	return cfg.relative ~= ""
-end
-
--- ============================
 -- ⭐统一关闭函数（核心）
 -- ============================
 function M.smart_close(target_win)

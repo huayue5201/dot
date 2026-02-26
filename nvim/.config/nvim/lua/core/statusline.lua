@@ -5,6 +5,7 @@ local colors = utils.palette
 local lsp = require("lsp-config.lsp_status_mod").lsp
 require("user.search_status").setup()
 local search_status = require("user.search_status")
+local todo_status = require("todo2.ui.statusline")
 
 local M = {} -- 使用 M 作为模块的局部变量
 
@@ -296,6 +297,18 @@ function M.get_scrollbar()
 end
 
 -- ================================
+-- ⭐ TODO 标记数量显示
+-- ================================
+function M.todo_markers()
+	local count = todo_status.get_marker_count()
+	if count == 0 then
+		return ""
+	end
+	-- 使用 StatuslineIcon 高亮组保持一致
+	return string.format("%%#StatuslineIcon# %%#Normal#%d ", count)
+end
+
+-- ================================
 -- 状态栏组装
 -- ================================
 
@@ -308,6 +321,7 @@ function M.active()
 		"   ",
 		lsp(),
 		"%=", -- 分隔符
+		M.todo_markers(), -- ⭐ 添加 TODO 标记数量显示
 		search_status.get() .. " ",
 		M.dap_status() .. " ",
 		M.vcs() .. "  ",
