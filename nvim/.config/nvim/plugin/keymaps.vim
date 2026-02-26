@@ -14,6 +14,7 @@ function! DeleteCurrentSwapFile()
         return
     endif
     " 构造对应的.swp文件路径 (注意：交换文件名以 '.' 开头)
+    " DEBUG:ref:6f6ce8
     let swapfile = fnamemodify(current_file, ':h') . '/.' . fnamemodify(current_file, ':t') . '.swp'
     if filereadable(swapfile)
         if delete(swapfile) == 0

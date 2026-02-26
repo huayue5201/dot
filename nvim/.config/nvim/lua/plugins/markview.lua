@@ -40,8 +40,6 @@ return {
 					-- icon_unchecked = "󰄱",
 					-- icon_checked = "󰄲",
 				},
-
-				-- 其他内联元素的配置...
 			},
 		})
 	end,

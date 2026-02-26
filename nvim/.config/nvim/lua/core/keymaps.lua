@@ -17,12 +17,6 @@ vim.keymap.set("n", "<C-S-s>", function()
 	end
 end, { silent = true, desc = "Save all modified buffers" })
 
--- https://github.com/elijah-potter/tatum
--- cargo install --git https://github.com/elijah-potter/tatum --locked
-vim.keymap.set("n", "<leader>oo", function()
-	vim.fn.jobstart({ "tatum", "serve", "--open", vim.fn.expand("%") }, { noremap = true, silent = true })
-end)
-
 -- vim.keymap.set("n", "<c-esc>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 vim.keymap.set("n", "<c-esc>", function()
 	require("user.utils").smart_close()

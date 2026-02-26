@@ -64,10 +64,10 @@ return {
 			require("nvim-treesitter-textobjects.select").select_textobject("@local.scope", "locals")
 		end)
 		-- keymaps
-		vim.keymap.set("n", "<C-=>", function()
+		vim.keymap.set("n", "<A-=>", function()
 			require("nvim-treesitter-textobjects.swap").swap_next("@parameter.inner")
 		end)
-		vim.keymap.set("n", "<C-->", function()
+		vim.keymap.set("n", "<A-->", function()
 			require("nvim-treesitter-textobjects.swap").swap_previous("@parameter.outer")
 		end)
 	end,
