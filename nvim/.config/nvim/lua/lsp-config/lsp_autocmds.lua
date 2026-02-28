@@ -240,7 +240,8 @@ function M.setup()
 			vim.lsp.document_color.enable(true, bufnr, { style = "virtual" })
 
 			if client:supports_method("textDocument/onTypeFormatting") then
-				vim.lsp.on_type_formatting.enable(true, { client_id = client.id, bufnr = bufnr })
+				-- vim.lsp.on_type_formatting.enable(true, { client_id = client.id, bufnr = bufnr })
+				vim.lsp.on_type_formatting.enable()
 			end
 
 			if client:supports_method("textDocument/foldingRange") then

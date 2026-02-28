@@ -65,9 +65,9 @@ return {
 					[vim.diagnostic.severity.HINT] = { enabled = true },
 				},
 				gitsigns = {
-					added = { enabled = true, icon = "+" },
-					changed = { enabled = true, icon = "~" },
-					deleted = { enabled = true, icon = "-" },
+					added = { enabled = false, icon = "+" },
+					changed = { enabled = false, icon = "~" },
+					deleted = { enabled = false, icon = "-" },
 				},
 				filetype = {
 					-- 设置图标的高亮组。

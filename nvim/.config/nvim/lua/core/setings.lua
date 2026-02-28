@@ -21,28 +21,15 @@ vim.opt.cursorline = true -- 高亮当前行
 vim.opt.cursorcolumn = true -- 启用当前列高亮
 vim.g.vimsyn_embed = "alpPrj" -- 嵌入语法高亮
 -- vim.opt.textwidth = 1000 -- 超过 1000 列才换行
-vim.opt.wrap = false -- 显示换行
--- vim.opt.linebreak = true -- 在单词边界换行（视觉更自然）
--- vim.opt.showbreak = "↪ " -- 换行提示符（可选）
--- vim.opt.listchars:append({ precedes = "<", extends = ">" }) -- 长行可视化提示
--- vim.opt.sidescroll = 5 -- 如果行仍然超出窗口宽度，水平滚动 5 列
+vim.opt.wrap = true -- 显示换行
+vim.opt.linebreak = true -- 在单词边界换行（视觉更自然）
+vim.opt.showbreak = "↪ " -- 换行提示符（可选）
+vim.opt.listchars:append({ precedes = "<", extends = ">" }) -- 长行可视化提示
+vim.opt.sidescroll = 5 -- 如果行仍然超出窗口宽度，水平滚动 5 列
 vim.opt.smoothscroll = true -- 开启平滑滚动
 vim.opt.undofile = true -- 启用持久撤销
 vim.opt.confirm = true -- 未保存退出确认
 vim.opt.spelloptions = "camel" -- 开启驼峰拼写检查
--- vim.opt.messagesopt = "wait:200,history:1000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
--- https://github.com/neovim/neovim/pull/27855
--- require("vim._extui").enable({
--- 	enable = true, -- Whether to enable or disable the UI.
--- 	msg = { -- Options related to the message module.
--- 		---@type 'box'|'cmd' Type of window used to place messages, either in the
--- 		---cmdline or in a separate message box window with ephemeral messages.
--- 		pos = "cmd",
--- 		box = { -- Options related to the message box window.
--- 			timeout = 4000, -- Time a message is visible.
--- 		},
--- 	},
--- })
 
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式
@@ -98,6 +85,16 @@ vim.opt.number = true --显示行号
 vim.opt.relativenumber = true -- 启用相对行号
 vim.opt.signcolumn = "yes:3" -- 始终显示标志列
 vim.opt.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换到最近使用过的标签页（如果有）
+vim.opt.messagesopt = "wait:200,history:1000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
+require("vim._core.ui2").enable({
+	enable = true, -- Whether to enable or disable the UI.
+	msg = { -- Options related to the message module.
+		---@type 'cmd'|'msg' Where to place regular messages, either in the
+		---cmdline or in a separate ephemeral message window.
+		target = "msg",
+		timeout = 4000, -- Time a message is visible in the message window.
+	},
+})
 
 -- -------------- 显示和符号设置 --------------
 vim.opt.list = true -- 显示不可见字符
