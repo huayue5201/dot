@@ -68,11 +68,32 @@ function M.smart_close(target_win)
 			return
 		end
 
-		-- 普通窗口
+		-- 普通窗口 - 修复最后一个窗口的处理
 		if vim.fn.winnr("$") > 1 then
+			-- 有多个窗口，正常关闭
 			vim.api.nvim_win_close(win, { force = true, noautocmd = true })
 		else
-			vim.cmd("bdelete " .. buf)
+			-- 只有一个窗口时的处理
+			local buf_count = #vim.api.nvim_list_bufs()
+
+			if buf_count > 1 then
+				-- 如果有多个缓冲区，切换到其他缓冲区
+				local buffers = vim.api.nvim_list_bufs()
+				for _, other_buf in ipairs(buffers) do
+					if other_buf ~= buf and vim.api.nvim_buf_is_loaded(other_buf) then
+						vim.api.nvim_win_set_buf(win, other_buf)
+						-- 关闭原缓冲区
+						pcall(vim.api.nvim_buf_delete, buf, { force = false })
+						return
+					end
+				end
+			end
+
+			-- 只有一个缓冲区，询问是否退出
+			local choice = vim.fn.confirm("这是最后一个窗口，确认退出Neovim？", "&是\n&否", 2)
+			if choice == 1 then
+				vim.cmd("qa")
+			end
 		end
 		return
 	end
