@@ -1,6 +1,6 @@
 -------------- Neovim 插件加载相关 --------------
 -- 错误捕捉模块
-require("user.error_catcher").setup()
+-- require("user.error_catcher").setup()
 
 -- 禁用 Perl 和 Ruby 提供者
 vim.g.loaded_perl_provider = 0

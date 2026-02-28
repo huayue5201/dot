@@ -32,7 +32,7 @@ return {
 			clickable = true,
 
 			-- 从标签栏中排除特定文件类型的缓冲区
-			exclude_ft = { "dap-view-term" },
+			-- exclude_ft = { "dap-view-term" },
 			-- exclude_name = { "package.json" },
 
 			-- 关闭当前缓冲区时，焦点将移动到该方向的缓冲区（如果存在）。
