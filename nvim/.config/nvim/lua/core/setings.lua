@@ -21,7 +21,7 @@ vim.opt.cursorline = true -- 高亮当前行
 vim.opt.cursorcolumn = true -- 启用当前列高亮
 vim.g.vimsyn_embed = "alpPrj" -- 嵌入语法高亮
 -- vim.opt.textwidth = 1000 -- 超过 1000 列才换行
-vim.opt.wrap = true -- 显示换行
+vim.opt.wrap = false -- 显示换行
 vim.opt.linebreak = true -- 在单词边界换行（视觉更自然）
 vim.opt.showbreak = "↪ " -- 换行提示符（可选）
 vim.opt.listchars:append({ precedes = "<", extends = ">" }) -- 长行可视化提示
@@ -30,6 +30,8 @@ vim.opt.smoothscroll = true -- 开启平滑滚动
 vim.opt.undofile = true -- 启用持久撤销
 vim.opt.confirm = true -- 未保存退出确认
 vim.opt.spelloptions = "camel" -- 开启驼峰拼写检查
+-- 限制 Neovim 在重绘时发送的最大行数
+vim.o.maxcombine = 8 -- 最大组合字符数
 
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式
