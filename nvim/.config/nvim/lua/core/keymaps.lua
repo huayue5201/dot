@@ -50,6 +50,12 @@ end
 
 vim.keymap.set("n", "<leader>eu", undotree, { desc = "UndoTree: toggle undotree" })
 
+vim.keymap.set("n", "<s-a-w>", function()
+	local new_wrap = not vim.wo.wrap
+	vim.wo.wrap = new_wrap
+	print("Wrap " .. (new_wrap and "enabled" or "disabled"))
+end, { desc = "Toggle line wrap" })
+
 -- 🏷 Tab operations
 vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
 vim.api.nvim_set_keymap("n", "<leader>tmh", ":-tabmove<CR>", {
