@@ -25,11 +25,11 @@ M.buf_keymaps = {
 		["dap-repl"] = { cmd = "close" },
 		["dap-float"] = { cmd = "close" },
 		["dap-view-term"] = { cmd = "close" },
+		["dap-view"] = { cmd = "DapViewClose" },
 		["gitsigns-blame"] = { cmd = "bdelete!" },
 		terminal = { cmd = "bdelete" },
 		["nvim-undotree"] = { cmd = "close" },
 		["vscode-diff-explorer"] = { cmd = "tabclose" },
-		SymbolsSidebar = { cmd = "SymbolsClose" },
 	},
 }
 

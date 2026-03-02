@@ -138,12 +138,14 @@ return {
 			if expr and expr ~= "" then
 				-- 直接使用获取到的表达式
 				require("dap-view").add_expr(expr, false)
+				require("dap-view").open()
 				vim.notify(string.format("已添加监视: %s", expr), vim.log.levels.INFO)
 			else
 				-- 没有获取到，弹出输入框
-				vim.ui.input({ prompt = "输入监视表达式: " }, function(input)
+				vim.ui.input({ prompt = "󰌓 Add watch: " }, function(input)
 					if input and input ~= "" then
 						require("dap-view").add_expr(input, false)
+						require("dap-view").open()
 						vim.notify(string.format("已添加监视: %s", input), vim.log.levels.INFO)
 					end
 				end)
@@ -153,9 +155,6 @@ return {
 		-- 通过选择器跳转到视图
 		vim.keymap.set("n", "<leader>dj", function()
 			local dap_view = require("dap-view")
-
-			-- 先确保视图打开
-			-- dap_view.toggle(false)
 
 			local views = {
 				{ name = "Breakpoints", id = "breakpoints", icon = " " },
