@@ -46,8 +46,8 @@ return {
 		})
 
 		vim.o.background = "dark" -- 可选：设置背景为 "dark" 或 "light"
-		vim.cmd.colorscheme("oasis-abyss") -- After setup, apply theme (or a any style like "oasis-night")
-		-- vim.cmd.colorscheme("oasis-midnight") -- After setup, apply theme (or a any style like "oasis-night")
+		-- vim.cmd.colorscheme("oasis-abyss") -- After setup, apply theme (or a any style like "oasis-night")
+		vim.cmd.colorscheme("oasis-night") -- After setup, apply theme (or a any style like "oasis-night")
 		-- vim.cmd.colorscheme("oasis-starlight") -- After setup, apply theme (or a any style like "oasis-night")
 	end,
 }

@@ -6,13 +6,14 @@
 # font-family = Victor Mono
 # font-family = FiraCode Nerd Font
 # font-family = FantasqueSansM Nerd Font
-font-family = monofur Nerd Font
+# font-family = monofur Nerd Font
+font-family = iosevkaTermSlab Nerd Font
 # 启用加粗字体
 # font-thicken = true
 
 # 设置字体大小
-font-size = 19
-adjust-cell-height = 10
+font-size = 18
+adjust-cell-height = 5
 
 # 下划线配置
  # adjust-font-baseline = 5
