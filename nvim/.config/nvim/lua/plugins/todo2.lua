@@ -1,4 +1,4 @@
--- https://github.com/huayue5201/todo2/tree/main/lua/todo2
+-- https://github.com/huayue5201/todo2
 
 return {
 	dir = "~/todo2",
