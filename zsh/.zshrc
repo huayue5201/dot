@@ -16,16 +16,6 @@ fi
 source "${HOME}/.zinit/bin/zinit.zsh"
 
 # ---------------------------------------
-# Powerlevel10k（异步提示符）
-# ---------------------------------------
-zinit ice depth"1"
-zinit light romkatv/powerlevel10k
-
-POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
-POWERLEVEL9K_DISABLE_GITSTATUS=false
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
-
-# ---------------------------------------
 # 历史记录
 # ---------------------------------------
 HISTFILE=~/.zsh_history
@@ -156,6 +146,8 @@ fe() {
 # 其他工具
 # ---------------------------------------
 eval "$(zoxide init zsh)"
+# https://github.com/starship/starship
+eval "$(starship init zsh)"
 
 # bun completions
 [ -s "/Users/lijia/.bun/_bun" ] && source "/Users/lijia/.bun/_bun"

@@ -33,6 +33,10 @@ return {
 				name = "Launch file",
 				program = "${file}",
 				cwd = "${workspaceFolder}",
+				exceptionBreakpointFilters = {
+					{ filter = "all", label = "All Exceptions" },
+					{ filter = "uncaught", label = "Uncaught Exceptions", default = true },
+				},
 			},
 			{
 				type = "pwa-node",
@@ -47,17 +51,21 @@ return {
 		dap.configurations.typescript = js_ts_launch
 
 		-- React / 前端调试
-		-- local chrome_config = {
-		-- 	type = "pwa-chrome",
-		-- 	request = "launch",
-		-- 	name = "Launch Chrome against localhost",
-		-- 	url = "http://localhost:3000",
-		-- 	webRoot = "${workspaceFolder}",
-		-- 	sourceMaps = true,
-		-- 	userDataDir = "/tmp/chrome-dap",
-		-- }
+		local chrome_config = {
+			type = "pwa-chrome",
+			request = "launch",
+			name = "Launch Chrome against localhost",
+			url = "http://localhost:3000",
+			webRoot = "${workspaceFolder}",
+			sourceMaps = true,
+			userDataDir = "/tmp/chrome-dap",
+			exceptionBreakpointFilters = {
+				{ filter = "all", label = "All Exceptions" },
+				{ filter = "uncaught", label = "Uncaught Exceptions", default = true },
+			},
+		}
 
-		-- dap.configurations.javascriptreact = { chrome_config }
-		-- dap.configurations.typescriptreact = { chrome_config }
+		dap.configurations.javascriptreact = { chrome_config }
+		dap.configurations.typescriptreact = { chrome_config }
 	end,
 }

@@ -45,21 +45,24 @@ function M.setup()
 		dap.toggle_breakpoint()
 		require("dap-config.breakpoint_state").sync_breakpoints()
 	end, { desc = "DAP: 切换断点" })
-	vim.keymap.set("n", "<leader>db", function()
-		dap.set_exception_breakpoints()
-		require("dap-config.breakpoint_state").sync_breakpoints()
-	end, { desc = "DAP: 设置异常断点" })
+
 	vim.keymap.set("n", "<leader>d?", function()
 		bp.set_breakpoint()
 		require("dap-config.breakpoint_state").sync_breakpoints()
 	end, { desc = "DAP: 自定义断点" })
+
 	vim.keymap.set("n", "<leader>dC", function()
 		dap.clear_breakpoints()
 		require("dap-config.breakpoint_state").clear_breakpoints()
 	end, { desc = "DAP: 清除所有断点" })
 
-	vim.keymap.set("n", "[`", dap.up, { desc = "DAP: 上一个帧" })
-	vim.keymap.set("n", "]`", dap.down, { desc = "DAP: 下一个帧" })
+	vim.keymap.set("n", "<leader>db", function()
+		require("dap-config.exception-breakpoints").toggle()
+	end, { desc = "DAP: 设置异常断点" })
+
+	vim.keymap.set("n", "[[", dap.up, { desc = "DAP: 上一个帧" })
+
+	vim.keymap.set("n", "]]", dap.down, { desc = "DAP: 下一个帧" })
 
 	-- 🔍 评估 / 日志
 	vim.keymap.set("n", "<leader>da", function()
