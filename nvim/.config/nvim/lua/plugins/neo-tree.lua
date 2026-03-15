@@ -27,8 +27,24 @@ return {
 
 			---@diagnostic disable-next-line: missing-fields
 			require("neo-tree").setup({
+				sources = {
+					"filesystem",
+					"buffers",
+					"git_status",
+					"document_symbols",
+				},
 				close_if_last_window = true,
 				popup_border_style = "rounded",
+				source_selector = {
+					winbar = true,
+					statusline = false,
+					sources = {
+						{ source = "filesystem" },
+						{ source = "buffers" },
+						{ source = "git_status" },
+						{ source = "document_symbols" },
+					},
+				},
 				window = {
 					position = "left",
 					width = 45,
@@ -117,6 +133,7 @@ return {
 			vim.keymap.set("n", "<leader>ee", "<Cmd>Neotree filesystem reveal<CR>")
 			vim.keymap.set("n", "<leader>eb", "<Cmd>Neotree buffers toggle<CR>")
 			vim.keymap.set("n", "<leader>eg", "<Cmd>Neotree git_status toggle<CR>")
+			vim.keymap.set("n", "<leader>es", "<Cmd>Neotree document_symbols toggle<CR>")
 		end,
 	},
 }

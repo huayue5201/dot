@@ -1,0 +1,10 @@
+=== Neovim 错误日志 ===
+时间: 2026-03-09 15:58:46
+工作目录: /Users/lijia/dotfile/nvim/.config/nvim
+Neovim版本: 0.12.0
+============================
+
+1. ✅ 错误捕获模块已加载，日志文件: /Users/lijia/dotfile/nvim/.config/nvim/nvim_error.log
+2. E128: Function name must start with a capital or "s:": dictwatcherdel
+3. 全局错误信息(v:errmsg): E128: Function name must start with a capital or "s:": dictwatcherdel
+

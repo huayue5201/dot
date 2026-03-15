@@ -28,6 +28,11 @@ return {
 				"rust-analyzer",
 				"shfmt",
 				"ty",
+				"stylua",
+				"ruff",
+				"taplo",
+				"biome",
+				"dprint",
 			}
 
 			local registry = require("mason-registry")

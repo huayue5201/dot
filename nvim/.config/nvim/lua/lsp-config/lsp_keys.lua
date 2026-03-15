@@ -69,66 +69,6 @@ function M.open_buffer_diagnostics()
 end
 
 ---------------------------------------------------------
--- 复制错误信息
----------------------------------------------------------
-local function CopyErrorMessage()
-	local row = vim.api.nvim_win_get_cursor(0)[1] - 1
-	local bufnr = vim.api.nvim_get_current_buf()
-	local diag = vim.diagnostic.get(bufnr, { lnum = row })
-
-	if #diag == 0 then
-		vim.notify("No diagnostics found.", vim.log.levels.WARN)
-		return
-	end
-
-	table.sort(diag, function(a, b)
-		return a.severity < b.severity
-	end)
-
-	local messages = {}
-	local all = ""
-
-	for _, d in ipairs(diag) do
-		local msg = string.format(
-			"[%s] %s [%s] - %s",
-			vim.diagnostic.severity[d.severity],
-			d.message,
-			d.code or "No code",
-			d.source or "?"
-		)
-		all = all .. msg .. "\n"
-		table.insert(messages, msg)
-	end
-
-	if #messages == 1 then
-		vim.fn.setreg("+", messages[1])
-		vim.fn.setreg('"', messages[1])
-		return
-	end
-
-	local choices = { "Copy all" }
-	vim.list_extend(choices, messages)
-
-	vim.ui.select(choices, {
-		prompt = "Select message to copy:",
-	}, function(choice, idx)
-		if not choice then
-			return
-		end
-
-		if idx == 1 then
-			local trimmed = vim.trim(all)
-			vim.fn.setreg("+", trimmed)
-			vim.fn.setreg('"', trimmed)
-		else
-			local msg = messages[idx - 1]
-			vim.fn.setreg("+", msg)
-			vim.fn.setreg('"', msg)
-		end
-	end)
-end
-
----------------------------------------------------------
 -- 按键映射
 ---------------------------------------------------------
 local keymaps = {
@@ -188,7 +128,7 @@ local keymaps = {
 	},
 	{
 		"<leader>yd",
-		CopyErrorMessage,
+		require("lsp-config.copy_diagnostics").copy_error_message,
 		"LSP: copy diagnostics",
 	},
 }
@@ -209,11 +149,11 @@ M.global_keymaps = function()
 		restart_lsp()
 	end, { noremap = true, silent = true, desc = "LSP: 重启lsp" })
 
-	vim.keymap.set("n", "<leader>st", function()
+	vim.keymap.set("n", "<leader>so", function()
 		toggle_lsp()
 	end, { desc = "Toggle LSP for current filetype" })
 
-	vim.keymap.set("n", "<leader>sg", function()
+	vim.keymap.set("n", "<leader>sl", function()
 		vim.cmd("tabnew " .. vim.lsp.log.get_filename())
 	end, { desc = "lsp log" })
 

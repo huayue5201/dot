@@ -56,7 +56,7 @@ return {
 			})
 		end, { desc = "grug-far：使用可视选择搜索当前文件" })
 
-		vim.keymap.set({ "n", "x" }, "<leader>si", function()
+		vim.keymap.set({ "n", "x" }, "<leader>gi", function()
 			require("grug-far").open({ visualSelectionUsage = "operate-within-range" })
 		end, { desc = "grug-far: Search within range" })
 		----------------------------------------------------------------------

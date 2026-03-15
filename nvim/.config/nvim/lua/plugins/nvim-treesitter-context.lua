@@ -23,7 +23,7 @@ return {
 hi TreesitterContextBottom gui=underline guisp=Grey
 hi TreesitterContextLineNumberBottom gui=underline guisp=Grey
 ]])
-		vim.keymap.set("n", "[c", function()
+		vim.keymap.set("n", "<localleader>c", function()
 			require("treesitter-context").go_to_context(vim.v.count1)
 		end, { silent = true, desc = "上下文跳转" })
 	end,

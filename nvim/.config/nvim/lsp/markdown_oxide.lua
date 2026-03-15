@@ -1,3 +1,14 @@
+local function execute_lsp_command(cmd, args)
+	-- 使用 get_active_clients 来避免参数警告
+	local clients = vim.lsp.get_active_clients({ bufnr = 0 })
+	for _, client in ipairs(clients) do
+		-- 检查客户端名称以确保是 markdown-oxide
+		if client.name == "markdown-oxide" and client.supports_method("workspace/executeCommand") then
+			client:exec_cmd({ command = cmd, arguments = args }, { bufnr = 0 })
+		end
+	end
+end
+
 return {
 	cmd = { "markdown-oxide" },
 	filetypes = { "markdown" },
@@ -15,24 +26,24 @@ bring the PKM.
 Inspired by and compatible with Obsidian.
 
 Check the readme to see how to properly setup.
-    ]],
+        ]],
 	},
 	commands = {
 		Today = {
 			function()
-				vim.lsp.buf.execute_command({ command = "jump", arguments = { "today" } })
+				execute_lsp_command("jump", { "today" })
 			end,
 			description = "Open today's daily note",
 		},
 		Tomorrow = {
 			function()
-				vim.lsp.buf.execute_command({ command = "jump", arguments = { "tomorrow" } })
+				execute_lsp_command("jump", { "tomorrow" })
 			end,
 			description = "Open tomorrow's daily note",
 		},
 		Yesterday = {
 			function()
-				vim.lsp.buf.execute_command({ command = "jump", arguments = { "yesterday" } })
+				execute_lsp_command("jump", { "yesterday" })
 			end,
 			description = "Open yesterday's daily note",
 		},

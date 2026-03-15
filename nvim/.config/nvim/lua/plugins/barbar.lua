@@ -153,8 +153,8 @@ return {
 		local opts = { noremap = true, silent = true }
 
 		-- Move to previous/next
-		map("n", "<A-,>", "<Cmd>BufferPrevious<CR>", vim.tbl_extend("force", opts, { desc = "上一个缓冲区" }))
-		map("n", "<A-.>", "<Cmd>BufferNext<CR>", vim.tbl_extend("force", opts, { desc = "下一个缓冲区" }))
+		map("n", "<C-,>", "<Cmd>BufferPrevious<CR>", vim.tbl_extend("force", opts, { desc = "上一个缓冲区" }))
+		map("n", "<C-.>", "<Cmd>BufferNext<CR>", vim.tbl_extend("force", opts, { desc = "下一个缓冲区" }))
 
 		-- Re-order to previous/next
 		map(
@@ -196,7 +196,7 @@ return {
 		-- map('n', '<leader>bu', '<Cmd>BufferGotoUnpinned<CR>', vim.tbl_extend('force', opts, { desc = '跳转到未固定缓冲区' }))
 
 		-- Close buffer
-		map("n", "<A-c>", "<Cmd>BufferClose<CR>", vim.tbl_extend("force", opts, { desc = "关闭当前缓冲区" }))
+		map("n", "<c-esc>", "<Cmd>BufferClose<CR>", vim.tbl_extend("force", opts, { desc = "关闭当前缓冲区" }))
 
 		-- Wipeout buffer
 		-- 如果需要取消注释，可以添加：
@@ -204,7 +204,12 @@ return {
 
 		-- Close commands
 		-- 如果需要取消注释，可以添加：
-		-- map('n', '<leader>bca', '<Cmd>BufferCloseAllButCurrent<CR>', vim.tbl_extend('force', opts, { desc = '关闭除当前外所有缓冲区' }))
+		map(
+			"n",
+			"<leader>cab",
+			"<Cmd>BufferCloseAllButCurrent<CR>",
+			vim.tbl_extend("force", opts, { desc = "关闭除当前外所有缓冲区" })
+		)
 		-- map('n', '<leader>bcp', '<Cmd>BufferCloseAllButPinned<CR>', vim.tbl_extend('force', opts, { desc = '关闭除固定外所有缓冲区' }))
 		-- map('n', '<leader>bco', '<Cmd>BufferCloseAllButCurrentOrPinned<CR>', vim.tbl_extend('force', opts, { desc = '关闭除当前或固定外所有缓冲区' }))
 		-- map('n', '<leader>bcl', '<Cmd>BufferCloseBuffersLeft<CR>', vim.tbl_extend('force', opts, { desc = '关闭左侧所有缓冲区' }))

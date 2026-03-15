@@ -122,6 +122,7 @@ local function create_custom_picker(items, on_done)
 		vim.api.nvim_buf_clear_namespace(buf, -1, 0, -1)
 		for i, item in ipairs(items) do
 			local hl_group = item.selected and "DiagnosticOk" or "DiagnosticError"
+			-- FIX:ref:cbdd87
 			vim.api.nvim_buf_add_highlight(buf, -1, hl_group, i - 1, 0, 2)
 		end
 	end
@@ -275,7 +276,7 @@ end
 -- 主功能：切换异常断点选择
 function M.toggle()
 	if not available_options then
-		vim.notify("请先启动一次调试器以加载异常断点选项", vim.log.levels.WARN)
+		vim.notify("调试器未启动", vim.log.levels.WARN)
 		return
 	end
 

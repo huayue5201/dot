@@ -1,11 +1,11 @@
 ---@diagnostic disable: assign-type-mismatch, missing-fields
 local M = {}
 
-local icons = {
-	ERROR = "",
-	WARN = "",
-	HINT = "",
-	INFO = "",
+M.icons = {
+	ERROR = " ",
+	WARN = " ",
+	HINT = " ",
+	INFO = "󰙎",
 }
 
 M.diagnostic_config = function()
@@ -17,10 +17,10 @@ M.diagnostic_config = function()
 		},
 		signs = {
 			text = {
-				[vim.diagnostic.severity.ERROR] = icons.ERROR,
-				[vim.diagnostic.severity.WARN] = icons.WARN,
-				[vim.diagnostic.severity.HINT] = icons.HINT,
-				[vim.diagnostic.severity.INFO] = icons.INFO,
+				[vim.diagnostic.severity.ERROR] = M.icons.ERROR,
+				[vim.diagnostic.severity.WARN] = M.icons.WARN,
+				[vim.diagnostic.severity.HINT] = M.icons.HINT,
+				[vim.diagnostic.severity.INFO] = M.icons.INFO,
 			},
 			numhl = {
 				[vim.diagnostic.severity.ERROR] = "ErrorMsg",
