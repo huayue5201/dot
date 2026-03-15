@@ -131,6 +131,141 @@ function M.setup()
 	end, { desc = "DAP: 查看光标下表达式并自动刷新" })
 
 	vim.keymap.set("n", "<localleader>dx", "<cmd>DapVirtualTextToggle<cr>", { desc = "DAP: 切换虚拟文本" })
+
+	vim.api.nvim_create_autocmd("FileType", {
+		pattern = { "dap-repl", "dap-view-term", "dap-view", "" },
+		group = vim.api.nvim_create_augroup("dapui_keymaps", { clear = true }),
+		desc = "Fix and add insert-mode keymaps for dap-repl",
+		callback = function()
+			vim.cmd("syntax on") -- 启用语法高亮（保险）
+			-- vim.cmd("runtime! syntax/rust.vim") -- 手动加载 Rust 的语法文件
+			vim.opt.signcolumn = "no" -- 禁用标志列
+			-- 向下浏览补全项
+			vim.keymap.set("i", "<tab>", function()
+				if vim.fn.pumvisible() == 1 then
+					return "<C-n>" -- Trigger completion
+				else
+					return "<Tab>" -- Default tab behavior
+				end
+			end, { buffer = true, expr = true, desc = "Tab Completion in dap-repl" })
+			-- 向上浏览补全项
+			vim.keymap.set("i", "<S-Tab>", function()
+				if vim.fn.pumvisible() == 1 then
+					return "<C-p>" -- 反向选择补全菜单中的前一个项
+				else
+					return "<Tab>" -- 默认 Tab 行为
+				end
+			end, { buffer = true, expr = true, desc = "Reverse Tab Completion in dap-repl" })
+			-- 选择补全项
+			vim.keymap.set({ "i", "n" }, "<CR>", function()
+				if vim.fn.pumvisible() == 1 then
+					return "<C-y>" -- 选择当前补全项（确认补全）
+				else
+					return "<CR>" -- 默认行为：插入换行符
+				end
+			end, { buffer = true, expr = true, desc = "Confirm completion or Insert newline in dap-repl" })
+		end,
+	})
+
+	-- 声明用于存储键位映射的变量（关键修复！）
+	local keymap_restore = {}
+	local original_global_k = nil
+	-- 直接使用全局变量作为标记
+	dap.listeners.after["event_initialized"]["me"] = function()
+		-- 设置调试状态为激活
+		vim.g.dap_active = true -- 替换 Store:set("dap.active", true)
+
+		-- 关闭lsp内嵌提示
+		vim.lsp.inlay_hint.enable(false)
+		-- 关闭诊断提示
+		vim.diagnostic.enable(false)
+		-- 关闭rachartier/tiny-inline-diagnostic.nvim
+		require("tiny-inline-diagnostic").disable()
+
+		-- 保存全局 K 键映射
+		local global_maps = vim.api.nvim_get_keymap("n")
+		for _, map in ipairs(global_maps) do
+			if map.lhs == "K" then
+				original_global_k = map
+				break
+			end
+		end
+
+		-- 删除全局 K 键映射
+		pcall(vim.keymap.del, "n", "K")
+
+		-- 保存并删除缓冲区本地映射
+		for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+			local keymaps = vim.api.nvim_buf_get_keymap(buf, "n")
+			for _, keymap in ipairs(keymaps) do
+				if keymap.lhs == "K" then
+					table.insert(keymap_restore, keymap)
+					pcall(vim.api.nvim_buf_del_keymap, buf, "n", "K")
+				end
+			end
+		end
+
+		-- 设置新的全局映射
+		vim.keymap.set("n", "K", function()
+			require("dap.ui.widgets").hover()
+		end, { silent = true, desc = "DAP Hover" })
+	end
+
+	dap.listeners.after["event_terminated"]["me"] = function()
+		-- 设置调试状态为非激活
+		vim.g.dap_active = false -- 替换 Store:set("dap.active", false)
+
+		-- 开启lsp内嵌提示
+		vim.lsp.inlay_hint.enable(true)
+		-- 开启诊断提示
+		vim.diagnostic.enable(true)
+		-- 开启rachartier/tiny-inline-diagnostic.nvim
+		require("tiny-inline-diagnostic").enable()
+
+		-- 恢复缓冲区映射
+		for _, keymap in ipairs(keymap_restore) do
+			if keymap.rhs then
+				pcall(
+					vim.api.nvim_buf_set_keymap,
+					keymap.buffer,
+					keymap.mode,
+					keymap.lhs,
+					keymap.rhs,
+					{ silent = keymap.silent == 1 }
+				)
+			elseif keymap.callback then
+				pcall(
+					vim.keymap.set,
+					keymap.mode,
+					keymap.lhs,
+					keymap.callback,
+					{ buffer = keymap.buffer, silent = keymap.silent == 1 }
+				)
+			end
+		end
+		keymap_restore = {}
+
+		-- 删除调试用的 K 键映射
+		pcall(vim.keymap.del, "n", "K")
+
+		-- 恢复原始全局映射
+		if original_global_k then
+			if original_global_k.rhs then
+				pcall(vim.keymap.set, "n", "K", original_global_k.rhs, {
+					silent = original_global_k.silent == 1,
+					expr = original_global_k.expr == 1,
+					nowait = original_global_k.nowait == 1,
+				})
+			elseif original_global_k.callback then
+				pcall(vim.keymap.set, "n", "K", original_global_k.callback, {
+					silent = original_global_k.silent == 1,
+					expr = original_global_k.expr == 1,
+					nowait = original_global_k.nowait == 1,
+				})
+			end
+			original_global_k = nil
+		end
+	end
 end
 
 return M

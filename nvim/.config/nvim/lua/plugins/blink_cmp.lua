@@ -226,8 +226,7 @@ return {
 					},
 				},
 				transform_items = function(ctx, items)
-					local line = ctx.cursor[1]--[[@cast -?]]
-						- 1
+					local line = ctx.cursor[1]--[[@cast -?]] - 1
 					local col = ctx.cursor[2]
 					for _, item in ipairs(items) do
 						if item.textEdit then
@@ -251,7 +250,7 @@ return {
 				end,
 			},
 			cmdline = {
-				enabled = false, -- 命令行补全
+				enabled = true, -- 命令行补全
 				keymap = { preset = "inherit" },
 				completion = { menu = { auto_show = true } },
 			},

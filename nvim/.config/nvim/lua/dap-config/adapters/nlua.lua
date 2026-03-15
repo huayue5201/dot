@@ -6,23 +6,24 @@ return {
 				host = conf.host or "127.0.0.1",
 				port = conf.port or 8086,
 			}
+
 			if conf.start_neovim then
-				local dap_run = dap.run
-				dap.run = function(c)
-					adapter.port = c.port
-					adapter.host = c.host
-				end
-				require("osv").run_this()
-				dap.run = dap_run
+				-- 直接启动调试服务器
+				require("osv").launch({
+					port = adapter.port,
+					host = adapter.host,
+				})
 			end
+
 			callback(adapter)
 		end
+
 		dap.configurations.lua = {
 			{
 				type = "nlua",
 				request = "attach",
 				name = "Run this file",
-				start_neovim = {},
+				start_neovim = {}, -- 这会触发上面的 start_neovim 逻辑
 			},
 			{
 				type = "nlua",

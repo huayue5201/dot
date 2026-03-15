@@ -17,24 +17,24 @@ vim.keymap.set("n", "<C-S-s>", function()
 	end
 end, { silent = true, desc = "Save all modified buffers" })
 
-vim.keymap.set("n", "<c-esc>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
+-- vim.keymap.set("n", "<c-esc>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
 
-vim.keymap.set("n", "<leader>cab", function()
-	local current = vim.api.nvim_get_current_buf()
-
-	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-		if buf ~= current and vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "" then
-			local win = vim.fn.bufwinid(buf)
-			if win ~= -1 then
-				-- 直接关闭窗口，跳过 smart_close 的复杂逻辑
-				pcall(vim.api.nvim_win_close, win, { force = true })
-			else
-				-- 如果没有窗口显示该buffer，直接删除buffer
-				pcall(vim.api.nvim_buf_delete, buf, { force = false })
-			end
-		end
-	end
-end, { silent = true, desc = "Close other buffers safely" })
+-- vim.keymap.set("n", "<leader>cab", function()
+-- 	local current = vim.api.nvim_get_current_buf()
+--
+-- 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+-- 		if buf ~= current and vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "" then
+-- 			local win = vim.fn.bufwinid(buf)
+-- 			if win ~= -1 then
+-- 				-- 直接关闭窗口，跳过 smart_close 的复杂逻辑
+-- 				pcall(vim.api.nvim_win_close, win, { force = true })
+-- 			else
+-- 				-- 如果没有窗口显示该buffer，直接删除buffer
+-- 				pcall(vim.api.nvim_buf_delete, buf, { force = false })
+-- 			end
+-- 		end
+-- 	end
+-- end, { silent = true, desc = "Close other buffers safely" })
 
 -- vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
 vim.cmd("packadd nvim.undotree")

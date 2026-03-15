@@ -38,7 +38,7 @@ window-height = 37
 window-width = 120
 
 # 设置快速终端位置为右侧
-quick-terminal-position = right
+# quick-terminal-position = right
 
 # 设置 macOS 上 Option 键为 Alt 键
 macos-option-as-alt = left
@@ -90,6 +90,9 @@ cursor-style-blink = true
 # ================================================
 # 启用鼠标 Shift 键捕获
 mouse-shift-capture = always
+
+# 快速终端
+keybind = global:cmd+;=toggle_quick_terminal
 
 # ================================================
 #           调色板设置

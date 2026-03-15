@@ -56,17 +56,17 @@ return {
 				end
 
 				-- Navigation
-				map("n", "]h", function()
+				map("n", "]c", function()
 					if vim.wo.diff then
-						vim.cmd.normal({ "]h", bang = true })
+						vim.cmd.normal({ "]c", bang = true })
 					else
 						gs.nav_hunk("next")
 					end
 				end, "Next Hunk")
 
-				map("n", "[h", function()
+				map("n", "[c", function()
 					if vim.wo.diff then
-						vim.cmd.normal({ "[h", bang = true })
+						vim.cmd.normal({ "[c", bang = true })
 					else
 						gs.nav_hunk("prev")
 					end
