@@ -28,7 +28,7 @@ return {
 			{
 				type = "nlua",
 				request = "attach",
-				name = "Attach to running Neovim instance (port = 8086)",
+				name = "Attach (port = 8086)",
 				port = 8086,
 			},
 		}

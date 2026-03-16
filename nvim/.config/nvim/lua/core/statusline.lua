@@ -300,7 +300,13 @@ end
 -- ⭐ TODO 标记数量显示
 -- ================================
 function M.todo_markers()
-	local count = todo_status.get_marker_count()
+	-- ⭐ 修复：获取当前 buffer 的文件路径
+	local bufnr = vim.api.nvim_get_current_buf()
+	local filepath = vim.api.nvim_buf_get_name(bufnr)
+
+	-- ⭐ 修复：传递 filepath 参数
+	local count = todo_status.get_marker_count(filepath)
+
 	if count == 0 then
 		return ""
 	end
