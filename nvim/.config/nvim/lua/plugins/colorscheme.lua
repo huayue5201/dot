@@ -4,24 +4,24 @@
 
 return {
 	-- "oxfist/night-owl.nvim",
-	-- "EdenEast/nightfox.nvim",
+	"EdenEast/nightfox.nvim",
 	-- "uhs-robert/oasis.nvim",
-	"serhez/teide.nvim",
+	-- "serhez/teide.nvim",
 	lazy = false,
 	priority = 1000,
 	config = function()
 		-- require("night-owl").setup()
 		-- vim.cmd.colorscheme("night-owl")
 
-		-- require("nightfox").setup({
-		-- 	options = {
-		-- 		-- 是否使非焦点窗口使用不同的背景颜色，增强视觉分隔
-		-- 		dim_inactive = true,
-		-- 	},
-		-- })
-		-- vim.cmd("colorscheme Carbonfox")
+		require("nightfox").setup({
+			options = {
+				-- 是否使非焦点窗口使用不同的背景颜色，增强视觉分隔
+				dim_inactive = true,
+			},
+		})
+		vim.cmd("colorscheme Carbonfox")
 
-		vim.cmd([[colorscheme teide]])
+		-- vim.cmd([[colorscheme teide]])
 
 		-- require("oasis").setup({
 		-- 	-- dark_style = "lagoon", -- 当 vim.o.background 为 "dark" 时使用的主题样式

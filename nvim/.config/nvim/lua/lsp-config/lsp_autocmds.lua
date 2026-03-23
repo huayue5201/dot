@@ -229,7 +229,11 @@ function M.setup()
 
 			-- 其他 LSP 功能设置
 			if client:supports_method("textDocument/colorProvider") then
-				vim.lsp.document_color.enable(true, bufnr, { style = "virtual" })
+				vim.lsp.document_color.enable(true, {
+					bufnr = bufnr,
+				}, {
+					-- style = "virtual",
+				})
 			end
 
 			if client:supports_method("textDocument/onTypeFormatting") then
