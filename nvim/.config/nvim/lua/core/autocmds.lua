@@ -6,18 +6,20 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 })
 
 -- 恢复上次光标位置
-vim.cmd([[
-augroup RestoreCursor
-  autocmd!
-  autocmd BufReadPre * autocmd FileType <buffer> ++once
-    \ let s:line = line("'\"")
-    \ | if s:line >= 1 && s:line <= line("$") && &filetype !~# 'commit'
-    \      && index(['xxd', 'gitrebase'], &filetype) == -1
-    \      && !&diff
-    \ |   execute "normal! g`\""
-    \ | endif
-augroup END
-]])
+vim.api.nvim_create_autocmd("BufReadPost", {
+	group = vim.api.nvim_create_augroup("RestoreCursor", { clear = true }),
+	callback = function()
+		local ft = vim.bo.filetype
+		if ft == "commit" or ft == "xxd" or ft == "gitrebase" or vim.wo.diff then
+			return
+		end
+		local last_pos = vim.fn.line([['"]])
+		local last_line = vim.fn.line("$")
+		if last_pos >= 1 and last_pos <= last_line then
+			vim.cmd([[normal! g`"]])
+		end
+	end,
+})
 
 vim.api.nvim_create_user_command("SmartClose", function()
 	require("user.utils").smart_close()
@@ -31,6 +33,15 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 		})
 	end,
 })
+
+local ns = vim.api.nvim_create_namespace("hl_on_paste")
+vim.paste = (function(overridden)
+	return function(lines, phase)
+		local ret = overridden(lines, phase)
+		vim.hl.range(0, ns, "Visual", "'[", "']", { timeout = 300 })
+		return ret
+	end
+end)(vim.paste)
 -- =============================================
 -- 快捷键映射配置
 -- =============================================

@@ -21,7 +21,7 @@ return {
 		vim.keymap.set("n", "<leader>ar", "<cmd>Todo2AIExecute<cr>", { desc = "todo2: 运行ai可执行标记" })
 		vim.keymap.set(
 			"n",
-			"<leader>aar",
+			"<leader>aR",
 			"<cmd>Todo2AIExecuteAll<cr>",
 			{ desc = "todo2: 批量运行ai可执行标记" }
 		)

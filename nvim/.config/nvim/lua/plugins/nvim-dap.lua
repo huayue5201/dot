@@ -7,8 +7,6 @@ return {
 		-- https://github.com/theHamsta/nvim-dap-virtual-text
 		"theHamsta/nvim-dap-virtual-text",
 		"Jorenar/nvim-dap-disasm",
-		-- lua 适配器
-		"jbyuki/one-small-step-for-vimkind",
 	},
 	config = function()
 		-- repl 自动补全支持
@@ -98,8 +96,6 @@ return {
 				require("dap-config.adapters.probe_rs").setup(dap)
 				require("dap-config.adapters.openocd").setup(dap)
 				require("dap-config.adapters.pyocd").setup(dap)
-			elseif filetype == "lua" then
-				require("dap-config.adapters.nlua").setup(dap)
 			end
 		end
 
