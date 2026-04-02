@@ -179,8 +179,6 @@ function M.setup()
 		vim.lsp.inlay_hint.enable(false)
 		-- 关闭诊断提示
 		vim.diagnostic.enable(false)
-		-- 关闭rachartier/tiny-inline-diagnostic.nvim
-		require("tiny-inline-diagnostic").disable()
 
 		-- 保存全局 K 键映射
 		local global_maps = vim.api.nvim_get_keymap("n")
@@ -219,8 +217,6 @@ function M.setup()
 		vim.lsp.inlay_hint.enable(true)
 		-- 开启诊断提示
 		vim.diagnostic.enable(true)
-		-- 开启rachartier/tiny-inline-diagnostic.nvim
-		require("tiny-inline-diagnostic").enable()
 
 		-- 恢复缓冲区映射
 		for _, keymap in ipairs(keymap_restore) do

@@ -1,6 +1,4 @@
 -------------- Neovim 插件加载相关 --------------
--- 错误捕捉模块
--- require("user.error_catcher").setup()
 -- vim.ui.select = require("user.simple-select")
 -- 禁用 Perl 和 Ruby 提供者
 vim.g.loaded_perl_provider = 0
@@ -12,7 +10,9 @@ vim.g.loaded_ruby_provider = 0
 vim.o.mousemoveevent = true -- 启用鼠标移动事件
 vim.opt.fileencodings = { "utf-8", "gbk", "cp936", "ucs-bom", "latin1" }
 vim.o.inccommand = "split" -- 启用增量命令模式（即时显示命令效果）
-vim.o.clipboard = "unnamedplus" -- 使用系统剪贴板
+vim.schedule(function()
+	vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
+end)
 -- vim.g.clipboard = "osc52"
 vim.o.modeline = false -- 禁用 modeline
 -- vim.o.updatetime = 10000 -- 设置更新延迟时间（毫秒）
@@ -87,14 +87,52 @@ vim.o.number = true --显示行号
 vim.o.relativenumber = true -- 启用相对行号
 vim.o.signcolumn = "yes:3" -- 始终显示标志列
 vim.o.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换到最近使用过的标签页（如果有）
-vim.o.messagesopt = "wait:200,history:1000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
+-- vim.o.messagesopt = "wait:500,history:2000" -- 消息选项：等待 500 毫秒，历史记录 1000 行
+-- 启用 UI2（Neovim 0.12 的渲染层）
 require("vim._core.ui2").enable({
-	enable = true, -- Whether to enable or disable the UI.
-	msg = { -- Options related to the message module.
-		---@type 'cmd'|'msg' Where to place regular messages, either in the
-		---cmdline or in a separate ephemeral message window.
-		target = "msg",
-		timeout = 4000, -- Time a message is visible in the message window.
+	enable = true,
+	msg = {
+		targets = {
+			[""] = "cmd",
+			empty = "cmd",
+			bufwrite = "msg",
+			confirm = "cmd",
+			emsg = "msg",
+			echo = "msg",
+			echomsg = "msg",
+			echoerr = "msg",
+			completion = "cmd",
+			list_cmd = "pager",
+			lua_error = "msg",
+			lua_print = "msg",
+			progress = "msg",
+			rpc_error = "msg",
+			quickfix = "msg",
+			search_cmd = "cmd",
+			search_count = "cmd",
+			shell_cmd = "pager",
+			shell_err = "pager",
+			shell_out = "pager",
+			shell_ret = "msg",
+			undo = "msg",
+			verbose = "pager",
+			wildlist = "cmd",
+			wmsg = "msg",
+			typed_cmd = "cmd",
+		},
+		cmd = {
+			height = 0.5,
+		},
+		dialog = {
+			height = 0.5,
+		},
+		msg = {
+			height = 0.5,
+			timeout = 4000,
+		},
+		pager = {
+			height = 3,
+		},
 	},
 })
 

@@ -69,6 +69,18 @@ return {
 
 		local chainsaw = require("chainsaw")
 
+		local fzf = require("fzf-lua")
+		local marker = require("chainsaw.config.config").config.marker
+
+		vim.keymap.set("n", "g?f", function()
+			fzf.grep({
+				search = marker,
+				rg_opts = "--trim",
+				prompt = marker .. " logs> ",
+				header = "Search for " .. marker .. " log statements",
+			})
+		end, { desc = "Chainsaw: search log statements" })
+
 		-- Normal mode mappings with Chinese descriptions
 		vim.keymap.set(
 			"n",

@@ -4,16 +4,29 @@ local M = {}
 M.icons = {
 	ERROR = " ",
 	WARN = " ",
-	HINT = " ",
+	HINT = " ",
 	INFO = "󰙎",
 }
 
 M.diagnostic_config = function()
 	vim.diagnostic.config({
-		severity_sort = true,
+		-- 虚拟文本（行内提示）
+		virtual_text = {
+			-- prefix = "●", -- 更专业的符号，不会乱跳
+			spacing = 2,
+			current_line = false,
+			-- severity = { min = vim.diagnostic.severity.WARN },
+		},
+		virtual_lines = {
+			current_line = true,
+		},
+		-- 浮动窗口
 		float = {
-			source = "if_many",
-			border = "solid",
+			border = "rounded",
+			source = "always", -- 显示来源（LSP 名称）
+			header = "",
+			prefix = "",
+			focusable = false,
 		},
 		signs = {
 			text = {
@@ -27,10 +40,15 @@ M.diagnostic_config = function()
 				[vim.diagnostic.severity.WARN] = "WarningMsg",
 			},
 		},
+		-- 下划线
 		underline = true,
 		update_in_insert = true,
+		-- 排序（更重要的诊断优先）
+		severity_sort = true,
 	})
 	vim.lsp.log.set_level(4) -- 日志等级,只记录错误输出
+	-- 自动打开诊断浮窗
+	-- vim.cmd([[autocmd CursorMoved * lua vim.diagnostic.open_float(nil, {focusable = false})]])
 end
 
 M.global_config = function()

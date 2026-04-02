@@ -1,3 +1,10 @@
 .env
 .env.lua
 .aider*
+# Rust build output
+/target/
+
+# Optional: IDE / editor files
+**/*.rs.bk
+.idea/
+.vscode/
