@@ -9,7 +9,7 @@ return {
 	opts = {
 		target_lang = "zh",
 		source_lang = "auto",
-		default_engines = { "google", "bing" },
+		default_engines = { "google", "baidu" },
 		window_type = "float", -- Neovim 不支持 popup，float 才是正确的
 		history_enable = true,
 	},

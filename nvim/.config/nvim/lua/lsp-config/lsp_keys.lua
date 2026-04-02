@@ -157,10 +157,6 @@ M.global_keymaps = function()
 		vim.cmd("tabnew " .. vim.lsp.log.get_filename())
 	end, { desc = "lsp log" })
 
-	vim.keymap.set("n", "<leader>yd", function()
-		CopyErrorMessage()
-	end, { noremap = true, silent = true, desc = "LSP: 复制lsp诊断" })
-
 	-- vim.keymap.set("i", "<C-CR>", function()
 	-- 	if not vim.lsp.inline_completion.get() then
 	-- 		return "<C-CR>"

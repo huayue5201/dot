@@ -144,69 +144,153 @@ return {
 	on_attach = function(client, bufnr)
 		local macro_preview_win = nil
 
+		local macro_stack = {} -- 保存每一层展开结果
+		local macro_level = 0 -- 当前层级
+
+		local function render_macro_window(content)
+			-- 自动计算尺寸
+			local lines = vim.split(content, "\n")
+			local max_width = math.floor(vim.o.columns * 0.45)
+			local max_height = math.floor(vim.o.lines * 0.5)
+
+			local content_width = 0
+			for _, l in ipairs(lines) do
+				content_width = math.max(content_width, vim.fn.strdisplaywidth(l))
+			end
+
+			local width = math.min(math.max(content_width + 4, 30), max_width)
+			local height = math.min(#lines + 3, max_height)
+
+			-- 右上角定位
+			local row = 1
+			local col = vim.o.columns - width - 2
+
+			-- 创建 buffer
+			local buf = vim.api.nvim_create_buf(false, true)
+
+			-- 标题栏
+			local title = string.format(" Macro Expansion (level %d) ", macro_level)
+			local border_line = string.rep("─", math.max(0, width - #title - 2))
+			local header = " " .. title .. border_line
+
+			local display_lines = { header, "" }
+			vim.list_extend(display_lines, lines)
+
+			vim.api.nvim_buf_set_lines(buf, 0, -1, false, display_lines)
+			vim.bo[buf].filetype = "rust"
+			vim.bo[buf].modifiable = false
+			vim.bo[buf].readonly = true
+
+			-- 创建浮窗
+			if macro_preview_win and vim.api.nvim_win_is_valid(macro_preview_win) then
+				vim.api.nvim_win_close(macro_preview_win, true)
+			end
+
+			local win = vim.api.nvim_open_win(buf, true, {
+				relative = "editor",
+				style = "minimal",
+				border = "rounded",
+				width = width,
+				height = height,
+				row = row,
+				col = col,
+			})
+
+			-- 窗口选项
+			vim.wo[win].wrap = false
+			vim.wo[win].cursorline = false
+			vim.wo[win].number = false
+			vim.wo[win].relativenumber = false
+
+			-- 关闭函数
+			local function close_preview()
+				if macro_preview_win and vim.api.nvim_win_is_valid(macro_preview_win) then
+					vim.api.nvim_win_close(macro_preview_win, true)
+				end
+				macro_preview_win = nil
+				macro_stack = {}
+				macro_level = 0
+			end
+
+			-- 快捷键
+			vim.keymap.set("n", "q", close_preview, { buffer = buf, noremap = true, silent = true })
+			vim.keymap.set("n", "<Esc>", close_preview, { buffer = buf, noremap = true, silent = true })
+
+			-- 下一层宏展开
+			vim.keymap.set("n", "]m", function()
+				local next_macro = content:match("([%w_]+!%b())")
+				if not next_macro then
+					vim.notify("没有更多可展开的宏", vim.log.levels.INFO)
+					return
+				end
+
+				-- 请求下一层展开
+				local params = vim.lsp.util.make_position_params(0, client.offset_encoding or "utf-16")
+				params.textDocument = nil
+				params.position = nil
+				params.macro = next_macro
+
+				vim.lsp.buf_request(0, "rust-analyzer/expandMacro", params, function(err, result)
+					if err or not result then
+						vim.notify("宏展开失败", vim.log.levels.ERROR)
+						return
+					end
+
+					macro_level = macro_level + 1
+					table.insert(macro_stack, content)
+					render_macro_window(result.expansion or "// No expansion")
+				end)
+			end, { buffer = buf, noremap = true, silent = true })
+
+			-- 返回上一层
+			vim.keymap.set("n", "[m", function()
+				if macro_level == 0 then
+					vim.notify("已经是最外层", vim.log.levels.INFO)
+					return
+				end
+
+				local prev = table.remove(macro_stack)
+				macro_level = macro_level - 1
+				render_macro_window(prev)
+			end, { buffer = buf, noremap = true, silent = true })
+
+			-- 自动清理
+			vim.api.nvim_create_autocmd("WinClosed", {
+				callback = function(ev)
+					if tonumber(ev.match) == win then
+						macro_preview_win = nil
+						macro_stack = {}
+						macro_level = 0
+					end
+				end,
+				once = true,
+			})
+
+			macro_preview_win = win
+		end
+
+		-- 主入口：展开当前光标处宏
 		local function toggle_macro_preview()
 			if macro_preview_win and vim.api.nvim_win_is_valid(macro_preview_win) then
 				vim.api.nvim_win_close(macro_preview_win, true)
 				macro_preview_win = nil
+				macro_stack = {}
+				macro_level = 0
 				return
 			end
 
 			local params = vim.lsp.util.make_position_params(0, client.offset_encoding or "utf-16")
-			vim.lsp.buf_request(0, "rust-analyzer/expandMacro", params, function(err, result, ctx)
+			vim.lsp.buf_request(0, "rust-analyzer/expandMacro", params, function(err, result)
 				if err or not result then
-					vim.notify("宏展开失败: " .. (err or "未知错误"), vim.log.levels.ERROR)
+					vim.notify("宏展开失败", vim.log.levels.ERROR)
 					return
 				end
 
-				-- 创建新窗口
-				vim.cmd("vsplit")
-				local win = vim.api.nvim_get_current_win()
-				local buf = vim.api.nvim_create_buf(false, true)
-				vim.api.nvim_win_set_buf(win, buf)
-
-				-- 设置内容
-				local lines = {}
-				if result and result.expansion then
-					lines = vim.split(result.expansion, "\n")
-					vim.bo[buf].filetype = "rust"
-				else
-					lines = { "// No macro expansion available" }
-				end
-				vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-				-- 设置窗口选项
-				vim.bo[buf].readonly = true
-				vim.bo[buf].modifiable = false
-				vim.wo[win].cursorline = false
-				vim.wo[win].wrap = false
-				vim.wo[win].number = false
-				vim.wo[win].relativenumber = false
-
-				-- 关闭预览的函数
-				local function close_preview()
-					if macro_preview_win and vim.api.nvim_win_is_valid(macro_preview_win) then
-						vim.api.nvim_win_close(macro_preview_win, true)
-						macro_preview_win = nil
-					end
-				end
-
-				-- 设置快捷键
-				vim.keymap.set("n", "q", close_preview, { buffer = buf, noremap = true, silent = true })
-				vim.keymap.set("n", "<Esc>", close_preview, { buffer = buf, noremap = true, silent = true })
-
-				-- 监听窗口关闭
-				vim.api.nvim_create_autocmd("WinClosed", {
-					buffer = buf,
-					callback = function()
-						macro_preview_win = nil
-					end,
-					once = true,
-				})
-
-				macro_preview_win = win
+				macro_stack = {}
+				macro_level = 0
+				render_macro_window(result.expansion or "// No expansion")
 			end)
 		end
-
 		vim.api.nvim_buf_create_user_command(bufnr, "RustExpandMacro", toggle_macro_preview, {
 			desc = "切换 Rust 宏展开预览窗口",
 		})
