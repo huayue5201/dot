@@ -3,7 +3,6 @@ local M = {}
 function M.setup()
 	local dap = require("dap")
 	local widgets = require("dap.ui.widgets")
-	local bp = require("dap-config.dap_utils")
 	local sidebar = nil
 
 	-- ▶ 控制
@@ -47,9 +46,13 @@ function M.setup()
 	end, { desc = "DAP: 切换断点" })
 
 	vim.keymap.set("n", "<leader>d?", function()
-		bp.set_breakpoint()
+		require("dap-config.conditional_breakpoint").set_breakpoint()
 		require("dap-config.breakpoint_state").sync_breakpoints()
 	end, { desc = "DAP: 自定义断点" })
+
+	vim.keymap.set("n", "<leader>df", function()
+		require("dap-config.function_breakpoint").set_function_breakpoint()
+	end, { desc = "DAP: 设置函数断点" })
 
 	vim.keymap.set("n", "<leader>dC", function()
 		dap.clear_breakpoints()
@@ -114,7 +117,12 @@ function M.setup()
 
 	-- 日志相关
 	vim.keymap.set("n", "<localleader>dl", "<cmd>DapShowLog<cr>", { desc = "DAP: 查看日志" })
-	vim.keymap.set("n", "<localleader>dL", bp.set_debuglog, { desc = "DAP: 设置日志级别" })
+	vim.keymap.set(
+		"n",
+		"<localleader>dL",
+		require("dap-config.dap_log_keymap").set_debuglog,
+		{ desc = "DAP: 设置日志级别" }
+	)
 
 	-- 查看光标下变量 / 自动刷新表达式
 	vim.keymap.set("n", "<localleader>dE", function()
@@ -167,17 +175,13 @@ function M.setup()
 		end,
 	})
 
-	-- 声明用于存储键位映射的变量（关键修复！）
+	-- 声明用于存储键位映射的变量
 	local keymap_restore = {}
 	local original_global_k = nil
-	-- 直接使用全局变量作为标记
-	dap.listeners.after["event_initialized"]["me"] = function()
-		-- 设置调试状态为激活
-		vim.g.dap_active = true -- 替换 Store:set("dap.active", true)
 
-		-- 关闭lsp内嵌提示
+	dap.listeners.after["event_initialized"]["me"] = function()
+		vim.g.dap_active = true
 		vim.lsp.inlay_hint.enable(false)
-		-- 关闭诊断提示
 		vim.diagnostic.enable(false)
 
 		-- 保存全局 K 键映射
@@ -188,37 +192,32 @@ function M.setup()
 				break
 			end
 		end
-
-		-- 删除全局 K 键映射
 		pcall(vim.keymap.del, "n", "K")
 
-		-- 保存并删除缓冲区本地映射
+		-- 保存并删除缓冲区本地映射（正确保存 buffer 信息）
 		for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 			local keymaps = vim.api.nvim_buf_get_keymap(buf, "n")
 			for _, keymap in ipairs(keymaps) do
 				if keymap.lhs == "K" then
+					-- 保存时显式添加 buffer 字段
+					keymap.buffer = buf
 					table.insert(keymap_restore, keymap)
 					pcall(vim.api.nvim_buf_del_keymap, buf, "n", "K")
 				end
 			end
 		end
 
-		-- 设置新的全局映射
 		vim.keymap.set("n", "K", function()
 			require("dap.ui.widgets").hover()
 		end, { silent = true, desc = "DAP Hover" })
 	end
 
 	dap.listeners.after["event_terminated"]["me"] = function()
-		-- 设置调试状态为非激活
-		vim.g.dap_active = false -- 替换 Store:set("dap.active", false)
-
-		-- 开启lsp内嵌提示
+		vim.g.dap_active = false
 		vim.lsp.inlay_hint.enable(true)
-		-- 开启诊断提示
 		vim.diagnostic.enable(true)
 
-		-- 恢复缓冲区映射
+		-- 恢复缓冲区映射（现在 keymap.buffer 存在了）
 		for _, keymap in ipairs(keymap_restore) do
 			if keymap.rhs then
 				pcall(
@@ -241,23 +240,22 @@ function M.setup()
 		end
 		keymap_restore = {}
 
-		-- 删除调试用的 K 键映射
 		pcall(vim.keymap.del, "n", "K")
 
 		-- 恢复原始全局映射
 		if original_global_k then
+			local opts = { silent = original_global_k.silent == 1 }
+			if original_global_k.expr then
+				opts.expr = original_global_k.expr == 1
+			end
+			if original_global_k.nowait then
+				opts.nowait = original_global_k.nowait == 1
+			end
+
 			if original_global_k.rhs then
-				pcall(vim.keymap.set, "n", "K", original_global_k.rhs, {
-					silent = original_global_k.silent == 1,
-					expr = original_global_k.expr == 1,
-					nowait = original_global_k.nowait == 1,
-				})
+				pcall(vim.keymap.set, "n", "K", original_global_k.rhs, opts)
 			elseif original_global_k.callback then
-				pcall(vim.keymap.set, "n", "K", original_global_k.callback, {
-					silent = original_global_k.silent == 1,
-					expr = original_global_k.expr == 1,
-					nowait = original_global_k.nowait == 1,
-				})
+				pcall(vim.keymap.set, "n", "K", original_global_k.callback, opts)
 			end
 			original_global_k = nil
 		end

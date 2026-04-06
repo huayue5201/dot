@@ -10,3 +10,5 @@
     # Use a pager if the difftool output is larger than one screenful,
     # consistent with the behaviour of `git diff`.
     difftool = true
+[core]
+	excludesfile = /Users/lijia/dotfile/.gitignore_global

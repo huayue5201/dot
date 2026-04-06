@@ -122,7 +122,6 @@ local function create_custom_picker(items, on_done)
 		vim.api.nvim_buf_clear_namespace(buf, -1, 0, -1)
 		for i, item in ipairs(items) do
 			local hl_group = item.selected and "DiagnosticOk" or "DiagnosticError"
-			-- FIX:ref:cbdd87
 			vim.api.nvim_buf_add_highlight(buf, -1, hl_group, i - 1, 0, 2)
 		end
 	end
