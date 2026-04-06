@@ -5,7 +5,7 @@ return {
 	opts = {},
 	config = function()
 		require("bento").setup({
-			main_keymap = "<s-tab>", -- Main toggle/expand key
+			main_keymap = "<S-tab>", -- Main toggle/expand key
 			actions = {
 				git_stage = {
 					key = "g",

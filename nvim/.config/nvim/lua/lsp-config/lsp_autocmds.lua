@@ -232,7 +232,7 @@ function M.setup()
 				vim.lsp.document_color.enable(true, {
 					bufnr = bufnr,
 				}, {
-					-- style = "virtual",
+					style = "virtual",
 				})
 			end
 
