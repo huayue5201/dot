@@ -45,7 +45,7 @@ function M.setup()
 		require("dap-config.breakpoint_state").sync_breakpoints()
 	end, { desc = "DAP: 切换断点" })
 
-	vim.keymap.set("n", "<leader>d?", function()
+	vim.keymap.set("n", "<leader>do", function()
 		require("dap-config.conditional_breakpoint").set_breakpoint()
 		require("dap-config.breakpoint_state").sync_breakpoints()
 	end, { desc = "DAP: 自定义断点" })
@@ -54,7 +54,7 @@ function M.setup()
 		require("dap-config.function_breakpoint").set_function_breakpoint()
 	end, { desc = "DAP: 设置函数断点" })
 
-	vim.keymap.set("n", "<leader>dC", function()
+	vim.keymap.set("n", "<leader>dc", function()
 		dap.clear_breakpoints()
 		require("dap-config.breakpoint_state").clear_breakpoints()
 	end, { desc = "DAP: 清除所有断点" })
@@ -63,9 +63,8 @@ function M.setup()
 		require("dap-config.exception-breakpoints").toggle()
 	end, { desc = "DAP: 设置异常断点" })
 
-	vim.keymap.set("n", "[[", dap.up, { desc = "DAP: 上一个帧" })
-
-	vim.keymap.set("n", "]]", dap.down, { desc = "DAP: 下一个帧" })
+	-- vim.keymap.set("n", "<leader>d[", dap.up, { desc = "DAP: 上一个帧" })
+	-- vim.keymap.set("n", "<leader>d]", dap.down, { desc = "DAP: 下一个帧" })
 
 	-- 🔍 评估 / 日志
 	vim.keymap.set("n", "<leader>da", function()
@@ -80,7 +79,7 @@ function M.setup()
 	end, { desc = "DAP: 评估表达式" })
 
 	-- 查看所有断点
-	vim.keymap.set("n", "<leader>dQ", function()
+	vim.keymap.set("n", "<leader>dq", function()
 		dap.list_breakpoints()
 		vim.cmd("copen")
 	end, { desc = "DAP: 查看所有断点" })
@@ -175,89 +174,155 @@ function M.setup()
 		end,
 	})
 
-	-- 声明用于存储键位映射的变量
-	local keymap_restore = {}
-	local original_global_k = nil
+	do
+		local keymap_restore = {}
+		local original_global_k = nil
+		local original_global_bracket_d = {} -- 保存 [d 和 ]d 的全局映射
 
-	dap.listeners.after["event_initialized"]["me"] = function()
-		vim.g.dap_active = true
-		vim.lsp.inlay_hint.enable(false)
-		vim.diagnostic.enable(false)
-
-		-- 保存全局 K 键映射
-		local global_maps = vim.api.nvim_get_keymap("n")
-		for _, map in ipairs(global_maps) do
-			if map.lhs == "K" then
-				original_global_k = map
-				break
+		-- 保存并删除指定的键映射
+		local function save_and_remove_keymap(key, maps_table, restore_table)
+			local global_maps = vim.api.nvim_get_keymap("n")
+			for _, map in ipairs(global_maps) do
+				if map.lhs == key then
+					restore_table[key] = map
+					break
+				end
 			end
+			pcall(vim.keymap.del, "n", key)
 		end
-		pcall(vim.keymap.del, "n", "K")
 
-		-- 保存并删除缓冲区本地映射（正确保存 buffer 信息）
-		for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-			local keymaps = vim.api.nvim_buf_get_keymap(buf, "n")
-			for _, keymap in ipairs(keymaps) do
-				if keymap.lhs == "K" then
-					-- 保存时显式添加 buffer 字段
-					keymap.buffer = buf
-					table.insert(keymap_restore, keymap)
-					pcall(vim.api.nvim_buf_del_keymap, buf, "n", "K")
+		-- 保存并删除缓冲区中的指定键映射
+		local function save_and_remove_buffer_keymaps(key)
+			for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+				local keymaps = vim.api.nvim_buf_get_keymap(buf, "n")
+				for _, keymap in ipairs(keymaps) do
+					if keymap.lhs == key then
+						keymap.buffer = buf
+						table.insert(keymap_restore, keymap)
+						pcall(vim.api.nvim_buf_del_keymap, buf, "n", key)
+					end
 				end
 			end
 		end
 
-		vim.keymap.set("n", "K", function()
-			require("dap.ui.widgets").hover()
-		end, { silent = true, desc = "DAP Hover" })
-	end
+		dap.listeners.after["event_initialized"]["me"] = function()
+			vim.g.dap_active = true
+			vim.lsp.inlay_hint.enable(false)
+			vim.diagnostic.enable(false)
 
-	dap.listeners.after["event_terminated"]["me"] = function()
-		vim.g.dap_active = false
-		vim.lsp.inlay_hint.enable(true)
-		vim.diagnostic.enable(true)
-
-		-- 恢复缓冲区映射（现在 keymap.buffer 存在了）
-		for _, keymap in ipairs(keymap_restore) do
-			if keymap.rhs then
-				pcall(
-					vim.api.nvim_buf_set_keymap,
-					keymap.buffer,
-					keymap.mode,
-					keymap.lhs,
-					keymap.rhs,
-					{ silent = keymap.silent == 1 }
-				)
-			elseif keymap.callback then
-				pcall(
-					vim.keymap.set,
-					keymap.mode,
-					keymap.lhs,
-					keymap.callback,
-					{ buffer = keymap.buffer, silent = keymap.silent == 1 }
-				)
+			-- 保存并删除 K 键映射
+			local global_maps = vim.api.nvim_get_keymap("n")
+			for _, map in ipairs(global_maps) do
+				if map.lhs == "K" then
+					original_global_k = map
+					break
+				end
 			end
+			pcall(vim.keymap.del, "n", "K")
+
+			-- 保存并删除 [d 和 ]d 的全局映射
+			save_and_remove_keymap("[d", "[d", original_global_bracket_d)
+			save_and_remove_keymap("]d", "]d", original_global_bracket_d)
+
+			-- 保存并删除缓冲区中的 K, [d, ]d 映射
+			save_and_remove_buffer_keymaps("K")
+			save_and_remove_buffer_keymaps("[d")
+			save_and_remove_buffer_keymaps("]d")
+
+			-- 设置 DAP 的临时映射
+			vim.keymap.set("n", "K", function()
+				require("dap.ui.widgets").hover()
+			end, { silent = true, desc = "DAP Hover" })
+
+			vim.keymap.set("n", "[d", function()
+				require("dap").up()
+			end, { silent = true, desc = "DAP: 上一个帧" })
+
+			vim.keymap.set("n", "]d", function()
+				require("dap").down()
+			end, { silent = true, desc = "DAP: 下一个帧" })
 		end
-		keymap_restore = {}
 
-		pcall(vim.keymap.del, "n", "K")
+		dap.listeners.after["event_terminated"]["me"] = function()
+			vim.g.dap_active = false
+			vim.lsp.inlay_hint.enable(true)
+			vim.diagnostic.enable(true)
 
-		-- 恢复原始全局映射
-		if original_global_k then
-			local opts = { silent = original_global_k.silent == 1 }
-			if original_global_k.expr then
-				opts.expr = original_global_k.expr == 1
+			-- 恢复缓冲区映射
+			for _, keymap in ipairs(keymap_restore) do
+				local opts = { silent = keymap.silent == 1 }
+				if keymap.expr then
+					opts.expr = keymap.expr == 1
+				end
+				if keymap.nowait then
+					opts.nowait = keymap.nowait == 1
+				end
+				if keymap.desc then
+					opts.desc = keymap.desc
+				end
+
+				if keymap.rhs then
+					pcall(vim.api.nvim_buf_set_keymap, keymap.buffer, keymap.mode, keymap.lhs, keymap.rhs, opts)
+				elseif keymap.callback then
+					pcall(
+						vim.keymap.set,
+						keymap.mode,
+						keymap.lhs,
+						keymap.callback,
+						vim.tbl_extend("force", opts, { buffer = keymap.buffer })
+					)
+				end
 			end
-			if original_global_k.nowait then
-				opts.nowait = original_global_k.nowait == 1
+			keymap_restore = {}
+
+			-- 删除临时映射
+			pcall(vim.keymap.del, "n", "K")
+			pcall(vim.keymap.del, "n", "[d")
+			pcall(vim.keymap.del, "n", "]d")
+
+			-- 恢复原始全局映射
+			if original_global_k then
+				local opts = { silent = original_global_k.silent == 1 }
+				if original_global_k.expr then
+					opts.expr = original_global_k.expr == 1
+				end
+				if original_global_k.nowait then
+					opts.nowait = original_global_k.nowait == 1
+				end
+				if original_global_k.desc then
+					opts.desc = original_global_k.desc
+				end
+
+				if original_global_k.rhs then
+					pcall(vim.keymap.set, "n", "K", original_global_k.rhs, opts)
+				elseif original_global_k.callback then
+					pcall(vim.keymap.set, "n", "K", original_global_k.callback, opts)
+				end
+				original_global_k = nil
 			end
 
-			if original_global_k.rhs then
-				pcall(vim.keymap.set, "n", "K", original_global_k.rhs, opts)
-			elseif original_global_k.callback then
-				pcall(vim.keymap.set, "n", "K", original_global_k.callback, opts)
+			-- 恢复 [d 和 ]d 的全局映射
+			for key, mapping in pairs(original_global_bracket_d) do
+				if mapping then
+					local opts = { silent = mapping.silent == 1 }
+					if mapping.expr then
+						opts.expr = mapping.expr == 1
+					end
+					if mapping.nowait then
+						opts.nowait = mapping.nowait == 1
+					end
+					if mapping.desc then
+						opts.desc = mapping.desc
+					end
+
+					if mapping.rhs then
+						pcall(vim.keymap.set, "n", key, mapping.rhs, opts)
+					elseif mapping.callback then
+						pcall(vim.keymap.set, "n", key, mapping.callback, opts)
+					end
+				end
 			end
-			original_global_k = nil
+			original_global_bracket_d = {}
 		end
 	end
 end

@@ -12,9 +12,9 @@ end
 function M.set_breakpoint()
 	popup.open({
 		fields = {
-			{ key = "condition", label = "条件" },
-			{ key = "hit", label = "命中次数" },
-			{ key = "log", label = "日志消息" },
+			{ key = "condition", label = "条件(可选)" },
+			{ key = "hit", label = "命中次数(可选)" },
+			{ key = "log", label = "日志消息(可选)" },
 		},
 
 		on_submit = function(values)

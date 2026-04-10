@@ -105,14 +105,6 @@ return {
 			callback = load_dap_adapter, -- 调用加载配置的函数
 		})
 
-		-- require("dap-config.adapters.rust-gdb").setup(dap) -- gdb在macOS上有bug
-
-		-- require("dap-config.adapters.codelldb").setup(dap)
-		-- require("dap-config.adapters.probe_rs").setup(dap)
-		-- require("dap-config.adapters.pyocd").setup(dap)
-		-- require("dap-config.adapters.openocd").setup(dap)
-		-- require("dap-config.adapters.vscode-js-debug").setup(dap)
-
 		vim.api.nvim_create_autocmd({ "VimLeave" }, {
 			callback = function()
 				-- 通过系统命令关闭 OpenOCD

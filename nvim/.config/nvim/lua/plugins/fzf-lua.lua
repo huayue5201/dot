@@ -26,8 +26,8 @@ return {
 			require("fzf-lua").grep({ resume = true })
 		end, { desc = "fzf: grep" })
 		vim.keymap.set("n", "<leader>fr", "<cmd>FzfLua grep_curbuf<cr>", { desc = "fzf: grep buffer" })
-		vim.keymap.set("n", "<leader>ft", "<cmd>FzfLua btags<cr>", { desc = "fzf: btags" })
-		vim.keymap.set("n", "<leader>fT", "<cmd>FzfLua tags<cr>", { desc = "fzf: workspaces tags" })
+		vim.keymap.set("n", "<leader>ft", "<cmd>FzfLua tabs<cr>", { desc = "fzf: tabs" })
+		-- vim.keymap.set("n", "<leader>fT", "<cmd>FzfLua tags<cr>", { desc = "fzf: workspaces tags" })
 		-- 引用与定义相关
 		vim.keymap.set("n", "<leader>flr", "<cmd>FzfLua lsp_references<cr>", { desc = "查找引用" })
 		vim.keymap.set("n", "<leader>fld", "<cmd>FzfLua lsp_definitions<cr>", { desc = "跳转到定义" })

@@ -24,6 +24,8 @@ local function create_input_window(parent, title, width)
 	})
 
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "" })
+	-- 开启补全
+	vim.bo[buf].omnifunc = "v:lua.vim.lsp.omnifunc"
 
 	return { buf = buf, win = win }
 end
