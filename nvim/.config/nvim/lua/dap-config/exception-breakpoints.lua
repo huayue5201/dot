@@ -1,4 +1,4 @@
--- exception-breakpoints.lua（丝滑 + 高亮版）
+-- exception-breakpoints.lua（丝滑 + 高亮 + 精简重构版 + footer统一）
 
 local M = {}
 local dap = require("dap")
@@ -6,14 +6,14 @@ local dap = require("dap")
 local available_options = nil
 local selected_options = nil
 
--- 图标定义
+-- 图标
 local icons = {
-	selected = " ", -- 选中图标（绿色勾）
-	unselected = " ", -- 未选中图标（红色叉）
+	selected = "  ",
+	unselected = "  ",
 }
 
--- 判断选项是否在选中列表中
-local function is_option_selected(opt)
+-- 判断是否选中
+local function is_selected(opt)
 	if not selected_options then
 		return false
 	end
@@ -25,75 +25,85 @@ local function is_option_selected(opt)
 	return false
 end
 
--- 切换选项的选中状态
+-- 切换选中状态
 local function toggle_option(opt)
-	if not opt then
-		return
-	end
-
 	for i, v in ipairs(selected_options) do
 		if v.filter == opt.filter then
 			table.remove(selected_options, i)
-			return false -- 返回新状态：未选中
+			return false
 		end
 	end
-
 	table.insert(selected_options, opt)
-	return true -- 返回新状态：选中
+	return true
 end
 
--- 获取当前调试适配器名称
-local function get_current_adapter_name()
+-- 获取当前 adapter 名称
+local function get_adapter_name()
 	local session = dap.session()
-	if session and session.config then
-		return session.config.type or "unknown"
-	end
-	return nil
+	return session and session.config and session.config.type or "unknown"
 end
 
--- 计算文本宽度
-local function calculate_width(items)
+-- 计算宽度
+local function calc_width(items, footer_text)
 	local max_width = 40
 	for _, item in ipairs(items) do
-		local line = item.label
+		local text = item.label
+		if item.description ~= "" then
+			text = text .. " - " .. item.description
+		end
+		max_width = math.max(max_width, #text + 3)
+	end
+
+	-- footer 统一使用同一个字符串
+	max_width = math.max(max_width, #footer_text)
+
+	return math.min(max_width + 4, 40)
+end
+
+-- 渲染器
+local function render(buf, items)
+	local lines = {}
+	for _, item in ipairs(items) do
+		local selected = is_selected(item._opt)
+		local icon = selected and icons.selected or icons.unselected
+		local line = icon .. " " .. item.label
 		if item.description ~= "" then
 			line = line .. " - " .. item.description
 		end
-		local width = #line + 3
-		if width > max_width then
-			max_width = width
-		end
+		table.insert(lines, line)
 	end
 
-	local hint_width = #"回车: 切换 | v: 批量 | q/ESC: 关 | C-s: 完成"
-	if hint_width > max_width then
-		max_width = hint_width
-	end
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
-	return math.min(max_width + 4, 90)
+	-- 高亮
+	vim.api.nvim_buf_clear_namespace(buf, -1, 0, -1)
+	for i, item in ipairs(items) do
+		local selected = is_selected(item._opt)
+		local hl = selected and "DiagnosticOk" or "DiagnosticError"
+		vim.api.nvim_buf_add_highlight(buf, -1, hl, i - 1, 0, 2)
+	end
 end
 
--- 创建自定义选择器
-local function create_custom_picker(items, on_done)
+-- 创建 UI
+local function create_picker(items, on_done)
 	local buf = vim.api.nvim_create_buf(false, true)
-	local adapter_name = get_current_adapter_name()
-	local title_text = adapter_name and string.format(" %s ", adapter_name)
+	local adapter = get_adapter_name()
 
-	-- 计算窗口大小
-	local win_height = math.min(math.max(#items + 1, 4), 12)
-	local win_width = calculate_width(items)
+	-- footer 文本统一
+	local footer_text = "CR:切换  v:批量  q/ESC:关  C-s:完成"
 
-	local footer_text = "回车:切换 | v:批量 | q/ESC:关 | C-s:完成"
+	local width = calc_width(items, footer_text)
+	local height = math.min(math.max(#items + 1, 3), 12)
 
 	local win = vim.api.nvim_open_win(buf, true, {
 		relative = "editor",
-		width = win_width,
-		height = win_height,
-		col = math.floor((vim.o.columns - win_width) / 2),
-		row = math.floor((vim.o.lines - win_height) / 2),
+		width = width,
+		height = height,
+		col = math.floor((vim.o.columns - width) / 2),
+		row = math.floor((vim.o.lines - height) / 2),
 		border = "rounded",
 		style = "minimal",
-		title = title_text,
+		title = " " .. adapter .. " ",
 		title_pos = "center",
 		footer = { { footer_text, "Comment" } },
 		footer_pos = "center",
@@ -103,130 +113,100 @@ local function create_custom_picker(items, on_done)
 	vim.bo[buf].bufhidden = "wipe"
 	vim.bo[buf].filetype = "dap-exception-breakpoints"
 
-	-- 更新显示内容
-	local function update_content()
-		-- 生成显示行
-		local lines = {}
-		for _, item in ipairs(items) do
-			local icon = item.selected and icons.selected or icons.unselected
-			local line = icon .. " " .. item.label
-			if item.description ~= "" then
-				line = line .. " - " .. item.description
-			end
-			table.insert(lines, line)
+	-- 操作函数
+	local function apply_toggle(i)
+		local item = items[i]
+		if not item then
+			return
 		end
-
-		vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-		-- 重新设置高亮
-		vim.api.nvim_buf_clear_namespace(buf, -1, 0, -1)
-		for i, item in ipairs(items) do
-			local hl_group = item.selected and "DiagnosticOk" or "DiagnosticError"
-			vim.api.nvim_buf_add_highlight(buf, -1, hl_group, i - 1, 0, 2)
-		end
+		toggle_option(item._opt)
+		render(buf, items)
 	end
 
-	-- 切换当前行的选中状态
-	local function toggle_current()
-		local cursor = vim.api.nvim_win_get_cursor(win)
-		local line = cursor[1]
-		if line >= 1 and line <= #items then
-			local item = items[line]
-			item.selected = toggle_option(item._opt)
-			update_content()
-		end
+	local function cursor_line()
+		return vim.api.nvim_win_get_cursor(win)[1]
 	end
 
-	-- 批量切换选中状态
-	local function batch_toggle(start_line, end_line)
-		for i = start_line, end_line do
+	local function batch_toggle()
+		local s = vim.fn.line("'<")
+		local e = vim.fn.line("'>")
+		for i = s, e do
 			local item = items[i]
 			if item then
-				item.selected = toggle_option(item._opt)
+				toggle_option(item._opt)
 			end
 		end
-		update_content()
+		render(buf, items)
 	end
 
-	-- 重置选择为默认值
-	local function reset_to_default()
+	local function reset_default()
 		selected_options = {}
 		for _, opt in ipairs(available_options) do
 			if opt.default then
 				table.insert(selected_options, opt)
 			end
 		end
-
-		-- 更新 items 的选中状态
-		for _, item in ipairs(items) do
-			item.selected = is_option_selected(item._opt)
-		end
 	end
 
-	-- 批量选择模式
-	local function start_batch_select()
-		vim.cmd("normal! V")
-		vim.keymap.set("v", "v", function()
-			local start_line = vim.fn.line("'<")
-			local end_line = vim.fn.line("'>")
-			batch_toggle(start_line, end_line)
-			vim.cmd("stopinsert")
-		end, { buffer = buf, nowait = true })
-	end
-
-	-- 取消选择并关闭
-	local function cancel_and_close()
-		reset_to_default()
+	local function close_cancel()
+		reset_default()
 		vim.api.nvim_win_close(win, true)
 	end
 
-	-- 完成选择并关闭
-	local function complete_and_close()
+	local function close_done()
 		vim.api.nvim_win_close(win, true)
 		if on_done then
 			on_done()
 		end
 	end
 
-	-- 设置快捷键
+	-- 键位绑定
 	local opts = { buffer = buf, nowait = true }
-	vim.keymap.set("n", "q", cancel_and_close, opts)
-	vim.keymap.set("n", "<Esc>", cancel_and_close, opts)
-	vim.keymap.set("n", "<C-s>", complete_and_close, opts)
-	vim.keymap.set("n", "<CR>", toggle_current, opts)
-	vim.keymap.set("n", "v", start_batch_select, opts)
 
-	-- 数字键直接选择
+	local keymap = {
+		q = close_cancel,
+		["<Esc>"] = close_cancel,
+		["<CR>"] = close_done,
+		["<tab>"] = function()
+			apply_toggle(cursor_line())
+		end,
+		v = function()
+			vim.cmd("normal! V")
+			vim.keymap.set("v", "v", function()
+				batch_toggle()
+				vim.cmd("stopinsert")
+			end, { buffer = buf, nowait = true })
+		end,
+		j = function()
+			local c = cursor_line()
+			if c < #items then
+				vim.api.nvim_win_set_cursor(win, { c + 1, 0 })
+			end
+		end,
+		k = function()
+			local c = cursor_line()
+			if c > 1 then
+				vim.api.nvim_win_set_cursor(win, { c - 1, 0 })
+			end
+		end,
+	}
+
+	for k, fn in pairs(keymap) do
+		vim.keymap.set("n", k, fn, opts)
+	end
+
+	-- 数字键
 	for i = 1, #items do
 		vim.keymap.set("n", tostring(i), function()
-			local item = items[i]
-			if item then
-				item.selected = toggle_option(item._opt)
-				update_content()
-			end
+			apply_toggle(i)
 		end, opts)
 	end
 
-	-- 上下移动
-	vim.keymap.set("n", "j", function()
-		local cursor = vim.api.nvim_win_get_cursor(win)
-		if cursor[1] < #items then
-			vim.api.nvim_win_set_cursor(win, { cursor[1] + 1, cursor[2] })
-		end
-	end, opts)
-
-	vim.keymap.set("n", "k", function()
-		local cursor = vim.api.nvim_win_get_cursor(win)
-		if cursor[1] > 1 then
-			vim.api.nvim_win_set_cursor(win, { cursor[1] - 1, cursor[2] })
-		end
-	end, opts)
-
-	-- 初始化显示
-	update_content()
+	-- 初次渲染
+	render(buf, items)
 	vim.api.nvim_win_set_cursor(win, { 1, 0 })
 
-	-- 窗口关闭时清理
+	-- 自动清理
 	vim.api.nvim_create_autocmd("WinClosed", {
 		pattern = tostring(win),
 		once = true,
@@ -237,11 +217,10 @@ local function create_custom_picker(items, on_done)
 end
 
 -- 设置异常断点
-local function set_exception_breakpoints()
+local function apply_exception_breakpoints()
 	if not selected_options then
 		return
 	end
-
 	local filters = {}
 	for _, opt in ipairs(selected_options) do
 		table.insert(filters, opt.filter)
@@ -249,7 +228,7 @@ local function set_exception_breakpoints()
 	dap.set_exception_breakpoints(filters)
 end
 
--- 监听器：初始化选项
+-- 初始化选项
 dap.listeners.after["configurationDone"]["exception_breakpoints_ui"] = function(session)
 	local opts = session.capabilities.exceptionBreakpointFilters
 	if not opts then
@@ -267,26 +246,24 @@ dap.listeners.after["configurationDone"]["exception_breakpoints_ui"] = function(
 	end
 end
 
--- 监听器：启动时设置
+-- 启动时应用
 dap.listeners.after["launch"]["exception_breakpoints_ui"] = function()
-	set_exception_breakpoints()
+	apply_exception_breakpoints()
 end
 
--- 主功能：切换异常断点选择
+-- 主入口
 function M.toggle()
 	if not available_options then
 		vim.notify("调试器未启动", vim.log.levels.WARN)
 		return
 	end
 
-	-- 准备显示项
 	local items = {}
 	for _, opt in ipairs(available_options) do
 		table.insert(items, {
 			label = opt.label,
 			description = opt.description or "",
 			filter = opt.filter,
-			selected = is_option_selected(opt),
 			_opt = opt,
 		})
 	end
@@ -295,10 +272,9 @@ function M.toggle()
 		return a.label < b.label
 	end)
 
-	-- 创建选择器
-	create_custom_picker(items, function()
+	create_picker(items, function()
 		if dap.session() then
-			set_exception_breakpoints()
+			apply_exception_breakpoints()
 		end
 
 		if #selected_options == 0 then

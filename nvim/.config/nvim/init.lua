@@ -39,4 +39,13 @@ vim.defer_fn(function()
 		require("user.dotenv").load() -- token加载模块
 		require("user.hl_undo_changes") -- undo高亮
 	end)
+	-- 自动清理lsp日志文件
+	local log = vim.lsp.log.get_filename()
+	local max_size = 20 * 1024 * 1024 -- 20MB
+
+	vim.loop.fs_stat(log, function(err, stat)
+		if not err and stat and stat.size > max_size then
+			vim.loop.fs_unlink(log)
+		end
+	end)
 end, 300)

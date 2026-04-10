@@ -7,6 +7,8 @@ vim.g.loaded_ruby_provider = 0
 -- vim.g.python3_host_prog = "/Library/Frameworks/Python.framework/Versions/3.14/bin/python3"
 
 -- -------------- 基本设置 --------------
+-- local directory = vim.fs.root(0, ".git") or "."
+-- vim.cmd.cd(directory)
 vim.o.autoread = true -- 自动处理外部更改
 vim.o.mousemoveevent = true -- 启用鼠标移动事件
 vim.opt.fileencodings = { "utf-8", "gbk", "cp936", "ucs-bom", "latin1" }
@@ -47,6 +49,8 @@ vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
 vim.o.expandtab = true -- 将 Tab 转为空格
 vim.o.tabstop = 2 -- 设置 Tab 为 2 个空格宽度
 vim.o.shiftwidth = 2 -- 设置自动缩进为 2 个空格
+vim.opt.smartindent = true
+vim.opt.smarttab = true
 vim.o.scrolloff = 8 -- 保持光标上方和下方至少 8 行可见
 vim.o.sidescrolloff = 5 -- 保持光标左右至少 5 列可见
 
