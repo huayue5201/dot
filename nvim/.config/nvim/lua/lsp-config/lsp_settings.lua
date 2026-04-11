@@ -64,6 +64,8 @@ M.global_config = function()
 	})
 end
 
+-- require("lsp-config.neo_tree_file_ops").setup()
+
 local lsp_get = require("lsp-config.lsp_utils")
 local Store = require("nvim-store3").project()
 
