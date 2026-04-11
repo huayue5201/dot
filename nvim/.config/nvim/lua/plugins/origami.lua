@@ -47,7 +47,7 @@ return {
 
 			-- 自动折叠功能
 			autoFold = {
-				enabled = true, -- 启用自动折叠
+				enabled = false, -- 启用自动折叠
 				kinds = { "comment", "imports" }, -- 自动折叠的 LSP FoldingRangeKind 类型
 				-- 常见 kinds:
 				-- "comment"  → 折叠注释块

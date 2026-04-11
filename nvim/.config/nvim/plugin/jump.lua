@@ -1,0 +1,194 @@
+-- jump.lua
+
+local fn = vim.fn
+local api = vim.api
+
+local M = {}
+local NS = api.nvim_create_namespace("jump")
+local CR = api.nvim_replace_termcodes("<Cr>", true, true, true)
+local BS = api.nvim_replace_termcodes("<Bs>", true, true, true)
+local ESC = api.nvim_replace_termcodes("<Esc>", true, true, true)
+local LABELS = {}
+
+local CONFIG = {
+	-- The labels that may be used, in order of their preference.
+	labels = "fdsaghjklrewqtyuiopvcxzbnm",
+
+	-- The highlight group to use for match highlights.
+	search = "Search",
+
+	-- The highlight group to use for labels.
+	label = "JumpLabel", -- 改为自定义高亮组
+}
+
+local function search(pattern, lines, start_line, matches)
+	local lower = pattern == pattern:lower()
+
+	for idx, line in ipairs(lines) do
+		local lnum = start_line + idx - 1
+		local line_text = lower and line:lower() or line
+
+		if #line_text > 0 then
+			local col = 1
+
+			while true do
+				local start, stop = line_text:find(pattern, col, true)
+
+				if not start then
+					break
+				end
+
+				col = stop + 1
+				table.insert(matches, {
+					line = lnum - 1,
+					start_col = start - 1,
+					end_col = stop,
+					line_index = idx,
+				})
+			end
+		end
+	end
+end
+
+local function available_labels(lines, matches)
+	local avail = {}
+
+	for _, char in ipairs(LABELS) do
+		avail[char] = true
+	end
+
+	-- Disable all the labels that conflict with any of the characters that may be
+	-- matched by the next input.
+	for _, match in ipairs(matches) do
+		local next_col = match.end_col + 1
+		local next_char = lines[match.line_index]:sub(next_col, next_col):lower()
+
+		avail[next_char] = false
+	end
+
+	return avail
+end
+
+function M.start()
+	local win = api.nvim_get_current_win()
+	local buf = api.nvim_win_get_buf(win)
+	local info = fn.getwininfo(win)[1]
+	local top = info.topline
+	local bot = info.botline
+	local lines = api.nvim_buf_get_lines(buf, top - 1, bot, true)
+	local chars = ""
+	local matches = {}
+	local active = {}
+
+	while true do
+		api.nvim_echo({ { "/" .. chars, "" } }, false, {})
+
+		local char = fn.getcharstr(-1)
+		local jump_to = active[char]
+
+		if char == ESC then
+			break
+		elseif char == CR then
+			for _, char in ipairs(LABELS) do
+				jump_to = active[char]
+
+				if jump_to then
+					break
+				end
+			end
+
+			if jump_to then
+				-- save jump position for <C-o>
+				vim.cmd("normal! m'")
+				api.nvim_win_set_cursor(win, jump_to)
+			end
+
+			break
+		elseif char == BS then
+			chars = chars:sub(1, #chars - 1)
+		elseif jump_to then
+			-- save jump position for <C-o>
+			vim.cmd("normal! m'")
+			api.nvim_win_set_cursor(win, jump_to)
+			break
+		else
+			chars = chars .. char
+		end
+
+		matches = {}
+		active = {}
+		api.nvim_buf_clear_namespace(buf, NS, 0, -1)
+
+		if #chars > 0 then
+			search(chars, lines, top, matches)
+
+			local avail = available_labels(lines, matches)
+
+			for _, match in ipairs(matches) do
+				local label = nil
+
+				for _, cur in ipairs(LABELS) do
+					if avail[cur] then
+						label = cur
+						avail[cur] = false
+						break
+					end
+				end
+
+				vim.hl.range(
+					buf,
+					NS,
+					CONFIG.search,
+					{ match.line, match.start_col },
+					{ match.line, match.end_col },
+					{ priority = 1 }
+				)
+
+				if label then
+					active[label] = { match.line + 1, match.start_col }
+					api.nvim_buf_set_extmark(buf, NS, match.line, match.start_col, {
+						virt_text = { { label, CONFIG.label } },
+						virt_text_pos = "overlay",
+						priority = 2,
+					})
+				end
+			end
+		end
+
+		vim.cmd.redraw()
+	end
+
+	api.nvim_buf_clear_namespace(buf, NS, 0, -1)
+	api.nvim_echo({ { "", "" } }, false, {})
+	vim.cmd.redraw()
+end
+
+function M.setup(opts)
+	if opts then
+		CONFIG = vim.tbl_extend("force", CONFIG, opts)
+	end
+
+	LABELS = fn.split(CONFIG.labels, "\\zs")
+
+	-- 设置粉色高亮
+	vim.api.nvim_set_hl(0, "JumpLabel", {
+		fg = "#ffffff", -- 白色文字
+		bg = "#ff69b4", -- 粉色背景 (hot pink)
+		bold = true,
+		standout = true,
+	})
+
+	-- 也可以同时设置搜索高亮为更醒目的颜色（可选）
+	vim.api.nvim_set_hl(0, "JumpSearch", {
+		bg = "#ff69b4", -- 粉色背景
+		fg = "#ffffff", -- 白色文字
+	})
+end
+
+-- Auto setup with default config
+M.setup()
+
+-- Key mappings
+vim.keymap.set({ "n", "x" }, "s", M.start, { desc = "Jump to characters" })
+
+return M
