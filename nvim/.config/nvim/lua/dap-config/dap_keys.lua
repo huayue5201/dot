@@ -11,7 +11,6 @@ function M.setup()
 		dap.terminate({
 			on_done = function()
 				dap.repl.close()
-				vim.cmd("DapVirtualTextForceRefresh")
 			end,
 		})
 	end, { desc = "DAP: 终止调试" })

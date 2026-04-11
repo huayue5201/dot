@@ -4,8 +4,6 @@ return {
 	"mfussenegger/nvim-dap",
 	event = "VeryLazy",
 	dependencies = {
-		-- https://github.com/theHamsta/nvim-dap-virtual-text
-		"theHamsta/nvim-dap-virtual-text",
 		"Jorenar/nvim-dap-disasm",
 	},
 	config = function()
@@ -63,6 +61,11 @@ return {
 		require("dap-config.breakpoint_state").setup_autoload()
 
 		require("dap-config.exception-breakpoints")
+
+		-- 🔥 在这里放监听器（最佳位置）
+		dap.listeners.after.event_stopped["debug_reason"] = function(session, body)
+			print("🔥 STOP reason:", body.reason)
+		end
 
 		-- 扩展 REPL 命令
 		local repl = require("dap.repl")

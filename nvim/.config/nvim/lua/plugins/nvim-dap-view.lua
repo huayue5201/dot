@@ -70,7 +70,15 @@ return {
 					hide = { "delve" }, -- 如果你调试 Go，可以隐藏终端
 				},
 			},
-
+			-- Requires neovim 0.12+
+			virtual_text = {
+				-- Control with `DapViewVirtualTextToggle`
+				enabled = true,
+				format = function(variable, _, _)
+					-- Strip out excessive whitespace
+					return " " .. variable.value:gsub("%s+", " ")
+				end,
+			},
 			-----------------------------------------------------------
 			-- 跳转行为配置
 			-----------------------------------------------------------
