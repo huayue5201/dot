@@ -53,6 +53,7 @@ vim.opt.smartindent = true
 vim.opt.smarttab = true
 vim.o.scrolloff = 8 -- 保持光标上方和下方至少 8 行可见
 vim.o.sidescrolloff = 5 -- 保持光标左右至少 5 列可见
+vim.o.nrformats = "unsigned"
 
 -- shada设置
 vim.o.exrc = true -- 启用 exrc 配置

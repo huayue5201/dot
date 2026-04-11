@@ -12,9 +12,9 @@ end
 function M.set_function_breakpoint()
 	popup.open({
 		fields = {
-			{ key = "func", label = "函数名（必填）" },
-			{ key = "condition", label = "条件（可选）" },
-			{ key = "hit", label = "命中次数（可选）" },
+			{ key = "func", label = "函数名(必填)" },
+			{ key = "condition", label = "条件(可选)" },
+			{ key = "hit", label = "命中次数(可选)" },
 		},
 
 		on_submit = function(values)
