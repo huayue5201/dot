@@ -236,6 +236,9 @@ function M.setup()
 				})
 			end
 
+			-- vim.lsp.codelens.enable(not vim.lsp.codelens.is_enabled())
+			vim.lsp.codelens.enable(true)
+
 			if client:supports_method("textDocument/onTypeFormatting") then
 				vim.lsp.on_type_formatting.enable()
 			end

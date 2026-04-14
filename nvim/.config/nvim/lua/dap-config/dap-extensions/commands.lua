@@ -1,6 +1,7 @@
 local manager = require("dap-config.dap-extensions.manager")
 local popup = require("dap-config.dap-extensions.ui.popup")
 local sign = require("dap-config.dap-extensions.ui.sign")
+local breakpoint_state = require("dap-config.breakpoint_state")
 
 local M = {}
 
@@ -17,8 +18,39 @@ local DATA_FIELDS = {
 	{ label = "Hit Condition (optional)", key = "hit_condition" },
 }
 
--- 通过 LSP 获取函数定义位置（用于预显示待定断点）
-local function get_function_location_from_lsp(function_name)
+-- ============================================================
+-- 硬件断点命令
+-- ============================================================
+
+local HARDWARE_TYPES = {
+	{ name = "Execute", access = "execute", desc = "在指定地址执行时中断", need_size = false },
+	{ name = "Read", access = "read", desc = "读取指定地址时中断", need_size = true },
+	{ name = "Write", access = "write", desc = "写入指定地址时中断", need_size = true },
+	{ name = "Read/Write", access = "readWrite", desc = "读取或写入时中断", need_size = true },
+}
+
+-- 根据类型动态生成输入字段
+local function get_hardware_fields(choice)
+	local fields = {
+		{ label = "Address (e.g., 0x401000)", key = "address" },
+	}
+
+	if choice.need_size then
+		table.insert(fields, { label = "Size in bytes (default 1)", key = "size" })
+	end
+
+	table.insert(fields, { label = "Condition (optional)", key = "condition" })
+	table.insert(fields, { label = "Hit Condition (optional)", key = "hit_condition" })
+
+	return fields
+end
+
+-- ============================================================
+-- 位置获取策略
+-- ============================================================
+
+-- 1. 函数断点位置：优先 LSP，显示待定标志，命中后更新
+local function get_function_location(function_name)
 	local params = {
 		textDocument = vim.lsp.util.make_text_document_params(),
 		position = vim.api.nvim_win_get_cursor(0),
@@ -42,6 +74,7 @@ local function get_function_location_from_lsp(function_name)
 						return {
 							bufnr = vim.uri_to_bufnr(symbol.location.uri),
 							line = symbol.location.range.start.line + 1,
+							source = "lsp",
 						}
 					end
 				end
@@ -50,6 +83,27 @@ local function get_function_location_from_lsp(function_name)
 	end
 	return nil
 end
+
+-- 2. 数据断点位置：使用当前光标位置（用户知道变量在哪）
+local function get_data_location()
+	local cursor = vim.api.nvim_win_get_cursor(0)
+	return {
+		bufnr = vim.api.nvim_get_current_buf(),
+		line = cursor[1],
+		source = "cursor",
+	}
+end
+
+-- 保存断点并同步
+local function save_and_sync()
+	vim.defer_fn(function()
+		breakpoint_state.sync_ext_breakpoints()
+	end, 100)
+end
+
+-- ============================================================
+-- 函数断点
+-- ============================================================
 
 function M.add_function_breakpoint()
 	popup.open({
@@ -68,38 +122,39 @@ function M.add_function_breakpoint()
 				opts.hitCondition = result.hit_condition
 			end
 
-			-- 尝试通过 LSP 获取函数位置（用于预显示）
-			local location = get_function_location_from_lsp(result.function_name)
+			local location = get_function_location(result.function_name)
 			if location then
 				opts.bufnr = location.bufnr
 				opts.line = location.line
 				vim.notify(
-					string.format("✓ Function breakpoint on '%s' at line %d", result.function_name, location.line),
+					string.format(
+						"✓ Function breakpoint on '%s' at line %d (LSP location)",
+						result.function_name,
+						location.line
+					),
 					"info"
 				)
 			else
-				-- 如果 LSP 找不到，使用光标位置作为临时位置
-				local cursor = vim.api.nvim_win_get_cursor(0)
-				opts.bufnr = vim.api.nvim_get_current_buf()
-				opts.line = cursor[1]
 				vim.notify(
-					string.format(
-						"⚠ Function breakpoint on '%s' (position pending, will update when hit)",
-						result.function_name
-					),
-					"warn"
+					string.format("✓ Function breakpoint on '%s' (位置将在命中后更新)", result.function_name),
+					"info"
 				)
 			end
 
 			local bp = manager.add_function_breakpoint(result.function_name, opts)
 
-			-- 立即显示待定标志
 			if bp.config.bufnr and bp.config.line then
 				sign.show_sign(bp)
 			end
+
+			save_and_sync()
 		end,
 	})
 end
+
+-- ============================================================
+-- 数据断点
+-- ============================================================
 
 function M.add_data_breakpoint()
 	popup.open({
@@ -121,20 +176,99 @@ function M.add_data_breakpoint()
 				opts.hitCondition = result.hit_condition
 			end
 
-			-- 数据断点使用光标位置
-			local cursor = vim.api.nvim_win_get_cursor(0)
-			opts.bufnr = vim.api.nvim_get_current_buf()
-			opts.line = cursor[1]
+			local location = get_data_location()
+			opts.bufnr = location.bufnr
+			opts.line = location.line
 
 			local bp = manager.add_data_breakpoint(result.expression, opts)
 
-			-- 立即显示待定标志
 			sign.show_sign(bp)
 
-			vim.notify(string.format("✓ Data breakpoint on '%s'", result.expression), "info")
+			vim.notify(
+				string.format("✓ Data breakpoint on '%s' at line %d", result.expression, location.line),
+				"info"
+			)
+
+			save_and_sync()
 		end,
 	})
 end
+
+-- ============================================================
+-- 硬件断点
+-- ============================================================
+
+function M.add_hardware_breakpoint()
+	vim.ui.select(HARDWARE_TYPES, {
+		prompt = "🔧 选择硬件断点类型:",
+		format_item = function(item)
+			local access_icon = {
+				execute = "⚡",
+				read = "📖",
+				write = "✍️",
+				readWrite = "🔄",
+			}
+			local icon = access_icon[item.access] or "🔧"
+			return string.format("%s  %-12s . %s", icon, item.name, item.desc)
+		end,
+	}, function(choice)
+		if not choice then
+			return
+		end
+
+		local fields = get_hardware_fields(choice)
+
+		popup.open({
+			fields = fields,
+			on_submit = function(result)
+				if not result.address or result.address == "" then
+					vim.notify("❌ 地址不能为空！", "error")
+					return
+				end
+
+				local opts = {}
+				if result.condition and result.condition ~= "" then
+					opts.condition = result.condition
+				end
+				if result.hit_condition and result.hit_condition ~= "" then
+					opts.hitCondition = result.hit_condition
+				end
+
+				local size = tonumber(result.size) or 1
+				local bp = nil
+
+				if choice.access == "execute" then
+					bp = manager.add_hardware_execute_breakpoint(result.address, opts)
+				elseif choice.access == "read" then
+					bp = manager.add_hardware_read_breakpoint(result.address, size, opts)
+				elseif choice.access == "write" then
+					bp = manager.add_hardware_write_breakpoint(result.address, size, opts)
+				elseif choice.access == "readWrite" then
+					bp = manager.add_hardware_access_breakpoint(result.address, size, opts)
+				end
+
+				if bp then
+					local access_icon = {
+						execute = "⚡",
+						read = "📖",
+						write = "✍️",
+						readWrite = "🔄",
+					}
+					local icon = access_icon[choice.access] or "🔧"
+					vim.notify(
+						string.format("✓ 硬件断点: %s %s at %s", icon, choice.name, result.address),
+						"info"
+					)
+					save_and_sync()
+				end
+			end,
+		})
+	end)
+end
+
+-- ============================================================
+-- 列表和清除
+-- ============================================================
 
 function M.list_breakpoints()
 	local bps = manager.list_breakpoints()
@@ -160,6 +294,8 @@ function M.list_breakpoints()
 			line = line .. string.format(": %s", bp.config.function_name)
 			if bp.config.bufnr and bp.config.line then
 				line = line .. string.format(" at line %d", bp.config.line)
+			else
+				line = line .. " (位置待定)"
 			end
 			if bp.config.condition then
 				line = line .. string.format("\n    └─ if: %s", bp.config.condition)
@@ -178,6 +314,20 @@ function M.list_breakpoints()
 			if bp.config.condition then
 				line = line .. string.format("\n    └─ if: %s", bp.config.condition)
 			end
+		elseif bp.type == "instruction" then
+			line = line .. string.format(": %s", bp.config.instruction_reference)
+			if bp.config.accessType then
+				line = line .. string.format(" (%s)", bp.config.accessType)
+			end
+			if bp.config.size and bp.config.size > 1 then
+				line = line .. string.format(" size=%d", bp.config.size)
+			end
+			if bp.config.condition then
+				line = line .. string.format("\n    └─ if: %s", bp.config.condition)
+			end
+			if bp.config.hitCondition then
+				line = line .. string.format("\n    └─ hit: %s", bp.config.hitCondition)
+			end
 		end
 
 		table.insert(lines, line)
@@ -195,6 +345,7 @@ function M.clear_breakpoints()
 
 	manager.clear_breakpoints()
 	vim.notify(string.format("✓ Cleared %d breakpoint(s)", count), "info")
+	save_and_sync()
 end
 
 return M

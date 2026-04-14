@@ -6,14 +6,14 @@ vim.api.nvim_set_hl(0, "PopupBorderInactive", { fg = "#666666" })
 
 local MAX_HEIGHT = 6
 
--- 创建子输入框（不再传 row，row 由 relayout 控制）
+-- 创建子输入框
 local function create_input_window(parent, title, width)
 	local buf = vim.api.nvim_create_buf(false, true)
 
 	local win = vim.api.nvim_open_win(buf, true, {
 		relative = "win",
 		win = parent,
-		row = 1, -- ⭐ 固定为 1，布局完全交给 relayout()
+		row = 1,
 		col = 2,
 		width = width,
 		height = 1,
@@ -24,7 +24,6 @@ local function create_input_window(parent, title, width)
 	})
 
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "" })
-	-- 开启补全
 	vim.bo[buf].omnifunc = "v:lua.vim.lsp.omnifunc"
 	vim.bo[buf].filetype = vim.bo.filetype
 
@@ -42,6 +41,9 @@ function M.open(opts)
 
 	local prev_mode = vim.fn.mode()
 	local width = 50
+
+	-- ⭐ 添加关闭标志
+	local is_closing = false
 
 	----------------------------------------------------------------------
 	-- 父浮窗（跟随光标）
@@ -105,7 +107,7 @@ function M.open(opts)
 	end
 
 	----------------------------------------------------------------------
-	-- ⭐ 自动布局（解决重叠的关键）
+	-- 自动布局
 	----------------------------------------------------------------------
 	local function relayout()
 		local y = 1
@@ -126,30 +128,47 @@ function M.open(opts)
 	end
 
 	----------------------------------------------------------------------
-	-- 关闭所有浮窗
+	-- 关闭所有浮窗（添加防重复）
 	----------------------------------------------------------------------
 	local function close_all()
-		for _, win in ipairs(windows) do
-			if vim.api.nvim_win_is_valid(win.win) then
-				vim.api.nvim_win_close(win.win, true)
-			end
+		-- ⭐ 防止重复关闭
+		if is_closing then
+			return
 		end
-		if vim.api.nvim_win_is_valid(parent) then
-			vim.api.nvim_win_close(parent, true)
-		end
+		is_closing = true
 
-		if prev_mode == "i" then
-			vim.cmd("startinsert")
-		end
+		-- 暂时禁用所有自动命令，避免递归触发
+		vim.schedule(function()
+			for _, win in ipairs(windows) do
+				if win and win.win and vim.api.nvim_win_is_valid(win.win) then
+					pcall(vim.api.nvim_win_close, win.win, true)
+				end
+			end
+			if parent and vim.api.nvim_win_is_valid(parent) then
+				pcall(vim.api.nvim_win_close, parent, true)
+			end
+
+			if prev_mode == "i" then
+				pcall(vim.cmd, "startinsert")
+			end
+
+			-- 重置关闭标志
+			is_closing = false
+		end)
 	end
 
 	----------------------------------------------------------------------
 	-- 切换焦点
 	----------------------------------------------------------------------
 	local function focus(i)
+		if is_closing then
+			return
+		end
 		index = i
-		vim.api.nvim_set_current_win(windows[i].win)
-		update_borders()
+		if windows[i] and windows[i].win and vim.api.nvim_win_is_valid(windows[i].win) then
+			pcall(vim.api.nvim_set_current_win, windows[i].win)
+			update_borders()
+		end
 	end
 
 	----------------------------------------------------------------------
@@ -161,8 +180,10 @@ function M.open(opts)
 		vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
 			buffer = buf,
 			callback = function()
-				resize_window(w)
-				relayout()
+				if not is_closing and vim.api.nvim_win_is_valid(w.win) then
+					resize_window(w)
+					relayout()
+				end
 			end,
 		})
 
@@ -178,6 +199,9 @@ function M.open(opts)
 		vim.keymap.set("n", "q", close_all, { buffer = buf })
 
 		vim.keymap.set("n", "<CR>", function()
+			if is_closing then
+				return
+			end
 			local result = {}
 			for j, field in ipairs(fields) do
 				result[field.key] = get_value(windows[j].buf)

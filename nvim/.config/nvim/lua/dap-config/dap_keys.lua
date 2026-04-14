@@ -3,28 +3,30 @@ local M = {}
 function M.setup()
 	local dap = require("dap")
 	local dap_ext = require("dap-config.dap-extensions")
+	local breakpoint_state = require("dap-config.breakpoint_state")
 	local widgets = require("dap.ui.widgets")
 	local sidebar = nil
 
 	-- ▶ 控制
-	vim.keymap.set("n", "<F5>", dap.continue, { desc = "DAP: 继续 / 启动调试" })
+	vim.keymap.set("n", "<F5>", dap.continue, { desc = "[D]ap [C]ontinue / [S]tart" })
 	vim.keymap.set("n", "<F4>", function()
 		dap.terminate({
 			on_done = function()
 				dap.repl.close()
 			end,
 		})
-	end, { desc = "DAP: 终止调试" })
-	vim.keymap.set("n", "<F6>", dap.pause, { desc = "DAP: 暂停" })
+		require("dap-config.dap-extensions.ui.virtual_text").clear_all_for_breakpoints()
+	end, { desc = "[D]ap [T]erminate" })
+	vim.keymap.set("n", "<F6>", dap.pause, { desc = "[D]ap [P]ause" })
 
 	-- 🪜 步进控制
-	vim.keymap.set("n", "<F10>", dap.step_over, { desc = "DAP: 单步跳过" })
-	vim.keymap.set("n", "<F9>", dap.step_back, { desc = "DAP: 逆向单步" })
-	vim.keymap.set("n", "<F11>", dap.step_into, { desc = "DAP: 单步进入" })
-	vim.keymap.set("n", "<F12>", dap.step_out, { desc = "DAP: 单步跳出" })
+	vim.keymap.set("n", "<F10>", dap.step_over, { desc = "[D]ap [S]tep [O]ver" })
+	vim.keymap.set("n", "<F9>", dap.step_back, { desc = "[D]ap [S]tep [B]ack" })
+	vim.keymap.set("n", "<F11>", dap.step_into, { desc = "[D]ap [S]tep [I]nto" })
+	vim.keymap.set("n", "<F12>", dap.step_out, { desc = "[D]ap [S]tep [O]ut" })
 
 	-- 🎯 跳转
-	vim.keymap.set("n", "<F2>", dap.run_to_cursor, { desc = "DAP: 运行到光标" })
+	vim.keymap.set("n", "<F2>", dap.run_to_cursor, { desc = "[D]ap [R]un to [C]ursor" })
 	vim.keymap.set("n", "<F3>", function()
 		vim.ui.input({ prompt = " 󰙎 输入行号: " }, function(input)
 			if input then
@@ -36,69 +38,63 @@ function M.setup()
 				end
 			end
 		end)
-	end, { desc = "DAP: 跳转到行" })
+	end, { desc = "[D]ap [G]oto line" })
 
 	-- 💡 断点管理
-
 	vim.keymap.set("n", "<leader>b", function()
 		dap.toggle_breakpoint()
-		require("dap-config.breakpoint_state").sync_breakpoints()
-	end, { desc = "DAP: 切换断点" })
+		breakpoint_state.sync_breakpoints()
+	end, { desc = "[D]ap [T]oggle breakpoint" })
 
 	vim.keymap.set("n", "<leader>do", function()
 		require("dap-config.conditional_breakpoint").set_breakpoint()
-		require("dap-config.breakpoint_state").sync_breakpoints()
-	end, { desc = "DAP: 自定义断点" })
+		breakpoint_state.sync_breakpoints()
+	end, { desc = "[D]ap [C]onditional breakpoint" })
 
-	-- 添加断点管理快捷键（统一使用 UI）
+	-- 函数断点
 	vim.keymap.set(
 		"n",
 		"<leader>df",
 		dap_ext.commands.add_function_breakpoint,
-		{ desc = "Add function breakpoint with conditions" }
+		{ desc = "[D]ap [F]unction breakpoint" }
 	)
 
+	-- 数据断点
+	vim.keymap.set("n", "<leader>dd", dap_ext.commands.add_data_breakpoint, { desc = "[D]ap [D]ata breakpoint" })
+
+	-- 硬件断点
 	vim.keymap.set(
 		"n",
-		"<leader>dd",
-		dap_ext.commands.add_data_breakpoint,
-		{ desc = "Add data breakpoint with conditions" }
+		"<leader>dh",
+		dap_ext.commands.add_hardware_breakpoint,
+		{ desc = "[D]ap [H]ardware breakpoint" }
 	)
 
-	vim.keymap.set("n", "<leader>dl", function()
-		local bps = dap_ext.list_breakpoints()
-		if #bps == 0 then
-			print("No breakpoints")
-			return
-		end
-		print("Breakpoints:")
-		for _, bp in ipairs(bps) do
-			local info = string.format("  [%s] %s", bp.status, bp.type)
-			if bp.type == "function" then
-				info = info .. ": " .. (bp.config.function_name or bp.function_name)
-				if bp.config.condition then
-					info = info .. " (if: " .. bp.config.condition .. ")"
-				end
-			elseif bp.type == "data" then
-				info = info .. ": " .. (bp.config.expression or bp.expression)
-			end
-			print(info)
-		end
-	end, { desc = "List breakpoints" })
+	-- 异常断点
+	vim.keymap.set("n", "<leader>de", function()
+		require("dap-config.exception-breakpoints").toggle()
+	end, { desc = "[D]ap [E]xception breakpoint" })
 
+	-- 列表断点
+	vim.keymap.set("n", "<leader>dl", dap_ext.commands.list_breakpoints, { desc = "[D]ap [L]ist breakpoints" })
+
+	-- 清除所有断点
 	vim.keymap.set("n", "<leader>dc", function()
 		dap_ext.clear_breakpoints()
 		dap.clear_breakpoints()
-		require("dap-config.breakpoint_state").clear_breakpoints()
+		breakpoint_state.clear_all_breakpoints()
 		print("Cleared all breakpoints")
-	end, { desc = "Clear all breakpoints" })
+	end, { desc = "[D]ap [C]lear all breakpoints" })
 
-	vim.keymap.set("n", "<leader>db", function()
-		require("dap-config.exception-breakpoints").toggle()
-	end, { desc = "DAP: 设置异常断点" })
+	-- 保存断点
+	vim.keymap.set("n", "<leader>ds", function()
+		breakpoint_state.save()
+	end, { desc = "[D]ap [S]ave breakpoints" })
 
-	-- vim.keymap.set("n", "<leader>d[", dap.up, { desc = "DAP: 上一个帧" })
-	-- vim.keymap.set("n", "<leader>d]", dap.down, { desc = "DAP: 下一个帧" })
+	-- 加载断点
+	vim.keymap.set("n", "<leader>dL", function()
+		breakpoint_state.load()
+	end, { desc = "[D]ap [L]oad breakpoints" })
 
 	-- 🔍 评估 / 日志
 	vim.keymap.set("n", "<leader>da", function()
@@ -110,23 +106,19 @@ function M.setup()
 			dap.repl.open()
 			dap.repl.execute(vim.fn.expand("<cexpr>"))
 		end
-	end, { desc = "DAP: 评估表达式" })
+	end, { desc = "[D]ap [E]valuate expression" })
 
-	-- 查看所有断点
+	-- 查看所有断点（quickfix）
 	vim.keymap.set("n", "<leader>dq", function()
 		dap.list_breakpoints()
 		vim.cmd("copen")
-	end, { desc = "DAP: 查看所有断点" })
-
-	-- vim.keymap.set("n", "<F1>", function()
-	-- 	widgets.hover(nil, { border = "rounded" })
-	-- end, { desc = "DAP: 查看变量" })
+	end, { desc = "[D]ap [L]ist breakpoints (quickfix)" })
 
 	-- REPL / Eval 相关映射
-	vim.keymap.set("n", "<localleader>de", "<cmd>DapEval<cr>", { desc = "DAP: Eval 表达式" })
+	vim.keymap.set("n", "<localleader>de", "<cmd>DapEval<cr>", { desc = "[D]ap [E]val expression" })
 	vim.keymap.set("n", "<localleader>dr", function()
 		dap.repl.toggle()
-	end, { desc = "DAP: 切换 REPL 窗口" })
+	end, { desc = "[D]ap [R]EPL toggle" })
 
 	-- 🔧 作用域 / 堆栈 / 会话 / 线程
 	vim.keymap.set("n", "<localleader>ds", function()
@@ -134,27 +126,27 @@ function M.setup()
 			sidebar = widgets.sidebar(widgets.scopes, { width = 40, winblend = 15, signcolumn = "no" })
 		end
 		sidebar.toggle()
-	end, { desc = "DAP: 查看作用域" })
+	end, { desc = "[D]ap [S]copes sidebar" })
 
 	vim.keymap.set("n", "<localleader>df", function()
 		widgets.cursor_float(widgets.frames, { border = "rounded" })
-	end, { desc = "DAP: 查看堆栈" })
+	end, { desc = "[D]ap [F]rames float" })
 
 	vim.keymap.set("n", "<localleader>dt", function()
 		widgets.cursor_float(widgets.threads, { border = "rounded" })
-	end, { desc = "DAP: 查看线程" })
+	end, { desc = "[D]ap [T]hreads float" })
 
 	vim.keymap.set("n", "<localleader>d,", function()
 		widgets.cursor_float(widgets.sessions, { border = "rounded" })
-	end, { desc = "DAP: 查看会话" })
+	end, { desc = "[D]ap [S]essions float" })
 
 	-- 日志相关
-	vim.keymap.set("n", "<localleader>dl", "<cmd>DapShowLog<cr>", { desc = "DAP: 查看日志" })
+	vim.keymap.set("n", "<localleader>dl", "<cmd>DapShowLog<cr>", { desc = "[D]ap [L]og show" })
 	vim.keymap.set(
 		"n",
 		"<localleader>dL",
 		require("dap-config.dap_log_keymap").set_debuglog,
-		{ desc = "DAP: 设置日志级别" }
+		{ desc = "[D]ap [L]og level set" }
 	)
 
 	-- 查看光标下变量 / 自动刷新表达式
@@ -169,40 +161,39 @@ function M.setup()
 				"event_breakpoint",
 			},
 		})
-	end, { desc = "DAP: 查看光标下表达式并自动刷新" })
+	end, { desc = "[D]ap [E]xpressions preview" })
 
-	vim.keymap.set("n", "<localleader>dx", "<cmd>DapVirtualTextToggle<cr>", { desc = "DAP: 切换虚拟文本" })
+	vim.keymap.set("n", "<localleader>dx", "<cmd>DapVirtualTextToggle<cr>", { desc = "[D]ap Virtual [T]ext toggle" })
 
 	vim.api.nvim_create_autocmd("FileType", {
 		pattern = { "dap-repl", "dap-view-term", "dap-view", "" },
 		group = vim.api.nvim_create_augroup("dapui_keymaps", { clear = true }),
 		desc = "Fix and add insert-mode keymaps for dap-repl",
 		callback = function()
-			vim.cmd("syntax on") -- 启用语法高亮（保险）
-			-- vim.cmd("runtime! syntax/rust.vim") -- 手动加载 Rust 的语法文件
-			vim.opt.signcolumn = "no" -- 禁用标志列
+			vim.cmd("syntax on")
+			vim.opt.signcolumn = "no"
 			-- 向下浏览补全项
 			vim.keymap.set("i", "<tab>", function()
 				if vim.fn.pumvisible() == 1 then
-					return "<C-n>" -- Trigger completion
+					return "<C-n>"
 				else
-					return "<Tab>" -- Default tab behavior
+					return "<Tab>"
 				end
 			end, { buffer = true, expr = true, desc = "Tab Completion in dap-repl" })
 			-- 向上浏览补全项
 			vim.keymap.set("i", "<S-Tab>", function()
 				if vim.fn.pumvisible() == 1 then
-					return "<C-p>" -- 反向选择补全菜单中的前一个项
+					return "<C-p>"
 				else
-					return "<Tab>" -- 默认 Tab 行为
+					return "<Tab>"
 				end
 			end, { buffer = true, expr = true, desc = "Reverse Tab Completion in dap-repl" })
 			-- 选择补全项
 			vim.keymap.set({ "i", "n" }, "<CR>", function()
 				if vim.fn.pumvisible() == 1 then
-					return "<C-y>" -- 选择当前补全项（确认补全）
+					return "<C-y>"
 				else
-					return "<CR>" -- 默认行为：插入换行符
+					return "<CR>"
 				end
 			end, { buffer = true, expr = true, desc = "Confirm completion or Insert newline in dap-repl" })
 		end,
@@ -211,10 +202,9 @@ function M.setup()
 	do
 		local keymap_restore = {}
 		local original_global_k = nil
-		local original_global_bracket_d = {} -- 保存 [d 和 ]d 的全局映射
+		local original_global_bracket_d = {}
 
-		-- 保存并删除指定的键映射
-		local function save_and_remove_keymap(key, maps_table, restore_table)
+		local function save_and_remove_keymap(key, restore_table)
 			local global_maps = vim.api.nvim_get_keymap("n")
 			for _, map in ipairs(global_maps) do
 				if map.lhs == key then
@@ -225,7 +215,6 @@ function M.setup()
 			pcall(vim.keymap.del, "n", key)
 		end
 
-		-- 保存并删除缓冲区中的指定键映射
 		local function save_and_remove_buffer_keymaps(key)
 			for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 				local keymaps = vim.api.nvim_buf_get_keymap(buf, "n")
@@ -244,7 +233,6 @@ function M.setup()
 			vim.lsp.inlay_hint.enable(false)
 			vim.diagnostic.enable(false)
 
-			-- 保存并删除 K 键映射
 			local global_maps = vim.api.nvim_get_keymap("n")
 			for _, map in ipairs(global_maps) do
 				if map.lhs == "K" then
@@ -254,27 +242,24 @@ function M.setup()
 			end
 			pcall(vim.keymap.del, "n", "K")
 
-			-- 保存并删除 [d 和 ]d 的全局映射
-			save_and_remove_keymap("[d", "[d", original_global_bracket_d)
-			save_and_remove_keymap("]d", "]d", original_global_bracket_d)
+			save_and_remove_keymap("[d", original_global_bracket_d)
+			save_and_remove_keymap("]d", original_global_bracket_d)
 
-			-- 保存并删除缓冲区中的 K, [d, ]d 映射
 			save_and_remove_buffer_keymaps("K")
 			save_and_remove_buffer_keymaps("[d")
 			save_and_remove_buffer_keymaps("]d")
 
-			-- 设置 DAP 的临时映射
 			vim.keymap.set("n", "K", function()
 				require("dap.ui.widgets").hover()
-			end, { silent = true, desc = "DAP Hover" })
+			end, { silent = true, desc = "[D]ap [H]over" })
 
 			vim.keymap.set("n", "[d", function()
 				require("dap").up()
-			end, { silent = true, desc = "DAP: 上一个帧" })
+			end, { silent = true, desc = "[D]ap [U]p frame" })
 
 			vim.keymap.set("n", "]d", function()
 				require("dap").down()
-			end, { silent = true, desc = "DAP: 下一个帧" })
+			end, { silent = true, desc = "[D]ap [D]own frame" })
 		end
 
 		dap.listeners.after["event_terminated"]["me"] = function()
@@ -282,7 +267,6 @@ function M.setup()
 			vim.lsp.inlay_hint.enable(true)
 			vim.diagnostic.enable(true)
 
-			-- 恢复缓冲区映射
 			for _, keymap in ipairs(keymap_restore) do
 				local opts = { silent = keymap.silent == 1 }
 				if keymap.expr then
@@ -309,12 +293,10 @@ function M.setup()
 			end
 			keymap_restore = {}
 
-			-- 删除临时映射
 			pcall(vim.keymap.del, "n", "K")
 			pcall(vim.keymap.del, "n", "[d")
 			pcall(vim.keymap.del, "n", "]d")
 
-			-- 恢复原始全局映射
 			if original_global_k then
 				local opts = { silent = original_global_k.silent == 1 }
 				if original_global_k.expr then
@@ -335,7 +317,6 @@ function M.setup()
 				original_global_k = nil
 			end
 
-			-- 恢复 [d 和 ]d 的全局映射
 			for key, mapping in pairs(original_global_bracket_d) do
 				if mapping then
 					local opts = { silent = mapping.silent == 1 }
