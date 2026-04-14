@@ -2,6 +2,7 @@ local M = {}
 
 function M.setup()
 	local dap = require("dap")
+	local dap_ext = require("dap-config.dap-extensions")
 	local widgets = require("dap.ui.widgets")
 	local sidebar = nil
 
@@ -49,14 +50,48 @@ function M.setup()
 		require("dap-config.breakpoint_state").sync_breakpoints()
 	end, { desc = "DAP: 自定义断点" })
 
-	vim.keymap.set("n", "<leader>df", function()
-		require("dap-config.function_breakpoint").set_function_breakpoint()
-	end, { desc = "DAP: 设置函数断点" })
+	-- 添加断点管理快捷键（统一使用 UI）
+	vim.keymap.set(
+		"n",
+		"<leader>df",
+		dap_ext.commands.add_function_breakpoint,
+		{ desc = "Add function breakpoint with conditions" }
+	)
+
+	vim.keymap.set(
+		"n",
+		"<leader>dd",
+		dap_ext.commands.add_data_breakpoint,
+		{ desc = "Add data breakpoint with conditions" }
+	)
+
+	vim.keymap.set("n", "<leader>dl", function()
+		local bps = dap_ext.list_breakpoints()
+		if #bps == 0 then
+			print("No breakpoints")
+			return
+		end
+		print("Breakpoints:")
+		for _, bp in ipairs(bps) do
+			local info = string.format("  [%s] %s", bp.status, bp.type)
+			if bp.type == "function" then
+				info = info .. ": " .. (bp.config.function_name or bp.function_name)
+				if bp.config.condition then
+					info = info .. " (if: " .. bp.config.condition .. ")"
+				end
+			elseif bp.type == "data" then
+				info = info .. ": " .. (bp.config.expression or bp.expression)
+			end
+			print(info)
+		end
+	end, { desc = "List breakpoints" })
 
 	vim.keymap.set("n", "<leader>dc", function()
+		dap_ext.clear_breakpoints()
 		dap.clear_breakpoints()
 		require("dap-config.breakpoint_state").clear_breakpoints()
-	end, { desc = "DAP: 清除所有断点" })
+		print("Cleared all breakpoints")
+	end, { desc = "Clear all breakpoints" })
 
 	vim.keymap.set("n", "<leader>db", function()
 		require("dap-config.exception-breakpoints").toggle()

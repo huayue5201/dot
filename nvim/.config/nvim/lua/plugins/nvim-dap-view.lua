@@ -5,8 +5,6 @@ return {
 	"igorlfs/nvim-dap-view",
 	lazy = true,
 	-- event = "VeryLazy",
-	---@module 'dap-view'
-	---@type dapview.Config
 	config = function()
 		require("dap-view").setup({
 			-----------------------------------------------------------
