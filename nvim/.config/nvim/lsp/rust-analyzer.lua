@@ -120,6 +120,7 @@ return {
 			},
 			lens = {
 				enable = true,
+				location = "above_whole_item", -- 或 "above_name"
 				references = {
 					adt = { enable = true },
 					enumVariant = { enable = true },

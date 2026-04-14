@@ -58,8 +58,6 @@ return {
 
 		require("dap-config.dap_keys").setup()
 
-		require("dap-config.breakpoint_state").setup_autoload()
-
 		require("dap-config.exception-breakpoints")
 
 		-- . 加载 dap-extensions（在你的 dap 配置之后）
@@ -73,6 +71,8 @@ return {
 				dap_view = true, -- 集成 dap-view 插件
 			},
 		})
+
+		require("dap-config.breakpoint_state").setup()
 
 		-- 🔥 在这里放监听器（最佳位置）
 		dap.listeners.after.event_stopped["debug_reason"] = function(session, body)
