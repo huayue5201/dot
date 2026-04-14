@@ -1,5 +1,5 @@
 local dap = require("dap")
-local popup = require("dap-config.breakpoint_popup")
+local popup = require("dap-config.dap-extensions.ui.popup")
 
 local M = {}
 

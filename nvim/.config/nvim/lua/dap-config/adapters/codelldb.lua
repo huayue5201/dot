@@ -37,7 +37,16 @@ return {
 			name = "Debug",
 			type = "codelldb",
 			request = "launch",
+			cargo = {
+				args = { "test", "foo", "--", "--test-threads=3" }, -- Cargo command line to run the debug target
+				-- Optional fields:
+				env = { RUSTFLAGS = "-Clinker=ld.mold" }, -- Extra environment variables
+				cwd = "${workspaceFolder}", -- Cargo working directory
+				problemMatcher = "$rustc", -- Problem matcher(s) for Cargo output
+			},
+			args = { "--test=test1" }, -- These arguments will be appended to those passed to the debug target by Cargo
 			cwd = "${workspaceFolder}",
+			-- 启动后是否停止调试器.
 			stopOnEntry = false,
 
 			-- Rust pretty-printers（可选）
@@ -64,6 +73,10 @@ return {
 				table.insert(commands, 1, script_import)
 				return commands
 			end,
+			--  启用特定于语言的调试器功能.
+			sourceLanguages = { "rust" },
+			-- 开启反向调试,需要后端支持.
+			reverseDebugging = true,
 		}
 
 		----------------------------------------------------------------------

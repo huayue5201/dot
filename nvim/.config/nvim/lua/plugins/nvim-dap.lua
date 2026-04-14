@@ -62,6 +62,18 @@ return {
 
 		require("dap-config.exception-breakpoints")
 
+		-- . 加载 dap-extensions（在你的 dap 配置之后）
+		require("dap-config.dap-extensions").setup({
+			ui = {
+				sign = true, -- 显示符号标记
+				virtual_text = true, -- 显示虚拟文本
+			},
+			-- 第三方集成
+			integrations = {
+				dap_view = true, -- 集成 dap-view 插件
+			},
+		})
+
 		-- 🔥 在这里放监听器（最佳位置）
 		dap.listeners.after.event_stopped["debug_reason"] = function(session, body)
 			print("🔥 STOP reason:", body.reason)
