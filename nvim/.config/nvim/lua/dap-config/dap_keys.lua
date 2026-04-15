@@ -163,8 +163,6 @@ function M.setup()
 		})
 	end, { desc = "[D]ap [E]xpressions preview" })
 
-	vim.keymap.set("n", "<localleader>dx", "<cmd>DapVirtualTextToggle<cr>", { desc = "[D]ap Virtual [T]ext toggle" })
-
 	vim.api.nvim_create_autocmd("FileType", {
 		pattern = { "dap-repl", "dap-view-term", "dap-view", "" },
 		group = vim.api.nvim_create_augroup("dapui_keymaps", { clear = true }),
