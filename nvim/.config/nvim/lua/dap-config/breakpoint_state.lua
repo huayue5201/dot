@@ -1,12 +1,23 @@
 -- lua/dap-config/breakpoint_state.lua
 -- DAP 断点状态管理（支持原生断点 + dap-extensions 自定义断点）
 
--- FIX:ref:00bc79
 local breakpoints = require("dap.breakpoints")
 local M = {}
 
 local NAMESPACE = "dap_breakpoints"
 local EXT_NAMESPACE = "dap_ext_breakpoints"
+
+---------------------------------------------------------------------
+-- 工具：安全 key（避免路径中的 . 影响 namespace）
+---------------------------------------------------------------------
+local function encode_key(path)
+	-- 简单可读的编码：替换 . 为 %.
+	return (path or ""):gsub("%%", "%%%%"):gsub("%.", "%%.")
+end
+
+local function decode_key(key)
+	return (key or ""):gsub("%%%.", "."):gsub("%%%%", "%%")
+end
 
 ---------------------------------------------------------------------
 -- 获取存储实例
@@ -30,12 +41,15 @@ local function safe_breakpoint_data(bp)
 		condition = type(bp.condition) == "string" and bp.condition or nil,
 		log_message = type(bp.log_message) == "string" and bp.log_message or nil,
 		hit_condition = type(bp.hit_condition) == "string" and bp.hit_condition or nil,
+		status = bp.status, -- 尽量保留状态信息
 	}
 end
 
 ---------------------------------------------------------------------
--- 同步当前 buffer 的原生断点
+-- 同步当前 buffer 的原生断点（带轻微节流）
 ---------------------------------------------------------------------
+local sync_timer
+
 function M.sync_breakpoints()
 	local store = get_store()
 	if not store then
@@ -50,6 +64,8 @@ function M.sync_breakpoints()
 
 	local by_buf = breakpoints.get()
 	local buf_bps = by_buf and by_buf[bufnr]
+
+	local key = NAMESPACE .. "." .. encode_key(path)
 
 	if buf_bps and #buf_bps > 0 then
 		local enriched = {}
@@ -67,13 +83,27 @@ function M.sync_breakpoints()
 		end
 
 		if #enriched > 0 then
-			store:set(NAMESPACE .. "." .. path, enriched)
+			store:set(key, enriched)
 		else
-			store:delete(NAMESPACE .. "." .. path)
+			store:delete(key)
 		end
 	else
-		store:delete(NAMESPACE .. "." .. path)
+		store:delete(key)
 	end
+end
+
+local function schedule_sync_breakpoints()
+	if sync_timer then
+		sync_timer:stop()
+		sync_timer:close()
+		sync_timer = nil
+	end
+	sync_timer = vim.loop.new_timer()
+	sync_timer:start(100, 0, function()
+		vim.schedule(function()
+			M.sync_breakpoints()
+		end)
+	end)
 end
 
 ---------------------------------------------------------------------
@@ -96,7 +126,6 @@ function M.sync_ext_breakpoints()
 		return
 	end
 
-	-- 保存所有断点（包括 pending 和 rejected）
 	local to_save = {}
 	for _, bp in ipairs(bps) do
 		local save_bp = {
@@ -160,14 +189,21 @@ function M.load_breakpoints()
 
 	local keys = store:namespace_keys(NAMESPACE)
 	for _, key in ipairs(keys) do
-		local path = key
-		local buf_bps = store:get(NAMESPACE .. "." .. path)
+		local path = decode_key(key)
+		local full_key = NAMESPACE .. "." .. key
+		local buf_bps = store:get(full_key)
 
 		if type(buf_bps) == "table" then
+			if vim.fn.filereadable(path) == 0 then
+				-- 文件不存在，跳过
+				goto continue
+			end
+
 			local bufnr = vim.fn.bufnr(path, true)
 			if bufnr ~= -1 then
+				local line_count = vim.api.nvim_buf_line_count(bufnr)
 				for _, bp in ipairs(buf_bps) do
-					if bp.line and type(bp.line) == "number" then
+					if bp.line and type(bp.line) == "number" and bp.line <= line_count then
 						local bp_config = {}
 						if bp.condition then
 							bp_config.condition = bp.condition
@@ -183,6 +219,7 @@ function M.load_breakpoints()
 				end
 			end
 		end
+		::continue::
 	end
 end
 
@@ -214,9 +251,7 @@ function M.load_ext_breakpoints()
 				bufnr = saved_bp.config.bufnr,
 				line = saved_bp.config.line,
 			})
-			if saved_bp.status then
-				bp.status = saved_bp.status
-			end
+			-- 不强行覆盖 status，由调试器重新决定
 		elseif saved_bp.type == "data" then
 			bp = dap_ext.add_data_breakpoint(saved_bp.config.expression, {
 				accessType = saved_bp.config.accessType,
@@ -225,9 +260,6 @@ function M.load_ext_breakpoints()
 				bufnr = saved_bp.config.bufnr,
 				line = saved_bp.config.line,
 			})
-			if saved_bp.status then
-				bp.status = saved_bp.status
-			end
 		elseif saved_bp.type == "instruction" then
 			local access = saved_bp.config.accessType or "execute"
 			local addr = saved_bp.config.instruction_reference
@@ -253,14 +285,13 @@ function M.load_ext_breakpoints()
 					hitCondition = saved_bp.config.hitCondition,
 				})
 			end
-			if saved_bp.status then
-				bp.status = saved_bp.status
-			end
 		end
 
 		if bp and bp.config.bufnr and bp.config.line then
-			local sign = require("dap-config.dap-extensions.ui.sign")
-			sign.show_sign(bp)
+			local ok_sign, sign = pcall(require, "dap-config.dap-extensions.ui.sign")
+			if ok_sign then
+				sign.show_sign(bp)
+			end
 		end
 	end
 end
@@ -284,7 +315,7 @@ function M.clear_breakpoints()
 		breakpoints.clear(bufnr)
 		local store = get_store()
 		if store then
-			store:delete(NAMESPACE .. "." .. path)
+			store:delete(NAMESPACE .. "." .. encode_key(path))
 		end
 	end
 end
@@ -336,10 +367,12 @@ function M.setup_autoload()
 			end
 			local path = vim.api.nvim_buf_get_name(args.buf)
 			if path and path ~= "" then
-				local buf_bps = store:get(NAMESPACE .. "." .. path)
+				local key = NAMESPACE .. "." .. encode_key(path)
+				local buf_bps = store:get(key)
 				if buf_bps then
+					local line_count = vim.api.nvim_buf_line_count(args.buf)
 					for _, bp in ipairs(buf_bps) do
-						if bp.line and type(bp.line) == "number" then
+						if bp.line and type(bp.line) == "number" and bp.line <= line_count then
 							local bp_config = {}
 							if bp.condition then
 								bp_config.condition = bp.condition
@@ -359,10 +392,10 @@ function M.setup_autoload()
 		desc = "自动恢复 DAP 断点",
 	})
 
-	-- 编辑或保存时同步原生断点
+	-- 编辑或保存时同步原生断点（带轻微节流）
 	vim.api.nvim_create_autocmd({ "TextChanged", "BufWritePost" }, {
 		callback = function()
-			M.sync_breakpoints()
+			schedule_sync_breakpoints()
 		end,
 		desc = "同步原生断点",
 	})
@@ -370,27 +403,16 @@ function M.setup_autoload()
 	-- 监听自定义断点事件
 	local ok, event = pcall(require, "dap-config.dap-extensions.event")
 	if ok then
-		event.on("breakpoint_created", function()
+		local function delayed_sync()
 			vim.defer_fn(M.sync_ext_breakpoints, 100)
-		end)
-		event.on("breakpoint_deleted", function()
-			vim.defer_fn(M.sync_ext_breakpoints, 100)
-		end)
-		event.on("breakpoint_status_changed", function()
-			vim.defer_fn(M.sync_ext_breakpoints, 100)
-		end)
-		event.on("breakpoint_location_updated", function()
-			vim.defer_fn(M.sync_ext_breakpoints, 100)
-		end)
-		event.on("breakpoint_changed", function()
-			vim.defer_fn(M.sync_ext_breakpoints, 100)
-		end)
-		event.on("breakpoints_cleared", function()
-			vim.defer_fn(M.sync_ext_breakpoints, 100)
-		end)
-		event.on("bp_hit", function()
-			vim.defer_fn(M.sync_ext_breakpoints, 100)
-		end)
+		end
+		event.on("breakpoint_created", delayed_sync)
+		event.on("breakpoint_deleted", delayed_sync)
+		event.on("breakpoint_status_changed", delayed_sync)
+		event.on("breakpoint_location_updated", delayed_sync)
+		event.on("breakpoint_changed", delayed_sync)
+		event.on("breakpoints_cleared", delayed_sync)
+		event.on("bp_hit", delayed_sync)
 	end
 end
 
@@ -399,7 +421,7 @@ end
 ---------------------------------------------------------------------
 function M.setup()
 	M.setup_autoload()
-	M.load_all()
+	-- 不在这里调用 load_all，避免与 BufReadPost 重复
 	return M
 end
 

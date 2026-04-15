@@ -12,25 +12,63 @@ local NS_HIT = vim.api.nvim_create_namespace("dap_ext_hit")
 -- 存储每个断点的 extmark id，用于单独管理
 local line_marks = {}
 
--- sign 定义
-vim.fn.sign_define("DapExtBreakpointPending", { text = "○", texthl = "DapBreakpointRejected" })
-vim.fn.sign_define("DapExtBreakpoint", { text = "●", texthl = "DapBreakpoint" })
-vim.fn.sign_define("DapExtBreakpointCondition", { text = "◆", texthl = "DapBreakpointCondition" })
-vim.fn.sign_define("DapExtBreakpointRejected", { text = "✗", texthl = "DapBreakpointRejected" })
-vim.fn.sign_define("DapExtBreakpointHit", { text = "🔥", texthl = "DapStopped" })
--- 硬件断点图标
-vim.fn.sign_define("DapExtBreakpointHardware", { text = "⚡", texthl = "DapBreakpoint" })
-vim.fn.sign_define("DapExtBreakpointHardwareCondition", { text = "⚡", texthl = "DapBreakpointCondition" })
+-- ============================================================
+-- DAP Extensions 断点图标定义
+-- ============================================================
 
--- 自定义高亮组（不与 nvim-dap 冲突）
+-- 待定断点（未验证，显示空心圆 + 灰色）
+vim.fn.sign_define("DapExtBreakpointPending", { text = " ", texthl = "DapBreakpointRejected" })
+
+-- 普通断点（已验证，显示实心圆 + 红色）
+vim.fn.sign_define("DapExtBreakpoint", { text = "●", texthl = "DapBreakpoint" })
+
+-- 条件断点（带条件/命中次数，显示实心菱形 + 紫色）
+vim.fn.sign_define("DapExtBreakpointCondition", { text = "◆", texthl = "DapBreakpointCondition" })
+
+-- 拒绝断点（调试器拒绝设置，显示红色叉号 + 灰色）
+vim.fn.sign_define("DapExtBreakpointRejected", { text = "✗", texthl = "DapBreakpointRejected" })
+
+-- 断点命中标记（临时显示，显示火焰 + 黄色）
+vim.fn.sign_define("DapExtBreakpointHit", { text = "🔥", texthl = "DapStopped" })
+
+-- 禁用断点（用户手动禁用，显示空心圆 + 灰色）
+vim.fn.sign_define("DapExtBreakpointDisabled", { text = "○", texthl = "DapBreakpointRejected" })
+
+-- ============================================================
+-- 硬件断点图标（独立于普通断点）
+-- ============================================================
+
+-- 硬件断点（普通，显示闪电 + 红色）
+vim.fn.sign_define("DapExtBreakpointHardware", { text = " ", texthl = "DapBreakpoint" })
+
+-- 硬件条件断点（带条件/命中次数，显示闪电 + 紫色）
+vim.fn.sign_define("DapExtBreakpointHardwareCondition", { text = " ", texthl = "DapBreakpointCondition" })
+
+-- ============================================================
+-- 行高亮定义
+-- ============================================================
+
+-- 断点所在行的背景高亮（棕红色背景）
 vim.api.nvim_set_hl(0, "DapExtBreakpointLine", {
-	bg = "#3c3836",
+	bg = "#3c3836", -- 棕红色背景，可修改为任意颜色
 	default = false,
 })
 
+-- 断点命中时的临时行高亮（深黄色背景）
 vim.api.nvim_set_hl(0, "DapExtStopped", {
-	bg = "#4c4c19",
+	bg = "#4c4c19", -- 深黄色背景，可修改为任意颜色
 	default = false,
+})
+
+-- ============================================================
+-- 内联断点虚拟文本高亮（类似 LSP CodeLens）
+-- ============================================================
+
+-- 内联断点标记的字体样式（红色斜体）
+vim.api.nvim_set_hl(0, "DapExtInlineBreakpoint", {
+	fg = "#FF6B6B", -- 亮红色，可修改为任意颜色
+	bg = "NONE", -- 透明背景
+	italic = true, -- 斜体
 })
 
 --- 为每个 bp 生成稳定的 sign id
@@ -49,6 +87,11 @@ end
 
 --- 获取 sign 类型
 function M.get_sign_type(bp)
+	-- 禁用状态优先
+	if bp.enabled == false then
+		return "DapExtBreakpointDisabled"
+	end
+
 	if bp.status == "pending" then
 		return "DapExtBreakpointPending"
 	elseif bp.status == "rejected" then
@@ -141,6 +184,15 @@ function M.show_sign(bp)
 	})
 
 	line_marks[bp.id] = extmark_id
+end
+
+--- 更新断点标志（用于状态变化后刷新）
+function M.update_sign(bp)
+	if not bp then
+		return
+	end
+	M.clear_sign(bp)
+	M.show_sign(bp)
 end
 
 --- 显示命中断点的 hit 标记

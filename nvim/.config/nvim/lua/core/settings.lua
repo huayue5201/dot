@@ -64,7 +64,7 @@ local data_dir = vim.fn.stdpath("data")
 local unique_id = vim.fn.fnamemodify(workspace_path, ":t") .. "_" .. vim.fn.sha256(workspace_path):sub(1, 8)
 local shadafile = data_dir .. "/shada/" .. unique_id .. ".shada"
 vim.o.shadafile = shadafile
-vim.o.sessionoptions = "blank,buffers,curdir,folds,help,globals,tabpages,winsize,winpos,terminal,localoptions,options"
+vim.o.sessionoptions = "blank,buffers,curdir,folds,help,globals,tabpages,winsize,winpos,localoptions,options"
 
 -- -------------- 补全设置 --------------
 vim.bo.omnifunc = "" -- 禁用 omnifunc 补全

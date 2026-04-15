@@ -106,7 +106,7 @@ return {
 		})
 
 		-- 切换 DAP 视图显示/隐藏
-		vim.keymap.set("n", "<leader>dt", function()
+		vim.keymap.set("n", "<leader>du", function()
 			require("dap-view").toggle()
 		end, { desc = "DAP: 切换调试视图" })
 

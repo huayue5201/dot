@@ -1,7 +1,10 @@
+-- dap-config/dap-extensions/commands.lua
 local manager = require("dap-config.dap-extensions.manager")
 local popup = require("dap-config.dap-extensions.ui.popup")
 local sign = require("dap-config.dap-extensions.ui.sign")
 local breakpoint_state = require("dap-config.breakpoint_state")
+local validator = require("dap-config.dap-extensions.validator")
+local capabilities = require("dap-config.dap-capabilities")
 
 local M = {}
 
@@ -102,10 +105,31 @@ local function save_and_sync()
 end
 
 -- ============================================================
+-- 能力检查
+-- ============================================================
+
+local function check_capability(cap_name, error_msg)
+	if not capabilities.supports(cap_name) then
+		vim.notify(error_msg or "Current debug adapter does not support " .. cap_name, "error")
+		return false
+	end
+	return true
+end
+
+-- ============================================================
 -- 函数断点
 -- ============================================================
 
 function M.add_function_breakpoint()
+	if
+		not check_capability(
+			"supportsFunctionBreakpoints",
+			"❌ Current debug adapter does not support function breakpoints"
+		)
+	then
+		return
+	end
+
 	popup.open({
 		fields = FUNCTION_FIELDS,
 		on_submit = function(result)
@@ -157,6 +181,12 @@ end
 -- ============================================================
 
 function M.add_data_breakpoint()
+	if
+		not check_capability("supportsDataBreakpoints", "❌ Current debug adapter does not support data breakpoints")
+	then
+		return
+	end
+
 	popup.open({
 		fields = DATA_FIELDS,
 		on_submit = function(result)
@@ -199,6 +229,15 @@ end
 -- ============================================================
 
 function M.add_hardware_breakpoint()
+	if
+		not check_capability(
+			"supportsInstructionBreakpoints",
+			"❌ Current debug adapter does not support instruction breakpoints"
+		)
+	then
+		return
+	end
+
 	vim.ui.select(HARDWARE_TYPES, {
 		prompt = "🔧 选择硬件断点类型:",
 		format_item = function(item)
@@ -267,6 +306,157 @@ function M.add_hardware_breakpoint()
 end
 
 -- ============================================================
+-- 内联断点命令（自动获取光标行号和列号）
+-- ============================================================
+
+function M.add_inline_breakpoint()
+	local cursor = vim.api.nvim_win_get_cursor(0)
+	local current_line = cursor[1]
+	local current_col = cursor[2] + 1
+	local bufnr = vim.api.nvim_get_current_buf()
+
+	-- 验证位置是否有效
+	local is_valid, reason = validator.is_valid_inline_breakpoint_location(bufnr, current_line, current_col)
+	if not is_valid then
+		vim.notify(string.format("❌ Cannot set breakpoint: %s", reason or "Invalid location"), "error")
+		return
+	end
+
+	local word = vim.fn.expand("<cword>")
+	local hint = word ~= "" and string.format(" on '%s'", word) or ""
+
+	popup.open({
+		fields = {
+			{ label = "Condition (optional)", key = "condition" },
+			{ label = "Hit Condition (optional)", key = "hit_condition" },
+		},
+		on_submit = function(result)
+			local opts = {}
+			if result.condition and result.condition ~= "" then
+				opts.condition = result.condition
+			end
+			if result.hit_condition and result.hit_condition ~= "" then
+				opts.hitCondition = result.hit_condition
+			end
+
+			opts.bufnr = bufnr
+			opts.line = current_line
+			opts.column = current_col
+
+			local bp = manager.add_inline_breakpoint(current_line, current_col, opts)
+
+			local col_msg = string.format("column %d", current_col)
+			vim.notify(string.format("✓ Inline breakpoint at line %d, %s%s", current_line, col_msg, hint), "info")
+			save_and_sync()
+
+			local inline_vt = require("dap-config.dap-extensions.ui.inline_virtual_text")
+			inline_vt.show(bp)
+		end,
+	})
+end
+
+-- 快速内联断点
+function M.quick_inline_breakpoint()
+	local cursor = vim.api.nvim_win_get_cursor(0)
+	local line = cursor[1]
+	local col = cursor[2] + 1
+	local bufnr = vim.api.nvim_get_current_buf()
+	local word = vim.fn.expand("<cword>")
+	local hint = word ~= "" and string.format(" on '%s'", word) or ""
+
+	-- 验证位置是否有效
+	local is_valid, reason = validator.is_valid_inline_breakpoint_location(bufnr, line, col)
+	if not is_valid then
+		vim.notify(string.format("❌ Cannot set breakpoint: %s", reason or "Invalid location"), "error")
+		return
+	end
+
+	-- 检查该位置是否已有内联断点
+	local existing = false
+	local existing_bp = nil
+	for _, bp in pairs(manager.list_breakpoints()) do
+		if bp.type == "inline" and bp.config.bufnr == bufnr and bp.config.line == line and bp.config.column == col then
+			existing = true
+			existing_bp = bp
+			break
+		end
+	end
+
+	if existing then
+		vim.ui.input({
+			prompt = "⚠️ Breakpoint exists. Replace? (y/n): ",
+			default = "n",
+		}, function(input)
+			if input and input:lower() == "y" then
+				manager.remove_breakpoint(existing_bp.id)
+				local bp = manager.add_inline_breakpoint(line, col, {})
+				local inline_vt = require("dap-config.dap-extensions.ui.inline_virtual_text")
+				inline_vt.show(bp)
+				vim.notify(
+					string.format("✓ Inline breakpoint replaced at line %d, column %d%s", line, col, hint),
+					"info"
+				)
+				save_and_sync()
+			else
+				vim.notify("Cancelled", "info")
+			end
+		end)
+	else
+		local bp = manager.add_inline_breakpoint(line, col, {})
+		local inline_vt = require("dap-config.dap-extensions.ui.inline_virtual_text")
+		inline_vt.show(bp)
+		vim.notify(string.format("✓ Inline breakpoint at line %d, column %d%s", line, col, hint), "info")
+		save_and_sync()
+	end
+end
+
+-- ============================================================
+-- 启用/禁用断点
+-- ============================================================
+
+function M.toggle_breakpoint_enabled()
+	local bps = manager.list_breakpoints()
+	if #bps == 0 then
+		vim.notify("No breakpoints to toggle", "info")
+		return
+	end
+
+	local items = {}
+	for _, bp in ipairs(bps) do
+		local status = bp.enabled ~= false and "✓" or "○"
+		local label = ""
+		if bp.type == "function" then
+			label = string.format("%s [%s] %s", status, bp.type, bp.config.function_name)
+		elseif bp.type == "data" then
+			label = string.format("%s [%s] %s", status, bp.type, bp.config.expression)
+		elseif bp.type == "instruction" then
+			label = string.format("%s [%s] %s", status, bp.type, bp.config.instruction_reference)
+		elseif bp.type == "inline" then
+			label = string.format("%s [%s] line %d", status, bp.type, bp.config.line)
+		else
+			label = string.format("%s [%s]", status, bp.type)
+		end
+		table.insert(items, { label = label, bp = bp })
+	end
+
+	vim.ui.select(items, {
+		prompt = "🔘 Select breakpoint to toggle:",
+		format_item = function(item)
+			return item.label
+		end,
+		width = 60,
+	}, function(choice)
+		if choice and choice.bp then
+			local new_state = choice.bp.enabled ~= false
+			choice.bp:set_enabled(not new_state)
+			sign.update_sign(choice.bp)
+			vim.notify(string.format("%s breakpoint", not new_state and "Enabled" or "Disabled"), "info")
+			save_and_sync()
+		end
+	end)
+end
+
+-- ============================================================
 -- 列表和清除
 -- ============================================================
 
@@ -288,7 +478,8 @@ function M.list_breakpoints()
 			status_icon = "○"
 		end
 
-		local line = string.format("%s [%s] %s", status_icon, bp.status:upper(), bp.type)
+		local enabled_icon = bp.enabled ~= false and "" or " [disabled]"
+		local line = string.format("%s [%s] %s%s", status_icon, bp.status:upper(), bp.type, enabled_icon)
 
 		if bp.type == "function" then
 			line = line .. string.format(": %s", bp.config.function_name)
@@ -321,6 +512,17 @@ function M.list_breakpoints()
 			end
 			if bp.config.size and bp.config.size > 1 then
 				line = line .. string.format(" size=%d", bp.config.size)
+			end
+			if bp.config.condition then
+				line = line .. string.format("\n    └─ if: %s", bp.config.condition)
+			end
+			if bp.config.hitCondition then
+				line = line .. string.format("\n    └─ hit: %s", bp.config.hitCondition)
+			end
+		elseif bp.type == "inline" then
+			line = line .. string.format(": line %d", bp.config.line)
+			if bp.config.column then
+				line = line .. string.format(" column %d", bp.config.column)
 			end
 			if bp.config.condition then
 				line = line .. string.format("\n    └─ if: %s", bp.config.condition)

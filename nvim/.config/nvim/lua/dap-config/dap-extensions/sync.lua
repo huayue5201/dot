@@ -297,6 +297,24 @@ M.register_handler("instruction", function(session, bps)
 end)
 
 -- ============================================================
+-- inline breakpoint (内联断点)
+-- ============================================================
+M.register_handler("inline", function(session, bps, event)
+	-- 内联断点通过 nvim-dap 原生管理，这里只需标记状态
+	for _, bp in ipairs(bps) do
+		local old_status = bp.status
+		bp.status = "verified"
+		if sign.update_sign then
+			sign.update_sign(bp)
+		end
+		if old_status ~= bp.status then
+			Event.emit("breakpoint_status_changed", bp)
+		end
+		Event.emit("breakpoint_changed", bp)
+	end
+end)
+
+-- ============================================================
 -- core sync
 -- ============================================================
 function M.sync(session, event)
@@ -306,7 +324,8 @@ function M.sync(session, event)
 
 	local grouped = {}
 	for _, bp in pairs(registry.bps) do
-		if bp.status == "pending" then
+		-- 只同步启用状态的断点
+		if bp.status == "pending" and bp.enabled ~= false then
 			grouped[bp.type] = grouped[bp.type] or {}
 			table.insert(grouped[bp.type], bp)
 		end
