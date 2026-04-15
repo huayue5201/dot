@@ -19,6 +19,7 @@ function M.setup(opts)
 	manager.register_type("function", require("dap-config.dap-extensions.breakpoint.function"))
 	manager.register_type("data", require("dap-config.dap-extensions.breakpoint.data"))
 	manager.register_type("instruction", require("dap-config.dap-extensions.breakpoint.instruction"))
+	manager.register_type("inline", require("dap-config.dap-extensions.breakpoint.inline"))
 
 	local dap = require("dap")
 

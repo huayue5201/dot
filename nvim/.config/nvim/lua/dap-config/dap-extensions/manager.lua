@@ -141,6 +141,23 @@ function M.add_hardware_access_breakpoint(address, size, opts)
 	})
 end
 
+-- manager.lua 添加
+--- 添加内联断点
+--- @param line integer
+--- @param column integer|nil
+--- @param opts table|nil
+--- @return table
+function M.add_inline_breakpoint(line, column, opts)
+	opts = opts or {}
+	return M.create("inline", {
+		line = line,
+		column = column,
+		condition = opts.condition,
+		hitCondition = opts.hitCondition,
+		bufnr = vim.api.nvim_get_current_buf(),
+	})
+end
+
 -- ============================================================
 -- 查询 / 清理
 -- ============================================================
@@ -161,12 +178,18 @@ end
 
 --- 清除所有断点
 function M.clear_breakpoints()
-	-- 触发每个断点的删除事件
 	for _, bp in pairs(registry.bps) do
 		Event.emit("breakpoint_deleted", bp)
 	end
 
 	sign.clear_all()
+
+	-- 清理内联虚拟文本（如果模块存在）
+	local ok, inline_vt = pcall(require, "dap-config.dap-extensions.ui.inline_virtual_text")
+	if ok and inline_vt and inline_vt.clear_all then
+		inline_vt.clear_all()
+	end
+
 	breakpoint_locations = {}
 	registry.clear()
 

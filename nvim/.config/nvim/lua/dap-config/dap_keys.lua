@@ -46,6 +46,22 @@ function M.setup()
 		breakpoint_state.sync_breakpoints()
 	end, { desc = "[D]ap [T]oggle breakpoint" })
 
+	-- 内联断点（带条件编辑）
+	vim.keymap.set(
+		"n",
+		"<leader>di",
+		dap_ext.commands.add_inline_breakpoint,
+		{ desc = "[D]ap [I]nline breakpoint (with conditions)" }
+	)
+
+	-- 快速内联断点（一键设置，不弹窗）
+	vim.keymap.set(
+		"n",
+		"<leader>dI",
+		dap_ext.commands.quick_inline_breakpoint,
+		{ desc = "[D]ap [I]nline breakpoint (quick)" }
+	)
+
 	vim.keymap.set("n", "<leader>do", function()
 		require("dap-config.conditional_breakpoint").set_breakpoint()
 		breakpoint_state.sync_breakpoints()
@@ -75,8 +91,18 @@ function M.setup()
 		require("dap-config.exception-breakpoints").toggle()
 	end, { desc = "[D]ap [E]xception breakpoint" })
 
+	-- 启用/禁用断点
+	vim.keymap.set("n", "<leader>dt", function()
+		dap_ext.commands.toggle_breakpoint_enabled()
+	end, { desc = "[D]ap [T]oggle breakpoint enabled/disabled" })
+
 	-- 列表断点
 	vim.keymap.set("n", "<leader>dl", dap_ext.commands.list_breakpoints, { desc = "[D]ap [L]ist breakpoints" })
+
+	-- 查询并显示调试器能力
+	vim.keymap.set("n", "<localleader>dp", function()
+		require("dap-config.dap-capabilities").show()
+	end, { desc = "[D]ap Show [C]a[P]abilities" })
 
 	-- 清除所有断点
 	vim.keymap.set("n", "<leader>dc", function()

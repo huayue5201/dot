@@ -9,6 +9,7 @@ return {
 	build = "cargo build --release",
 	dependencies = {
 		"xzbdmw/colorful-menu.nvim",
+		"bramdelta/blink-dap",
 	},
 
 	---@diagnostic disable: missing-fields
@@ -218,6 +219,25 @@ return {
 					end
 				end,
 				providers = {
+					dap = {
+						name = "dap", -- This should match the source specified above
+						module = "blink-dap",
+						opts = {
+							-- If you want to include DAP commands like `.scopes` as well
+							include_repl = true,
+							filetypes = {
+								-- The name of the adapter `type` in your debugger configuration file
+								python = {
+									-- What trigger characters to use for additional completions, i.e.
+									-- foo.bar would mean to use . to prompt for available properties of foo
+									trigger_characters = { "." },
+								},
+							},
+							-- Which filetypes to enable completion for.
+							-- Use `:echo &filetype` to find this per buffer
+							dap_filetypes = { "dap-repl" },
+						},
+					},
 					lazydev = {
 						name = "LazyDev",
 						module = "lazydev.integrations.blink",
