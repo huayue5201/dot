@@ -2,7 +2,6 @@
 local manager = require("dap-config.dap-extensions.manager")
 local popup = require("dap-config.dap-extensions.ui.popup")
 local sign = require("dap-config.dap-extensions.ui.sign")
-local breakpoint_state = require("dap-config.breakpoint_state")
 local validator = require("dap-config.dap-extensions.validator")
 local capabilities = require("dap-config.dap-capabilities")
 
@@ -32,7 +31,6 @@ local HARDWARE_TYPES = {
 	{ name = "Read/Write", access = "readWrite", desc = "读取或写入时中断", need_size = true },
 }
 
--- 根据类型动态生成输入字段
 local function get_hardware_fields(choice)
 	local fields = {
 		{ label = "Address (e.g., 0x401000)", key = "address" },
@@ -48,37 +46,38 @@ local function get_hardware_fields(choice)
 	return fields
 end
 
--- ============================================================
--- 位置获取策略
--- ============================================================
+local function address_to_expression(address)
+	local clean_addr = address:gsub("^0x", "")
+	return string.format("*0x%s", clean_addr)
+end
 
--- 1. 函数断点位置：优先 LSP，显示待定标志，命中后更新
 local function get_function_location(function_name)
-	local params = {
-		textDocument = vim.lsp.util.make_text_document_params(),
-		position = vim.api.nvim_win_get_cursor(0),
-	}
-
 	local clients = vim.lsp.get_clients()
 	for _, client in ipairs(clients) do
-		if client.server_capabilities.workspaceSymbolProvider then
+		local caps = client.server_capabilities
+		if caps and caps.workspaceSymbolProvider then
 			local result = client.request_sync("workspace/symbol", {
 				query = function_name,
 			}, 1000)
 			if result and result.result then
 				for _, symbol in ipairs(result.result) do
-					if
-						symbol.name == function_name
-						and (
-							symbol.kind == vim.lsp.protocol.SymbolKind.Function
-							or symbol.kind == vim.lsp.protocol.SymbolKind.Method
-						)
-					then
-						return {
-							bufnr = vim.uri_to_bufnr(symbol.location.uri),
-							line = symbol.location.range.start.line + 1,
-							source = "lsp",
-						}
+					if symbol.name == function_name then
+						local kind = symbol.kind
+						if
+							kind == vim.lsp.protocol.SymbolKind.Function
+							or kind == vim.lsp.protocol.SymbolKind.Method
+						then
+							local location = symbol.location
+							if location and location.uri and location.range then
+								local bufnr = vim.uri_to_bufnr(location.uri)
+								local line = location.range.start.line + 1
+								return {
+									bufnr = bufnr,
+									line = line,
+									source = "lsp",
+								}
+							end
+						end
 					end
 				end
 			end
@@ -87,7 +86,6 @@ local function get_function_location(function_name)
 	return nil
 end
 
--- 2. 数据断点位置：使用当前光标位置（用户知道变量在哪）
 local function get_data_location()
 	local cursor = vim.api.nvim_win_get_cursor(0)
 	return {
@@ -97,28 +95,16 @@ local function get_data_location()
 	}
 end
 
--- 保存断点并同步
-local function save_and_sync()
-	vim.defer_fn(function()
-		breakpoint_state.sync_ext_breakpoints()
-	end, 100)
-end
-
--- ============================================================
--- 能力检查
--- ============================================================
-
 local function check_capability(cap_name, error_msg)
-	if not capabilities.supports(cap_name) then
-		vim.notify(error_msg or "Current debug adapter does not support " .. cap_name, "error")
-		return false
+	if capabilities.supports then
+		if not capabilities.supports(cap_name) then
+			vim.notify(error_msg or "Current debug adapter does not support " .. cap_name, "error")
+			return false
+		end
+		return true
 	end
 	return true
 end
-
--- ============================================================
--- 函数断点
--- ============================================================
 
 function M.add_function_breakpoint()
 	if
@@ -170,15 +156,9 @@ function M.add_function_breakpoint()
 			if bp.config.bufnr and bp.config.line then
 				sign.show_sign(bp)
 			end
-
-			save_and_sync()
 		end,
 	})
 end
-
--- ============================================================
--- 数据断点
--- ============================================================
 
 function M.add_data_breakpoint()
 	if
@@ -212,21 +192,17 @@ function M.add_data_breakpoint()
 
 			local bp = manager.add_data_breakpoint(result.expression, opts)
 
-			sign.show_sign(bp)
+			if bp then
+				sign.show_sign(bp)
+			end
 
 			vim.notify(
 				string.format("✓ Data breakpoint on '%s' at line %d", result.expression, location.line),
 				"info"
 			)
-
-			save_and_sync()
 		end,
 	})
 end
-
--- ============================================================
--- 硬件断点
--- ============================================================
 
 function M.add_hardware_breakpoint()
 	if
@@ -273,17 +249,43 @@ function M.add_hardware_breakpoint()
 					opts.hitCondition = result.hit_condition
 				end
 
-				local size = tonumber(result.size) or 1
 				local bp = nil
+				local size = tonumber(result.size) or 1
 
 				if choice.access == "execute" then
 					bp = manager.add_hardware_execute_breakpoint(result.address, opts)
-				elseif choice.access == "read" then
-					bp = manager.add_hardware_read_breakpoint(result.address, size, opts)
-				elseif choice.access == "write" then
-					bp = manager.add_hardware_write_breakpoint(result.address, size, opts)
-				elseif choice.access == "readWrite" then
-					bp = manager.add_hardware_access_breakpoint(result.address, size, opts)
+					if bp then
+						sign.show_sign(bp)
+					end
+				else
+					if
+						not check_capability(
+							"supportsDataBreakpoints",
+							"❌ Current debug adapter does not support data breakpoints"
+						)
+					then
+						return
+					end
+
+					local location = get_data_location()
+					local expr = address_to_expression(result.address)
+
+					opts.accessType = choice.access
+					opts.bufnr = location.bufnr
+					opts.line = location.line
+					opts.size = size
+
+					if choice.access == "read" then
+						bp = manager.add_hardware_read_breakpoint(expr, size, opts)
+					elseif choice.access == "write" then
+						bp = manager.add_hardware_write_breakpoint(expr, size, opts)
+					elseif choice.access == "readWrite" then
+						bp = manager.add_hardware_access_breakpoint(expr, size, opts)
+					end
+
+					if bp and bp.config.bufnr and bp.config.line then
+						sign.show_sign(bp)
+					end
 				end
 
 				if bp then
@@ -298,25 +300,19 @@ function M.add_hardware_breakpoint()
 						string.format("✓ 硬件断点: %s %s at %s", icon, choice.name, result.address),
 						"info"
 					)
-					save_and_sync()
 				end
 			end,
 		})
 	end)
 end
 
--- ============================================================
--- 内联断点命令（自动获取光标行号和列号）
--- ============================================================
-
-function M.add_inline_breakpoint()
+function M.add_column_breakpoint()
 	local cursor = vim.api.nvim_win_get_cursor(0)
 	local current_line = cursor[1]
 	local current_col = cursor[2] + 1
 	local bufnr = vim.api.nvim_get_current_buf()
 
-	-- 验证位置是否有效
-	local is_valid, reason = validator.is_valid_inline_breakpoint_location(bufnr, current_line, current_col)
+	local is_valid, reason = validator.is_valid_column_breakpoint_location(bufnr, current_line, current_col)
 	if not is_valid then
 		vim.notify(string.format("❌ Cannot set breakpoint: %s", reason or "Invalid location"), "error")
 		return
@@ -343,20 +339,20 @@ function M.add_inline_breakpoint()
 			opts.line = current_line
 			opts.column = current_col
 
-			local bp = manager.add_inline_breakpoint(current_line, current_col, opts)
+			local bp = manager.add_column_breakpoint(current_line, current_col, opts)
 
 			local col_msg = string.format("column %d", current_col)
-			vim.notify(string.format("✓ Inline breakpoint at line %d, %s%s", current_line, col_msg, hint), "info")
-			save_and_sync()
+			vim.notify(string.format("✓ Column breakpoint at line %d, %s%s", current_line, col_msg, hint), "info")
 
-			local inline_vt = require("dap-config.dap-extensions.ui.inline_virtual_text")
-			inline_vt.show(bp)
+			local column_vt = require("dap-config.dap-extensions.ui.column_virtual_text")
+			if column_vt and column_vt.show then
+				column_vt.show(bp)
+			end
 		end,
 	})
 end
 
--- 快速内联断点
-function M.quick_inline_breakpoint()
+function M.quick_column_breakpoint()
 	local cursor = vim.api.nvim_win_get_cursor(0)
 	local line = cursor[1]
 	local col = cursor[2] + 1
@@ -364,18 +360,17 @@ function M.quick_inline_breakpoint()
 	local word = vim.fn.expand("<cword>")
 	local hint = word ~= "" and string.format(" on '%s'", word) or ""
 
-	-- 验证位置是否有效
-	local is_valid, reason = validator.is_valid_inline_breakpoint_location(bufnr, line, col)
+	local is_valid, reason = validator.is_valid_column_breakpoint_location(bufnr, line, col)
 	if not is_valid then
 		vim.notify(string.format("❌ Cannot set breakpoint: %s", reason or "Invalid location"), "error")
 		return
 	end
 
-	-- 检查该位置是否已有内联断点
 	local existing = false
 	local existing_bp = nil
-	for _, bp in pairs(manager.list_breakpoints()) do
-		if bp.type == "inline" and bp.config.bufnr == bufnr and bp.config.line == line and bp.config.column == col then
+	local breakpoints = manager.list_breakpoints()
+	for _, bp in pairs(breakpoints) do
+		if bp.type == "column" and bp.config.bufnr == bufnr and bp.config.line == line and bp.config.column == col then
 			existing = true
 			existing_bp = bp
 			break
@@ -388,31 +383,41 @@ function M.quick_inline_breakpoint()
 			default = "n",
 		}, function(input)
 			if input and input:lower() == "y" then
-				manager.remove_breakpoint(existing_bp.id)
-				local bp = manager.add_inline_breakpoint(line, col, {})
-				local inline_vt = require("dap-config.dap-extensions.ui.inline_virtual_text")
-				inline_vt.show(bp)
+				if existing_bp and existing_bp.id then
+					manager.remove_breakpoint(existing_bp.id)
+				end
+				local bp = manager.add_column_breakpoint(line, col, {})
+				local column_vt = require("dap-config.dap-extensions.ui.column_virtual_text")
+				if column_vt and column_vt.show then
+					column_vt.show(bp)
+				end
 				vim.notify(
-					string.format("✓ Inline breakpoint replaced at line %d, column %d%s", line, col, hint),
+					string.format("✓ Column breakpoint replaced at line %d, column %d%s", line, col, hint),
 					"info"
 				)
-				save_and_sync()
 			else
 				vim.notify("Cancelled", "info")
 			end
 		end)
 	else
-		local bp = manager.add_inline_breakpoint(line, col, {})
-		local inline_vt = require("dap-config.dap-extensions.ui.inline_virtual_text")
-		inline_vt.show(bp)
-		vim.notify(string.format("✓ Inline breakpoint at line %d, column %d%s", line, col, hint), "info")
-		save_and_sync()
+		local bp = manager.add_column_breakpoint(line, col, {})
+		local column_vt = require("dap-config.dap-extensions.ui.column_virtual_text")
+		if column_vt and column_vt.show then
+			column_vt.show(bp)
+		end
+		vim.notify(string.format("✓ Column breakpoint at line %d, column %d%s", line, col, hint), "info")
 	end
 end
 
--- ============================================================
--- 启用/禁用断点
--- ============================================================
+function M.add_inline_breakpoint(...)
+	vim.notify("add_inline_breakpoint is deprecated, use add_column_breakpoint", vim.log.levels.WARN)
+	return M.add_column_breakpoint(...)
+end
+
+function M.quick_inline_breakpoint(...)
+	vim.notify("quick_inline_breakpoint is deprecated, use quick_column_breakpoint", vim.log.levels.WARN)
+	return M.quick_column_breakpoint(...)
+end
 
 function M.toggle_breakpoint_enabled()
 	local bps = manager.list_breakpoints()
@@ -431,7 +436,7 @@ function M.toggle_breakpoint_enabled()
 			label = string.format("%s [%s] %s", status, bp.type, bp.config.expression)
 		elseif bp.type == "instruction" then
 			label = string.format("%s [%s] %s", status, bp.type, bp.config.instruction_reference)
-		elseif bp.type == "inline" then
+		elseif bp.type == "column" then
 			label = string.format("%s [%s] line %d", status, bp.type, bp.config.line)
 		else
 			label = string.format("%s [%s]", status, bp.type)
@@ -440,7 +445,7 @@ function M.toggle_breakpoint_enabled()
 	end
 
 	vim.ui.select(items, {
-		prompt = "🔘 Select breakpoint to toggle:",
+		prompt = "🔘 breakpoint to toggle:",
 		format_item = function(item)
 			return item.label
 		end,
@@ -448,17 +453,71 @@ function M.toggle_breakpoint_enabled()
 	}, function(choice)
 		if choice and choice.bp then
 			local new_state = choice.bp.enabled ~= false
-			choice.bp:set_enabled(not new_state)
+			if choice.bp.set_enabled then
+				choice.bp:set_enabled(not new_state)
+			end
 			sign.update_sign(choice.bp)
 			vim.notify(string.format("%s breakpoint", not new_state and "Enabled" or "Disabled"), "info")
-			save_and_sync()
 		end
 	end)
 end
 
--- ============================================================
--- 列表和清除
--- ============================================================
+-- 删除当前行的断点
+function M.delete_breakpoint_at_current_line()
+	local bufnr = vim.api.nvim_get_current_buf()
+	local line = vim.api.nvim_win_get_cursor(0)[1]
+
+	local bps = manager.list_breakpoints()
+	for _, bp in ipairs(bps) do
+		if bp.config.bufnr == bufnr and bp.config.line == line then
+			manager.remove_breakpoint(bp.id)
+			vim.notify(string.format("✓ Deleted %s breakpoint at line %d", bp.type, line), "info")
+			return
+		end
+	end
+
+	vim.notify(string.format("No breakpoint at line %d", line), "warn")
+end
+
+-- 选择删除断点
+function M.toggle_breakpoint_deletion()
+	local bps = manager.list_breakpoints()
+	if #bps == 0 then
+		vim.notify("No breakpoints to delete", "info")
+		return
+	end
+
+	local items = {}
+	for _, bp in ipairs(bps) do
+		local status = bp.enabled ~= false and "✓" or "○"
+		local label = ""
+		if bp.type == "function" then
+			label = string.format("%s [%s] %s", status, bp.type, bp.config.function_name)
+		elseif bp.type == "data" then
+			label = string.format("%s [%s] %s", status, bp.type, bp.config.expression)
+		elseif bp.type == "instruction" then
+			label = string.format("%s [%s] %s", status, bp.type, bp.config.instruction_reference)
+		elseif bp.type == "column" then
+			label = string.format("%s [%s] line %d", status, bp.type, bp.config.line)
+		else
+			label = string.format("%s [%s]", status, bp.type)
+		end
+		table.insert(items, { label = label, bp = bp })
+	end
+
+	vim.ui.select(items, {
+		prompt = "🗑️ Select breakpoint to delete:",
+		format_item = function(item)
+			return item.label
+		end,
+		width = 60,
+	}, function(choice)
+		if choice and choice.bp then
+			manager.remove_breakpoint(choice.bp.id)
+			vim.notify(string.format("Deleted: %s", choice.label), "info")
+		end
+	end)
+end
 
 function M.list_breakpoints()
 	local bps = manager.list_breakpoints()
@@ -479,7 +538,8 @@ function M.list_breakpoints()
 		end
 
 		local enabled_icon = bp.enabled ~= false and "" or " [disabled]"
-		local line = string.format("%s [%s] %s%s", status_icon, bp.status:upper(), bp.type, enabled_icon)
+		local line =
+			string.format("%s [%s] %s%s", status_icon, string.upper(bp.status or "pending"), bp.type, enabled_icon)
 
 		if bp.type == "function" then
 			line = line .. string.format(": %s", bp.config.function_name)
@@ -507,11 +567,8 @@ function M.list_breakpoints()
 			end
 		elseif bp.type == "instruction" then
 			line = line .. string.format(": %s", bp.config.instruction_reference)
-			if bp.config.accessType then
-				line = line .. string.format(" (%s)", bp.config.accessType)
-			end
-			if bp.config.size and bp.config.size > 1 then
-				line = line .. string.format(" size=%d", bp.config.size)
+			if bp.config.offset and bp.config.offset ~= 0 then
+				line = line .. string.format(" offset=%d", bp.config.offset)
 			end
 			if bp.config.condition then
 				line = line .. string.format("\n    └─ if: %s", bp.config.condition)
@@ -519,7 +576,7 @@ function M.list_breakpoints()
 			if bp.config.hitCondition then
 				line = line .. string.format("\n    └─ hit: %s", bp.config.hitCondition)
 			end
-		elseif bp.type == "inline" then
+		elseif bp.type == "column" then
 			line = line .. string.format(": line %d", bp.config.line)
 			if bp.config.column then
 				line = line .. string.format(" column %d", bp.config.column)
@@ -547,7 +604,6 @@ function M.clear_breakpoints()
 
 	manager.clear_breakpoints()
 	vim.notify(string.format("✓ Cleared %d breakpoint(s)", count), "info")
-	save_and_sync()
 end
 
 return M

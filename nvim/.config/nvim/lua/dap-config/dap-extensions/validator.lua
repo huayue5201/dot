@@ -146,15 +146,14 @@ local function is_executable_position_by_treesitter(bufnr, line0, col0)
 end
 
 ---------------------------------------------------------------------
--- 主入口：检查是否可设置内联断点
+-- 主入口：检查是否可设置列断点（column breakpoint）
 ---------------------------------------------------------------------
-function M.is_valid_inline_breakpoint_location(bufnr, line, col)
+function M.is_valid_column_breakpoint_location(bufnr, line, col)
 	-----------------------------------------------------------------
-	-- ① 自动检测调试器是否支持 inline breakpoint
+	-- ① 自动检测调试器是否支持 column breakpoint
 	-----------------------------------------------------------------
-	local ok, reason = caps.supports_inline_breakpoints()
-	if not ok then
-		return false, reason
+	if not caps.supports_column_breakpoints() then
+		return false, "Debug adapter does not support column breakpoints"
 	end
 
 	-----------------------------------------------------------------
@@ -223,6 +222,15 @@ function M.is_valid_inline_breakpoint_location(bufnr, line, col)
 	-- ⑤ 没有 LSP / TS → 基础检查通过即可
 	-----------------------------------------------------------------
 	return true
+end
+
+-- 保留旧函数名作为兼容（标记为 deprecated）
+function M.is_valid_inline_breakpoint_location(bufnr, line, col)
+	vim.notify(
+		"is_valid_inline_breakpoint_location is deprecated, use is_valid_column_breakpoint_location",
+		vim.log.levels.WARN
+	)
+	return M.is_valid_column_breakpoint_location(bufnr, line, col)
 end
 
 return M

@@ -1,5 +1,4 @@
 -- dap-config/dap-extensions/manager.lua
--- DAP Extensions 核心管理器
 local registry = require("dap-config.dap-extensions.registry")
 local sign = require("dap-config.dap-extensions.ui.sign")
 local Event = require("dap-config.dap-extensions.event")
@@ -8,29 +7,16 @@ local sync = require("dap-config.dap-extensions.sync")
 
 local M = {}
 
--- 当前调试 session
 M.session = nil
--- 断点类型注册表：name -> ctor
 M.types = {}
 
--- 持久化断点位置（仅在当前 Neovim 会话内）
-local breakpoint_locations = {}
+-- 自动保存文件路径
+local AUTO_SAVE_FILE = vim.fn.stdpath("data") .. "/dap_ext_breakpoints.json"
 
---- 注册断点类型
---- @param name string
---- @param ctor table 带 new(cfg) 的构造器
 function M.register_type(name, ctor)
 	M.types[name] = ctor
 end
 
--- ============================================================
--- 创建断点
--- ============================================================
-
---- 内部创建断点
---- @param type string
---- @param cfg table
---- @return table bp
 function M.create(type, cfg)
 	local ctor = M.types[type]
 	if not ctor then
@@ -40,29 +26,15 @@ function M.create(type, cfg)
 	local bp = ctor:new(cfg)
 	registry.add(bp)
 
-	-- 触发断点创建事件
 	Event.emit("breakpoint_created", bp)
 
-	-- 如果有历史位置（当前会话内），恢复之
-	local loc = breakpoint_locations[bp.id]
-	if loc and loc.bufnr and loc.line then
-		if vim.api.nvim_buf_is_loaded(loc.bufnr) then
-			bp.config.bufnr = loc.bufnr
-			bp.config.line = loc.line
-			bp.status = bp.status or "verified"
-			if M.session then
-				sign.show_sign(bp)
-			end
-		end
+	if M.session then
+		sign.show_sign(bp)
 	end
 
 	return bp
 end
 
---- 添加函数断点
---- @param function_name string
---- @param opts table|nil
---- @return table
 function M.add_function_breakpoint(function_name, opts)
 	opts = opts or {}
 	return M.create("function", {
@@ -74,10 +46,6 @@ function M.add_function_breakpoint(function_name, opts)
 	})
 end
 
---- 添加数据断点
---- @param expression string
---- @param opts table|nil
---- @return table
 function M.add_data_breakpoint(expression, opts)
 	opts = opts or {}
 	return M.create("data", {
@@ -90,7 +58,6 @@ function M.add_data_breakpoint(expression, opts)
 	})
 end
 
---- 添加硬件执行断点
 function M.add_hardware_execute_breakpoint(address, opts)
 	opts = opts or {}
 	return M.create("instruction", {
@@ -102,7 +69,6 @@ function M.add_hardware_execute_breakpoint(address, opts)
 	})
 end
 
---- 添加硬件读断点
 function M.add_hardware_read_breakpoint(address, size, opts)
 	opts = opts or {}
 	return M.create("instruction", {
@@ -115,7 +81,6 @@ function M.add_hardware_read_breakpoint(address, size, opts)
 	})
 end
 
---- 添加硬件写断点
 function M.add_hardware_write_breakpoint(address, size, opts)
 	opts = opts or {}
 	return M.create("instruction", {
@@ -128,7 +93,6 @@ function M.add_hardware_write_breakpoint(address, size, opts)
 	})
 end
 
---- 添加硬件读写断点
 function M.add_hardware_access_breakpoint(address, size, opts)
 	opts = opts or {}
 	return M.create("instruction", {
@@ -141,15 +105,9 @@ function M.add_hardware_access_breakpoint(address, size, opts)
 	})
 end
 
--- manager.lua 添加
---- 添加内联断点
---- @param line integer
---- @param column integer|nil
---- @param opts table|nil
---- @return table
-function M.add_inline_breakpoint(line, column, opts)
+function M.add_column_breakpoint(line, column, opts)
 	opts = opts or {}
-	return M.create("inline", {
+	return M.create("column", {
 		line = line,
 		column = column,
 		condition = opts.condition,
@@ -158,11 +116,11 @@ function M.add_inline_breakpoint(line, column, opts)
 	})
 end
 
--- ============================================================
--- 查询 / 清理
--- ============================================================
+function M.add_inline_breakpoint(line, column, opts)
+	vim.notify("add_inline_breakpoint is deprecated, use add_column_breakpoint", vim.log.levels.WARN)
+	return M.add_column_breakpoint(line, column, opts)
+end
 
---- 列出所有断点
 function M.list_breakpoints()
 	local result = {}
 	for _, bp in pairs(registry.bps) do
@@ -176,7 +134,6 @@ function M.list_breakpoints()
 	return result
 end
 
---- 清除所有断点
 function M.clear_breakpoints()
 	for _, bp in pairs(registry.bps) do
 		Event.emit("breakpoint_deleted", bp)
@@ -184,13 +141,11 @@ function M.clear_breakpoints()
 
 	sign.clear_all()
 
-	-- 清理内联虚拟文本（如果模块存在）
-	local ok, inline_vt = pcall(require, "dap-config.dap-extensions.ui.inline_virtual_text")
-	if ok and inline_vt and inline_vt.clear_all then
-		inline_vt.clear_all()
+	local ok, column_vt = pcall(require, "dap-config.dap-extensions.ui.column_virtual_text")
+	if ok and column_vt and column_vt.clear_all then
+		column_vt.clear_all()
 	end
 
-	breakpoint_locations = {}
 	registry.clear()
 
 	if M.session then
@@ -200,8 +155,6 @@ function M.clear_breakpoints()
 	Event.emit("breakpoints_cleared")
 end
 
---- 删除单个断点
---- @param bp_id string
 function M.remove_breakpoint(bp_id)
 	local bp = registry.resolve(bp_id)
 	if not bp then
@@ -216,12 +169,8 @@ function M.remove_breakpoint(bp_id)
 		pcall(sync.sync, M.session, nil)
 	end
 
-	Event.emit("breakpoint_changed")
+	Event.emit("breakpoint_changed", bp)
 end
-
--- ============================================================
--- path -> bufnr
--- ============================================================
 
 local function path_to_bufnr(path)
 	if not path then
@@ -243,10 +192,6 @@ local function path_to_bufnr(path)
 	end
 	return nil
 end
-
--- ============================================================
--- 更新断点位置
--- ============================================================
 
 local function update_breakpoint_location(session, bp)
 	if not session or not bp then
@@ -293,12 +238,6 @@ local function update_breakpoint_location(session, bp)
 	bp.config.line = frame.line
 	bp.status = bp.status or "verified"
 
-	breakpoint_locations[bp.id] = {
-		bufnr = bufnr,
-		line = frame.line,
-	}
-
-	-- 位置变化时更新 UI
 	if old_bufnr ~= bufnr or old_line ~= frame.line then
 		sign.show_sign(bp)
 		local virtual_text = require("dap-config.dap-extensions.ui.virtual_text")
@@ -306,7 +245,6 @@ local function update_breakpoint_location(session, bp)
 		Event.emit("breakpoint_location_updated", bp)
 	end
 
-	-- 状态变化时触发事件
 	if old_status ~= bp.status then
 		Event.emit("breakpoint_status_changed", bp)
 	end
@@ -314,9 +252,52 @@ local function update_breakpoint_location(session, bp)
 	Event.emit("breakpoint_changed", bp)
 end
 
--- ============================================================
--- session 初始化
--- ============================================================
+-- 自动保存函数
+local function auto_save()
+	local data = {}
+	for id, bp in pairs(registry.bps) do
+		data[id] = {
+			type = bp.type,
+			config = vim.deepcopy(bp.config),
+			enabled = bp.enabled,
+		}
+		data[id].config.bufnr = nil
+	end
+
+	local file = io.open(AUTO_SAVE_FILE, "w")
+	if file then
+		file:write(vim.fn.json_encode(data))
+		file:close()
+	end
+end
+
+-- 自动加载函数
+function M.auto_load()
+	local file = io.open(AUTO_SAVE_FILE, "r")
+	if not file then
+		return
+	end
+
+	local content = file:read("*a")
+	file:close()
+
+	local data = vim.fn.json_decode(content)
+	if not data then
+		return
+	end
+
+	for _, saved in pairs(data) do
+		local bp = M.create(saved.type, saved.config)
+		if saved.enabled == false then
+			bp:set_enabled(false)
+		end
+	end
+end
+
+-- 绑定自动保存事件
+Event.on("breakpoint_created", auto_save)
+Event.on("breakpoint_deleted", auto_save)
+Event.on("breakpoint_enabled_changed", auto_save)
 
 function M.on_session(session)
 	M.session = session
@@ -330,10 +311,6 @@ function M.on_session(session)
 
 	pcall(sync.sync, session, nil)
 end
-
--- ============================================================
--- 停止事件（断点命中）
--- ============================================================
 
 function M.on_stopped(session, event)
 	M.session = session

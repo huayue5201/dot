@@ -8,6 +8,7 @@ local utils = require("lsp-config.lsp_utils")
 M.config = {
 	-- Spinner 配置
 	spinner_frames = { "", "", "", "", "", "" },
+	-- spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
 	spinner_interval = 150, -- 毫秒
 	spinner_width = 2, -- 固定宽度
 

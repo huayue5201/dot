@@ -13,6 +13,7 @@ vim.o.autoread = true -- 自动处理外部更改
 vim.o.mousemoveevent = true -- 启用鼠标移动事件
 vim.opt.fileencodings = { "utf-8", "gbk", "cp936", "ucs-bom", "latin1" }
 vim.o.inccommand = "split" -- 启用增量命令模式（即时显示命令效果）
+vim.opt.scrolloff = 42069
 vim.schedule(function()
 	vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
 end)

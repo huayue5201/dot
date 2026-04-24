@@ -50,6 +50,49 @@ local function restart_lsp()
 end
 
 ---------------------------------------------------------
+-- 诊断跳转
+---------------------------------------------------------
+local d = vim.diagnostic
+
+local severity_order = {
+	d.severity.ERROR,
+	d.severity.WARN,
+	d.severity.INFO,
+	d.severity.HINT,
+}
+
+local function get_highest_severity(bufnr)
+	bufnr = bufnr or 0
+	local count = d.count(bufnr)
+
+	for _, s in ipairs(severity_order) do
+		if count[s] and count[s] > 0 then
+			return s
+		end
+	end
+
+	return nil
+end
+
+function M.jump_next()
+	local severity = get_highest_severity(0)
+
+	d.jump({
+		count = vim.v.count1,
+		severity = severity, -- nil = all severities
+	})
+end
+
+function M.jump_prev()
+	local severity = get_highest_severity(0)
+
+	d.jump({
+		count = -vim.v.count1,
+		severity = severity,
+	})
+end
+
+---------------------------------------------------------
 -- 诊断 Quickfix / Loclist
 ---------------------------------------------------------
 function M.open_all_diagnostics()
@@ -157,6 +200,13 @@ M.global_keymaps = function()
 		vim.cmd("tabnew " .. vim.lsp.log.get_filename())
 	end, { desc = "lsp log" })
 
+	vim.keymap.set("n", "]d", M.jump_next, {
+		desc = "Jump to next diagnostic (prioritized)",
+	})
+
+	vim.keymap.set("n", "[d", M.jump_prev, {
+		desc = "Jump to previous diagnostic (prioritized)",
+	})
 	-- vim.keymap.set("i", "<C-CR>", function()
 	-- 	if not vim.lsp.inline_completion.get() then
 	-- 		return "<C-CR>"

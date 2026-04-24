@@ -11,7 +11,7 @@ return {
 		vim.cmd([[au FileType dap-repl lua require('dap.ext.autocompl').attach()]])
 
 		vim.api.nvim_set_hl(0, "DapBreakpoint", { fg = "#FF0000" })
-		vim.api.nvim_set_hl(0, "DapBreakpointLine", { bg = "#A52A2A" })
+		vim.api.nvim_set_hl(0, "DapBreakpointLine", { bg = "#5a3c3c" })
 		vim.api.nvim_set_hl(0, "DapBreakpointCondition", { fg = "#9370DB" })
 		vim.api.nvim_set_hl(0, "DapBreakpointRejected", { fg = "#8B8B7A" })
 		vim.api.nvim_set_hl(0, "DapLogPoint", { fg = "#00BFFF" })
@@ -65,10 +65,6 @@ return {
 			ui = {
 				sign = true, -- 显示符号标记
 				virtual_text = true, -- 显示虚拟文本
-			},
-			-- 第三方集成
-			integrations = {
-				dap_view = true, -- 集成 dap-view 插件
 			},
 		})
 
