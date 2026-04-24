@@ -1,5 +1,4 @@
 -- dap-config/dap-extensions/sync.lua
--- DAP 断点同步模块
 local registry = require("dap-config.dap-extensions.registry")
 local resolver = require("dap-config.dap-extensions.resolver")
 local sign = require("dap-config.dap-extensions.ui.sign")
@@ -7,47 +6,18 @@ local Event = require("dap-config.dap-extensions.event")
 
 local M = {}
 
--- 兼容层
 if sign then
 	if not sign.update_sign then
 		sign.update_sign = sign.show_sign or function() end
 	end
 end
 
--- 断点同步处理器注册表
 local sync_handlers = {}
 
 function M.register_handler(breakpoint_type, handler)
 	sync_handlers[breakpoint_type] = handler
 end
 
--- ============================================================
--- path -> bufnr 辅助函数
--- ============================================================
-local function path_to_bufnr(path)
-	if not path then
-		return nil
-	end
-	if path:sub(1, 1) == "/" then
-		return vim.fn.bufadd(path)
-	end
-	if path:match("^file://") then
-		return vim.uri_to_bufnr(path)
-	end
-	local bufnr = vim.fn.bufadd(path)
-	if bufnr and bufnr > 0 then
-		return bufnr
-	end
-	local ok, result = pcall(vim.uri_to_bufnr, path)
-	if ok and result then
-		return result
-	end
-	return nil
-end
-
--- ============================================================
--- function breakpoint sync
--- ============================================================
 local function sync_function_breakpoints(session, function_bps)
 	if #function_bps == 0 then
 		return
@@ -115,9 +85,6 @@ M.register_handler("function", function(session, bps)
 	sync_function_breakpoints(session, function_bps)
 end)
 
--- ============================================================
--- data breakpoint sync
--- ============================================================
 local function sync_data_breakpoints(session, event, data_bps)
 	if #data_bps == 0 then
 		return
@@ -223,9 +190,6 @@ M.register_handler("data", function(session, bps, event)
 	sync_data_breakpoints(session, event, bps)
 end)
 
--- ============================================================
--- instruction breakpoint (硬件断点)
--- ============================================================
 M.register_handler("instruction", function(session, bps)
 	if #bps == 0 then
 		return
@@ -274,13 +238,6 @@ M.register_handler("instruction", function(session, bps)
 						if bp_resp.id then
 							registry.link(bp_resp.id, bp)
 						end
-						if bp_resp.source and bp_resp.line then
-							local bufnr = path_to_bufnr(bp_resp.source.path)
-							if bufnr then
-								bp.config.bufnr = bufnr
-								bp.config.line = bp_resp.line
-							end
-						end
 					else
 						bp.status = "rejected"
 					end
@@ -296,27 +253,80 @@ M.register_handler("instruction", function(session, bps)
 	end)
 end)
 
--- ============================================================
--- inline breakpoint (内联断点)
--- ============================================================
-M.register_handler("inline", function(session, bps, event)
-	-- 内联断点通过 nvim-dap 原生管理，这里只需标记状态
+-- 列断点：通过标准 setBreakpoints 请求发送
+M.register_handler("column", function(session, bps, event)
+	-- 按源文件分组
+	local by_source = {}
 	for _, bp in ipairs(bps) do
-		local old_status = bp.status
-		bp.status = "verified"
-		if sign.update_sign then
-			sign.update_sign(bp)
+		local bufnr = bp.config.bufnr
+		if bufnr and vim.api.nvim_buf_is_loaded(bufnr) then
+			local path = vim.api.nvim_buf_get_name(bufnr)
+			if path and path ~= "" then
+				by_source[path] = by_source[path] or {}
+				table.insert(by_source[path], bp)
+			else
+				bp.status = "pending"
+			end
+		else
+			bp.status = "pending"
 		end
-		if old_status ~= bp.status then
-			Event.emit("breakpoint_status_changed", bp)
+	end
+
+	-- 为每个源文件发送 setBreakpoints 请求
+	for path, source_bps in pairs(by_source) do
+		local breakpoints = {}
+		for _, bp in ipairs(source_bps) do
+			local bp_def = { line = bp.config.line }
+			if bp.config.column then
+				bp_def.column = bp.config.column
+			end
+			if bp.config.condition and bp.config.condition ~= "" then
+				bp_def.condition = bp.config.condition
+			end
+			if bp.config.hitCondition and bp.config.hitCondition ~= "" then
+				bp_def.hitCondition = bp.config.hitCondition
+			end
+			table.insert(breakpoints, bp_def)
 		end
-		Event.emit("breakpoint_changed", bp)
+
+		session:request("setBreakpoints", {
+			source = { path = path },
+			breakpoints = breakpoints,
+		}, function(err, resp)
+			if err then
+				for _, bp in ipairs(source_bps) do
+					bp.status = "rejected"
+					sign.update_sign(bp)
+					Event.emit("breakpoint_status_changed", bp)
+				end
+				return
+			end
+
+			if resp and resp.breakpoints then
+				for i, bp_resp in ipairs(resp.breakpoints) do
+					if source_bps[i] then
+						local bp = source_bps[i]
+						local old_status = bp.status
+						if bp_resp.verified then
+							bp.status = "verified"
+							if bp_resp.id then
+								registry.link(bp_resp.id, bp)
+							end
+						else
+							bp.status = "rejected"
+						end
+						sign.update_sign(bp)
+						if old_status ~= bp.status then
+							Event.emit("breakpoint_status_changed", bp)
+						end
+						Event.emit("breakpoint_changed", bp)
+					end
+				end
+			end
+		end)
 	end
 end)
 
--- ============================================================
--- core sync
--- ============================================================
 function M.sync(session, event)
 	if not session then
 		return
@@ -324,7 +334,6 @@ function M.sync(session, event)
 
 	local grouped = {}
 	for _, bp in pairs(registry.bps) do
-		-- 只同步启用状态的断点
 		if bp.status == "pending" and bp.enabled ~= false then
 			grouped[bp.type] = grouped[bp.type] or {}
 			table.insert(grouped[bp.type], bp)

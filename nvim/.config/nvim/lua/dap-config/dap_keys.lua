@@ -15,7 +15,7 @@ function M.setup()
 				dap.repl.close()
 			end,
 		})
-		require("dap-config.dap-extensions.ui.virtual_text").clear_all_for_breakpoints()
+		require("dap-config.dap-extensions.ui.virtual_text").clear_all()
 	end, { desc = "[D]ap [T]erminate" })
 	vim.keymap.set("n", "<F6>", dap.pause, { desc = "[D]ap [P]ause" })
 
@@ -42,24 +42,51 @@ function M.setup()
 
 	-- 💡 断点管理
 	vim.keymap.set("n", "<leader>b", function()
-		dap.toggle_breakpoint()
-		breakpoint_state.sync_breakpoints()
-	end, { desc = "[D]ap [T]oggle breakpoint" })
+		local bufnr = vim.api.nvim_get_current_buf()
+		local line = vim.api.nvim_win_get_cursor(0)[1]
 
-	-- 内联断点（带条件编辑）
+		local bps = dap_ext.list_breakpoints()
+		local ext_bp = nil
+
+		for _, bp in ipairs(bps) do
+			if bp.config.bufnr == bufnr and bp.config.line == line then
+				ext_bp = bp
+				break
+			end
+		end
+
+		if ext_bp then
+			-- 有扩展断点，删除它
+			local bp_type = ext_bp.type == "column" and "column" or ext_bp.type
+			dap_ext.delete_breakpoint_at_current_line()
+			vim.notify(string.format("✓ Deleted %s breakpoint at line %d", bp_type, line), "info")
+		else
+			-- 没有扩展断点，使用原生行断点
+			local old_count = #dap_ext.list_breakpoints()
+			dap.toggle_breakpoint()
+			breakpoint_state.sync_breakpoints()
+			local new_count = #dap_ext.list_breakpoints()
+
+			if new_count > old_count then
+				vim.notify(string.format("✓ Added line breakpoint at line %d", line), "info")
+			else
+				vim.notify(string.format("✓ Removed line breakpoint at line %d", line), "info")
+			end
+		end
+	end, { desc = "[D]ap [T]oggle breakpoint (智能切换)" })
+
 	vim.keymap.set(
 		"n",
 		"<leader>di",
-		dap_ext.commands.add_inline_breakpoint,
-		{ desc = "[D]ap [I]nline breakpoint (with conditions)" }
+		dap_ext.commands.add_column_breakpoint,
+		{ desc = "[D]ap [C]olumn breakpoint (with conditions)" }
 	)
 
-	-- 快速内联断点（一键设置，不弹窗）
 	vim.keymap.set(
 		"n",
 		"<leader>dI",
-		dap_ext.commands.quick_inline_breakpoint,
-		{ desc = "[D]ap [I]nline breakpoint (quick)" }
+		dap_ext.commands.quick_column_breakpoint,
+		{ desc = "[D]ap [C]olumn breakpoint (quick)" }
 	)
 
 	vim.keymap.set("n", "<leader>do", function()
@@ -96,8 +123,20 @@ function M.setup()
 		dap_ext.commands.toggle_breakpoint_enabled()
 	end, { desc = "[D]ap [T]oggle breakpoint enabled/disabled" })
 
-	-- 列表断点
-	vim.keymap.set("n", "<leader>dl", dap_ext.commands.list_breakpoints, { desc = "[D]ap [L]ist breakpoints" })
+	-- 删除当前行断点
+	vim.keymap.set("n", "<leader>dx", function()
+		dap_ext.delete_breakpoint_at_current_line()
+	end, { desc = "[D]ap Delete breakpoint at current line" })
+
+	-- 选择删除断点
+	vim.keymap.set("n", "<leader>dX", function()
+		dap_ext.toggle_breakpoint_deletion()
+	end, { desc = "[D]ap Select breakpoint to delete" })
+
+	-- 查看所有断点（扩展断点）
+	vim.keymap.set("n", "<leader>dl", function()
+		dap_ext.commands.list_breakpoints()
+	end, { desc = "[D]ap List all breakpoints" })
 
 	-- 查询并显示调试器能力
 	vim.keymap.set("n", "<localleader>dp", function()
@@ -111,16 +150,6 @@ function M.setup()
 		breakpoint_state.clear_all_breakpoints()
 		print("Cleared all breakpoints")
 	end, { desc = "[D]ap [C]lear all breakpoints" })
-
-	-- 保存断点
-	vim.keymap.set("n", "<leader>ds", function()
-		breakpoint_state.save()
-	end, { desc = "[D]ap [S]ave breakpoints" })
-
-	-- 加载断点
-	vim.keymap.set("n", "<leader>dL", function()
-		breakpoint_state.load()
-	end, { desc = "[D]ap [L]oad breakpoints" })
 
 	-- 🔍 评估 / 日志
 	vim.keymap.set("n", "<leader>da", function()

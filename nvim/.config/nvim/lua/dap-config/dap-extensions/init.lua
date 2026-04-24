@@ -1,25 +1,16 @@
 -- dap-config/dap-extensions/init.lua
--- DAP Extensions 主模块，提供函数断点、数据断点等扩展功能
-
 local M = {}
 
---- 设置 DAP Extensions
---- @param opts table 配置选项
---- @param opts.ui table UI 配置
---- @param opts.ui.sign boolean 是否显示断点标志，默认 true
---- @param opts.ui.virtual_text boolean 是否显示虚拟文本，默认 true
---- @param opts.integrations table 第三方集成配置
---- @param opts.integrations.dap_view boolean 是否集成 dap-view，默认 false
 function M.setup(opts)
 	opts = opts or {}
 
 	local manager = require("dap-config.dap-extensions.manager")
 
-	-- 注册断点类型
 	manager.register_type("function", require("dap-config.dap-extensions.breakpoint.function"))
 	manager.register_type("data", require("dap-config.dap-extensions.breakpoint.data"))
 	manager.register_type("instruction", require("dap-config.dap-extensions.breakpoint.instruction"))
-	manager.register_type("inline", require("dap-config.dap-extensions.breakpoint.inline"))
+	manager.register_type("column", require("dap-config.dap-extensions.breakpoint.column"))
+	manager.register_type("inline", require("dap-config.dap-extensions.breakpoint.column"))
 
 	local dap = require("dap")
 
@@ -39,27 +30,34 @@ function M.setup(opts)
 		require("dap-config.dap-extensions.ui.virtual_text")
 	end
 
-	if opts.integrations and opts.integrations.dap_view then
-		local ok, integration = pcall(require, "dap-config.dap-extensions.integrations.dap-view")
-		if ok then
-			integration.setup()
-		else
-			vim.notify("dap-view integration failed: module not found", "warn")
-		end
+	-- 自动加载保存的断点
+	if opts.auto_save ~= false then
+		vim.defer_fn(function()
+			manager.auto_load()
+		end, 100)
 	end
 end
 
--- 公共 API
 M.add_function_breakpoint = require("dap-config.dap-extensions.manager").add_function_breakpoint
 M.add_data_breakpoint = require("dap-config.dap-extensions.manager").add_data_breakpoint
 M.list_breakpoints = require("dap-config.dap-extensions.manager").list_breakpoints
 M.clear_breakpoints = require("dap-config.dap-extensions.manager").clear_breakpoints
 M.commands = require("dap-config.dap-extensions.commands")
 
--- 硬件断点 API
+M.add_column_breakpoint = require("dap-config.dap-extensions.manager").add_column_breakpoint
+
+M.add_inline_breakpoint = function(...)
+	vim.notify("add_inline_breakpoint is deprecated, use add_column_breakpoint", vim.log.levels.WARN)
+	return require("dap-config.dap-extensions.manager").add_column_breakpoint(...)
+end
+
 M.add_hardware_execute_breakpoint = require("dap-config.dap-extensions.manager").add_hardware_execute_breakpoint
 M.add_hardware_read_breakpoint = require("dap-config.dap-extensions.manager").add_hardware_read_breakpoint
 M.add_hardware_write_breakpoint = require("dap-config.dap-extensions.manager").add_hardware_write_breakpoint
 M.add_hardware_access_breakpoint = require("dap-config.dap-extensions.manager").add_hardware_access_breakpoint
+
+-- 导出删除方法
+M.delete_breakpoint_at_current_line = require("dap-config.dap-extensions.commands").delete_breakpoint_at_current_line
+M.toggle_breakpoint_deletion = require("dap-config.dap-extensions.commands").toggle_breakpoint_deletion
 
 return M

@@ -1,77 +1,47 @@
 -- dap-config/dap-extensions/ui/sign.lua
+
 local Event = require("dap-config.dap-extensions.event")
 local registry = require("dap-config.dap-extensions.registry")
-local virtual_text = require("dap-config.dap-extensions.ui.virtual_text")
 
 local M = {}
 
--- 固定 namespace
+---------------------------------------------------------------------
+-- namespace
+---------------------------------------------------------------------
 local NS_LINE = vim.api.nvim_create_namespace("dap_ext_line")
 local NS_HIT = vim.api.nvim_create_namespace("dap_ext_hit")
 
--- 存储每个断点的 extmark id，用于单独管理
+---------------------------------------------------------------------
+-- 缓存
+---------------------------------------------------------------------
 local line_marks = {}
 
--- ============================================================
--- DAP Extensions 断点图标定义
--- ============================================================
-
--- 待定断点（未验证，显示空心圆 + 灰色）
+---------------------------------------------------------------------
+-- sign 定义
+---------------------------------------------------------------------
 vim.fn.sign_define("DapExtBreakpointPending", { text = " ", texthl = "DapBreakpointRejected" })
-
--- 普通断点（已验证，显示实心圆 + 红色）
 vim.fn.sign_define("DapExtBreakpoint", { text = "●", texthl = "DapBreakpoint" })
-
--- 条件断点（带条件/命中次数，显示实心菱形 + 紫色）
 vim.fn.sign_define("DapExtBreakpointCondition", { text = "◆", texthl = "DapBreakpointCondition" })
-
--- 拒绝断点（调试器拒绝设置，显示红色叉号 + 灰色）
 vim.fn.sign_define("DapExtBreakpointRejected", { text = "✗", texthl = "DapBreakpointRejected" })
-
--- 断点命中标记（临时显示，显示火焰 + 黄色）
 vim.fn.sign_define("DapExtBreakpointHit", { text = "🔥", texthl = "DapStopped" })
-
--- 禁用断点（用户手动禁用，显示空心圆 + 灰色）
 vim.fn.sign_define("DapExtBreakpointDisabled", { text = "○", texthl = "DapBreakpointRejected" })
-
--- ============================================================
--- 硬件断点图标（独立于普通断点）
--- ============================================================
-
--- 硬件断点（普通，显示闪电 + 红色）
 vim.fn.sign_define("DapExtBreakpointHardware", { text = " ", texthl = "DapBreakpoint" })
-
--- 硬件条件断点（带条件/命中次数，显示闪电 + 紫色）
 vim.fn.sign_define("DapExtBreakpointHardwareCondition", { text = " ", texthl = "DapBreakpointCondition" })
 
--- ============================================================
--- 行高亮定义
--- ============================================================
-
--- 断点所在行的背景高亮（棕红色背景）
+---------------------------------------------------------------------
+-- 高亮（更明显）
+---------------------------------------------------------------------
 vim.api.nvim_set_hl(0, "DapExtBreakpointLine", {
-	bg = "#3c3836", -- 棕红色背景，可修改为任意颜色
-	default = false,
+	bg = "#5a3c3c",
 })
 
--- 断点命中时的临时行高亮（深黄色背景）
 vim.api.nvim_set_hl(0, "DapExtStopped", {
-	bg = "#4c4c19", -- 深黄色背景，可修改为任意颜色
-	default = false,
+	bg = "#4c4c19",
 })
 
--- ============================================================
--- 内联断点虚拟文本高亮（类似 LSP CodeLens）
--- ============================================================
-
--- 内联断点标记的字体样式（红色斜体）
-vim.api.nvim_set_hl(0, "DapExtInlineBreakpoint", {
-	fg = "#FF6B6B", -- 亮红色，可修改为任意颜色
-	bg = "NONE", -- 透明背景
-	italic = true, -- 斜体
-})
-
---- 为每个 bp 生成稳定的 sign id
+---------------------------------------------------------------------
+-- utils
+---------------------------------------------------------------------
 local function sign_id(bp)
 	if not bp or not bp.id then
 		return math.random(100000, 999999)
@@ -85,9 +55,18 @@ local function sign_id(bp)
 	return sum + 100000
 end
 
---- 获取 sign 类型
+local function is_valid_line(bufnr, line)
+	if not bufnr or not vim.api.nvim_buf_is_loaded(bufnr) then
+		return false
+	end
+	local lc = vim.api.nvim_buf_line_count(bufnr)
+	return line >= 1 and line <= lc
+end
+
+---------------------------------------------------------------------
+-- sign 类型
+---------------------------------------------------------------------
 function M.get_sign_type(bp)
-	-- 禁用状态优先
 	if bp.enabled == false then
 		return "DapExtBreakpointDisabled"
 	end
@@ -98,7 +77,6 @@ function M.get_sign_type(bp)
 		return "DapExtBreakpointRejected"
 	end
 
-	-- 硬件断点特殊图标
 	if bp.type == "instruction" then
 		if bp.config and (bp.config.condition or bp.config.hitCondition) then
 			return "DapExtBreakpointHardwareCondition"
@@ -113,143 +91,131 @@ function M.get_sign_type(bp)
 	return "DapExtBreakpoint"
 end
 
---- 清理单个断点的 sign 和行高亮
+---------------------------------------------------------------------
+-- 清理
+---------------------------------------------------------------------
 function M.clear_sign(bp)
-	if not bp or not bp.config or not bp.config.bufnr or not bp.config.line then
+	if not bp or not bp.config then
 		return
 	end
 
 	local bufnr = bp.config.bufnr
-	if not vim.api.nvim_buf_is_loaded(bufnr) then
+	local line = bp.config.line
+
+	if not is_valid_line(bufnr, line) then
 		return
 	end
 
 	local id = sign_id(bp)
 
-	-- 清除 sign
-	pcall(vim.fn.sign_unplace, "dap_ext", {
+	pcall(vim.fn.sign_unplace, "dap_breakpoints", {
 		buffer = bufnr,
 		id = id,
 	})
 
-	-- 清除行高亮（单独清除该断点的 extmark）
 	if line_marks[bp.id] then
 		pcall(vim.api.nvim_buf_del_extmark, bufnr, NS_LINE, line_marks[bp.id])
 		line_marks[bp.id] = nil
-	end
-
-	-- 清除虚拟文本
-	if virtual_text and virtual_text.clear_for_bp then
-		virtual_text.clear_for_bp(bp)
 	end
 end
 
---- 渲染单个断点的 sign + 行高亮
+---------------------------------------------------------------------
+-- 渲染
+---------------------------------------------------------------------
 function M.show_sign(bp)
-	if not bp or not bp.config or not bp.config.bufnr or not bp.config.line then
+	if not bp or not bp.config then
 		return
 	end
 
 	local bufnr = bp.config.bufnr
-	if not vim.api.nvim_buf_is_loaded(bufnr) then
+	local line = bp.config.line
+
+	if not is_valid_line(bufnr, line) then
 		return
 	end
 
 	local id = sign_id(bp)
 
-	-- 先清除旧的（但不清除整个 namespace）
-	pcall(vim.fn.sign_unplace, "dap_ext", {
+	-- clear old
+	pcall(vim.fn.sign_unplace, "dap_breakpoints", {
 		buffer = bufnr,
 		id = id,
 	})
 
-	-- 放置 sign
-	vim.fn.sign_place(id, "dap_ext", M.get_sign_type(bp), bufnr, {
-		lnum = bp.config.line,
-		priority = 10,
+	-- place sign
+	vim.fn.sign_place(id, "dap_breakpoints", M.get_sign_type(bp), bufnr, {
+		lnum = line,
+		priority = 20,
 	})
 
-	-- 清除该断点之前的行高亮
+	-- clear old extmark
 	if line_marks[bp.id] then
 		pcall(vim.api.nvim_buf_del_extmark, bufnr, NS_LINE, line_marks[bp.id])
-		line_marks[bp.id] = nil
 	end
 
-	-- 添加新的行高亮（保存 extmark id）
-	local extmark_id = vim.api.nvim_buf_set_extmark(bufnr, NS_LINE, bp.config.line - 1, 0, {
-		hl_group = "DapExtBreakpointLine",
-		hl_eol = true,
-		priority = 2000,
-		strict = false,
+	-- 🔥 正确高亮方式
+	local extmark_id = vim.api.nvim_buf_set_extmark(bufnr, NS_LINE, line - 1, 0, {
+		line_hl_group = "DapExtBreakpointLine",
+		priority = 10000,
 	})
 
 	line_marks[bp.id] = extmark_id
 end
 
---- 更新断点标志（用于状态变化后刷新）
-function M.update_sign(bp)
-	if not bp then
-		return
-	end
-	M.clear_sign(bp)
-	M.show_sign(bp)
-end
-
---- 显示命中断点的 hit 标记
-function M.show_hit(bp)
-	if not bp or not bp.config or not bp.config.bufnr or not bp.config.line then
-		return
-	end
-
-	local bufnr = bp.config.bufnr
-	if not vim.api.nvim_buf_is_loaded(bufnr) then
-		return
-	end
-
-	local line = bp.config.line
-	local hit_ns = vim.api.nvim_create_namespace("dap_ext_hit_temp")
-
-	-- 清除之前的临时 hit 标记（只清除临时 namespace）
-	pcall(vim.api.nvim_buf_clear_namespace, bufnr, hit_ns, 0, -1)
-
-	local id = sign_id(bp) + 1000000
-
-	-- 临时 sign
-	vim.fn.sign_place(id, "dap_ext", "DapExtBreakpointHit", bufnr, {
-		lnum = line,
-		priority = 20,
-	})
-
-	-- 临时行高亮
-	vim.api.nvim_buf_set_extmark(bufnr, hit_ns, line - 1, 0, {
-		hl_group = "DapExtStopped",
-		hl_eol = true,
-		priority = 1500,
-	})
-
-	-- 3秒后清除临时标记
-	vim.defer_fn(function()
-		pcall(vim.fn.sign_unplace, "dap_ext", { id = id })
-		if vim.api.nvim_buf_is_loaded(bufnr) then
-			pcall(vim.api.nvim_buf_clear_namespace, bufnr, hit_ns, 0, -1)
-		end
-	end, 1500)
-end
-
---- 全量刷新
+---------------------------------------------------------------------
+-- 渲染 ext + native（核心）
+---------------------------------------------------------------------
 function M.render_all()
+	M.clear_all()
+
+	-----------------------------------------------------------------
+	-- 1. ext breakpoints
+	-----------------------------------------------------------------
 	for _, bp in pairs(registry.bps) do
-		M.show_sign(bp)
+		if bp.config and is_valid_line(bp.config.bufnr, bp.config.line) then
+			M.show_sign(bp)
+		end
+	end
+
+	-----------------------------------------------------------------
+	-- 2. native breakpoints（来自 store）
+	-----------------------------------------------------------------
+	local ok, store_mod = pcall(require, "nvim-store3")
+	if not ok then
+		return
+	end
+
+	local store = store_mod.project()
+	local data = store:get("dap_breakpoints") or {}
+
+	for key, list in pairs(data) do
+		if key ~= "custom_breakpoints" then
+			local path = key:gsub("%%%.", "."):gsub("%%%%", "%%")
+			local bufnr = vim.fn.bufnr(path, false)
+
+			if bufnr ~= -1 then
+				for _, bp in ipairs(list) do
+					local fake_bp = {
+						id = "native_" .. bufnr .. "_" .. bp.line,
+						type = "source",
+						enabled = true,
+						status = "verified",
+						config = {
+							bufnr = bufnr,
+							line = bp.line,
+						},
+					}
+					M.show_sign(fake_bp)
+				end
+			end
+		end
 	end
 end
 
---- 清空所有 sign 和行高亮
+---------------------------------------------------------------------
+-- 清空
+---------------------------------------------------------------------
 function M.clear_all()
-	for _, bp in pairs(registry.bps) do
-		M.clear_sign(bp)
-	end
-
-	-- 清空所有 namespace
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		if vim.api.nvim_buf_is_loaded(buf) then
 			pcall(vim.api.nvim_buf_clear_namespace, buf, NS_LINE, 0, -1)
@@ -258,9 +224,49 @@ function M.clear_all()
 	end
 
 	line_marks = {}
-	pcall(vim.fn.sign_unplace, "dap_ext")
+	pcall(vim.fn.sign_unplace, "dap_breakpoints")
 end
 
+---------------------------------------------------------------------
+-- hit 高亮
+---------------------------------------------------------------------
+function M.show_hit(bp)
+	if not bp or not bp.config then
+		return
+	end
+
+	local bufnr = bp.config.bufnr
+	local line = bp.config.line
+
+	if not is_valid_line(bufnr, line) then
+		return
+	end
+
+	local id = sign_id(bp) + 1000000
+
+	vim.fn.sign_place(id, "dap_breakpoints", "DapExtBreakpointHit", bufnr, {
+		lnum = line,
+		priority = 30,
+	})
+
+	local ext_ns = vim.api.nvim_create_namespace("dap_ext_hit_temp")
+
+	vim.api.nvim_buf_set_extmark(bufnr, ext_ns, line - 1, 0, {
+		line_hl_group = "DapExtStopped",
+		priority = 9999,
+	})
+
+	vim.defer_fn(function()
+		pcall(vim.fn.sign_unplace, "dap_breakpoints", { id = id })
+		if vim.api.nvim_buf_is_loaded(bufnr) then
+			pcall(vim.api.nvim_buf_clear_namespace, bufnr, ext_ns, 0, -1)
+		end
+	end, 1500)
+end
+
+---------------------------------------------------------------------
+-- 事件
+---------------------------------------------------------------------
 Event.on("bp_hit", function(bp)
 	M.show_hit(bp)
 end)

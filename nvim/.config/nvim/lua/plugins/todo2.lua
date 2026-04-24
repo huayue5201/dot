@@ -1,7 +1,7 @@
 -- https://github.com/huayue5201/todo2
 
 return {
-	dir = "~/todo2",
+	dir = "~/neovim-plugins/todo2",
 	"huayue5201/todo2",
 	dev = true,
 	-- event = "VeryLazy",
@@ -27,5 +27,6 @@ return {
 		)
 		vim.keymap.set("n", "<leader>af", "<cmd>TodoAISelectModel<cr>", { desc = "todo2: 选择ai模型" })
 		vim.keymap.set("n", "<leader>ac", "<cmd>TodoAIStop<cr>", { desc = "todo2: 终止ai运行" })
+		vim.keymap.set("n", "<leader>tdh", "<cmd>Todo2Heatmap<cr>", { desc = "todo2: 热力图" })
 	end,
 }

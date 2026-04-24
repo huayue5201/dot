@@ -94,7 +94,7 @@ function M.open(opts)
 		width = width + 6,
 		height = 12,
 		style = "minimal",
-		border = "solid",
+		border = "rounded",
 	})
 
 	----------------------------------------------------------------------

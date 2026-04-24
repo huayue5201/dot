@@ -3,8 +3,6 @@
 -- For `plugins/markview.lua` users.
 return {
 	"OXY2DEV/markview.nvim",
-	-- Completion for `blink.cmp`
-	dependencies = { "saghen/blink.cmp" },
 	lazy = false,
 	ft = "md",
 	config = function()

@@ -2,7 +2,7 @@
 
 return {
 	"huayue5201/nvim-translator",
-	dir = "~/nvim-translator",
+	dir = "~/neovim-plugins/nvim-translator",
 	dev = true,
 	event = "VeryLazy",
 

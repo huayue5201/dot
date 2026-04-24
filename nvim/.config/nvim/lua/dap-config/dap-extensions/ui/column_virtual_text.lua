@@ -1,11 +1,11 @@
--- dap-config/dap-extensions/ui/inline_virtual_text.lua
+-- dap-config/dap-extensions/ui/column_virtual_text.lua
 local Event = require("dap-config.dap-extensions.event")
 local registry = require("dap-config.dap-extensions.registry")
 
 local M = {}
 
-local NS = vim.api.nvim_create_namespace("dap_ext_inline")
-local inline_marks = {}
+local NS = vim.api.nvim_create_namespace("dap_ext_column")
+local column_marks = {}
 
 -- 获取光标下的标识符边界
 local function get_identifier_at_cursor(bufnr, row, col)
@@ -131,13 +131,13 @@ local function get_best_marker_position(bufnr, row, col)
 	return col + 1
 end
 
---- 清理指定断点的内联标记
+--- 清理指定断点的列标记
 function M.clear_for_bp(bp)
 	if not bp or not bp.id then
 		return
 	end
 
-	local mark_info = inline_marks[bp.id]
+	local mark_info = column_marks[bp.id]
 	if not mark_info then
 		return
 	end
@@ -147,22 +147,22 @@ function M.clear_for_bp(bp)
 		pcall(vim.api.nvim_buf_del_extmark, buf, NS, mark_info.extmark_id)
 	end
 
-	inline_marks[bp.id] = nil
+	column_marks[bp.id] = nil
 end
 
---- 清理所有内联标记
+--- 清理所有列标记
 function M.clear_all()
 	for _, bp in pairs(registry.bps) do
-		if bp.type == "inline" then
+		if bp.type == "column" then
 			M.clear_for_bp(bp)
 		end
 	end
 end
 
---- 显示内联断点标记（在表达式/字段旁边）
+--- 显示列断点标记（在表达式/字段旁边）
 --- @param bp table
 function M.show(bp)
-	if not bp or bp.type ~= "inline" then
+	if not bp or bp.type ~= "column" then
 		return
 	end
 
@@ -204,12 +204,12 @@ function M.show(bp)
 
 	-- 设置虚拟文本（在表达式/字段后面）
 	local extmark_id = vim.api.nvim_buf_set_extmark(bufnr, NS, row, marker_col or col, {
-		virt_text = { { text, "DapExtInlineBreakpoint" } },
+		virt_text = { { text, "DapExtColumnBreakpoint" } },
 		virt_text_pos = "overlay",
 		priority = 100,
 	})
 
-	inline_marks[bp.id] = {
+	column_marks[bp.id] = {
 		bufnr = bufnr,
 		row = row,
 		col = marker_col or col,
@@ -218,20 +218,23 @@ function M.show(bp)
 end
 
 -- 监听断点变化
-Event.on("breakpoint_created", function(bp)
-	if bp.type == "inline" then
+Event.on("breakpoint_changed", function(bp)
+	if not bp or not bp.type then
+		return
+	end
+	if bp.type == "column" then
 		M.show(bp)
 	end
 end)
 
 Event.on("breakpoint_deleted", function(bp)
-	if bp.type == "inline" then
+	if bp.type == "column" then
 		M.clear_for_bp(bp)
 	end
 end)
 
 Event.on("breakpoint_changed", function(bp)
-	if bp.type == "inline" then
+	if bp.type == "column" then
 		M.show(bp)
 	end
 end)

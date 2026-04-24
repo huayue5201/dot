@@ -10,14 +10,26 @@ local function get_capabilities()
 end
 
 ---------------------------------------------------------------------
--- 自动检测是否支持 inline breakpoint（column breakpoint）
--- 这是最关键的能力，DAP 标准字段 supportsColumnBreakpoint 很少被实现
--- 因此必须通过 setBreakpointsRequest 实测
+-- 自动检测是否支持 column breakpoint（标准 DAP 能力）
+-- 优先使用标准字段 supportsColumnBreakpoint，如果不存在则通过实测
 ---------------------------------------------------------------------
-function M.supports_inline_breakpoints()
+function M.supports_column_breakpoints()
+	local caps = get_capabilities()
+
+	-- 优先使用标准能力字段
+	if caps and caps.supportsColumnBreakpoint == true then
+		return true
+	end
+
+	-- 如果没有明确声明，通过实测检测
+	return M._test_column_breakpoint_support()
+end
+
+-- 实测 column breakpoint 支持
+function M._test_column_breakpoint_support()
 	local session = require("dap").session()
 	if not session then
-		return false, "No active debug session"
+		return false
 	end
 
 	local test_bp = {
@@ -32,19 +44,26 @@ function M.supports_inline_breakpoints()
 	}, 300)
 
 	if not resp or not resp.body or not resp.body.breakpoints then
-		return false, "Adapter did not return breakpoints"
+		return false
 	end
 
 	local bp = resp.body.breakpoints[1]
 	if not bp then
-		return false, "Adapter returned no breakpoint"
+		return false
 	end
 
-	if bp.column and bp.column > 0 then
-		return true, nil
+	-- 标准检测：返回的 column 应该与请求的一致
+	if bp.column and bp.column == 5 then
+		return true
 	end
 
-	return false, "Adapter ignored column field"
+	return false
+end
+
+-- 保留旧函数名作为兼容（标记为 deprecated）
+function M.supports_inline_breakpoints()
+	vim.notify("supports_inline_breakpoints is deprecated, use supports_column_breakpoints", vim.log.levels.WARN)
+	return M.supports_column_breakpoints()
 end
 
 ---------------------------------------------------------------------
@@ -210,6 +229,13 @@ function M.show()
 		end
 		table.insert(lines, string.format("  %-35s : %s", "exceptionBreakpointFilters", table.concat(filters, ", ")))
 	end
+
+	-- 显示 column breakpoint 支持状态（合并检测结果）
+	local col_support = M.supports_column_breakpoints()
+	table.insert(
+		lines,
+		string.format("  %-35s : %s", "supportsColumnBreakpoint (detected)", col_support and "✓" or "✗")
+	)
 
 	for name, list in pairs(groups) do
 		table.insert(lines, "")
