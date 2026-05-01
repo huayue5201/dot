@@ -10,9 +10,6 @@ local M = {}
 M.session = nil
 M.types = {}
 
--- 自动保存文件路径
-local AUTO_SAVE_FILE = vim.fn.stdpath("data") .. "/dap_ext_breakpoints.json"
-
 function M.register_type(name, ctor)
 	M.types[name] = ctor
 end
@@ -251,53 +248,6 @@ local function update_breakpoint_location(session, bp)
 
 	Event.emit("breakpoint_changed", bp)
 end
-
--- 自动保存函数
-local function auto_save()
-	local data = {}
-	for id, bp in pairs(registry.bps) do
-		data[id] = {
-			type = bp.type,
-			config = vim.deepcopy(bp.config),
-			enabled = bp.enabled,
-		}
-		data[id].config.bufnr = nil
-	end
-
-	local file = io.open(AUTO_SAVE_FILE, "w")
-	if file then
-		file:write(vim.fn.json_encode(data))
-		file:close()
-	end
-end
-
--- 自动加载函数
-function M.auto_load()
-	local file = io.open(AUTO_SAVE_FILE, "r")
-	if not file then
-		return
-	end
-
-	local content = file:read("*a")
-	file:close()
-
-	local data = vim.fn.json_decode(content)
-	if not data then
-		return
-	end
-
-	for _, saved in pairs(data) do
-		local bp = M.create(saved.type, saved.config)
-		if saved.enabled == false then
-			bp:set_enabled(false)
-		end
-	end
-end
-
--- 绑定自动保存事件
-Event.on("breakpoint_created", auto_save)
-Event.on("breakpoint_deleted", auto_save)
-Event.on("breakpoint_enabled_changed", auto_save)
 
 function M.on_session(session)
 	M.session = session

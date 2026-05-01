@@ -37,7 +37,7 @@ vim.defer_fn(function()
 	-- 延迟修改 runtimepath，避免影响启动速度
 	vim.schedule(function()
 		require("user.dotenv").load() -- token加载模块
-		require("user.hl_undo_changes") -- undo高亮
+		-- require("user.hl_undo_changes") -- undo高亮
 	end)
 	-- 自动清理lsp日志文件
 	local log = vim.lsp.log.get_filename()

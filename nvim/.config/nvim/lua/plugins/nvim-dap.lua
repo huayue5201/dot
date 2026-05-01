@@ -5,6 +5,8 @@ return {
 	event = "VeryLazy",
 	dependencies = {
 		"Jorenar/nvim-dap-disasm",
+		-- https://github.com/jbyuki/one-small-step-for-vimkind
+		"jbyuki/one-small-step-for-vimkind",
 	},
 	config = function()
 		-- repl 自动补全支持
@@ -107,6 +109,8 @@ return {
 				require("dap-config.adapters.probe_rs").setup(dap)
 				require("dap-config.adapters.openocd").setup(dap)
 				require("dap-config.adapters.pyocd").setup(dap)
+			elseif filetype == "lua" then
+				require("dap-config.adapters.nlua").setup(dap)
 			end
 		end
 

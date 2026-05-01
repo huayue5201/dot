@@ -1,4 +1,5 @@
 -- https://github.com/nvim-treesitter/nvim-treesitter/blob/main/README.md
+-- https://github.com/neovim/neovim/issues/39006
 -- TODO:需要安装 brew install tree-sitter-cli
 
 return {
