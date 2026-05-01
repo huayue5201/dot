@@ -30,79 +30,106 @@ M.buf_keymaps = {
 		terminal = { cmd = "bdelete" },
 		["nvim-undotree"] = { cmd = "close" },
 		["vscode-diff-explorer"] = { cmd = "tabclose" },
+		OverseerOutput = { cmd = "close" },
 	},
 }
 
 -- ============================
--- ⭐统一关闭函数（核心）
+-- 单文件版：更优雅、更可维护的 smart_close
 -- ============================
+
+local closed_windows = {}
+
+local function safe_win_close(win, opts)
+	if vim.api.nvim_win_is_valid(win) then
+		pcall(vim.api.nvim_win_close, win, opts or { force = true, noautocmd = true })
+	end
+end
+
+local function safe_buf_delete(buf, opts)
+	if vim.api.nvim_buf_is_valid(buf) then
+		pcall(vim.api.nvim_buf_delete, buf, opts or { force = false })
+	end
+end
+
 function M.smart_close(target_win)
 	local win = target_win or vim.api.nvim_get_current_win()
-	if not vim.api.nvim_win_is_valid(win) then
+
+	-- ① 防重复关闭
+	if closed_windows[win] then
 		return
 	end
 
+	-- ② 无效窗口直接标记并返回
+	if not vim.api.nvim_win_is_valid(win) then
+		closed_windows[win] = true
+		return
+	end
+
+	-- ③ 获取 buffer 信息
 	local buf = vim.api.nvim_win_get_buf(win)
 	local ft = vim.bo[buf].filetype
 	local bt = vim.bo[buf].buftype
 	local name = vim.fn.bufname(buf)
 
+	-- ④ 查找关闭策略
 	local close_map = M.buf_keymaps["q"]
+	local strategy = nil
 
-	-- ① 特殊匹配 dap-repl
-	local command
+	-- dap-repl 特殊匹配
 	if name:match("dap%-repl") then
-		command = close_map["dap-repl"]
+		strategy = close_map["dap-repl"]
 	end
 
-	-- ② filetype / buftype 匹配
-	command = command or close_map[ft] or close_map[bt]
+	-- filetype / buftype 匹配
+	strategy = strategy or close_map[ft] or close_map[bt]
 
-	-- ③ fallback：SmartClose 行为
-	if not command then
-		local cfg = vim.api.nvim_win_get_config(win)
+	-- ⭐标记窗口已关闭（避免 WinClosed → 再次调用）
+	closed_windows[win] = true
 
-		-- 浮动窗口
-		if cfg.relative ~= "" then
-			vim.api.nvim_win_close(win, { force = false, noautocmd = true })
-			return
-		end
-
-		-- 普通窗口 - 修复最后一个窗口的处理
-		if vim.fn.winnr("$") > 1 then
-			-- 有多个窗口，正常关闭
-			vim.api.nvim_win_close(win, { force = true, noautocmd = true })
+	-- ⑤ 如果有策略，执行策略
+	if strategy then
+		if type(strategy.cmd) == "function" then
+			pcall(strategy.cmd)
 		else
-			-- 只有一个窗口时的处理
-			local buf_count = #vim.api.nvim_list_bufs()
-
-			if buf_count > 1 then
-				-- 如果有多个缓冲区，切换到其他缓冲区
-				local buffers = vim.api.nvim_list_bufs()
-				for _, other_buf in ipairs(buffers) do
-					if other_buf ~= buf and vim.api.nvim_buf_is_loaded(other_buf) then
-						vim.api.nvim_win_set_buf(win, other_buf)
-						-- 关闭原缓冲区
-						pcall(vim.api.nvim_buf_delete, buf, { force = false })
-						return
-					end
-				end
-			end
-
-			-- 只有一个缓冲区，询问是否退出
-			local choice = vim.fn.confirm("这是最后一个窗口，确认退出Neovim？", "&是\n&否", 2)
-			if choice == 1 then
-				vim.cmd("qa")
-			end
+			pcall(vim.cmd, strategy.cmd)
 		end
 		return
 	end
 
-	-- ④ 执行关闭命令
-	if type(command.cmd) == "function" then
-		command.cmd()
-	else
-		vim.cmd(command.cmd)
+	-- ⑥ fallback：智能关闭逻辑
+	local cfg = vim.api.nvim_win_get_config(win)
+
+	-- 浮动窗口
+	if cfg.relative ~= "" then
+		safe_win_close(win, { force = false, noautocmd = true })
+		return
+	end
+
+	-- 多窗口：直接关闭
+	if vim.fn.winnr("$") > 1 then
+		safe_win_close(win)
+		return
+	end
+
+	-- 只有一个窗口：处理 buffer 切换
+	local buffers = vim.api.nvim_list_bufs()
+	local buf_count = #buffers
+
+	if buf_count > 1 then
+		for _, other_buf in ipairs(buffers) do
+			if other_buf ~= buf and vim.api.nvim_buf_is_loaded(other_buf) then
+				vim.api.nvim_win_set_buf(win, other_buf)
+				safe_buf_delete(buf)
+				return
+			end
+		end
+	end
+
+	-- 最后一个缓冲区：询问是否退出
+	local choice = vim.fn.confirm("这是最后一个窗口，确认退出 Neovim？", "&是\n&否", 2)
+	if choice == 1 then
+		vim.cmd("qa")
 	end
 end
 

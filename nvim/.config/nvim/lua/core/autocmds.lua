@@ -34,14 +34,6 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
-local ns = vim.api.nvim_create_namespace("hl_on_paste")
-vim.paste = (function(overridden)
-	return function(lines, phase)
-		local ret = overridden(lines, phase)
-		vim.hl.range(0, ns, "Visual", "'[", "']", { timeout = 300 })
-		return ret
-	end
-end)(vim.paste)
 -- =============================================
 -- 快捷键映射配置
 -- =============================================

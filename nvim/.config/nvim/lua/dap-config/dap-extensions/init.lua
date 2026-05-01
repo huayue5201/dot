@@ -29,13 +29,6 @@ function M.setup(opts)
 	if opts.ui == nil or opts.ui.virtual_text then
 		require("dap-config.dap-extensions.ui.virtual_text")
 	end
-
-	-- 自动加载保存的断点
-	if opts.auto_save ~= false then
-		vim.defer_fn(function()
-			manager.auto_load()
-		end, 100)
-	end
 end
 
 M.add_function_breakpoint = require("dap-config.dap-extensions.manager").add_function_breakpoint
