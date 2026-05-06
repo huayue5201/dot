@@ -11,7 +11,7 @@ return {
 			mode = "graphical",
 
 			-- 当光标进入正则表达式时自动显示解释器
-			auto = true,
+			auto = false,
 
 			-- 激活 regexplainer 的文件类型
 			filetypes = {

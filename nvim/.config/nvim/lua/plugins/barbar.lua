@@ -9,7 +9,6 @@ return {
 	init = function()
 		vim.g.barbar_auto_setup = false
 	end,
-	version = "^1.0.0", -- optional: only update when a new 1.x version is released
 	config = function()
 		require("barbar").setup({
 			-- 警告：不要将下面的所有内容复制到你的配置中！
@@ -185,7 +184,7 @@ return {
 		-- Pin/unpin buffer
 		map(
 			"n",
-			"<A-p>",
+			"<localleader>p",
 			"<Cmd>BufferPin<CR>",
 			vim.tbl_extend("force", opts, { desc = "固定/取消固定当前缓冲区" })
 		)
@@ -216,10 +215,10 @@ return {
 		-- map('n', '<leader>bcr', '<Cmd>BufferCloseBuffersRight<CR>', vim.tbl_extend('force', opts, { desc = '关闭右侧所有缓冲区' }))
 
 		-- Magic buffer-picking mode
-		map("n", "<C-p>", "<Cmd>BufferPick<CR>", vim.tbl_extend("force", opts, { desc = "缓冲区选择模式" }))
+		map("n", "<A-p>", "<Cmd>BufferPick<CR>", vim.tbl_extend("force", opts, { desc = "缓冲区选择模式" }))
 		map(
 			"n",
-			"<C-s-p>",
+			"<A-s-p>",
 			"<Cmd>BufferPickDelete<CR>",
 			vim.tbl_extend("force", opts, { desc = "缓冲区选择删除模式" })
 		)

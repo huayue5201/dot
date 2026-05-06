@@ -72,8 +72,7 @@ fi
 # 1. 基础工具并行安装
 # -----------------------------
 log "安装基础工具..."
-brew_install_parallel stow git lazygit fzf fd ripgrep bat btop tmux aria2 llvm lsusb zoxide jless otree jiq jq rust universal-ctags
-brew install --HEAD neovim # neovim 建议单独安装，避免 HEAD 并行冲突
+brew_install_parallel stow git lazygit fzf fd ripgrep bat btop llvm lsusb zoxide jless otree jiq jq rust universal-ctags orbstack tree-sitter-cli
 
 # -----------------------------
 # 2. dotfiles 管理（顺序执行）
@@ -94,23 +93,17 @@ fi
 # -----------------------------
 log "安装 MCU 开发环境..."
 brew_install_parallel openocd telnet node
-brew_install --cask gcc-arm-embedded # cask 建议单独安装
+brew install --cask gcc-arm-embedded # cask 建议单独安装
 pip3_install_parallel compiledb
 
 # -----------------------------
 # 4. LSP / 语言工具并行安装
 # -----------------------------
 log "安装 LSP 和语言工具..."
-brew_install_parallel taplo stylua uv rust-analyzer emmylua_ls ast-grep ruff
+brew_install_parallel uv ast-grep
 if command_exists uv; then
   uv tool install ty@latest || warn "uv tool install ty@latest 失败"
 fi
-
-# -----------------------------
-# 4. json 工具并行安装
-# -----------------------------
-log "安装json工具..."
-brew_install_parallel jless jq jiq otree
 
 # -----------------------------
 # 5. Brew 扩展（顺序执行即可）
