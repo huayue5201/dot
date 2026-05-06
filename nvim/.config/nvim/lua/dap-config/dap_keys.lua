@@ -15,6 +15,7 @@ function M.setup()
 				dap.repl.close()
 			end,
 		})
+		require("dap-view").virtual_text_disable()
 		require("dap-config.dap-extensions.ui.virtual_text").clear_all()
 	end, { desc = "[D]ap [T]erminate" })
 	vim.keymap.set("n", "<F6>", dap.pause, { desc = "[D]ap [P]ause" })
@@ -285,6 +286,7 @@ function M.setup()
 			vim.g.dap_active = true
 			vim.lsp.inlay_hint.enable(false)
 			vim.diagnostic.enable(false)
+			require("dap-view").virtual_text_enable()
 
 			local global_maps = vim.api.nvim_get_keymap("n")
 			for _, map in ipairs(global_maps) do
@@ -319,6 +321,7 @@ function M.setup()
 			vim.g.dap_active = false
 			vim.lsp.inlay_hint.enable(true)
 			vim.diagnostic.enable(true)
+			require("dap-view").virtual_text_disable()
 
 			for _, keymap in ipairs(keymap_restore) do
 				local opts = { silent = keymap.silent == 1 }

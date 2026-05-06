@@ -91,17 +91,29 @@ end
 
 -- 获取包含指定位置的所有节点（按从外到内排序）
 local function get_nodes_at_position(bufnr, lnum, col)
-	local ok, parser = pcall(vim.treesitter.get_parser, bufnr)
-	if not ok then
+	-- 获取 filetype 对应的 TS 语言
+	local lang = vim.treesitter.language.get_lang(vim.bo[bufnr].filetype)
+	if not lang then
 		return {}
 	end
 
-	local tree = parser:parse()[1]
-	if not tree then
+	-- 安全获取 parser
+	local ok, parser = pcall(vim.treesitter.get_parser, bufnr, lang, { error = false })
+	if not ok or not parser then
 		return {}
 	end
 
-	local root = tree:root()
+	-- 安全解析语法树
+	local trees = parser:parse()
+	if not trees or not trees[1] then
+		return {}
+	end
+
+	local root = trees[1]:root()
+	if not root then
+		return {}
+	end
+
 	local nodes = {}
 
 	local function collect_nodes(node)
@@ -117,18 +129,15 @@ local function get_nodes_at_position(bufnr, lnum, col)
 			return
 		end
 
-		-- 先收集子节点
 		for child in node:iter_children() do
 			collect_nodes(child)
 		end
 
-		-- 然后添加当前节点
 		table.insert(nodes, node)
 	end
 
 	collect_nodes(root)
 
-	-- 按节点大小排序（最内层的在最后）
 	table.sort(nodes, function(a, b)
 		local a_start, a_end = a:range()
 		local b_start, b_end = b:range()

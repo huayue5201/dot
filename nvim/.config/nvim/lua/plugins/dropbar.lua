@@ -1,4 +1,4 @@
--- https://github.com/Bekaboo/dropbar.nvim?tab=readme-ov-file
+-- https://github.com/Bekaboo/dropbar.nvim
 
 return {
 	"Bekaboo/dropbar.nvim",
