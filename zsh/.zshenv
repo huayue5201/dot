@@ -1,9 +1,3 @@
-# Cargo
-. "$HOME/.cargo/env"
-
-# Bun
-export PATH="$HOME/.bun/bin:$PATH"
-
 # go
 export PATH=$PATH:$HOME/go/bin
 
@@ -25,8 +19,8 @@ export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 
 # 代理
-export http_proxy=http://127.0.0.1:2080
-export https_proxy=$http_proxy
+# export http_proxy=http://127.0.0.1:2080
+# export https_proxy=$http_proxy
 
 # STM32Cube 路径
 export STM32CubeMX_PATH=/Applications/STMicroelectronics/STM32CubeMX.app/Contents/Resources

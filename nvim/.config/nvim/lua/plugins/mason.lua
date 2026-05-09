@@ -19,7 +19,6 @@ return {
 				"lua-language-server",
 				"markdown-oxide",
 				"codelldb",
-				"copilot-language-server",
 				"cortex-debug",
 				"delve",
 				"gofumpt",
@@ -31,7 +30,6 @@ return {
 				"stylua",
 				"ruff",
 				"taplo",
-				"biome",
 				"dprint",
 			}
 

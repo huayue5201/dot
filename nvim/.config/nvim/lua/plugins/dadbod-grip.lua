@@ -1,4 +1,4 @@
--- https://github.com/joryeugene/dadbod-grip.nvim?tab=readme-ov-file
+-- https://github.com/joryeugene/dadbod-grip.nvim
 
 return {
 	"joryeugene/dadbod-grip.nvim",

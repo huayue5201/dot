@@ -1,0 +1,145 @@
+# ========== macOS 系统文件 ==========
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Thumbnails
+Thumbs.db
+.thumbnail/
+
+# Icon must end with two \r (macOS 资源 fork)
+Icon
+
+# 已删除但仍在网络挂载卷中的文件
+.DS_Store?
+.trashes
+.fseventsd
+.spotlight
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.supported
+
+# 时间机器本地快照
+.apdisk
+
+# ========== 编辑器/IDE ==========
+# Vim
+*.swp
+*.swo
+*~
+*.un~
+.*.swp
+.*.swo
+
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# JetBrains IDEs (IntelliJ, PyCharm, WebStorm等)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+*.classpath
+*.project
+*.settings/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ========== 开发工具 ==========
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log
+.pnpm-lock.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+.env
+.venv
+*.egg-info/
+dist/
+build/
+
+# Go
+*.exe
+*.exe~
+*.test
+*.out
+
+# Rust
+/target/
+*.rs.bk
+Cargo.lock
+
+# ========== 通用临时文件 ==========
+# 日志文件
+*.log
+*.pid
+*.seed
+
+# 备份文件
+*.bak
+*.backup
+*.tmp
+*.temp
+*.cache
+
+# 压缩文件（可选择忽略，根据项目需要）
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# ========== 敏感信息 ==========
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+*.p12
+.secrets/
+secrets/
+
+# ========== 操作系统其他 ==========
+# Windows（虽然你在 macOS，但为了协作）
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Linux
+*.dll
+*.so
+*.dylib
+.directory
+*~
