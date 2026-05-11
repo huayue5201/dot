@@ -152,17 +152,17 @@ return {
 		local opts = { noremap = true, silent = true }
 
 		-- Move to previous/next
-		map("n", "<C-,>", "<Cmd>BufferPrevious<CR>", vim.tbl_extend("force", opts, { desc = "上一个缓冲区" }))
-		map("n", "<C-.>", "<Cmd>BufferNext<CR>", vim.tbl_extend("force", opts, { desc = "下一个缓冲区" }))
+		map("n", "<[-b>", "<Cmd>BufferPrevious<CR>", vim.tbl_extend("force", opts, { desc = "上一个缓冲区" }))
+		map("n", "<]-b>", "<Cmd>BufferNext<CR>", vim.tbl_extend("force", opts, { desc = "下一个缓冲区" }))
 
 		-- Re-order to previous/next
 		map(
 			"n",
-			"<A-<>",
+			"<c-,>",
 			"<Cmd>BufferMovePrevious<CR>",
 			vim.tbl_extend("force", opts, { desc = "向左移动缓冲区" })
 		)
-		map("n", "<A->>", "<Cmd>BufferMoveNext<CR>", vim.tbl_extend("force", opts, { desc = "向右移动缓冲区" }))
+		map("n", "<c-.>", "<Cmd>BufferMoveNext<CR>", vim.tbl_extend("force", opts, { desc = "向右移动缓冲区" }))
 
 		-- Goto buffer in position...
 		map("n", "g1", "<Cmd>BufferGoto 1<CR>", vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 1" }))

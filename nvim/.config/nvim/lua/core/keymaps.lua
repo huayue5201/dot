@@ -57,13 +57,13 @@ vim.keymap.set("n", "<s-a-w>", function()
 end, { desc = "Toggle line wrap" })
 
 -- 🏷 Tab operations
-vim.keymap.set("n", "<leader>tn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
-vim.api.nvim_set_keymap("n", "<leader>tmh", ":-tabmove<CR>", {
+vim.keymap.set("n", "<leader>nt", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
+vim.api.nvim_set_keymap("n", "<leader>nth", ":-tabmove<CR>", {
 	noremap = true,
 	silent = true,
 	desc = "Tab: 左移",
 })
-vim.keymap.set("n", "<leader>tml", ":+tabmove<CR>", {
+vim.keymap.set("n", "<leader>ntl", ":+tabmove<CR>", {
 	noremap = true,
 	silent = true,
 	desc = "Tab: 右移",

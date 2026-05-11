@@ -2,16 +2,27 @@
 
 return {
 	"joryeugene/dadbod-grip.nvim",
-	version = "*",
 	event = "VeryLazy",
 	config = function()
-		-- 可选：配置插件选项
 		require("dadbod-grip").setup({
-			-- 在这里添加 dadbod-grip 的配置选项
-			-- 例如：
-			-- default_connections = {
-			--     ["local"] = "postgresql://localhost/mydb",
-			-- },
+			limit = 200, -- rows per page (default: 200)
+			max_col_width = 60, -- truncate long cell values in the grid
+			timeout = 30000, -- query timeout in milliseconds
+
+			picker = "builtin", -- 'builtin' | 'telescope' | 'snacks'
+			completion = true, -- false to use blink.cmp or nvim-cmp instead
+			connections_path = nil, -- absolute path to shared connections.json
+
+			pinned_max = nil,
+
+			ai = {
+				provider = "anthropic", -- 'anthropic' | 'openai' | 'gemini' | 'ollama'
+				model = "claude-sonnet-4-6",
+				api_key = nil, -- nil reads from env var; or 'env:VAR', 'cmd:...', direct string
+				base_url = nil, -- override for Ollama or proxy endpoints
+			},
+
+			open_key = "<leader>db", -- key to open the grip workspace
 		})
 
 		-- 数据库连接

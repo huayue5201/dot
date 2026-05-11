@@ -151,3 +151,4 @@ eval "$(starship init zsh)"
 
 # bun completions
 [ -s "~/.bun/_bun" ] && source "~/.bun/_bun"
+export PATH="$HOME/.rustowl:$PATH"

@@ -35,38 +35,38 @@ return {
 			----------------------------------------------------------------------
 			-- 普通模式：翻译当前光标词
 			----------------------------------------------------------------------
-			vim.keymap.set("n", "<Leader>tle", function()
+			vim.keymap.set("n", "<localLeader>tle", function()
 				translator.start("echo", false, 0, 1, 1, vim.fn.expand("<cword>"))
 			end, { silent = true, desc = "翻译并回显（当前词）" })
 
-			vim.keymap.set("n", "<Leader>tlw", function()
+			vim.keymap.set("n", "<C-;>", function()
 				translator.start("window", false, 0, 1, 1, vim.fn.expand("<cword>"))
 			end, { silent = true, desc = "翻译并窗口显示（当前词）" })
 
-			vim.keymap.set("n", "<Leader>tlr", function()
+			vim.keymap.set("n", "<localLeader>tlr", function()
 				vim.cmd("normal! viw")
 				local text = util.visual_select(2, 1, 1)
 				translator.start("replace", false, 2, 1, 1, text)
 			end, { silent = true, desc = "翻译并替换（当前词）" })
 
-			vim.keymap.set("n", "<Leader>tlx", function()
+			vim.keymap.set("n", "<localLeader>tlx", function()
 				translator.start("echo", false, 0, 1, 1, vim.fn.getreg("*"))
 			end, { silent = true, desc = "翻译剪贴板" })
 
 			----------------------------------------------------------------------
 			-- 可视模式：翻译选中文本
 			----------------------------------------------------------------------
-			vim.keymap.set("v", "<Leader>tle", function()
+			vim.keymap.set("v", "<localLeader>tle", function()
 				local text = util.visual_select(2, 1, 1)
 				translator.start("echo", false, 2, 1, 1, text)
 			end, { silent = true, desc = "翻译并回显（选区）" })
 
-			vim.keymap.set("v", "<Leader>tlw", function()
+			vim.keymap.set("v", "<C-;>", function()
 				local text = util.visual_select(2, 1, 1)
 				translator.start("window", false, 2, 1, 1, text)
 			end, { silent = true, desc = "翻译并窗口显示（选区）" })
 
-			vim.keymap.set("v", "<Leader>tlr", function()
+			vim.keymap.set("v", "<localLeader>tlr", function()
 				local text = util.visual_select(2, 1, 1)
 				translator.start("replace", false, 2, 1, 1, text)
 			end, { silent = true, desc = "翻译并替换（选区）" })
@@ -95,8 +95,8 @@ return {
 			----------------------------------------------------------------------
 			-- 历史与日志
 			----------------------------------------------------------------------
-			vim.keymap.set("n", "<Leader>tlh", "<Cmd>TranslateH<CR>", { silent = true, desc = "翻译历史" })
-			vim.keymap.set("n", "<Leader>tll", "<Cmd>TranslateL<CR>", { silent = true, desc = "翻译日志" })
+			vim.keymap.set("n", "<localLeader>tlh", "<Cmd>TranslateH<CR>", { silent = true, desc = "翻译历史" })
+			vim.keymap.set("n", "<localLeader>tll", "<Cmd>TranslateL<CR>", { silent = true, desc = "翻译日志" })
 		end)
 	end,
 }

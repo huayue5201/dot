@@ -31,6 +31,7 @@ M.buf_keymaps = {
 		["nvim-undotree"] = { cmd = "close" },
 		["vscode-diff-explorer"] = { cmd = "tabclose" },
 		OverseerOutput = { cmd = "close" },
+		["neotest-summary"] = { cmd = "close" },
 	},
 }
 

@@ -109,8 +109,8 @@ return {
 				map("n", "<leader>hq", gs.setqflist, "QF Hunks")
 
 				-- Toggles
-				map("n", "<leader>tb", gs.toggle_current_line_blame, "Toggle Blame")
-				map("n", "<leader>tw", gs.toggle_word_diff, "Toggle Word Diff")
+				map("n", "<leader>hl", gs.toggle_current_line_blame, "Toggle Blame")
+				map("n", "<leader>hw", gs.toggle_word_diff, "Toggle Word Diff")
 
 				-- Text object
 				map({ "o", "x" }, "ih", gs.select_hunk, "Select Hunk")

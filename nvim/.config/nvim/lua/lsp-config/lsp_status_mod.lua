@@ -12,14 +12,6 @@ M.config = {
 	spinner_interval = 150, -- 毫秒
 	spinner_width = 2, -- 固定宽度
 
-	-- 要忽略的 LSP 客户端
-	ignore_clients = {
-		"ruff",
-		"ruff_lsp",
-		"eslint",
-		"copilot",
-	},
-
 	-- 诊断显示配置
 	show_diagnostics = true,
 
@@ -193,6 +185,7 @@ function M.lsp_clients()
 		["ruff_lsp"] = 30,
 		["eslint"] = 40,
 		["copilot"] = 20,
+		["rustowl"] = 30,
 	}
 
 	-- 计算优先级和计数

@@ -1,5 +1,6 @@
 # go
 export PATH=$PATH:$HOME/go/bin
+export GOPROXY=https://goproxy.cn,direct
 
 # Homebrew & Python & LLVM & GCC
 export PATH="/opt/homebrew/opt/python@3.14/libexec/bin:/opt/homebrew/opt/llvm/bin:/opt/homebrew/Cellar/gcc/13.2.0/bin:/opt/homebrew/bin:$PATH"

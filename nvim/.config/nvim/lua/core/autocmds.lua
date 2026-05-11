@@ -25,14 +25,14 @@ vim.api.nvim_create_user_command("SmartClose", function()
 	require("user.utils").smart_close()
 end, {})
 
-vim.api.nvim_create_autocmd("TextYankPost", {
-	callback = function()
-		vim.hl.on_yank({
-			higroup = "Visual",
-			timeout = 300,
-		})
-	end,
-})
+-- vim.api.nvim_create_autocmd("TextYankPost", {
+-- 	callback = function()
+-- 		vim.hl.on_yank({
+-- 			higroup = "Visual",
+-- 			timeout = 300,
+-- 		})
+-- 	end,
+-- })
 
 -- =============================================
 -- 快捷键映射配置
