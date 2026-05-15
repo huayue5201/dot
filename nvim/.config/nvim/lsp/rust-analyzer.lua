@@ -85,6 +85,12 @@ return {
 		["rust-analyzer"] = {
 			showUnlinkedFileNotification = false,
 			typing = { autoformat = true },
+			completion = {
+				callable = {
+					-- https://rust-analyzer.github.io/book/configuration.html#completion.callable.snippets
+					snippets = "add_parentheses", -- or 'none'
+				},
+			},
 			check = {
 				command = "clippy",
 				allTargets = false,

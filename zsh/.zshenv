@@ -1,3 +1,6 @@
+#cargo
+export PATH="$PATH:$HOME/.cargo/bin"
+
 # go
 export PATH=$PATH:$HOME/go/bin
 export GOPROXY=https://goproxy.cn,direct
@@ -19,10 +22,10 @@ export VISUAL=nvim
 export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 
-# 代理
-# export http_proxy=http://127.0.0.1:2080
+# 代理 export http_proxy=http://127.0.0.1:2080
 # export https_proxy=$http_proxy
 
 # STM32Cube 路径
 export STM32CubeMX_PATH=/Applications/STMicroelectronics/STM32CubeMX.app/Contents/Resources
 export STM32_PRG_PATH=/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/MacOs/bin
+. "$HOME/.cargo/env"

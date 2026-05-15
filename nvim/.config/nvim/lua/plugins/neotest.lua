@@ -18,6 +18,7 @@ return {
 			-- 适配器配置
 			adapters = {
 				require("neotest-rust")({
+					args = { "--nocapture" },
 					-- Rust 特定配置
 					dap_adapter = "codelldb", -- 使用 codelldb 进行调试（需要安装 nvim-dap 和相关配置）
 					-- 可选：自定义测试二进制查找路径

@@ -164,6 +164,7 @@ function M.save_status()
 			"terminal",
 			"nofile",
 			"quickfix",
+			"qf",
 		},
 		bufname = {
 			"dap-terminal",
@@ -262,10 +263,11 @@ end
 function M.vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or not git_info.head then
-		return "%#GitIcon# %*" .. " "
+		-- return "%#GitIcon# %*" .. " "
+		return "%#GitIcon# %*"
 	end
 
-	local parts = { "%#GitIcon# %*" .. "[" .. git_info.head .. "]" }
+	local parts = { "%#GitIcon# %*" .. git_info.head }
 
 	local git_icons = {
 		added = "%#GitIconAdded#+%*",
@@ -332,7 +334,7 @@ function M.active()
 		M.dap_status() .. " ",
 		require("chainsaw.visuals.statusline").countInBuffer() .. " ",
 		M.vcs() .. "  ",
-		"%l%c   ",
+		" %l:%c   ",
 		M.get_scrollbar(),
 		"%p ",
 	})

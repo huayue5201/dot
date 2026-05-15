@@ -5,7 +5,7 @@ return {
 	event = "BufReadPost",
 	keys = {
 		{
-			"gQ",
+			"gq",
 			function()
 				require("conform").format({ async = true })
 			end,

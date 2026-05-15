@@ -186,6 +186,7 @@ function M.lsp_clients()
 		["eslint"] = 40,
 		["copilot"] = 20,
 		["rustowl"] = 30,
+		["harper-ls"] = 50,
 	}
 
 	-- 计算优先级和计数

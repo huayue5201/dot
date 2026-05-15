@@ -31,6 +31,7 @@ return {
 				"ruff",
 				"taplo",
 				"dprint",
+				"harper-ls",
 			}
 
 			local registry = require("mason-registry")

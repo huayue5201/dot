@@ -10,7 +10,7 @@ return {
 		vim.g.barbar_auto_setup = false
 	end,
 	config = function()
-		require("barbar").setup({
+		require("nvim.config.nvim.todo.barbar").setup({
 			-- 警告：不要将下面的所有内容复制到你的配置中！
 			--       这只是一个展示有哪些配置选项的例子。
 			--       默认配置对大多数人来说已经足够。

@@ -21,15 +21,13 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
 	rocks = {
 		enabled = true,
+		server = "https://lumen-oss.github.io/rocks-binaries/",
 	},
-
+	-- timeout = 120000,
 	spec = {
 		-- import your plugins
 		{ import = "plugins" },
 	},
-	-- Configure any other settings here. See the documentation for more details.
-	-- colorscheme that will be used when installing plugins.
-	install = { colorscheme = { "habamax" } },
 	-- automatically check for plugin updates
 	checker = { enabled = false },
 })

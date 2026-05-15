@@ -37,18 +37,18 @@ end, { silent = true, desc = "Save all modified buffers" })
 -- end, { silent = true, desc = "Close other buffers safely" })
 
 -- vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
-vim.cmd("packadd nvim.undotree")
-local function undotree()
-	local close = require("undotree").open({
-		title = "undotree",
-		command = "topleft 48vnew",
-	})
-	if not close then
-		vim.bo.filetype = "undotree"
-	end
-end
-
-vim.keymap.set("n", "<leader>eu", undotree, { desc = "UndoTree: toggle undotree" })
+-- vim.cmd("packadd nvim.undotree")
+-- local function undotree()
+-- 	local close = require("undotree").open({
+-- 		title = "undotree",
+-- 		command = "topleft 48vnew",
+-- 	})
+-- 	if not close then
+-- 		vim.bo.filetype = "undotree"
+-- 	end
+-- end
+--
+-- vim.keymap.set("n", "<leader>eu", undotree, { desc = "UndoTree: toggle undotree" })
 
 vim.keymap.set("n", "<s-a-w>", function()
 	local new_wrap = not vim.wo.wrap

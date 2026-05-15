@@ -5,7 +5,7 @@ return {
 	ft = { "go" },
 	dependencies = {
 		"mfussenegger/nvim-dap",
-		"rcarriga/nvim-dap-ui",
+		"igorlfs/nvim-dap-view",
 	},
 	config = function(_, opts)
 		-- 启动 nvim-dap-go

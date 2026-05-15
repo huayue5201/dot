@@ -3,10 +3,13 @@
 
 return {
 	"nvim-neo-tree/neo-tree.nvim",
+	branch = "v3.x",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"MunifTanjim/nui.nvim",
+		"3rd/image.nvim",
 		"nvim-tree/nvim-web-devicons", -- optional, but recommended
+		"saifulapm/neotree-file-nesting-config", -- 文件嵌套规则插件
 	},
 	lazy = false, -- neo-tree will lazily load itself
 	config = function()
@@ -25,6 +28,7 @@ return {
 
 		---@diagnostic disable-next-line: missing-fields
 		require("neo-tree").setup({
+			-- ========== 基础设置 ==========
 			sources = {
 				"filesystem",
 				"buffers",
@@ -33,6 +37,12 @@ return {
 			},
 			close_if_last_window = true,
 			popup_border_style = "rounded",
+
+			-- ========== 根节点设置（来自你提供的配置）==========
+			hide_root_node = true, -- 隐藏根节点
+			retain_hidden_root_indent = true, -- 保留隐藏根节点的缩进
+
+			-- ========== 源选择器 ==========
 			source_selector = {
 				winbar = true,
 				statusline = false,
@@ -43,6 +53,8 @@ return {
 					{ source = "document_symbols" },
 				},
 			},
+
+			-- ========== 窗口设置 ==========
 			window = {
 				position = "left",
 				width = 45,
@@ -57,16 +69,54 @@ return {
 					},
 				},
 			},
+
+			-- ========== 默认组件配置 ==========
+			default_component_configs = {
+				indent = {
+					with_expanders = true,
+					expander_collapsed = "",
+					expander_expanded = "",
+				},
+			},
+
+			-- ========== 文件系统设置 ==========
 			filesystem = {
+				-- 过滤项设置
+				filtered_items = {
+					show_hidden_count = false,
+					never_show = {
+						".DS_Store",
+					},
+				},
 				window = {
 					mappings = {
 						["O"] = "system_open",
 						["C"] = "open_and_clear_filter",
+						["h"] = function(state)
+							local node = state.tree:get_node()
+							if node.type == "directory" and node:is_expanded() then
+								require("neo-tree.sources.filesystem").toggle_directory(state, node)
+							else
+								require("neo-tree.ui.renderer").focus_node(state, node:get_parent_id())
+							end
+						end,
+						["l"] = function(state)
+							local node = state.tree:get_node()
+							if node.type == "directory" then
+								if not node:is_expanded() then
+									require("neo-tree.sources.filesystem").toggle_directory(state, node)
+								elseif node:has_children() then
+									require("neo-tree.ui.renderer").focus_node(state, node:get_child_ids()[1])
+								end
+							end
+						end,
 						-- map our new command to z
 						z = "grug_far_replace",
 					},
 				},
 			},
+
+			-- ========== 自定义命令 ==========
 			commands = {
 				open_and_clear_filter = function(state)
 					local node = state.tree:get_node()
@@ -84,7 +134,7 @@ return {
 				system_open = function(state)
 					local node = state.tree:get_node()
 					local path = node:get_id()
-					-- macOs: open file in default application in the background.
+					-- macOS: open file in default application in the background.
 					vim.fn.jobstart({ "open", path }, { detach = true })
 					-- Linux: open file in default application
 					-- vim.fn.jobstart({ "xdg-open", path }, { detach = true })
@@ -99,6 +149,7 @@ return {
 					end
 					vim.cmd("silent !start explorer " .. p)
 				end,
+
 				-- create a new neo-tree command
 				grug_far_replace = function(state)
 					local node = state.tree:get_node()
@@ -111,6 +162,7 @@ return {
 					}
 					open_grug_far(prefills)
 				end,
+
 				-- https://github.com/nvim-neo-tree/neo-tree.nvim/blob/fbb631e818f48591d0c3a590817003d36d0de691/doc/neo-tree.txt#L535
 				grug_far_replace_visual = function(selected_nodes)
 					local paths = {}
@@ -127,6 +179,15 @@ return {
 				end,
 			},
 		})
+
+		-- 应用文件嵌套规则（来自 neotree-file-nesting-config 插件）
+		local opts = require("neo-tree").config
+		if opts and opts.filesystem then
+			opts.nesting_rules = require("neotree-file-nesting-config").nesting_rules
+			require("neo-tree").setup(opts)
+		end
+
+		-- ========== 快捷键映射 ==========
 		vim.keymap.set("n", "<leader>ef", "<Cmd>Neotree toggle<CR>")
 		vim.keymap.set("n", "<leader>ee", "<Cmd>Neotree filesystem reveal<CR>")
 		vim.keymap.set("n", "<leader>eb", "<Cmd>Neotree buffers toggle<CR>")

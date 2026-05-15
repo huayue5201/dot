@@ -2,7 +2,6 @@
 
 return {
 	"serhez/bento.nvim",
-	opts = {},
 	config = function()
 		require("bento").setup({
 			main_keymap = "<S-tab>", -- Main toggle/expand key

@@ -1,4 +1,5 @@
 -- https://github.com/saecki/crates.nvim
+-- TODO: https://github.com/lvim-tech/lvim-dependencies
 
 return {
 	"saecki/crates.nvim",
@@ -42,36 +43,36 @@ return {
 		end
 
 		-- Crates 按键映射
-		map_filetype("toml", "n", "<leader>ot", crates.toggle, { desc = "依赖: 切换" })
-		map_filetype("toml", "n", "<leader>or", crates.reload, { desc = "依赖: 重载" })
-		map_filetype("toml", "n", "<leader>ov", crates.show_versions_popup, { desc = "依赖: 显示版本" })
-		map_filetype("toml", "n", "<leader>of", crates.show_features_popup, { desc = "依赖: 显示功能" })
-		map_filetype("toml", "n", "<leader>od", crates.show_dependencies_popup, { desc = "依赖: 显示依赖项" })
-		map_filetype("toml", "n", "<leader>ou", crates.update_crate, { desc = "依赖: 更新当前包" })
+		map_filetype("toml", "n", "<leader>oct", crates.toggle, { desc = "依赖: 切换" })
+		map_filetype("toml", "n", "<leader>ocr", crates.reload, { desc = "依赖: 重载" })
+		map_filetype("toml", "n", "<leader>ocv", crates.show_versions_popup, { desc = "依赖: 显示版本" })
+		map_filetype("toml", "n", "<leader>ocf", crates.show_features_popup, { desc = "依赖: 显示功能" })
+		map_filetype("toml", "n", "<leader>ocd", crates.show_dependencies_popup, { desc = "依赖: 显示依赖项" })
+		map_filetype("toml", "n", "<leader>ocu", crates.update_crate, { desc = "依赖: 更新当前包" })
 		map_filetype("v", "<leader>ou", crates.update_crates, { desc = "依赖: 更新选中包" })
-		map_filetype("toml", "n", "<leader>oa", crates.update_all_crates, { desc = "依赖: 更新所有包" })
-		map_filetype("toml", "n", "<leader>oU", crates.upgrade_crate, { desc = "依赖: 升级当前包" })
+		map_filetype("toml", "n", "<leader>oca", crates.update_all_crates, { desc = "依赖: 更新所有包" })
+		map_filetype("toml", "n", "<leader>ocU", crates.upgrade_crate, { desc = "依赖: 升级当前包" })
 		map_filetype("v", "<leader>oU", crates.upgrade_crates, { desc = "依赖: 升级选中包" })
-		map_filetype("toml", "n", "<leader>oA", crates.upgrade_all_crates, { desc = "依赖: 升级所有包" })
+		map_filetype("toml", "n", "<leader>ocA", crates.upgrade_all_crates, { desc = "依赖: 升级所有包" })
 		map_filetype(
 			"toml",
 			"n",
-			"<leader>ox",
+			"<leader>ocx",
 			crates.expand_plain_crate_to_inline_table,
 			{ desc = "依赖: 展开到内联表" }
 		)
 		map_filetype(
 			"toml",
 			"n",
-			"<leader>oX",
+			"<leader>ocX",
 			crates.extract_crate_into_table,
 			{ desc = "依赖: 提取到独立表" }
 		)
-		map_filetype("toml", "n", "<leader>oH", crates.open_homepage, { desc = "依赖: 打开主页" })
-		map_filetype("toml", "n", "<leader>oR", crates.open_repository, { desc = "依赖: 打开仓库" })
-		map_filetype("toml", "n", "<leader>oD", crates.open_documentation, { desc = "依赖: 打开文档" })
-		map_filetype("toml", "n", "<leader>oC", crates.open_crates_io, { desc = "依赖: 打开 crates.io" })
-		map_filetype("toml", "n", "<leader>oL", crates.open_lib_rs, { desc = "依赖: 打开 lib.rs" })
+		map_filetype("toml", "n", "<leader>ocH", crates.open_homepage, { desc = "依赖: 打开主页" })
+		map_filetype("toml", "n", "<leader>ocR", crates.open_repository, { desc = "依赖: 打开仓库" })
+		map_filetype("toml", "n", "<leader>ocD", crates.open_documentation, { desc = "依赖: 打开文档" })
+		map_filetype("toml", "n", "<leader>ocC", crates.open_crates_io, { desc = "依赖: 打开 crates.io" })
+		map_filetype("toml", "n", "<leader>ocL", crates.open_lib_rs, { desc = "依赖: 打开 lib.rs" })
 
 		-- 显示文档（回退到 LSP 悬停提示）
 		local function show_documentation()

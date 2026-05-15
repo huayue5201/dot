@@ -1,6 +1,30 @@
 {
+  "#[t": {
+    "body": [
+      "#[test]",
+      "fn ${1:name}() {",
+      "    $0",
+      "    todo!();",
+      "}"
+    ],
+    "prefix": "test"
+  },
+  "#test": {
+    "body": [
+      "#[cfg(test)]",
+      "mod test {",
+      "    use super::*;",
+      "",
+      "    #[test]",
+      "    fn ${1:name}() {",
+      "        $0",
+      "        todo!();",
+      "    }",
+      "}"
+    ],
+    "prefix": "cfg"
+  },
   "no_std_no_main": {
-    "prefix": "no_std_no_main",
     "body": [
       "#![no_std]",
       "#![no_main]",
@@ -17,6 +41,7 @@
       "    }",
       "}"
     ],
-    "description": "Rust no_std and no_main template for embedded systems"
+    "description": "Rust no_std and no_main template for embedded systems",
+    "prefix": "no_std_no_main"
   }
 }

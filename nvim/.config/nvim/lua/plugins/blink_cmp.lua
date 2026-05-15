@@ -6,7 +6,6 @@ return {
 	event = { "InsertEnter", "CmdlineEnter" },
 	dependencies = {
 		"saghen/blink.lib",
-		"rafamadriz/friendly-snippets",
 		"xzbdmw/colorful-menu.nvim",
 		"bramdelta/blink-dap",
 	},
