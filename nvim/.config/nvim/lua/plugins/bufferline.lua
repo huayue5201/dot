@@ -48,7 +48,7 @@ return {
 				color_icons = true,
 
 				-- ========== 图标样式 ==========
-				buffer_close_icon = "", -- 关闭按钮图标
+				buffer_close_icon = " ", -- 关闭按钮图标
 				modified_icon = "●", -- 修改标记图标
 				close_icon = "", -- 关闭图标
 				left_trunc_marker = "", -- 左侧截断标记
@@ -99,7 +99,7 @@ return {
 					if context.buffer:current() then
 						return ""
 					end
-					local icon = level:match("error") and " " or " "
+					local icon = level:match("error") and " " or " "
 					return icon .. count
 				end,
 

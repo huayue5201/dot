@@ -1,5 +1,6 @@
 {
   "FixCursorHold.nvim": { "branch": "master", "commit": "1900f89dc17c603eec29960f57c00bd9ae696495" },
+  "agent-tally.nvim": { "branch": "main", "commit": "51953390e750b6d471907605fe3d820052e3196a" },
   "atone.nvim": { "branch": "main", "commit": "804e69c0be5d4e84e04d6c6c424353069eb14338" },
   "bento.nvim": { "branch": "main", "commit": "3b529fb1ff417fe0ab5759a712372a6a64152271" },
   "betterTerm.nvim": { "branch": "main", "commit": "08f06962b46628033d73a78e3cf7c99de9c5f3a1" },
