@@ -8,7 +8,12 @@ return {
 		"nvim-lua/plenary.nvim",
 		"antoinemadec/FixCursorHold.nvim",
 		"nvim-treesitter/nvim-treesitter",
-		"huayue5201/neotest-rust", -- Rust 测试适配器
+		{
+
+			dir = "~/neovim-plugins/neotest-rust",
+			"huayue5201/neotest-rust",
+			dev = true,
+		}, -- Rust 测试适配器
 	},
 	config = function()
 		local neotest = require("neotest")

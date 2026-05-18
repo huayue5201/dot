@@ -58,12 +58,12 @@ end, { desc = "Toggle line wrap" })
 
 -- 🏷 Tab operations
 vim.keymap.set("n", "<leader>nt", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
-vim.api.nvim_set_keymap("n", "<leader>nth", ":-tabmove<CR>", {
+vim.api.nvim_set_keymap("n", "gnt", ":-tabmove<CR>", {
 	noremap = true,
 	silent = true,
 	desc = "Tab: 左移",
 })
-vim.keymap.set("n", "<leader>ntl", ":+tabmove<CR>", {
+vim.keymap.set("n", "gnT", ":+tabmove<CR>", {
 	noremap = true,
 	silent = true,
 	desc = "Tab: 右移",

@@ -1,4 +1,5 @@
 -- https://github.com/Punity122333/hexinspector.nvim
+-- TODO: https://github.com/RaafatTurki/hex.nvim
 
 return {
 	"Punity122333/hexinspector.nvim",

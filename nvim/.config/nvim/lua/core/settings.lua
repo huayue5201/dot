@@ -37,6 +37,8 @@ vim.o.confirm = true -- 未保存退出确认
 vim.o.spelloptions = "camel" -- 开启驼峰拼写检查
 -- 限制 Neovim 在重绘时发送的最大行数
 vim.o.maxcombine = 8 -- 最大组合字符数
+-- 在光标所在的第81列显示一条垂直警示线
+vim.opt.colorcolumn = "80"
 
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式

@@ -7,6 +7,6 @@ return {
 		"lvim-tech/lvim-utils",
 	},
 	config = function()
-		require("lvim-space").setup({})
+		require("nvim.config.nvim.todo.lvim-space").setup({})
 	end,
 }
