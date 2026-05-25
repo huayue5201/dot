@@ -32,6 +32,8 @@ M.buf_keymaps = {
 		["vscode-diff-explorer"] = { cmd = "tabclose" },
 		OverseerOutput = { cmd = "close" },
 		["neotest-summary"] = { cmd = "close" },
+		["neotest-output"]= { cmd = "close" },
+    ["neotest-output-panel"]={cmd="close"}
 	},
 }
 

@@ -29,7 +29,7 @@ return {
 
 				-- ========== 编号显示 ==========
 				-- 编号显示方式：none, ordinal, buffer_id, both, 或自定义函数
-				numbers = "ordinal",
+				numbers = "both",
 
 				-- ========== 图标设置 ==========
 				-- 是否显示缓冲区图标
@@ -296,99 +296,37 @@ return {
 		local opts = { noremap = true, silent = true }
 
 		-- 移动到上一个/下一个缓冲区
-		map(
-			"n",
-			"<[-b>",
-			"<Cmd>BufferLineCyclePrev<CR>",
-			vim.tbl_extend("force", opts, { desc = "上一个缓冲区" })
-		)
-		map(
-			"n",
-			"<]-b>",
-			"<Cmd>BufferLineCycleNext<CR>",
-			vim.tbl_extend("force", opts, { desc = "下一个缓冲区" })
-		)
+		map("n", "[b", "<Cmd>BufferLineCyclePrev<CR>", vim.tbl_extend("force", opts, { desc = "上一个缓冲区" }))
+		map("n", "]b", "<Cmd>BufferLineCycleNext<CR>", vim.tbl_extend("force", opts, { desc = "下一个缓冲区" }))
 
 		-- 移动缓冲区位置
 		map(
 			"n",
-			"<c-,>",
+			"gbp",
 			"<Cmd>BufferLineMovePrev<CR>",
 			vim.tbl_extend("force", opts, { desc = "向左移动缓冲区" })
 		)
 		map(
 			"n",
-			"<c-.>",
+			"gbn",
 			"<Cmd>BufferLineMoveNext<CR>",
 			vim.tbl_extend("force", opts, { desc = "向右移动缓冲区" })
 		)
 
 		-- 跳转到指定位置的缓冲区（可见位置）
-		map(
-			"n",
-			"g1",
-			"<Cmd>BufferLineGoToBuffer 1<CR>",
-			vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 1" })
-		)
-		map(
-			"n",
-			"g2",
-			"<Cmd>BufferLineGoToBuffer 2<CR>",
-			vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 2" })
-		)
-		map(
-			"n",
-			"g3",
-			"<Cmd>BufferLineGoToBuffer 3<CR>",
-			vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 3" })
-		)
-		map(
-			"n",
-			"g4",
-			"<Cmd>BufferLineGoToBuffer 4<CR>",
-			vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 4" })
-		)
-		map(
-			"n",
-			"g5",
-			"<Cmd>BufferLineGoToBuffer 5<CR>",
-			vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 5" })
-		)
-		map(
-			"n",
-			"g6",
-			"<Cmd>BufferLineGoToBuffer 6<CR>",
-			vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 6" })
-		)
-		map(
-			"n",
-			"g7",
-			"<Cmd>BufferLineGoToBuffer 7<CR>",
-			vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 7" })
-		)
-		map(
-			"n",
-			"g8",
-			"<Cmd>BufferLineGoToBuffer 8<CR>",
-			vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 8" })
-		)
-		map(
-			"n",
-			"g9",
-			"<Cmd>BufferLineGoToBuffer 9<CR>",
-			vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 9" })
-		)
-		map(
-			"n",
-			"g0",
-			"<Cmd>BufferLineGoToBuffer -1<CR>",
-			vim.tbl_extend("force", opts, { desc = "跳转到最后一个缓冲区" })
-		)
+		for i = 1, 9 do
+			map(
+				"n",
+				"g" .. i,
+				"<Cmd>BufferLineGoToBuffer " .. i .. "<CR>",
+				vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 " .. i })
+			)
+		end
 
 		-- 固定/取消固定
 		map(
 			"n",
-			"<localleader>p",
+			"gbp",
 			"<Cmd>BufferLineTogglePin<CR>",
 			vim.tbl_extend("force", opts, { desc = "固定/取消固定当前缓冲区" })
 		)
@@ -407,22 +345,22 @@ return {
 		-- 关闭左侧/右侧缓冲区
 		map(
 			"n",
-			"<leader>ccl",
+			"<leader>cbl",
 			"<Cmd>BufferLineCloseLeft<CR>",
 			vim.tbl_extend("force", opts, { desc = "关闭左侧所有缓冲区" })
 		)
 		map(
 			"n",
-			"<leader>ccr",
+			"<leader>cbr",
 			"<Cmd>BufferLineCloseRight<CR>",
 			vim.tbl_extend("force", opts, { desc = "关闭右侧所有缓冲区" })
 		)
 
 		-- 缓冲区选择模式
-		map("n", "<A-p>", "<Cmd>BufferLinePick<CR>", vim.tbl_extend("force", opts, { desc = "缓冲区选择模式" }))
+		map("n", "<leader>sb", "<Cmd>BufferLinePick<CR>", vim.tbl_extend("force", opts, { desc = "缓冲区选择模式" }))
 		map(
 			"n",
-			"<A-s-p>",
+			"<leader>csb",
 			"<Cmd>BufferLinePickClose<CR>",
 			vim.tbl_extend("force", opts, { desc = "缓冲区选择删除模式" })
 		)
@@ -430,20 +368,20 @@ return {
 		-- 排序命令
 		map(
 			"n",
-			"gbbb",
+			"gbsn",
 			"<Cmd>BufferLineSortByBufferNumber<CR>",
 			vim.tbl_extend("force", opts, { desc = "按缓冲区编号排序" })
 		)
 		map("n", "gbbn", "<Cmd>BufferLineSortByName<CR>", vim.tbl_extend("force", opts, { desc = "按名称排序" }))
 		map(
 			"n",
-			"gbbd",
+			"gbsd",
 			"<Cmd>BufferLineSortByDirectory<CR>",
 			vim.tbl_extend("force", opts, { desc = "按目录排序" })
 		)
 		map(
 			"n",
-			"gbbl",
+			"gbse",
 			"<Cmd>BufferLineSortByExtension<CR>",
 			vim.tbl_extend("force", opts, { desc = "按扩展名排序" })
 		)

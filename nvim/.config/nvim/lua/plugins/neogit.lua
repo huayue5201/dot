@@ -5,7 +5,6 @@ return {
 	lazy = true,
 	dependencies = {
 		"nvim-lua/plenary.nvim", -- 必须
-		"ibhagwan/fzf-lua",
 	},
 	cmd = "Neogit",
 	keys = {

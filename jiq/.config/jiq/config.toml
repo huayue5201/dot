@@ -1,0 +1,109 @@
+# Clipboard backend: "auto" (default), "system", or "osc52"
+# 剪贴板后端："auto"（默认）、"system" 或 "osc52"
+# - auto: tries system clipboard first, falls back to OSC 52
+#   auto: 优先尝试系统剪贴板，失败时回退到 OSC 52
+# - system: use only OS clipboard (may not work in SSH/tmux)
+#   system: 仅使用操作系统剪贴板（在 SSH/tmux 中可能无法工作）
+# - osc52: use terminal escape sequences (works in most modern terminals over SSH)
+#   osc52: 使用终端转义序列（适用于大多数通过 SSH 连接的现代终端）
+backend = "auto"
+
+[autocomplete]
+# Number of array elements sampled to discover field suggestions for arrays where fields
+# differ across elements. Increasing this may improve suggestions but adds a performance cost.
+# 对于数组中各元素字段不同的情况，采样数组元素数量以发现字段建议。增加此值可能改善建议，但会增加性能开销。
+# Range: 1 - 1000 (default: 10)
+# 范围：1 - 1000（默认：10）
+array_sample_size = 10
+
+[ai]
+# Enable AI assistant
+# 启用 AI 助手
+# For faster responses, prefer lightweight models:
+# 如需更快响应，建议使用轻量级模型：
+# - Anthropic: claude-haiku-4-5-20251001
+# - OpenAI: gpt-4o-mini
+# - Gemini: gemini-3-flash
+enabled = true
+# Provider: "anthropic", "openai", "gemini", or "bedrock"
+# 服务提供商："anthropic"、"openai"、"gemini" 或 "bedrock"
+provider = "anthropic"
+# Character limit at which JSON schema and output samples are truncated (default: 100000)
+# JSON schema 和输出样本的截断字符限制（默认：100000）
+# Larger values send more context to AI but increase token usage/costs
+# 更大的值会向 AI 发送更多上下文，但会增加 token 使用量/成本
+# Smaller values send less context and decrease token usage/costs
+# 更小的值会发送较少上下文，并减少 token 使用量/成本
+max_context_length = 100000
+
+# ─────────────────────────────────────────────────────────
+# Anthropic
+# ─────────────────────────────────────────────────────────
+[ai.anthropic]
+# Get your API key from: https://console.anthropic.com/settings/keys
+# 从以下地址获取 API 密钥：https://console.anthropic.com/settings/keys
+api_key = "your-api-key-here"
+model = "claude-haiku-4-5-20251001"
+
+# ─────────────────────────────────────────────────────────
+# OpenAI
+# ─────────────────────────────────────────────────────────
+[ai.openai]
+# Get your OpenAI API key from: https://platform.openai.com/api-keys
+# 从以下地址获取 OpenAI API 密钥：https://platform.openai.com/api-keys
+api_key = "sk-proj-..."
+model = "gpt-4o-mini"
+
+# ═════════════════════════════════════════════════════════
+# OpenAI-Compatible APIs
+# OpenAI 兼容 API
+# ═════════════════════════════════════════════════════════
+# Any API that follows the OpenAI format can be used by setting provider = "openai"
+# and configuring the base_url and model fields.
+# 任何遵循 OpenAI 格式的 API 均可使用，设置 provider = "openai" 并配置 base_url 和 model 字段即可。
+#
+# Basic pattern:
+# 基本模式：
+# [ai.openai]
+# base_url = "https://your-api-endpoint/v1"  # API endpoint URL / API 端点 URL
+# api_key = "your-api-key"                   # Optional: only if required by provider / 可选：仅当提供商需要时
+# model = "model-name"                       # Model identifier / 模型标识符
+
+# Example configurations:
+# 配置示例：
+
+# Ollama (local / 本地)
+[ai.openai]
+base_url = "http://localhost:11434/v1"
+model = "llama3"
+
+# LM Studio (local / 本地)
+[ai.openai]
+base_url = "http://localhost:1234/v1"
+model = "local-model"
+
+# x.ai Grok
+[ai.openai]
+api_key = "your-xai-api-key"
+base_url = "https://api.x.ai/v1"
+model = "grok-4-fast-non-reasoning"
+
+# ─────────────────────────────────────────────────────────
+# Gemini
+# ─────────────────────────────────────────────────────────
+[ai.gemini]
+# Get your API key from: https://aistudio.google.com/apikey
+# 从以下地址获取 API 密钥：https://aistudio.google.com/apikey
+api_key = "AIza..."
+# Gemini model to use (e.g., "gemini-3-flash-preview", "gemini-1.5-flash")
+# 使用的 Gemini 模型（例如："gemini-3-flash-preview"、"gemini-1.5-flash"）
+model = "gemini-3-flash-preview"
+
+# ─────────────────────────────────────────────────────────
+# AWS Bedrock
+# ─────────────────────────────────────────────────────────
+[ai.bedrock]
+region = "us-east-1"
+model = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
+profile = "default"                                       # Optional: AWS profile name (uses default credential chain if omitted)
+# 可选：AWS 配置文件名称（省略时使用默认凭证链）

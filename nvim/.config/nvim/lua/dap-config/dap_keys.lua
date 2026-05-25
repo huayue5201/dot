@@ -8,8 +8,8 @@ function M.setup()
 	local sidebar = nil
 
 	-- ▶ 控制
-	vim.keymap.set("n", "<F5>", dap.continue, { desc = "[D]ap [C]ontinue / [S]tart" })
-	vim.keymap.set("n", "<F4>", function()
+	vim.keymap.set("n", "<leader>dr", dap.continue, { desc = "[D]ap [C]ontinue / [S]tart" })
+	vim.keymap.set("n", "<leader>ds", function()
 		dap.terminate({
 			on_done = function()
 				dap.repl.close()
@@ -27,7 +27,7 @@ function M.setup()
 	vim.keymap.set("n", "<F12>", dap.step_out, { desc = "[D]ap [S]tep [O]ut" })
 
 	-- 🎯 跳转
-	vim.keymap.set("n", "<F2>", dap.run_to_cursor, { desc = "[D]ap [R]un to [C]ursor" })
+	vim.keymap.set("n", "<ledaer>dc", dap.run_to_cursor, { desc = "[D]ap [R]un to [C]ursor" })
 	vim.keymap.set("n", "<F3>", function()
 		vim.ui.input({ prompt = " 󰙎 输入行号: " }, function(input)
 			if input then
@@ -135,7 +135,7 @@ function M.setup()
 	end, { desc = "[D]ap Select breakpoint to delete" })
 
 	-- 查看所有断点（扩展断点）
-	vim.keymap.set("n", "<leader>dl", function()
+	vim.keymap.set("n", "<leader>dla", function()
 		dap_ext.commands.list_breakpoints()
 	end, { desc = "[D]ap List all breakpoints" })
 
@@ -145,7 +145,7 @@ function M.setup()
 	end, { desc = "[D]ap Show [C]a[P]abilities" })
 
 	-- 清除所有断点
-	vim.keymap.set("n", "<leader>dc", function()
+	vim.keymap.set("n", "<leader>cad", function()
 		dap_ext.clear_breakpoints()
 		dap.clear_breakpoints()
 		breakpoint_state.clear_all_breakpoints()

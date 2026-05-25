@@ -56,14 +56,14 @@ vim.keymap.set("n", "<s-a-w>", function()
 	print("Wrap " .. (new_wrap and "enabled" or "disabled"))
 end, { desc = "Toggle line wrap" })
 
--- 🏷 Tab operations
-vim.keymap.set("n", "<leader>nt", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
-vim.api.nvim_set_keymap("n", "gnt", ":-tabmove<CR>", {
+-- 🏷 Tab operaions
+vim.keymap.set("n", "gnn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
+vim.api.nvim_set_keymap("n", "gmtp", ":-tabmove<CR>", {
 	noremap = true,
 	silent = true,
 	desc = "Tab: 左移",
 })
-vim.keymap.set("n", "gnT", ":+tabmove<CR>", {
+vim.keymap.set("n", "gmtn", ":+tabmove<CR>", {
 	noremap = true,
 	silent = true,
 	desc = "Tab: 右移",
@@ -71,6 +71,7 @@ vim.keymap.set("n", "gnT", ":+tabmove<CR>", {
 
 vim.keymap.set("n", "<leader>ct", "<cmd>tabclose<cr>", { silent = true, desc = "Tab: close tab" })
 vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
+vim.keymap.set("n", "<leader>elt", "<cmd>echo &filetype<cr>", { silent = true, desc = "Tab: close other tabs" })
 
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
@@ -106,13 +107,6 @@ vim.keymap.set("n", "<leader>yt", function()
 	vim.fn.setreg("+", vim.fn.expand("%:t"))
 	print("Copied: " .. vim.fn.expand("%:t"))
 end, { silent = true, desc = "Path: copy filename" })
-
-vim.api.nvim_set_keymap(
-	"n",
-	"<leader>fp",
-	':lua require("user.ff_chain").open_project_chain()<CR>',
-	{ noremap = true, silent = true }
-)
 
 -- 🪟 Window management
 vim.keymap.set("n", "<Leader>caw", function()

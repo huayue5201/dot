@@ -17,12 +17,11 @@ return {
 			-- Names must be Mason package names
 			local ensure_installed = {
 				"lua-language-server",
-				"markdown-oxide",
 				"codelldb",
 				"cortex-debug",
-				"delve",
-				"gofumpt",
-				"gopls",
+				-- "delve",
+				-- "gofumpt",
+				-- "gopls",
 				"js-debug-adapter",
 				"rust-analyzer",
 				"shfmt",

@@ -27,6 +27,6 @@ return {
 		)
 		vim.keymap.set("n", "<leader>af", "<cmd>TodoAISelectModel<cr>", { desc = "todo2: 选择ai模型" })
 		vim.keymap.set("n", "<leader>ac", "<cmd>TodoAIStop<cr>", { desc = "todo2: 终止ai运行" })
-		vim.keymap.set("n", "<leader>mh", "<cmd>Todo2Heatmap<cr>", { desc = "todo2: 热力图" })
+		vim.keymap.set("n", "<leader>omh", "<cmd>Todo2Heatmap<cr>", { desc = "todo2: 热力图" })
 	end,
 }

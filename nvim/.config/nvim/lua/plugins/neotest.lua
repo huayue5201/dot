@@ -8,6 +8,7 @@ return {
 		"nvim-lua/plenary.nvim",
 		"antoinemadec/FixCursorHold.nvim",
 		"nvim-treesitter/nvim-treesitter",
+		"nvim-neotest/neotest-python",
 		{
 
 			dir = "~/neovim-plugins/neotest-rust",
@@ -18,16 +19,25 @@ return {
 	config = function()
 		local neotest = require("neotest")
 
-		-- Neotest 完整配置
 		neotest.setup({
 			-- 适配器配置
 			adapters = {
+				-- Rust 适配器
 				require("neotest-rust")({
 					args = { "--nocapture" },
-					-- Rust 特定配置
-					dap_adapter = "codelldb", -- 使用 codelldb 进行调试（需要安装 nvim-dap 和相关配置）
-					-- 可选：自定义测试二进制查找路径
-					-- test_binary_target = "debug",  -- "debug" 或 "release"
+					dap_adapter = "codelldb",
+				}),
+				-- Python 适配器
+				require("neotest-python")({
+					dap = { justMyCode = false },
+					args = { "--log-level", "DEBUG" },
+					runner = "pytest",
+					python = ".venv/bin/python",
+					-- 修正：添加正确的测试文件检测
+					is_test_file = function(file_path)
+						return file_path:match("test_.*%.py$") or file_path:match(".*_test%.py$")
+					end,
+					pytest_discover_instances = true,
 				}),
 			},
 
@@ -126,8 +136,8 @@ return {
 
 			-- Quickfix 列表配置
 			quickfix = {
-				enabled = false, -- 你之前设为 false
-				open = false,
+				enabled = true, -- 你之前设为 true
+				open = true,
 			},
 
 			-- 运行配置
@@ -213,7 +223,7 @@ return {
 		local opts = { noremap = true, silent = true }
 
 		-- 运行最近的测试
-		vim.keymap.set("n", "<leader>tr", function()
+		vim.keymap.set({ "x", "n" }, "<leader>tr", function()
 			neotest.run.run()
 		end, vim.tbl_extend("force", opts, { desc = "Run nearest test" }))
 
@@ -281,10 +291,5 @@ return {
 		vim.keymap.set("n", "<leader>tm", function()
 			neotest.summary.run_marked()
 		end, vim.tbl_extend("force", opts, { desc = "Run marked tests" }))
-
-		-- 在 Rust 文件中快速运行特定测试（视觉模式）
-		vim.keymap.set("v", "<leader>tr", function()
-			neotest.run.run()
-		end, vim.tbl_extend("force", opts, { desc = "Run selected test" }))
 	end,
 }

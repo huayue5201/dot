@@ -7,13 +7,13 @@ return {
 			snippetDir = vim.fn.stdpath("config") .. "/snippets",
 		})
 
-		vim.keymap.set("n", "<leader>se", function()
+		vim.keymap.set("n", "<leader>Se", function()
 			require("scissors").editSnippet()
 		end, { desc = "Snippet: Edit" })
 
 		vim.keymap.set(
 			{ "n", "x" }, -- when used in visual mode, prefills the selection as snippet body
-			"<leader>sa",
+			"<leader>Sa",
 			function()
 				require("scissors").addNewSnippet()
 			end,

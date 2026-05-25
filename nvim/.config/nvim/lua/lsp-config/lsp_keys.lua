@@ -124,14 +124,14 @@ local keymaps = {
 		"LSP: open external docs",
 	},
 	{
-		"<leader>sd",
+		"grd",
 		function()
 			M.open_buffer_diagnostics()
 		end,
 		"LSP: buffer diagnostics",
 	},
 	{
-		"<leader>sD",
+		"grD",
 		function()
 			M.open_all_diagnostics()
 		end,
@@ -188,15 +188,15 @@ M.set_keymaps = function(bufnr)
 end
 
 M.global_keymaps = function()
-	vim.keymap.set("n", "<leader>rer", function()
+	vim.keymap.set("n", "<leader>Rl", function()
 		restart_lsp()
 	end, { noremap = true, silent = true, desc = "LSP: 重启lsp" })
 
-	vim.keymap.set("n", "<leader>ret", function()
+	vim.keymap.set("n", "<S-A-l>", function()
 		toggle_lsp()
 	end, { desc = "Toggle LSP for current filetype" })
 
-	vim.keymap.set("n", "<leader>sl", function()
+	vim.keymap.set("n", "<leader>sL", function()
 		vim.cmd("tabnew " .. vim.lsp.log.get_filename())
 	end, { desc = "lsp log" })
 

@@ -62,7 +62,7 @@ return {
 			require("osv").launch({ port = 8087 })
 		end, { noremap = true, desc = "启动 osv (端口8087)" })
 
-		vim.keymap.set("n", "<leader>ds", function()
+		vim.keymap.set("n", "<leader>Ds", function()
 			require("osv").stop()
 		end, { noremap = true, desc = "停止 osv" })
 	end,

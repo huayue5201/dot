@@ -332,7 +332,6 @@ function M.active()
 		M.todo_markers(), -- ⭐ 添加 TODO 标记数量显示
 		search_status.get() .. " ",
 		M.dap_status() .. " ",
-		require("chainsaw.visuals.statusline").countInBuffer() .. " ",
 		M.vcs() .. "  ",
 		" %l:%c   ",
 		M.get_scrollbar(),

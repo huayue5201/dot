@@ -58,7 +58,7 @@ return -- 推荐使用 lazy.nvim 方式
 		{ "=p", "<Plug>(YankyPutAfterFilter)", desc = "Put and re-indent" },
 
 		-- 打开历史选择器 (推荐)
-		{ "<leader>p", "<cmd>YankyRingHistory<cr>", mode = { "n", "x" }, desc = "Open yank history picker" },
+		{ "<leader>yl", "<cmd>YankyRingHistory<cr>", mode = { "n", "x" }, desc = "Open yank history picker" },
 
 		-- 文本对象: 选中上次粘贴的内容 (需要 textobj.enabled = true)
 		{
