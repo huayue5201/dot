@@ -1,14 +1,15 @@
 -- https://github.com/alexpasmantier/krust.nvim
 
-return -- With lazy.nvim
-{
+return {
 	"alexpasmantier/krust.nvim",
 	ft = "rust",
-	opts = {
-		keymap = "<leader>k", -- Set a keymap for Rust buffers (default: false)
-		float_win = {
-			border = "rounded", -- Border style: "none", "single", "double", "rounded", "solid", "shadow"
-			auto_focus = false, -- Auto-focus float (default: false)
-		},
-	},
+	config = function()
+		require("krust").setup({
+			keymap = "grk", -- Set a keymap for Rust buffers (default: false)
+			float_win = {
+				border = "rounded", -- Border style: "none", "single", "double", "rounded", "solid", "shadow"
+				auto_focus = false, -- Auto-focus float (default: false)
+			},
+		})
+	end,
 }

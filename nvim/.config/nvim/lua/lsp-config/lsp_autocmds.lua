@@ -36,6 +36,7 @@ local function auto_diagnostic()
 			end
 
 			-- 诊断功能不需要检查客户端支持，因为 vim.diagnostic 是 Neovim 内置功能
+
 			local diagnostics_enabled = Store:get("lsp.diagnostics")
 
 			-- 只在诊断启用时才进行切换
@@ -243,9 +244,9 @@ function M.setup()
 			-- 	vim.lsp.on_type_formatting.enable()
 			-- end
 
-			if client:supports_method("textDocument/foldingRange") then
-				vim.wo.foldexpr = "v:lua:vim.lsp.foldexpr()"
-			end
+			-- if client:supports_method("textDocument/foldingRange") then
+			-- 	vim.wo.foldexpr = "v:lua:vim.lsp.foldexpr()"
+			-- end
 
 			if client:supports_method("textDocument/linkedEditingRange") then
 				vim.lsp.linked_editing_range.enable(true, { client_id = client.id, bufnr = bufnr })

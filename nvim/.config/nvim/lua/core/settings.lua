@@ -97,7 +97,7 @@ vim.o.number = true --显示行号
 vim.o.relativenumber = true -- 启用相对行号
 vim.o.signcolumn = "yes:3" -- 始终显示标志列
 vim.o.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换到最近使用过的标签页（如果有）
--- vim.o.messagesopt = "wait:500,history:1000"
+-- vim.opt.messagesopt = "history:1000,progress:c"  -- 保存更多历史，不要 hit-enter
 -- 启用 UI2（Neovim 0.12 的渲染层）
 require("vim._core.ui2").enable({
 	enable = true,

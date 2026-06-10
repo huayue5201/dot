@@ -570,11 +570,11 @@ vim.schedule(display_marks_at_left_side)
 ---------------------------------------------------------
 -- 16. 键位绑定
 ---------------------------------------------------------
-vim.keymap.set("n", "H", next_mark, {
+vim.keymap.set("n", "gh", next_mark, {
 	desc = "Jump to next uppercase mark",
 })
 
-vim.keymap.set("n", "L", prev_mark, {
+vim.keymap.set("n", "gl", prev_mark, {
 	desc = "Jump to previous uppercase mark",
 })
 

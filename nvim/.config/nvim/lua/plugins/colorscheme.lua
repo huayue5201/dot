@@ -4,7 +4,7 @@
 return {
 	"oxfist/night-owl.nvim",
 	-- "EdenEast/nightfox.nvim",
-	-- "serhez/teide.nvim",
+	-- "ShiraiEd/Wolf359_nvim_rust_theme",
 	lazy = false,
 	priority = 1000,
 	config = function()
@@ -19,6 +19,6 @@ return {
 		-- })
 		-- vim.cmd("colorscheme Carbonfox")
 
-		-- vim.cmd([[colorscheme teide]])
+		-- vim.cmd("colorscheme wolf359")
 	end,
 }

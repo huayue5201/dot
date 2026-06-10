@@ -23,6 +23,7 @@ require("lazy").setup({
 		enabled = true,
 		server = "https://lumen-oss.github.io/rocks-binaries/",
 	},
+	timeout = 1000000,
 	spec = {
 		-- import your plugins
 		{ import = "plugins" },

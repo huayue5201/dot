@@ -47,7 +47,7 @@ return {
 			args = { "--test=test1" }, -- These arguments will be appended to those passed to the debug target by Cargo
 			cwd = "${workspaceFolder}",
 			-- 启动后是否停止调试器.
-			stopOnEntry = false,
+			stopOnEntry = true,
 
 			-- Rust pretty-printers（可选）
 			-- 说明：此处加载的是 rustup 自带的 lldb_lookup.py，而非 codelldb 内置版本

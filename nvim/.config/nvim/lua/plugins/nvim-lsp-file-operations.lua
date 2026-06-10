@@ -4,7 +4,6 @@ return {
 	"antosha417/nvim-lsp-file-operations",
 	event = "VeryLazy",
 	dependencies = {
-		"nvim-lua/plenary.nvim",
 		-- "nvim-tree/nvim-tree.lua",
 		"nvim-neo-tree/neo-tree.nvim", -- makes sure that this loads after Neo-tree.
 	},

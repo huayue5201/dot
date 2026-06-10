@@ -30,7 +30,7 @@ return {
 				"ruff",
 				"taplo",
 				"dprint",
-				"harper-ls",
+				-- "harper-ls",
 				"copilot-language-server",
 			}
 

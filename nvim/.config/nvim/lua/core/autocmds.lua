@@ -1,102 +1,115 @@
--- 保存时自动删除尾随空格
-vim.api.nvim_create_autocmd("BufWritePre", {
-	pattern = { "*" },
-	desc = "保存前自动删除行尾空格",
-	command = "%s/\\s\\+$//e",
-})
+-- File: ~/dotfiles/nvim/.config/nvim/lua/core/autocmds.lua
 
--- 恢复上次光标位置
-vim.api.nvim_create_autocmd("BufReadPost", {
-	group = vim.api.nvim_create_augroup("RestoreCursor", { clear = true }),
-	callback = function()
-		local ft = vim.bo.filetype
-		if ft == "commit" or ft == "xxd" or ft == "gitrebase" or vim.wo.diff then
-			return
-		end
-		local last_pos = vim.fn.line([['"]])
-		local last_line = vim.fn.line("$")
-		if last_pos >= 1 and last_pos <= last_line then
-			vim.cmd([[normal! g`"]])
-		end
-	end,
-})
-
-vim.api.nvim_create_user_command("SmartClose", function()
-	require("user.utils").smart_close()
-end, {})
-
--- vim.api.nvim_create_autocmd("TextYankPost", {
--- 	callback = function()
--- 		vim.hl.on_yank({
--- 			higroup = "Visual",
--- 			timeout = 300,
--- 		})
--- 	end,
--- })
-
--- =============================================
--- 快捷键映射配置
--- =============================================
 local utils = require("user.utils")
-local buf_keymaps = utils.buf_keymaps
 
-vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
-	desc = "根据文件类型设置按键",
-	group = vim.api.nvim_create_augroup("CustomKeyMappings", { clear = true }),
-	callback = function()
-		local ft = vim.bo.filetype ~= "" and vim.bo.filetype or vim.bo.buftype
-		local bufname = vim.fn.bufname("%")
-		local set_markers = vim.b.keymaps_set or {}
+-- ============================
+-- 通用函数：为当前 buffer 应用快捷键映射
+-- ============================
+local function apply_keymaps()
+	local ft = vim.bo.filetype
+	local bt = vim.bo.buftype
+	local bufname = vim.fn.bufname("%")
+	local applied = vim.b.keymaps_applied or {}
 
-		for key, configs in pairs(buf_keymaps) do
-			-- 只判断是否需要绑定按键，不再处理关闭逻辑
-			local conf = configs[ft]
+	-- 确定当前窗口的类型标识（优先级：filetype > buftype > 特殊匹配）
+	local buf_type = ft ~= "" and ft or bt
 
-			if not conf and bufname:match("dap%-repl") then
-				conf = configs["dap-repl"]
+	for key, type_configs in pairs(utils.buf_keymaps) do
+		-- 跳过已映射的按键
+		if not applied[key] then
+			-- 获取配置（精确匹配 或 dap-repl 特殊处理）
+			local config = type_configs[buf_type]
+
+			if not config and bufname:match("dap%-repl") then
+				config = type_configs["dap-repl"]
 			end
 
-			if conf and not set_markers[key] then
-				vim.keymap.set("n", key, function()
-					utils.smart_close()
-				end, { buffer = true, silent = true, noremap = true, nowait = true })
+			-- 如果有配置，应用映射
+			if config and config.cmd then
+				local cmd = config.cmd
+				local desc = config.desc or ("映射: " .. key)
 
-				set_markers[key] = true
+				-- 根据命令类型创建映射函数
+				local map_func = (cmd == "next_error" or cmd == "prev_error")
+						and function()
+							utils.dispatch_command(cmd)
+						end
+					or function()
+						utils.dispatch_command(cmd)
+					end
+
+				vim.keymap.set("n", key, map_func, {
+					buffer = true,
+					silent = true,
+					noremap = true,
+					nowait = true,
+					desc = desc,
+				})
+
+				applied[key] = true
 			end
 		end
+	end
 
-		vim.b.keymaps_set = set_markers
+	vim.b.keymaps_applied = applied
+end
+
+-- ============================
+-- 注册自动命令
+-- ============================
+
+-- 快捷键映射：当进入 buffer 或切换文件类型时应用
+vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
+	group = vim.api.nvim_create_augroup("CustomKeyMappings", { clear = true }),
+	desc = "根据配置表自动应用窗口快捷键",
+	callback = apply_keymaps,
+})
+
+-- 其他 autocmd（保持你原来的）
+vim.api.nvim_create_autocmd("BufWritePre", {
+	group = vim.api.nvim_create_augroup("RemoveTrailingWhitespace", { clear = true }),
+	desc = "保存前自动删除行尾空格",
+	callback = function()
+		vim.cmd([[%s/\s\+$//e]])
 	end,
 })
 
-local buffer_settings = require("user.utils").settings
+vim.api.nvim_create_autocmd("BufEnter", {
+	group = vim.api.nvim_create_augroup("DisableCommentContinuation", { clear = true }),
+	desc = "禁止换行自动继承注释效果",
+	callback = function()
+		vim.opt.formatoptions:remove({ "o", "r" })
+	end,
+})
+
+-- Buffer 设置
+local buffer_settings = utils.settings
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
-	desc = "根据文件类型/缓冲区类型应用",
 	group = vim.api.nvim_create_augroup("CustomBufferSettings", { clear = true }),
+	desc = "根据配置表自动应用 buffer 设置",
 	callback = function(args)
 		local buf = args.buf
 		local ft = vim.bo[buf].filetype
 		local bt = vim.bo[buf].buftype
-		-- 选择优先 filetype，其次 buftype
 		local kind = (ft ~= "" and ft) or bt
-		-- 匹配 filetype/buftype
-		if buffer_settings[kind] then
+
+		if buffer_settings[kind] and buffer_settings[kind].setup then
 			buffer_settings[kind].setup()
 		end
 	end,
 })
 
--- vim.api.nvim_create_autocmd("LspProgress", {
--- 	buffer = buf,
--- 	callback = function(ev)
--- 		local value = ev.data.params.value
--- 		vim.api.nvim_echo({ { value.message or "done" } }, false, {
--- 			id = "lsp." .. ev.data.client_id,
--- 			kind = "progress",
--- 			source = "vim.lsp",
--- 			title = value.title,
--- 			status = value.kind ~= "end" and "running" or "success",
--- 			percent = value.percentage,
--- 		})
--- 	end,
--- })
+-- ============================
+-- 用户命令
+-- ============================
+vim.api.nvim_create_user_command("SmartClose", function()
+	utils.smart_close()
+end, { desc = "智能关闭当前窗口" })
+
+vim.api.nvim_create_user_command("NextError", function()
+	utils.next_error()
+end, { desc = "跳转到下一个错误" })
+
+vim.api.nvim_create_user_command("PrevError", function()
+	utils.prev_error()
+end, { desc = "跳转到上一个错误" })

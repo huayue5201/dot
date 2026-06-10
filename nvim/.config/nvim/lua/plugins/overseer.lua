@@ -2,6 +2,7 @@
 
 return {
 	"stevearc/overseer.nvim",
+	event = "VeryLazy",
 	config = function()
 		require("overseer").setup({
 			task_list = {
@@ -10,7 +11,7 @@ return {
 			},
 		})
 
-		vim.keymap.set("n", "<leader>ru", "<cmd>OverseerRun<CR>", { desc = "运行任务" })
-		vim.keymap.set("n", "<leader>rt", "<cmd>OverseerToggle<CR>", { desc = "打开任务列表" })
+		vim.keymap.set("n", "<leader>oru", "<cmd>OverseerRun<CR>", { desc = "运行任务" })
+		vim.keymap.set("n", "<leader>ore", "<cmd>OverseerToggle<CR>", { desc = "打开任务列表" })
 	end,
 }

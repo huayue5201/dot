@@ -1,4 +1,5 @@
 -- https://github.com/joryeugene/dadbod-grip.nvim
+-- TODO: https://github.com/kopecmaciej/vi-sql.nvim
 
 return {
 	"joryeugene/dadbod-grip.nvim",

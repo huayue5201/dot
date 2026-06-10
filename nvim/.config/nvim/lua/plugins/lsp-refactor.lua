@@ -3,6 +3,7 @@
 return {
 	"lsp-refactor.nvim",
 	url = "https://codeberg.org/mraspaud/lsp-refactor.nvim",
+	event = "VeryLazy",
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter",
 		"nvim-lua/plenary.nvim",
@@ -64,6 +65,6 @@ return {
 		)
 
 		-- 可选：配置 extract_function 的放置位置（默认："below"）
-		-- require("lsp-refactor.extract_function").setup({ placement = "above" })
+		require("lsp-refactor.extract_function").setup({ placement = "above" })
 	end,
 }

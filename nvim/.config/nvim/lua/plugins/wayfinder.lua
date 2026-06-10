@@ -24,10 +24,10 @@ return {
 				git = { enabled = true, max_commits = 15, timeout_ms = 400 },
 			},
 		})
-		vim.keymap.set("n", "grw", "<Plug>(WayfinderOpen)", { desc = "Wayfinder" })
+		vim.keymap.set("n", "<leader>owf", "<Plug>(WayfinderOpen)", { desc = "Wayfinder" })
 		vim.keymap.set("n", "[w", "<Plug>(WayfinderTrailNext)", { desc = "Wayfinder Trail Next" })
 		vim.keymap.set("n", "]w", "<Plug>(WayfinderTrailPrev)", { desc = "Wayfinder Trail Prev" })
-		vim.keymap.set("n", "<leader>xwo", "<Plug>(WayfinderTrailOpen)", { desc = "Wayfinder Trail Open" })
-		vim.keymap.set("n", "<leader>xws", "<Plug>(WayfinderTrailShow)", { desc = "Wayfinder Trail Show" })
+		vim.keymap.set("n", "<leader>owo", "<Plug>(WayfinderTrailOpen)", { desc = "Wayfinder Trail Open" })
+		vim.keymap.set("n", "<leader>ows", "<Plug>(WayfinderTrailShow)", { desc = "Wayfinder Trail Show" })
 	end,
 }

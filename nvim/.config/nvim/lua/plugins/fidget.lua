@@ -1,7 +1,8 @@
--- https://chatgpt.com/c/690ca0ea-cd00-8327-9ded-241e65932096
+-- https://github.com/j-hui/fidget.nvim
 
 return {
 	"j-hui/fidget.nvim",
+	event = "LspAttach",
 	config = function(_, opts)
 		require("fidget").setup({})
 	end,

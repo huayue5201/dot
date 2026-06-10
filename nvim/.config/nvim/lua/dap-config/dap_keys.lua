@@ -21,14 +21,14 @@ function M.setup()
 	vim.keymap.set("n", "<F6>", dap.pause, { desc = "[D]ap [P]ause" })
 
 	-- 🪜 步进控制
-	vim.keymap.set("n", "<F10>", dap.step_over, { desc = "[D]ap [S]tep [O]ver" })
-	vim.keymap.set("n", "<F9>", dap.step_back, { desc = "[D]ap [S]tep [B]ack" })
-	vim.keymap.set("n", "<F11>", dap.step_into, { desc = "[D]ap [S]tep [I]nto" })
-	vim.keymap.set("n", "<F12>", dap.step_out, { desc = "[D]ap [S]tep [O]ut" })
+	vim.keymap.set("n", "<leader>gb", dap.step_back, { desc = "[D]ap [S]tep [B]ack" })
+	vim.keymap.set("n", "<leader>gi", dap.step_into, { desc = "[D]ap [S]tep [I]nto" })
+	vim.keymap.set("n", "<leader>go", dap.step_out, { desc = "[D]ap [S]tep [O]ut" })
+	vim.keymap.set("n", "<leader>gv", dap.step_over, { desc = "[D]ap [S]tep [O]ver" }) -- v 表示越过
+	vim.keymap.set("n", "<leader>dc", dap.run_to_cursor, { desc = "[D]ap [R]un to [C]ursor" })
 
 	-- 🎯 跳转
-	vim.keymap.set("n", "<ledaer>dc", dap.run_to_cursor, { desc = "[D]ap [R]un to [C]ursor" })
-	vim.keymap.set("n", "<F3>", function()
+	vim.keymap.set("n", "<leader>dg", function()
 		vim.ui.input({ prompt = " 󰙎 输入行号: " }, function(input)
 			if input then
 				local line = tonumber(input)
@@ -125,12 +125,12 @@ function M.setup()
 	end, { desc = "[D]ap [T]oggle breakpoint enabled/disabled" })
 
 	-- 删除当前行断点
-	vim.keymap.set("n", "<leader>dx", function()
+	vim.keymap.set("n", "<leader>cd", function()
 		dap_ext.delete_breakpoint_at_current_line()
 	end, { desc = "[D]ap Delete breakpoint at current line" })
 
 	-- 选择删除断点
-	vim.keymap.set("n", "<leader>dX", function()
+	vim.keymap.set("n", "<leader>cD", function()
 		dap_ext.toggle_breakpoint_deletion()
 	end, { desc = "[D]ap Select breakpoint to delete" })
 

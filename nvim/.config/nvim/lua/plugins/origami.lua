@@ -1,6 +1,5 @@
 -- https://github.com/chrisgrieser/nvim-origami
 
--- lazy.nvim
 return {
 	"chrisgrieser/nvim-origami",
 	event = "VeryLazy",
@@ -23,11 +22,11 @@ return {
 				enabled = true, -- 启用自定义 foldtext
 
 				-- 折叠行左侧的 padding（空白）
-				padding = {
-					character = " ", -- 填充字符
-					width = 3, -- 填充宽度，可以是数字或函数
-					hlgroup = nil, -- 高亮组（nil = 默认）
-				},
+				-- padding = {
+				-- 	character = " ", -- 填充字符
+				-- 	width = 3, -- 填充宽度，可以是数字或函数
+				-- 	hlgroup = nil, -- 高亮组（nil = 默认）
+				-- },
 
 				-- 折叠行右侧显示“多少行被折叠”
 				lineCount = {
@@ -42,7 +41,7 @@ return {
 				gitsignsCount = true,
 
 				-- 在这些 filetype 下禁用 foldtext
-				disableOnFt = { "snacks_picker_input" }, ---@type string[]
+				-- disableOnFt = { "snacks_picker_input" }, ---@type string[]
 			},
 
 			-- 自动折叠功能
@@ -59,10 +58,10 @@ return {
 				setup = true, -- 是否修改 h / l / ^ / $ 的行为（更智能的折叠导航）
 
 				-- h 和 ^ 是否只在第一列触发折叠
-				closeOnlyOnFirstColumn = false,
+				closeOnlyOnFirstColumn = true,
 
 				-- ^ 是否自动滚动到行首（类似 0^）
-				scrollLeftOnCaret = false,
+				scrollLeftOnCaret = true,
 			},
 		})
 

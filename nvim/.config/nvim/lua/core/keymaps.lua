@@ -1,3 +1,6 @@
+vim.keymap.set("n", "<localleader>elf", "<cmd>echo &filetype<cr>", { silent = true, desc = "调试: file类型" })
+vim.keymap.set("n", "<localleader>elb", "<cmd>echo &buftype<cr>", { silent = true, desc = "调试: buffer类型" })
+
 -- 📝 Basic operations
 vim.keymap.set("n", "c", '"_c', { desc = "Basic: change to blackhole" })
 
@@ -50,7 +53,7 @@ end, { silent = true, desc = "Save all modified buffers" })
 --
 -- vim.keymap.set("n", "<leader>eu", undotree, { desc = "UndoTree: toggle undotree" })
 
-vim.keymap.set("n", "<s-a-w>", function()
+vim.keymap.set("n", "<leader>rrw", function()
 	local new_wrap = not vim.wo.wrap
 	vim.wo.wrap = new_wrap
 	print("Wrap " .. (new_wrap and "enabled" or "disabled"))
@@ -71,12 +74,10 @@ vim.keymap.set("n", "gmtn", ":+tabmove<CR>", {
 
 vim.keymap.set("n", "<leader>ct", "<cmd>tabclose<cr>", { silent = true, desc = "Tab: close tab" })
 vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
-vim.keymap.set("n", "<leader>elt", "<cmd>echo &filetype<cr>", { silent = true, desc = "Tab: close other tabs" })
 
 -- 📜 Messages & reload
-vim.keymap.set("n", "<leader>re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
--- vim.keymap.set("n", "<leader>rn", "<cmd>restart<cr>", { silent = true, desc = "Basic: restart Neovim" })
-vim.keymap.set("n", "<leader>rn", function()
+vim.keymap.set("n", "<leader>rre", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
+vim.keymap.set("n", "<leader>rrn", function()
 	local session = vim.fn.stdpath("state") .. "/restart_session.vim"
 	vim.cmd("mksession! " .. vim.fn.fnameescape(session))
 	vim.cmd("restart source " .. vim.fn.fnameescape(session))

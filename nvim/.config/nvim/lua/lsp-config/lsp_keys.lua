@@ -138,7 +138,7 @@ local keymaps = {
 		"LSP: workspace diagnostics",
 	},
 	{
-		"<s-a-d>",
+		"<leader>rtd",
 		function()
 			local key = "lsp.diagnostics"
 			local state = Store:get(key)
@@ -154,7 +154,7 @@ local keymaps = {
 		"LSP: toggle diagnostics",
 	},
 	{
-		"<s-a-i>",
+		"<leader>rti",
 		function()
 			local key = "lsp.inlay_hints"
 			local state = Store:get(key)
@@ -188,11 +188,11 @@ M.set_keymaps = function(bufnr)
 end
 
 M.global_keymaps = function()
-	vim.keymap.set("n", "<leader>Rl", function()
+	vim.keymap.set("n", "<leader>rrl", function()
 		restart_lsp()
 	end, { noremap = true, silent = true, desc = "LSP: 重启lsp" })
 
-	vim.keymap.set("n", "<S-A-l>", function()
+	vim.keymap.set("n", "<leader>rtl", function()
 		toggle_lsp()
 	end, { desc = "Toggle LSP for current filetype" })
 

@@ -1,5 +1,5 @@
 {
-  "#[t": {
+  "test_mod": {
     "body": [
       "#[test]",
       "fn ${1:name}() {",
@@ -9,7 +9,7 @@
     ],
     "prefix": "test"
   },
-  "#test": {
+  "test_cfg": {
     "body": [
       "#[cfg(test)]",
       "mod test {",

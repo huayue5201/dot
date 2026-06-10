@@ -17,19 +17,6 @@ M.config = {
 
 	-- 高亮组
 	highlight_group = "LspHighlight",
-
-	-- 数字图标映射
-	num_icons = {
-		[1] = "󰬺",
-		[2] = "󰬻",
-		[3] = "󰬼",
-		[4] = "󰬽",
-		[5] = "󰬾",
-		[6] = "󰬿",
-		[7] = "󰭀",
-		[8] = "󰭁",
-		[9] = "󰭂",
-	},
 }
 
 -- =========================================================
@@ -221,24 +208,24 @@ function M.lsp_clients()
 
 	-- 如果没有可显示名字的客户端
 	if not main_client then
-		-- 获取图标（超过10个显示"󰿪+"）
-		local icon
-		if total_clients > 10 then
-			icon = "󰭂+"
+		-- 直接显示数字，超过99显示"99+"
+		local client_count
+		if total_clients > 99 then
+			client_count = "99+"
 		else
-			icon = M.config.num_icons[total_clients] or "󰭂"
+			client_count = tostring(total_clients)
 		end
 
 		local spin = spinner_icon()
-		return string.format("%s%s", "%#" .. M.config.highlight_group .. "#" .. icon .. "%*", spin)
+		return string.format("%s%s", "%#" .. M.config.highlight_group .. "#" .. client_count .. "%*", spin)
 	end
 
-	-- 获取图标（超过10个显示"󰿪+"）
-	local icon
-	if total_clients > 10 then
-		icon = "󰭂+"
+	-- 直接显示数字，超过99显示"99+"
+	local client_count
+	if total_clients > 99 then
+		client_count = "99+"
 	else
-		icon = M.config.num_icons[total_clients] or "󰭂"
+		client_count = tostring(total_clients)
 	end
 
 	-- 获取动态 spinner
@@ -246,7 +233,7 @@ function M.lsp_clients()
 
 	return string.format(
 		"%s.%s. %s",
-		"%#" .. M.config.highlight_group .. "#" .. icon .. "%*",
+		"%#" .. M.config.highlight_group .. "#" .. client_count .. "%*",
 		main_client.name,
 		spin
 	)

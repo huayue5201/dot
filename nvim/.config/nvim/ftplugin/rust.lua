@@ -1,4 +1,3 @@
-vim.opt.formatoptions:remove({ "o", "r" }) -- 移除 'o' 和 'r' 格式选项，防止换行时继续注释符号
 -- Rust 相关配置
 vim.g.rustfmt_autosave = 1 -- 启用保存时自动格式化
 vim.g.rustfmt_emit_files = 1 -- 启用生成格式化后的文件

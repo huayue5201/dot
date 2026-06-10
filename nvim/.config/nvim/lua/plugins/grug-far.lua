@@ -18,24 +18,24 @@ return {
 		----------------------------------------------------------------------
 
 		-- 使用光标下的单词作为搜索内容
-		vim.keymap.set("n", "<leader>gw", function()
+		vim.keymap.set("n", "<leader>sgw", function()
 			require("grug-far").open({
 				prefills = { search = vim.fn.expand("<cword>") },
 			})
 		end, { desc = "grug-far：使用光标下的单词进行搜索" })
 
 		-- 使用 AST 引擎
-		vim.keymap.set("n", "<leader>ga", function()
+		vim.keymap.set("n", "<leader>sga", function()
 			require("grug-far").open({ engine = "astgrep" })
 		end, { desc = "grug-far：使用 AST 引擎进行搜索" })
 
 		-- 以临时缓冲区打开（关闭后删除）
-		vim.keymap.set("n", "<leader>gt", function()
+		vim.keymap.set("n", "<leader>sgt", function()
 			require("grug-far").open({ transient = true })
 		end, { desc = "grug-far：以临时缓冲区打开（关闭后删除）" })
 
-		-- 切换 grug-far 实例可见性（避免与 fgt 冲突 → 使用 fgT）
-		vim.keymap.set("n", "<leader>gT", function()
+		-- 切换 grug-far 实例可见性
+		vim.keymap.set("n", "<leader>sgT", function()
 			require("grug-far").toggle_instance({
 				instanceName = "far",
 				staticTitle = "Find and Replace",
@@ -43,22 +43,24 @@ return {
 		end, { desc = "grug-far：切换实例可见性" })
 
 		-- 限制搜索范围为当前文件
-		vim.keymap.set("n", "<leader>gr", function()
+		vim.keymap.set("n", "<leader>sgr", function()
 			require("grug-far").open({
 				prefills = { paths = vim.fn.expand("%") },
 			})
 		end, { desc = "grug-far：仅搜索当前文件" })
 
 		-- 使用可视选择内容搜索当前文件
-		vim.keymap.set("v", "<leader>gv", function()
+		vim.keymap.set("v", "<leader>sgv", function()
 			require("grug-far").with_visual_selection({
 				prefills = { paths = vim.fn.expand("%") },
 			})
 		end, { desc = "grug-far：使用可视选择搜索当前文件" })
 
-		vim.keymap.set({ "n", "x" }, "<leader>gi", function()
+		-- 范围内搜索
+		vim.keymap.set({ "n", "x" }, "<leader>sgi", function()
 			require("grug-far").open({ visualSelectionUsage = "operate-within-range" })
 		end, { desc = "grug-far: Search within range" })
+
 		----------------------------------------------------------------------
 		-- FileType = grug-far 时的 buffer 内键位
 		----------------------------------------------------------------------

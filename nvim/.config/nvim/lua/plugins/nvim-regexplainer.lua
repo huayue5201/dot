@@ -27,6 +27,7 @@ return {
 				"php",
 				"java",
 				"cs",
+				"lua",
 			},
 
 			-- 是否记录调试日志
