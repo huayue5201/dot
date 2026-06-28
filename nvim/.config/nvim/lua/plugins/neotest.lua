@@ -63,32 +63,52 @@ return {
 
 				-- Lua/Busted 适配器
 				require("neotest-busted")({
-					busted_command = nil,
+					-- 使用完整路径指定 busted
+					busted_command = os.getenv("HOME") .. "/.luarocks/bin/busted.lua",
+
+					-- 使用 Neovim 作为解释器（默认值，保持 false）
 					no_nvim = false,
-					busted_args = {
-						"--output=busted",
-						"--defer-print",
-						"--shuffle=none",
-					},
+
+					-- 合理配置
+					busted_args = {},
+
+					-- 优化路径配置
 					busted_paths = function()
 						local paths = {}
 						local root = vim.fn.getcwd()
-						table.insert(paths, root .. "/src/?.lua")
-						table.insert(paths, root .. "/lib/?.lua")
+
+						-- 添加源代码目录
 						table.insert(paths, root .. "/lua/?.lua")
-						table.insert(paths, root .. "/spec/?.lua")
-						table.insert(paths, root .. "/test/?.lua")
+						table.insert(paths, root .. "/lua/?/init.lua")
+
+						-- 如果你的插件有 src 目录
+						-- table.insert(paths, root .. "/src/?.lua")
+
+						-- 测试辅助文件路径（如果不使用标准结构）
+						-- table.insert(paths, root .. "/tests/helpers/?.lua")
+
 						return paths
 					end,
+
+					-- C 模块路径（保持简洁）
 					busted_cpaths = function()
 						local paths = {}
 						local root = vim.fn.getcwd()
-						table.insert(paths, root .. "/lib/?.so")
+
+						-- 如果有编译的 C 模块
+						table.insert(paths, root .. "/lua/?.so")
+
 						return paths
 					end,
-					minimal_init = nil,
-					local_luarocks_only = false,
-					parametric_test_discovery = true,
+
+					-- ⭐ 重要：使用最小初始化配置
+					minimal_init = "tests/minimal_init.lua",
+
+					-- ⭐ 推荐改为 true，避免环境冲突
+					local_luarocks_only = true,
+
+					-- 根据实际需求决定
+					parametric_test_discovery = false, -- 需要时才改为 true
 				}),
 			},
 
@@ -104,7 +124,7 @@ return {
 			-- ============================================================
 			output = {
 				enabled = true,
-				open_on_run = "long", -- 改为 "long" 或 true，不是 "short"
+				open_on_run = "true", -- 改为 "long" 或 true.
 				-- "short": 只在有错误/失败时打开
 				-- "long": 总是打开
 				-- true: 总是打开
@@ -130,7 +150,7 @@ return {
 
 			summary = {
 				enabled = true,
-				open = "botright vsplit | vertical resize 50",
+				open = "botright vsplit | vertical resize 40",
 			},
 		})
 

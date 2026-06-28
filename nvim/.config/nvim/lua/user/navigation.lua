@@ -1,4 +1,4 @@
--- File: ~/dotfiles/nvim/.config/nvim/lua/user/utils.lua
+-- File: ~/dotfiles/nvim/.config/nvim/lua/user.navigation.lua
 
 local M = {}
 
@@ -10,11 +10,13 @@ M.settings = {
 		setup = function()
 			vim.opt_local.confirm = false
 			vim.opt_local.winfixbuf = true
+			vim.opt.buflisted = false
 		end,
 	},
 	["neotest-output"] = {
 		setup = function()
 			vim.opt_local.winfixbuf = true
+			vim.opt.buflisted = false
 		end,
 	},
 	terminal = {
@@ -60,20 +62,22 @@ M.buf_keymaps = {
 		["neotest-output-panel"] = { cmd = "close", desc = "关闭测试输出面板" },
 	},
 
-	-- 错误跳转：下一个（[d 键）
+	-- 错误跳转：下一个（]d 键）
 	-- 使用 next_error_repeatable 以支持 . 重复命令
 	["]d"] = {
 		["neotest-output"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
 		["neotest-output-panel"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
 		["neotest-summary"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+		["OverseerOutput"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
 	},
 
-	-- 错误跳转：上一个（]d 键）
+	-- 错误跳转：上一个（[d 键）
 	-- 使用 prev_error_repeatable 以支持 . 重复命令
 	["[d"] = {
 		["neotest-output"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
 		["neotest-output-panel"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
 		["neotest-summary"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
+		["OverseerOutput"] = { cmd = "prev_error_repeatable", desc = "下一个错误（支持 . 重复）" },
 	},
 }
 
@@ -82,9 +86,25 @@ M.buf_keymaps = {
 -- ============================
 
 -- 匹配错误位置的正则表达式
--- 格式如：src/extract/weixin_doc/e_sheet.rs:104:50
+-- 匹配以 warning/error/panic 等开头的行
 M.error_patterns = {
-	"%f[%w]%S+%.%w+:%d+:%d+",
+	-- 匹配 Rust 错误：error[E0425]:
+	"^%s*error%[[^%]]+%]:",
+	-- TypeScript/JavaScript
+	"^%s*error  TS%d+:",
+	-- Go
+	"^%s*# ",
+	"^%s*.*: error:",
+	-- 匹配以 warning: 开头的行
+	"^%s*warning:",
+	-- 匹配以 error: 开头的行
+	"^%s*error:",
+	"^%s*ERROR:",
+	-- 匹配以 panic 相关的行
+	"^%s*panic",
+	-- 匹配测试失败标记
+	"FAILED",
+	"failures:",
 }
 
 -- 获取当前缓冲区中所有包含错误位置的行号
@@ -190,18 +210,18 @@ function M._repeat_jump_callback()
 end
 
 -- 包装后的 next_error（支持 . 重复）
--- 使用方法：通过 [d 键触发，或直接调用此函数
+-- 使用方法：通过 ]d 键触发，或直接调用此函数
 function M.next_error_repeatable()
 	last_jump_direction = "next" -- 记录跳转方向
-	vim.o.operatorfunc = "v:lua.require'user.utils'._repeat_jump_callback" -- 设置回调
+	vim.o.operatorfunc = "v:lua.require'user.navigation'._repeat_jump_callback" -- 设置回调
 	vim.api.nvim_feedkeys("g@l", "i", false) -- 触发操作符（范围是当前字符）
 end
 
 -- 包装后的 prev_error（支持 . 重复）
--- 使用方法：通过 ]d 键触发，或直接调用此函数
+-- 使用方法：通过 [d 键触发，或直接调用此函数
 function M.prev_error_repeatable()
 	last_jump_direction = "prev" -- 记录跳转方向
-	vim.o.operatorfunc = "v:lua.require'user.utils'._repeat_jump_callback" -- 设置回调
+	vim.o.operatorfunc = "v:lua.require'user.navigation'._repeat_jump_callback" -- 设置回调
 	vim.api.nvim_feedkeys("g@l", "i", false) -- 触发操作符（范围是当前字符）
 end
 
@@ -332,26 +352,5 @@ function M.smart_close(target_win)
 		vim.cmd("qa")
 	end
 end
-
--- ============================
--- 颜色调色板
--- ============================
-M.palette = {
-	bg = "#1e1e2e", -- 背景色
-	fg = "#cdd6f4", -- 前景色（文字颜色）
-	red = "#f38ba8", -- 红色，用于错误
-	green = "#a6e3a1", -- 绿色，用于成功、通过
-	green3 = "#00CD00",
-	blue = "#89b4fa", -- 蓝色，用于信息
-	yellow = "#f9e2af", -- 黄色，用于警告
-	magenta = "#f5c2e7", -- 洋红，用于强调
-	cyan = "#94e2d5", -- 青色，用于提示
-	gray = "#6c7086", -- 灰色
-	darkgray = "#45475a", -- 深灰色
-	error = "#f38ba8", -- 语义：错误
-	warning = "#f9e2af", -- 语义：警告
-	info = "#89dceb", -- 语义：信息
-	hint = "#74c7ec", -- 语义：提示
-}
 
 return M

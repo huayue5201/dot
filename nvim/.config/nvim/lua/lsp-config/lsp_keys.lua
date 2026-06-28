@@ -188,7 +188,7 @@ M.set_keymaps = function(bufnr)
 end
 
 M.global_keymaps = function()
-	vim.keymap.set("n", "<leader>rrl", function()
+	vim.keymap.set("n", "<leader>Rl", function()
 		restart_lsp()
 	end, { noremap = true, silent = true, desc = "LSP: 重启lsp" })
 

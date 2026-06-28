@@ -3,6 +3,7 @@
 -- 禁用 Perl 和 Ruby 提供者
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_ruby_provider = 0
+vim.g.loaded_matchparen = 1
 -- 设置 Python3 提供者路径
 -- vim.g.python3_host_prog = "/Library/Frameworks/Python.framework/Versions/3.14/bin/python3"
 
@@ -164,8 +165,8 @@ vim.opt.fillchars = {
 	verthoriz = "", -- 垂直和水平重叠的分隔符
 	-- 折叠相关字符
 	fold = " ", -- 折叠文本填充字符
-	foldopen = "◌", -- 折叠打开时的标记字符
-	foldclose = "◉", -- 折叠关闭时的标记字符
+	foldopen = "-", -- 折叠打开时的标记字符
+	foldclose = "+", -- 折叠关闭时的标记字符
 	foldsep = "│", -- 打开折叠时的中间分隔符
 	foldinner = " ", -- 折叠层级，默认显示数字
 	-- 其他

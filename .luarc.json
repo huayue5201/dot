@@ -3,5 +3,9 @@
         "deprecated",
         "unused-local",
         "duplicate-set-field"
+    ],
+    "diagnostics.globals": [
+        "vim",
+        "M"
     ]
 }

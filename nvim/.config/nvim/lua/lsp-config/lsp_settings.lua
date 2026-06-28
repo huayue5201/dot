@@ -59,12 +59,19 @@ M.global_config = function()
 					multilineTokenSupport = true,
 				},
 			},
+			require("nvim-file-operations.config").default_capabilities(),
 		},
 		root_markers = { ".git" },
+		on_attach = function(client, bufnr)
+			-- some clients support workspace diagnostics natively
+			if client:supports_method("workspace/diagnostic", bufnr) then
+				vim.lsp.buf.workspace_diagnostics({ client_id = client.id })
+			else
+				require("workspace-diagnostics").populate_workspace_diagnostics(client, bufnr)
+			end
+		end,
 	})
 end
-
--- require("lsp-config.neo_tree_file_ops").setup()
 
 local lsp_get = require("lsp-config.lsp_utils")
 local Store = require("nvim-store3").project()

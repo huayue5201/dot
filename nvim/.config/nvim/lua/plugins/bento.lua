@@ -2,9 +2,10 @@
 
 return {
 	"serhez/bento.nvim",
+	event = "BufReadPost",
 	config = function()
 		require("bento").setup({
-			main_keymap = "<S-tab>", -- Main toggle/expand key
+			main_keymap = "<tab>", -- Main toggle/expand key
 			actions = {
 				git_stage = {
 					key = "g",

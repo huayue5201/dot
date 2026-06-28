@@ -8,6 +8,7 @@ return {
 		"saghen/blink.lib",
 		"xzbdmw/colorful-menu.nvim",
 		"bramdelta/blink-dap",
+		"mikavilpas/blink-ripgrep.nvim",
 	},
 	build = function()
 		require("blink.cmp").build():wait(60000)
@@ -166,10 +167,18 @@ return {
 				elseif vim.bo.filetype == "lua" then
 					return { "lsp", "path" }
 				else
-					return { "lsp", "path", "snippets", "buffer" }
+					return { "lsp", "path", "snippets", "buffer", "ripgrep" }
 				end
 			end,
 			providers = {
+				ripgrep = {
+					module = "blink-ripgrep",
+					name = "Ripgrep",
+					-- see the full configuration below for all available options
+					---@module "blink-ripgrep"
+					---@type blink-ripgrep.Options
+					opts = {},
+				},
 				dap = {
 					name = "dap",
 					module = "blink-dap",

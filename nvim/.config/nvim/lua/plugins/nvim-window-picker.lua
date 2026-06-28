@@ -143,7 +143,7 @@ return {
 			-- 切换到目标窗口
 			vim.api.nvim_set_current_win(picked_window_id)
 			-- ⭐ 使用统一关闭逻辑
-			require("user.utils").smart_close(picked_window_id)
+			require("user.navigation").smart_close(picked_window_id)
 			-- 恢复原窗口
 			if vim.api.nvim_win_is_valid(current_win) then
 				vim.api.nvim_set_current_win(current_win)

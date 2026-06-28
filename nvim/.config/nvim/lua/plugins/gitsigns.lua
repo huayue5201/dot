@@ -1,4 +1,3 @@
--- TODO:https://github.com/kokusenz/deltaview.nvim
 -- https://github.com/lewis6991/gitsigns.nvim
 
 return {

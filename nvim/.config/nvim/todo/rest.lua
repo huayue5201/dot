@@ -142,12 +142,12 @@ return {
 
 		-- ========== 基础操作 ==========
 		-- 运行当前光标下的请求
-		map("n", "<leader>rr", "<Cmd>Rest run<CR>", vim.tbl_extend("force", opts, { desc = "运行当前请求" }))
+		map("n", "<leader>ort", "<Cmd>Rest run<CR>", vim.tbl_extend("force", opts, { desc = "运行当前请求" }))
 
 		-- 运行最后一个请求
 		map(
 			"n",
-			"<leader>rl",
+			"<leader>orl",
 			"<Cmd>Rest last<CR>",
 			vim.tbl_extend("force", opts, { desc = "运行最后一个请求" })
 		)
@@ -155,25 +155,25 @@ return {
 		-- 按名称运行请求 (会提示输入名称)
 		map(
 			"n",
-			"<leader>rn",
+			"<leader>orn",
 			"<Cmd>Rest run<Space>",
 			vim.tbl_extend("force", opts, { desc = "按名称运行请求" })
 		)
 
 		-- ========== 结果面板 ==========
 		-- 打开结果面板
-		map("n", "<leader>ro", "<Cmd>Rest open<CR>", vim.tbl_extend("force", opts, { desc = "打开结果面板" }))
+		map("n", "<leader>oro", "<Cmd>Rest open<CR>", vim.tbl_extend("force", opts, { desc = "打开结果面板" }))
 
 		-- 关闭结果面板 (使用自带快捷键，这里不重复绑定)
 
 		-- ========== 文件管理 ==========
 		-- 编辑日志文件
-		map("n", "<leader>rlg", "<Cmd>Rest logs<CR>", vim.tbl_extend("force", opts, { desc = "编辑日志文件" }))
+		map("n", "<leader>orlg", "<Cmd>Rest logs<CR>", vim.tbl_extend("force", opts, { desc = "编辑日志文件" }))
 
 		-- 编辑 cookie 文件
 		map(
 			"n",
-			"<leader>rc",
+			"<leader>orc",
 			"<Cmd>Rest cookies<CR>",
 			vim.tbl_extend("force", opts, { desc = "编辑 Cookie 文件" })
 		)
@@ -182,7 +182,7 @@ return {
 		-- 显示当前注册的 dotenv 文件
 		map(
 			"n",
-			"<leader>rss",
+			"<leader>orss",
 			"<Cmd>Rest env show<CR>",
 			vim.tbl_extend("force", opts, { desc = "显示环境变量文件" })
 		)
@@ -190,7 +190,7 @@ return {
 		-- 选择并注册 .env 文件 (交互式选择)
 		map(
 			"n",
-			"<leader>rse",
+			"<leader>orse",
 			"<Cmd>Rest env select<CR>",
 			vim.tbl_extend("force", opts, { desc = "选择环境变量文件" })
 		)
@@ -198,13 +198,13 @@ return {
 		-- 手动设置 .env 文件路径
 		map(
 			"n",
-			"<leader>rsp",
+			"<leader>orsp",
 			"<Cmd>Rest env set<Space>",
 			vim.tbl_extend("force", opts, { desc = "设置环境变量文件路径" })
 		)
 
 		-- ========== 视觉模式支持 ==========
 		-- 视觉模式下运行选中的请求
-		map("v", "<leader>rr", "<Cmd>Rest run<CR>", vim.tbl_extend("force", opts, { desc = "运行选中的请求" }))
+		map("v", "<leader>ort", "<Cmd>Rest run<CR>", vim.tbl_extend("force", opts, { desc = "运行选中的请求" }))
 	end,
 }

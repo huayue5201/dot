@@ -1,6 +1,6 @@
 -- File: ~/dotfiles/nvim/.config/nvim/lua/core/autocmds.lua
 
-local utils = require("user.utils")
+local nav = require("user.navigation")
 
 -- ============================
 -- 通用函数：为当前 buffer 应用快捷键映射
@@ -14,7 +14,7 @@ local function apply_keymaps()
 	-- 确定当前窗口的类型标识（优先级：filetype > buftype > 特殊匹配）
 	local buf_type = ft ~= "" and ft or bt
 
-	for key, type_configs in pairs(utils.buf_keymaps) do
+	for key, type_configs in pairs(nav.buf_keymaps) do
 		-- 跳过已映射的按键
 		if not applied[key] then
 			-- 获取配置（精确匹配 或 dap-repl 特殊处理）
@@ -32,10 +32,10 @@ local function apply_keymaps()
 				-- 根据命令类型创建映射函数
 				local map_func = (cmd == "next_error" or cmd == "prev_error")
 						and function()
-							utils.dispatch_command(cmd)
+							nav.dispatch_command(cmd)
 						end
 					or function()
-						utils.dispatch_command(cmd)
+						nav.dispatch_command(cmd)
 					end
 
 				vim.keymap.set("n", key, map_func, {
@@ -83,7 +83,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 })
 
 -- Buffer 设置
-local buffer_settings = utils.settings
+local buffer_settings = nav.settings
 vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 	group = vim.api.nvim_create_augroup("CustomBufferSettings", { clear = true }),
 	desc = "根据配置表自动应用 buffer 设置",
@@ -103,13 +103,13 @@ vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 -- 用户命令
 -- ============================
 vim.api.nvim_create_user_command("SmartClose", function()
-	utils.smart_close()
+	nav.smart_close()
 end, { desc = "智能关闭当前窗口" })
 
 vim.api.nvim_create_user_command("NextError", function()
-	utils.next_error()
+	nav.next_error()
 end, { desc = "跳转到下一个错误" })
 
 vim.api.nvim_create_user_command("PrevError", function()
-	utils.prev_error()
+	nav.prev_error()
 end, { desc = "跳转到上一个错误" })

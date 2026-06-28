@@ -357,7 +357,12 @@ return {
 		)
 
 		-- 缓冲区选择模式
-		map("n", "<leader>sb", "<Cmd>BufferLinePick<CR>", vim.tbl_extend("force", opts, { desc = "缓冲区选择模式" }))
+		map(
+			"n",
+			"<leader>sb",
+			"<Cmd>BufferLinePick<CR>",
+			vim.tbl_extend("force", opts, { desc = "缓冲区选择模式" })
+		)
 		map(
 			"n",
 			"<leader>csb",

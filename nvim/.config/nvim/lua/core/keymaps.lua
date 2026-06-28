@@ -53,7 +53,7 @@ end, { silent = true, desc = "Save all modified buffers" })
 --
 -- vim.keymap.set("n", "<leader>eu", undotree, { desc = "UndoTree: toggle undotree" })
 
-vim.keymap.set("n", "<leader>rrw", function()
+vim.keymap.set("n", "<leader>Rw", function()
 	local new_wrap = not vim.wo.wrap
 	vim.wo.wrap = new_wrap
 	print("Wrap " .. (new_wrap and "enabled" or "disabled"))
@@ -76,8 +76,8 @@ vim.keymap.set("n", "<leader>ct", "<cmd>tabclose<cr>", { silent = true, desc = "
 vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
 -- 📜 Messages & reload
-vim.keymap.set("n", "<leader>rre", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
-vim.keymap.set("n", "<leader>rrn", function()
+vim.keymap.set("n", "<leader>Re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
+vim.keymap.set("n", "<leader>Rn", function()
 	local session = vim.fn.stdpath("state") .. "/restart_session.vim"
 	vim.cmd("mksession! " .. vim.fn.fnameescape(session))
 	vim.cmd("restart source " .. vim.fn.fnameescape(session))
@@ -110,21 +110,21 @@ vim.keymap.set("n", "<leader>yt", function()
 end, { silent = true, desc = "Path: copy filename" })
 
 -- 🪟 Window management
-vim.keymap.set("n", "<Leader>caw", function()
-	local utils = require("user.utils")
-	local cur_win = vim.api.nvim_get_current_win()
-	local cur_buf = vim.api.nvim_win_get_buf(cur_win)
-	local cur_dir = vim.fn.fnamemodify(vim.fn.bufname(cur_buf), ":p:h")
-
-	for _, win in ipairs(vim.api.nvim_list_wins()) do
-		if win ~= cur_win then
-			local buf = vim.api.nvim_win_get_buf(win)
-			local dir = vim.fn.fnamemodify(vim.fn.bufname(buf), ":p:h")
-			if dir ~= cur_dir then
-				utils.smart_close(win)
-			end
-		end
-	end
-
-	print("Deleted windows outside the current directory!")
-end, { silent = true, desc = "Window: close outside windows" })
+-- vim.keymap.set("n", "<Leader>caw", function()
+-- 	local nav = require("user.navigation")
+-- 	local cur_win = vim.api.nvim_get_current_win()
+-- 	local cur_buf = vim.api.nvim_win_get_buf(cur_win)
+-- 	local cur_dir = vim.fn.fnamemodify(vim.fn.bufname(cur_buf), ":p:h")
+--
+-- 	for _, win in ipairs(vim.api.nvim_list_wins()) do
+-- 		if win ~= cur_win then
+-- 			local buf = vim.api.nvim_win_get_buf(win)
+-- 			local dir = vim.fn.fnamemodify(vim.fn.bufname(buf), ":p:h")
+-- 			if dir ~= cur_dir then
+-- 				nav.smart_close(win)
+-- 			end
+-- 		end
+-- 	end
+--
+-- 	print("Deleted windows outside the current directory!")
+-- end, { silent = true, desc = "Window: close outside windows" })
