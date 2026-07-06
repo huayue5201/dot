@@ -23,7 +23,7 @@ return {
 							},
 							schema = {
 								model = {
-									default = "deepseek-chat", -- 或 "deepseek-coder"
+									default = "deepseek-v4-pro", -- 或 "deepseek-coder"
 								},
 							},
 						})

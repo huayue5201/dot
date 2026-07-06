@@ -3,9 +3,6 @@
 return {
 	"obsidian-nvim/obsidian.nvim",
 	event = "VeryLazy",
-	dependencies = {
-		"nvim-lua/plenary.nvim", -- 必需的工具库
-	},
 	config = function()
 		local obsidian = require("obsidian")
 

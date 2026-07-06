@@ -7,7 +7,7 @@ return {
 		"nvim-lua/plenary.nvim",
 		"MunifTanjim/nui.nvim",
 		"3rd/image.nvim",
-		"nvim-tree/nvim-web-devicons", -- optional, but recommended
+		-- "nvim-tree/nvim-web-devicons", -- optional, but recommended
 		"saifulapm/neotree-file-nesting-config", -- 文件嵌套规则插件
 	},
 	lazy = false, -- neo-tree will lazily load itself

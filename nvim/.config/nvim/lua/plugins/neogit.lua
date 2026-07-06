@@ -4,7 +4,8 @@ return {
 	"NeogitOrg/neogit",
 	lazy = true,
 	dependencies = {
-		"nvim-lua/plenary.nvim", -- 必须
+		"esmuellert/codediff.nvim",
+		"m00qek/baleia.nvim",
 	},
 	cmd = "Neogit",
 	keys = {

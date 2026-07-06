@@ -8,10 +8,6 @@ return {
 	config = function()
 		local rustowl = require("rustowl")
 		rustowl.setup({
-			-- ============================================================
-			-- 基础配置
-			-- ============================================================
-
 			-- 自动附加 LSP 客户端（默认 true）
 			auto_attach = true,
 
@@ -32,18 +28,11 @@ return {
 			colors = {
 				lifetime = "#00cc00", -- 🟩 绿色：变量生命周期
 				imm_borrow = "#c2e1f8", -- 🟦 蓝色：不可变借用
-				mut_borrow = "#dd6891f3", -- 🟪 紫色：可变借用
+				mut_borrow = "#6891f3", -- 🟪 紫色：可变借用
 				move = "#cccc00", -- 🟧 黄色：值移动
 				call = "#cccc00", -- 🟧 黄色：函数调用
 				outlive = "#cc0000", -- 🟥 红色：生命周期错误
 			},
 		})
-
-		-- ============================================================
-		-- 可选：添加手动控制命令（如果 rustowl 提供的话）
-		-- ============================================================
-		-- vim.keymap.set("n", "<leader>ro", function()
-		-- 	rustowl.toggle()
-		-- end, { desc = "RustOwl: 切换高亮" })
 	end,
 }

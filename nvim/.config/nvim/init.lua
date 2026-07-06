@@ -1,6 +1,6 @@
 -- https://neovim.io/
 -- https://devhints.io/vim
--- https://github.com/neovim/neovim/releases/
+-- https://github.com/neovim/neovim/releases/tag/nightly
 
 -- 启用 Lua 加载器加速启动
 vim.loader.enable()

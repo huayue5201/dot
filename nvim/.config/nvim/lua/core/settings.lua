@@ -3,7 +3,7 @@
 -- 禁用 Perl 和 Ruby 提供者
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_ruby_provider = 0
-vim.g.loaded_matchparen = 1
+-- vim.g.loaded_matchparen = 1
 -- 设置 Python3 提供者路径
 -- vim.g.python3_host_prog = "/Library/Frameworks/Python.framework/Versions/3.14/bin/python3"
 

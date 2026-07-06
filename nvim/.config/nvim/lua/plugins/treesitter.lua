@@ -32,7 +32,8 @@ return {
 			"go",
 			"rust",
 			"regex",
-			"comment", -- 用于注释高亮
+			"comment",
+			"query",
 		}
 
 		require("nvim-treesitter").install(ensure_installed)

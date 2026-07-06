@@ -12,6 +12,6 @@ return {
 		})
 
 		vim.keymap.set("n", "<leader>ru", "<cmd>OverseerRun<CR>", { desc = "运行任务" })
-		vim.keymap.set("n", "<leader>re", "<cmd>OverseerToggle<CR>", { desc = "打开任务列表" })
+		vim.keymap.set("n", "<leader>er", "<cmd>OverseerToggle<CR>", { desc = "打开任务列表" })
 	end,
 }

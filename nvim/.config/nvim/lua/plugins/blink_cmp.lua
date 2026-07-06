@@ -156,6 +156,9 @@ return {
 		},
 
 		sources = {
+			per_filetype = {
+				codecompanion = { "codecompanion" },
+			},
 			default = function(ctx)
 				local success, node = pcall(vim.treesitter.get_node)
 				if

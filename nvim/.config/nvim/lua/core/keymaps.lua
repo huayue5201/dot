@@ -8,6 +8,8 @@ vim.keymap.set("n", "dd", function()
 	return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true, desc = "Basic: delete line (empty → blackhole)" })
 
+vim.keymap.set("n", "p", "p`[v`]=")
+
 vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
 
 vim.keymap.set("n", "<C-S-s>", function()
