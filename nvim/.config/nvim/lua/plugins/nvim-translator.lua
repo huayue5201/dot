@@ -39,7 +39,7 @@ return {
 				translator.start("echo", false, 0, 1, 1, vim.fn.expand("<cword>"))
 			end, { silent = true, desc = "翻译并回显（当前词）" })
 
-			vim.keymap.set("n", "<C-;>", function()
+			vim.keymap.set({ "n", "v" }, "<C-;>", function()
 				translator.start("window", false, 0, 1, 1, vim.fn.expand("<cword>"))
 			end, { silent = true, desc = "翻译并窗口显示（当前词）" })
 

@@ -1,5 +1,6 @@
 -- https://github.com/joryeugene/dadbod-grip.nvim
 -- TODO: https://github.com/kopecmaciej/vi-sql.nvim
+-- TODO: https://github.com/kndndrj/nvim-dbee
 
 return {
 	"joryeugene/dadbod-grip.nvim",

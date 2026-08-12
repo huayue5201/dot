@@ -5,7 +5,7 @@ return {
 	config = function()
 		require("wombient").setup({
 			stripe = {
-				enabled = false,
+				enabled = true,
 			},
 		})
 	end,

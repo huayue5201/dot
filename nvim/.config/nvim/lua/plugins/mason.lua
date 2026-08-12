@@ -31,7 +31,10 @@ return {
 				"taplo",
 				"dprint",
 				-- "harper-ls",
-				"copilot-language-server",
+				-- "copilot-language-server",
+				"bash-language-server",
+				"luacheck",
+				"marksman",
 			}
 
 			local registry = require("mason-registry")

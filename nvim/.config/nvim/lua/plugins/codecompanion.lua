@@ -6,6 +6,7 @@ return {
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"nvim-treesitter/nvim-treesitter",
+		"saghen/blink.cmp",
 	},
 	config = function()
 		require("codecompanion").setup({

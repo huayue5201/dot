@@ -3,11 +3,11 @@
 #           字体设置
 # ================================================
 # 设置字体
-font-family = Victor Mono
+# font-family = Victor Mono
 # font-family = FiraCode Nerd Font
 # font-family = FantasqueSansM Nerd Font
 # font-family = monofur Nerd Font
-# font-family = losevka
+font-family = iosevka
 # 启用加粗字体
 # font-thicken = true
 

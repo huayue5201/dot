@@ -30,6 +30,7 @@ return {
 				python = { "ruff_format" },
 				sh = { "shfmt" },
 				go = { "gofumpt" },
+				markdown = { "codefmt" },
 			},
 			-- Set up format-on-save
 			format_on_save = function(bufnr)
@@ -54,7 +55,12 @@ return {
 				}
 			end,
 			-- Customize formatters
-			formatters = { shfmt = { prepend_args = { "-i", "2" } } },
+			formatters = {
+				shfmt = { prepend_args = { "-i", "2" } },
+				codefmt = {
+					command = "codefmt",
+				},
+			},
 		})
 
 		-- 格式化设置

@@ -56,28 +56,18 @@ M.buf_keymaps = {
 		terminal = { cmd = "bdelete", desc = "关闭终端" },
 		["nvim-undotree"] = { cmd = "close", desc = "关闭 undotree" },
 		["vscode-diff-explorer"] = { cmd = "tabclose", desc = "关闭 diff" },
-		OverseerOutput = { cmd = "close", desc = "关闭任务输出" },
-		["neotest-summary"] = { cmd = "close", desc = "关闭测试摘要" },
-		["neotest-output"] = { cmd = "close", desc = "关闭测试输出" },
-		["neotest-output-panel"] = { cmd = "close", desc = "关闭测试输出面板" },
 	},
 
 	-- 错误跳转：下一个（]d 键）
 	-- 使用 next_error_repeatable 以支持 . 重复命令
 	["]d"] = {
-		["neotest-output"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
-		["neotest-output-panel"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
-		["neotest-summary"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
-		["OverseerOutput"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+		["better_term"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
 	},
 
 	-- 错误跳转：上一个（[d 键）
 	-- 使用 prev_error_repeatable 以支持 . 重复命令
 	["[d"] = {
-		["neotest-output"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
-		["neotest-output-panel"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
-		["neotest-summary"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
-		["OverseerOutput"] = { cmd = "prev_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+		["better_term"] = { cmd = "prev_error_repeatable", desc = "下一个错误（支持 . 重复）" },
 	},
 }
 
