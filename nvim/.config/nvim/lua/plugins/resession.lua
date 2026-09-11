@@ -52,11 +52,11 @@ return {
 			},
 		})
 
-		-- 快捷键配置（使用 <LocalLeader>s 作为前缀）
+		-- 快捷键配置（使用 <leader>os 作为前缀）
 		local opts = { noremap = true, silent = true }
 
 		-- 保存当前会话
-		vim.keymap.set("n", "<LocalLeader>ss", function()
+		vim.keymap.set("n", "<leader>oss", function()
 			local name = vim.fn.input("Session name: ")
 			if name ~= "" then
 				require("resession").save(name)
@@ -64,14 +64,14 @@ return {
 		end, { desc = "Save session" })
 
 		-- 快速保存（使用当前目录名作为会话名）
-		vim.keymap.set("n", "<LocalLeader>sq", function()
+		vim.keymap.set("n", "<leader>osq", function()
 			local cwd = vim.fn.getcwd()
 			local name = vim.fn.fnamemodify(cwd, ":t")
 			require("resession").save(name, { notify = true })
 		end, { desc = "Quick save session (using folder name)" })
 
 		-- 加载会话（交互式选择）
-		vim.keymap.set("n", "<LocalLeader>sl", function()
+		vim.keymap.set("n", "<leader>osl", function()
 			local sessions = require("resession").list()
 			if vim.tbl_isempty(sessions) then
 				vim.notify("No sessions found", vim.log.levels.WARN)
@@ -90,7 +90,7 @@ return {
 		end, { desc = "Load session" })
 
 		-- 删除会话
-		vim.keymap.set("n", "<LocalLeader>sd", function()
+		vim.keymap.set("n", "<leader>osd", function()
 			local sessions = require("resession").list()
 			if vim.tbl_isempty(sessions) then
 				vim.notify("No sessions found", vim.log.levels.WARN)
@@ -109,7 +109,7 @@ return {
 		end, { desc = "Delete session" })
 
 		-- 保存当前标签页为会话
-		vim.keymap.set("n", "<LocalLeader>st", function()
+		vim.keymap.set("n", "<leader>ost", function()
 			local name = vim.fn.input("Tab session name: ")
 			if name ~= "" then
 				require("resession").save_tab(name)
@@ -117,7 +117,7 @@ return {
 		end, { desc = "Save tab session" })
 
 		-- 查看当前会话
-		vim.keymap.set("n", "<LocalLeader>si", function()
+		vim.keymap.set("n", "<leader>osi", function()
 			local current = require("resession").get_current()
 			if current then
 				vim.notify("Current session: " .. current, vim.log.levels.INFO)
@@ -127,18 +127,18 @@ return {
 		end, { desc = "Show current session" })
 
 		-- 脱离当前会话（停止自动保存）
-		vim.keymap.set("n", "<LocalLeader>sx", function()
+		vim.keymap.set("n", "<leader>osx", function()
 			require("resession").detach()
 			vim.notify("Detached from session", vim.log.levels.INFO)
 		end, { desc = "Detach from session" })
 
 		-- 手动保存当前会话（不弹出提示，使用当前会话名）
-		vim.keymap.set("n", "<LocalLeader>sw", function()
+		vim.keymap.set("n", "<leader>osw", function()
 			local current = require("resession").get_current()
 			if current then
 				require("resession").save(current, { notify = true })
 			else
-				vim.notify("No active session, use <LocalLeader>ss to save a new one", vim.log.levels.WARN)
+				vim.notify("No active session, use <leader>oss to save a new one", vim.log.levels.WARN)
 			end
 		end, { desc = "Save current session" })
 	end,

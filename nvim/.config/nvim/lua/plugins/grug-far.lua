@@ -35,7 +35,7 @@ return {
 		end, { desc = "grug-far：以临时缓冲区打开（关闭后删除）" })
 
 		-- 切换 grug-far 实例可见性
-		vim.keymap.set("n", "<leader>sgT", function()
+		vim.keymap.set("n", "<leader>sgf", function()
 			require("grug-far").toggle_instance({
 				instanceName = "far",
 				staticTitle = "Find and Replace",

@@ -1,10 +1,10 @@
 -- TODO: https://github.com/neovim/neovim/issues/34562
 
+require("user.search_status").setup()
 local colors = require("user.colors").palette
 local lsp = require("lsp-config.lsp_status_mod").lsp
 local search_status = require("user.search_status")
 local todo_status = require("todo2.ui.statusline")
-require("user.search_status").setup()
 
 local M = {} -- 使用 M 作为模块的局部变量
 

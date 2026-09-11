@@ -19,6 +19,8 @@ vim.opt.scrolloffpad = 1
 vim.schedule(function()
 	vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
 end)
+vim.opt.spell = true
+vim.opt.spelllang = "en_us"
 -- vim.g.clipboard = "osc52"
 vim.o.modeline = false -- 禁用 modeline
 -- vim.o.updatetime = 10000 -- 设置更新延迟时间（毫秒）
@@ -40,15 +42,19 @@ vim.o.spelloptions = "camel" -- 开启驼峰拼写检查
 vim.o.maxcombine = 8 -- 最大组合字符数
 -- 在光标所在的第81列显示一条垂直警示线
 vim.opt.colorcolumn = "80"
-
+-- 光标配置
+vim.opt.guicursor:append({
+	"n-v-c-sm:block",
+	"i-ci-ve:ver25",
+	"r-cr-o:hor20",
+	"t:ver25-blinkon500-blinkoff500-TermCursor",
+})
 -- -------------- 折叠设置 --------------
 -- 设置折叠表达式
--- ufo插件接管
 -- vim.o.foldmethod = "expr"
 -- vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 -- vim.o.foldlevelstart = 99 -- 默认展开所有内容
 -- vim.o.foldcolumn = "1" -- 显示折叠列
-vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
 
 -- -------------- 编辑行为设置 --------------
 vim.o.expandtab = true -- 将 Tab 转为空格
@@ -98,54 +104,27 @@ vim.o.number = true --显示行号
 vim.o.relativenumber = true -- 启用相对行号
 vim.o.signcolumn = "yes:3" -- 始终显示标志列
 vim.o.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换到最近使用过的标签页（如果有）
--- vim.opt.messagesopt = "history:1000,progress:c"  -- 保存更多历史，不要 hit-enter
--- 启用 UI2（Neovim 0.12 的渲染层）
-require("vim._core.ui2").enable({
-	enable = true,
-	msg = {
-		targets = {
-			[""] = "msg",
-			empty = "cmd",
-			bufwrite = "msg",
-			confirm = "cmd",
-			emsg = "pager",
-			echo = "msg",
-			echomsg = "msg",
-			echoerr = "pager",
-			completion = "cmd",
-			list_cmd = "pager",
-			lua_error = "pager",
-			lua_print = "msg",
-			progress = "pager",
-			rpc_error = "pager",
-			quickfix = "msg",
-			search_cmd = "cmd",
-			search_count = "cmd",
-			shell_cmd = "pager",
-			shell_err = "pager",
-			shell_out = "pager",
-			shell_ret = "msg",
-			undo = "msg",
-			verbose = "pager",
-			wildlist = "cmd",
-			wmsg = "msg",
-			typed_cmd = "cmd",
-		},
-		cmd = {
-			height = 0.5,
-		},
-		dialog = {
-			height = 0.5,
-		},
+
+-- NOTE: 非正式功能,需要做好容错处理.
+local ok, ui2 = pcall(require, "vim._core.ui2")
+if ok then
+	ui2.enable({
+		enable = true,
 		msg = {
-			height = 0.3,
-			timeout = 5000,
+			targets = {
+				default = "cmd",
+				progress = "msg",
+				warning = "msg",
+				error = "pager",
+			},
+			dialog = { height = 0.4 },
+			msg = { height = 0.3 },
+			pager = { height = 0.8 },
 		},
-		pager = {
-			height = 0.5,
-		},
-	},
-})
+	})
+
+	vim.opt.messagesopt:append("maxheight:50,timeout:3000")
+end
 
 -- -------------- 显示和符号设置 --------------
 vim.o.list = true -- 显示不可见字符

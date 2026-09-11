@@ -23,7 +23,7 @@ return {
 			"bash",
 			"html",
 			"css",
-			-- "json",
+			"json",
 			"markdown",
 			"markdown_inline",
 			"dap_repl",

@@ -2,7 +2,7 @@
 
 return {
 	"kibi2/tirenvi.nvim",
-	ft = { "csv", "tsv", "pukiwiki" }, -- "markdown"
+	ft = { "csv", "tsv", "pukiwiki", "markdown" }, -- "markdown"
 
 	dependencies = {
 		"tpope/vim-repeat", -- optional: enables '.' repeat for column width operations

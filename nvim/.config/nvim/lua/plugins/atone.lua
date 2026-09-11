@@ -4,8 +4,6 @@ return {
 	"XXiaoA/atone.nvim",
 	event = "VeryLazy",
 	cmd = "Atone",
-	---@module "atone"
-	---@type AtoneConfig
 	config = function()
 		require("atone").setup({
 			layout = {

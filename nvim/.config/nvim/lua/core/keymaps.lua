@@ -79,11 +79,6 @@ vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "
 
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>Re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
-vim.keymap.set("n", "<leader>Rn", function()
-	local session = vim.fn.stdpath("state") .. "/restart_session.vim"
-	vim.cmd("mksession! " .. vim.fn.fnameescape(session))
-	vim.cmd("restart source " .. vim.fn.fnameescape(session))
-end, { desc = "Restart Neovim" })
 
 -- 🔍 Search
 vim.keymap.set("x", "/", "<C-\\><C-n>`</\\%V", { desc = "Search: forward in visual range" })
