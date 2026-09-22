@@ -1,107 +1,167 @@
--- https://github.com/olimorris/codecompanion.nvim
+-- https://codecompanion.olimorris.dev/installation
 
 return {
 	"olimorris/codecompanion.nvim",
-	event = "VeryLazy",
 	dependencies = {
-		"nvim-lua/plenary.nvim",
-		"nvim-treesitter/nvim-treesitter",
-		"saghen/blink.cmp",
+		"ravitemer/mcphub.nvim",
+		"franco-ruggeri/codecompanion-spinner.nvim",
 	},
 	config = function()
 		require("codecompanion").setup({
-			-- 语言.
-			language = "Chinese",
-			-- 适配器配置
+			interactions = {
+				chat = {
+					adapter = {
+						-- name = "piacp",
+						name = "deepseek",
+						model = "deepseek-v4-flash",
+					},
+					sessions = {
+						enabled = true,
+						autosave = true,
+						continuous_save = true,
+						save_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "codecompanion", "sessions"),
+					},
+				},
+				inline = {
+					adapter = {
+						name = "deepseek",
+						-- model = "deepseek-v4-flash",
+					},
+				},
+				cli = {
+					agent = "pi",
+					agents = {
+						pi = {
+							cmd = "pi",
+							args = {},
+							description = "pi coding agent",
+						},
+					},
+				},
+			},
 			adapters = {
 				http = {
+					opts = {
+						show_presets = true,
+						show_model_choices = true,
+					},
 					deepseek = function()
-						return require("codecompanion.adapters").extend("openai_compatible", {
+						return require("codecompanion.adapters").extend("deepseek", {
+							name = "deepseek",
 							env = {
-								url = "https://api.deepseek.com",
-								api_key = os.getenv("DEEPSEEK_API_KEY"), -- 从环境变量读取
-								chat_url = "/v1/chat/completions",
+								api_key = function()
+									return os.getenv("DEEPSEEK_API_KEY")
+								end,
 							},
 							schema = {
 								model = {
-									default = "deepseek-v4-pro", -- 或 "deepseek-coder"
+									default = "deepseek-v4-flash",
 								},
 							},
 						})
 					end,
 				},
+				acp = {
+					piacp = function()
+						local helpers = require("codecompanion.adapters.acp.helpers")
+						return {
+							name = "piacp",
+							formatted_name = "pi coding agent",
+							type = "acp",
+							roles = {
+								llm = "assistant",
+								user = "user",
+							},
+							commands = {
+								default = {
+									"npx",
+									"-y",
+									"pi-acp",
+								},
+							},
+							defaults = {
+								mcpServers = {},
+								timeout = 20000,
+							},
+							parameters = {
+								protocolVersion = 1,
+								clientCapabilities = {
+									fs = { readTextFile = true, writeTextFile = true },
+								},
+								clientInfo = {
+									name = "CodeCompanion.nvim",
+									version = "1.0.0",
+								},
+							},
+							handlers = {
+								setup = function(self)
+									return true
+								end,
+								auth = function(self)
+									return true
+								end,
+								form_messages = function(self, messages, capabilities)
+									return helpers.form_messages(self, messages, capabilities)
+								end,
+								on_exit = function(self, code) end,
+							},
+						}
+					end,
+				},
 			},
-			-- 交互配置
-			interactions = {
-				chat = {
-					adapter = "deepseek", -- 使用 DeepSeek
-				},
-				inline = {
-					adapter = "deepseek",
-				},
-				cmd = {
-					adapter = "deepseek",
-				},
-			},
-			-- 可选：默认提示库
-			prompts = {
-				custom = {
-					-- 示例：定义一个代码审查提示
-					review = {
-						prompt = "Please review the following code and suggest improvements:",
-						interaction = "inline",
-						opts = {
-							is_default = true,
-						},
+			extensions = {
+				spinner = {},
+				mcphub = {
+					callback = "mcphub.extensions.codecompanion",
+					opts = {
+						make_vars = true,
+						make_slash_commands = true,
+						show_result_in_chat = true,
 					},
 				},
 			},
+			display = {
+				diff = {
+					enabled = true,
+
+					-- At or below this diff size, always display the diff in the chat buffer
+					threshold_for_chat = 6,
+
+					word_highlights = {
+						additions = true,
+						deletions = true,
+					},
+				},
+			},
+			opts = { language = "Chinese" },
 		})
 
-		-- 快捷键映射（以 <Leader>a 为前缀）
-		vim.keymap.set(
-			{ "n", "v" },
-			"<Leader>aa",
-			"<cmd>CodeCompanionActions<cr>",
-			{ noremap = true, silent = true, desc = "Open actions palette" }
-		)
+		-- [C]odeCompanion [A]dd
+		vim.keymap.set({ "n", "v" }, "<c-.>", function()
+			require("codecompanion").toggle()
+		end, { desc = "codecompanion toggle" })
+
+		vim.keymap.set({ "n", "v" }, "<leader>ai", "<cmd>CodeCompanionCLI Ask<cr>", { noremap = true, silent = true })
 
 		vim.keymap.set(
 			{ "n", "v" },
 			"<Leader>ac",
 			"<cmd>CodeCompanionChat Toggle<cr>",
-			{ noremap = true, silent = true, desc = "Toggle chat buffer" }
+			{ noremap = true, silent = true }
 		)
 
-		vim.keymap.set(
-			"v",
-			"<Leader>as",
-			"<cmd>CodeCompanionChat Add<cr>",
-			{ noremap = true, silent = true, desc = "Add selection to chat" }
-		)
+		vim.keymap.set({ "n", "v" }, "<Leader>aC", "<cmd>CodeCompanionCLI<cr>", { noremap = true, silent = true })
 
 		vim.keymap.set(
 			{ "n", "v" },
-			"<Leader>ai",
-			"<cmd>CodeCompanion<cr>",
-			{ noremap = true, silent = true, desc = "Inline interaction" }
+			"<Leader>ar",
+			"<cmd>CodeCompanionCodeReview<cr>",
+			{ noremap = true, silent = true }
 		)
 
-		vim.keymap.set(
-			"n",
-			"<Leader>al",
-			"<cmd>CodeCompanionCLI<cr>",
-			{ noremap = true, silent = true, desc = "Open CLI interaction" }
-		)
+		vim.keymap.set("v", "ga", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })
 
-		vim.keymap.set(
-			"n",
-			"<Leader>am",
-			"<cmd>CodeCompanionCmd<cr>",
-			{ noremap = true, silent = true, desc = "Generate command" }
-		)
-
-		-- 命令行缩写
-		-- vim.cmd([[cab cc CodeCompanion]])
+		-- Expand 'cc' into 'CodeCompanion' in the command line
+		vim.cmd([[cab cc CodeCompanion]])
 	end,
 }

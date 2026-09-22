@@ -223,73 +223,6 @@ return {
 					-- end,
 				},
 			},
-
-			-- ========== 高亮自定义 ==========
-			highlights = {
-				-- 填充区域
-				fill = {
-					fg = "#5c6370",
-					bg = "#1e1e2e",
-				},
-				-- 背景
-				background = {
-					fg = "#5c6370",
-					bg = "#1e1e2e",
-				},
-				-- 选中的缓冲区
-				buffer_selected = {
-					fg = "#ffffff",
-					bg = "#2c2e3e",
-					bold = true,
-					italic = false,
-				},
-				-- 可见的缓冲区
-				buffer_visible = {
-					fg = "#5c6370",
-					bg = "#1e1e2e",
-				},
-				-- 关闭按钮
-				close_button = {
-					fg = "#5c6370",
-					bg = "#1e1e2e",
-				},
-				close_button_selected = {
-					fg = "#ff6b6b",
-					bg = "#2c2e3e",
-				},
-				-- 分隔符
-				separator = {
-					fg = "#3b3b5c",
-					bg = "#1e1e2e",
-				},
-				separator_selected = {
-					fg = "#3b3b5c",
-					bg = "#2c2e3e",
-				},
-				-- 指示器
-				indicator_selected = {
-					fg = "#89b4fa",
-					bg = "#2c2e3e",
-				},
-				-- 修改标记
-				modified = {
-					fg = "#f9e2af",
-					bg = "#1e1e2e",
-				},
-				modified_selected = {
-					fg = "#f9e2af",
-					bg = "#2c2e3e",
-				},
-				-- 诊断高亮
-				error = { fg = "#f38ba8", bg = "#1e1e2e" },
-				error_selected = { fg = "#f38ba8", bg = "#2c2e3e" },
-				warning = { fg = "#fab387", bg = "#1e1e2e" },
-				warning_selected = { fg = "#fab387", bg = "#2c2e3e" },
-				hint = { fg = "#94e2d5", bg = "#1e1e2e" },
-				hint_selected = { fg = "#94e2d5", bg = "#2c2e3e" },
-				info = { fg = "#89b4fa", bg = "#1e1e2e" },
-				info_selected = { fg = "#89b4fa", bg = "#2c2e3e" },
-			},
 		}))
 
 		-- ========== 按键映射（匹配你原有的 barbar 习惯）==========
@@ -303,13 +236,13 @@ return {
 		-- 移动缓冲区位置
 		map(
 			"n",
-			"gbp",
+			"<leader>jbp",
 			"<Cmd>BufferLineMovePrev<CR>",
 			vim.tbl_extend("force", opts, { desc = "向左移动缓冲区" })
 		)
 		map(
 			"n",
-			"gbn",
+			"<leader>jbn",
 			"<Cmd>BufferLineMoveNext<CR>",
 			vim.tbl_extend("force", opts, { desc = "向右移动缓冲区" })
 		)
@@ -327,13 +260,10 @@ return {
 		-- 固定/取消固定
 		map(
 			"n",
-			"gbp",
+			"<leader>jbp",
 			"<Cmd>BufferLineTogglePin<CR>",
 			vim.tbl_extend("force", opts, { desc = "固定/取消固定当前缓冲区" })
 		)
-
-		-- 关闭缓冲区
-		map("n", "<c-esc>", "<Cmd>bd<CR>", vim.tbl_extend("force", opts, { desc = "关闭当前缓冲区" }))
 
 		-- 关闭其他缓冲区
 		map(
@@ -374,20 +304,20 @@ return {
 		-- 排序命令
 		map(
 			"n",
-			"gbsn",
+			"<leader>jbsn",
 			"<Cmd>BufferLineSortByBufferNumber<CR>",
 			vim.tbl_extend("force", opts, { desc = "按缓冲区编号排序" })
 		)
-		map("n", "gbbn", "<Cmd>BufferLineSortByName<CR>", vim.tbl_extend("force", opts, { desc = "按名称排序" }))
+		-- map("n", "gbbn", "<Cmd>BufferLineSortByName<CR>", vim.tbl_extend("force", opts, { desc = "按名称排序" }))
 		map(
 			"n",
-			"gbsd",
+			"<leader>jbsd",
 			"<Cmd>BufferLineSortByDirectory<CR>",
 			vim.tbl_extend("force", opts, { desc = "按目录排序" })
 		)
 		map(
 			"n",
-			"gbse",
+			"<leader>jbse",
 			"<Cmd>BufferLineSortByExtension<CR>",
 			vim.tbl_extend("force", opts, { desc = "按扩展名排序" })
 		)

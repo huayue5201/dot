@@ -9,7 +9,6 @@ M.settings = {
 	["dap-repl"] = {
 		setup = function()
 			vim.opt_local.confirm = false
-			vim.opt_local.winfixbuf = true
 			vim.opt.buflisted = false
 		end,
 	},
@@ -22,6 +21,18 @@ M.settings = {
 	terminal = {
 		setup = function()
 			vim.opt_local.winfixbuf = true
+		end,
+	},
+	sidekick_terminal = {
+		setup = function()
+			-- vim.opt_local.winfixbuf = true
+			local keys_to_disable = { "<c-o>", "<c-i>", "<c-q>" }
+			local modes = { "n", "v" } -- 指定要禁用的模式：n=普通, v=可视
+			for _, mode in ipairs(modes) do
+				for _, key in ipairs(keys_to_disable) do
+					vim.keymap.set(mode, key, "<Nop>", { buffer = true, silent = true })
+				end
+			end
 		end,
 	},
 }
@@ -56,18 +67,26 @@ M.buf_keymaps = {
 		terminal = { cmd = "bdelete", desc = "关闭终端" },
 		["nvim-undotree"] = { cmd = "close", desc = "关闭 undotree" },
 		["vscode-diff-explorer"] = { cmd = "tabclose", desc = "关闭 diff" },
+		OverseerOutput = { cmd = "close", desc = "关闭任务输出" },
+		["neotest-summary"] = { cmd = "close", desc = "关闭测试摘要" },
+		["neotest-output"] = { cmd = "close", desc = "关闭测试输出" },
+		["neotest-output-panel"] = { cmd = "close", desc = "关闭测试输出面板" },
 	},
 
 	-- 错误跳转：下一个（]d 键）
 	-- 使用 next_error_repeatable 以支持 . 重复命令
 	["]d"] = {
 		["better_term"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+		["neotest-output"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+		["neotest-output-panel"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
 	},
 
 	-- 错误跳转：上一个（[d 键）
 	-- 使用 prev_error_repeatable 以支持 . 重复命令
 	["[d"] = {
 		["better_term"] = { cmd = "prev_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+		["neotest-output"] = { cmd = "prev_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+		["neotest-output-panel"] = { cmd = "prev_error_repeatable", desc = "下一个错误（支持 . 重复）" },
 	},
 }
 

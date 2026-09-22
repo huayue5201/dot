@@ -7,9 +7,30 @@ vim.g.loaded_ruby_provider = 0
 -- 设置 Python3 提供者路径
 -- vim.g.python3_host_prog = "/Library/Frameworks/Python.framework/Versions/3.14/bin/python3"
 
+require("vim._core.ui2").enable({
+	enable = true, -- Whether to enable or disable the UI.
+	msg = { -- Options related to the message module.
+		---@type string|table<string, 'cmd'|'msg'|'pager'> Default message target
+		---or table mapping |ui-messages| kinds, triggers and IDs to a target.
+		---Table keys are matched as a Lua pattern to the message ID. 'default'
+		---mapping applies to any omitted kind: { default = 'cmd', progress = 'msg' }.
+		targets = "cmd",
+		dialog = { -- Options related to dialog window.
+			height = 0.5, -- Maximum height.
+		},
+		msg = { -- Options related to msg window.
+			height = 0.5, -- Maximum height.
+		},
+		pager = { -- Options related to message window.
+			height = 0.999, -- Maximum height.
+		},
+	},
+})
+
 -- -------------- 基本设置 --------------
 -- local directory = vim.fs.root(0, ".git") or "."
 -- vim.cmd.cd(directory)
+vim.opt.messagesopt:append("maxheight:50,pager:<CR>,timeout:4000")
 vim.o.autoread = true -- 自动处理外部更改
 vim.o.mousemoveevent = true -- 启用鼠标移动事件
 vim.opt.fileencodings = { "utf-8", "gbk", "cp936", "ucs-bom", "latin1" }
@@ -19,11 +40,9 @@ vim.opt.scrolloffpad = 1
 vim.schedule(function()
 	vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
 end)
-vim.opt.spell = true
-vim.opt.spelllang = "en_us"
 -- vim.g.clipboard = "osc52"
 vim.o.modeline = false -- 禁用 modeline
--- vim.o.updatetime = 10000 -- 设置更新延迟时间（毫秒）
+vim.o.updatetime = 300 -- 设置更新延迟时间（毫秒）
 vim.o.jumpoptions = "stack,view" -- 跳转选项：stack 和 view
 vim.o.cursorline = true -- 高亮当前行
 vim.o.cursorcolumn = true -- 启用当前列高亮
@@ -37,7 +56,9 @@ vim.o.sidescroll = 5 -- 如果行仍然超出窗口宽度，水平滚动 5 列
 vim.o.smoothscroll = true -- 开启平滑滚动
 vim.o.undofile = true -- 启用持久撤销
 vim.o.confirm = true -- 未保存退出确认
-vim.o.spelloptions = "camel" -- 开启驼峰拼写检查
+-- vim.o.spelloptions = "camel" -- 开启驼峰拼写检查
+-- vim.opt.spell = true
+-- vim.opt.spelllang = "en_us"
 -- 限制 Neovim 在重绘时发送的最大行数
 vim.o.maxcombine = 8 -- 最大组合字符数
 -- 在光标所在的第81列显示一条垂直警示线
@@ -93,6 +114,7 @@ vim.o.splitbelow = true -- 新分割窗口默认在下方
 vim.o.splitright = true -- 新分割窗口默认在右边
 vim.o.splitkeep = "screen" -- 保持分割窗口屏幕位置
 vim.o.winborder = "rounded" -- 浮动窗口边框
+vim.opt.equalalways = false -- Does not make windows equal automatically
 
 -- -------------- 状态栏和标签页 --------------
 vim.o.showmode = false -- 禁用模式显示
@@ -104,27 +126,6 @@ vim.o.number = true --显示行号
 vim.o.relativenumber = true -- 启用相对行号
 vim.o.signcolumn = "yes:3" -- 始终显示标志列
 vim.o.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换到最近使用过的标签页（如果有）
-
--- NOTE: 非正式功能,需要做好容错处理.
-local ok, ui2 = pcall(require, "vim._core.ui2")
-if ok then
-	ui2.enable({
-		enable = true,
-		msg = {
-			targets = {
-				default = "cmd",
-				progress = "msg",
-				warning = "msg",
-				error = "pager",
-			},
-			dialog = { height = 0.4 },
-			msg = { height = 0.3 },
-			pager = { height = 0.8 },
-		},
-	})
-
-	vim.opt.messagesopt:append("maxheight:50,timeout:3000")
-end
 
 -- -------------- 显示和符号设置 --------------
 vim.o.list = true -- 显示不可见字符

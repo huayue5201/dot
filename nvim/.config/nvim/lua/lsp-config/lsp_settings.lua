@@ -51,6 +51,8 @@ M.diagnostic_config = function()
 	-- vim.cmd([[autocmd CursorMoved * lua vim.diagnostic.open_float(nil, {focusable = false})]])
 end
 
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
 M.global_config = function()
 	vim.lsp.config("*", {
 		capabilities = {
@@ -58,6 +60,7 @@ M.global_config = function()
 				semanticTokens = {
 					multilineTokenSupport = true,
 				},
+				capabilities,
 			},
 			require("nvim-file-operations.config").default_capabilities(),
 		},

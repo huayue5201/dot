@@ -8,6 +8,14 @@ vim.keymap.set("n", "dd", function()
 	return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true, desc = "Basic: delete line (empty → blackhole)" })
 
+vim.keymap.set("x", "i", function()
+	if #vim.fn.getline(".") == 0 then
+		return [["_cc]]
+	else
+		return "i"
+	end
+end, { expr = true })
+
 vim.keymap.set("n", "p", "p`[v`]=")
 
 vim.keymap.set("n", "<C-s>", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
@@ -22,7 +30,7 @@ vim.keymap.set("n", "<C-S-s>", function()
 	end
 end, { silent = true, desc = "Save all modified buffers" })
 
--- vim.keymap.set("n", "<c-esc>", ":bd<cr>", { silent = true, desc = "Basic: close buffer" })
+vim.keymap.set("n", "<c-esc>", ":bp | bd #<cr>", { silent = true, desc = "Basic: close buffer" })
 
 -- vim.keymap.set("n", "<leader>cab", function()
 -- 	local current = vim.api.nvim_get_current_buf()
@@ -62,13 +70,13 @@ vim.keymap.set("n", "<leader>Rw", function()
 end, { desc = "Toggle line wrap" })
 
 -- 🏷 Tab operaions
-vim.keymap.set("n", "gnn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
-vim.api.nvim_set_keymap("n", "gmtp", ":-tabmove<CR>", {
+vim.keymap.set("n", "<leader>jtn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
+vim.api.nvim_set_keymap("n", "<leader>jth", ":-tabmove<CR>", {
 	noremap = true,
 	silent = true,
 	desc = "Tab: 左移",
 })
-vim.keymap.set("n", "gmtn", ":+tabmove<CR>", {
+vim.keymap.set("n", "<leader>jtl", ":+tabmove<CR>", {
 	noremap = true,
 	silent = true,
 	desc = "Tab: 右移",

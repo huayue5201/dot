@@ -9,6 +9,7 @@ function M.setup()
 
 	-- ▶ 控制
 	vim.keymap.set("n", "<leader>dr", dap.continue, { desc = "[D]ap [C]ontinue / [S]tart" })
+
 	vim.keymap.set("n", "<leader>ds", function()
 		dap.terminate({
 			on_done = function()
@@ -18,7 +19,8 @@ function M.setup()
 		require("dap-view").virtual_text_disable()
 		require("dap-config.dap-extensions.ui.virtual_text").clear_all()
 	end, { desc = "[D]ap [T]erminate" })
-	vim.keymap.set("n", "<F6>", dap.pause, { desc = "[D]ap [P]ause" })
+
+	vim.keymap.set("n", "<leader>dp", dap.pause, { desc = "[D]ap [P]ause" })
 
 	-- 🪜 步进控制
 	vim.keymap.set("n", "<leader>gb", dap.step_back, { desc = "[D]ap [S]tep [B]ack" })

@@ -22,12 +22,6 @@ return {
 				-- 是否通过点击左键选择窗口
 				handle_mouse_click = false,
 				statusline_winbar_picker = {
-					-- 你可以更改状态栏中的显示字符串。
-					-- 它支持 '%' 格式化风格。例如 `return char .. ': %f'` 用来显示缓冲区的文件路径。有关详细信息，请参阅 :h 'stl'。
-					selection_display = function(char)
-						return "%=" .. char .. "%="
-					end,
-
 					-- 是否希望使用 winbar 代替 statusline
 					-- "always" 意味着始终使用 winbar，
 					-- "never" 意味着从不使用 winbar
@@ -89,35 +83,6 @@ return {
 				-- 如果文件名包含以下名称，窗口将被忽略
 				file_name_contains = {},
 			},
-
-			-- 你可以传入高亮名称或一个包含内容的表来设置高亮
-			highlights = {
-				enabled = true,
-				statusline = {
-					focused = {
-						fg = "#ededed", -- 前景色
-						bg = "#e35e4f", -- 背景色
-						bold = true, -- 是否加粗
-					},
-					unfocused = {
-						fg = "#ededed", -- 前景色
-						bg = "#44cc41", -- 背景色
-						bold = true, -- 是否加粗
-					},
-				},
-				winbar = {
-					focused = {
-						fg = "#ededed", -- 前景色
-						bg = "#e35e4f", -- 背景色
-						bold = true, -- 是否加粗
-					},
-					unfocused = {
-						fg = "#ededed", -- 前景色
-						bg = "#44cc41", -- 背景色
-						bold = true, -- 是否加粗
-					},
-				},
-			},
 		})
 
 		vim.keymap.set("n", "<Leader>cw", function()
@@ -164,7 +129,7 @@ return {
 			end
 		end, { silent = true, desc = "window: 选择一个窗口并切换" })
 
-		vim.keymap.set("n", "<localleader>ws", function()
+		vim.keymap.set("n", "<leader>sw", function()
 			local success, picker = pcall(require, "window-picker")
 			if not success then
 				print("You'll need to install window-picker to use this command.")

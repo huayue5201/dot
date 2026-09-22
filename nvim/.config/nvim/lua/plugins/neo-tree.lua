@@ -1,4 +1,3 @@
----@diagnostic disable: need-check-nil, undefined-field
 -- https://github.com/nvim-neo-tree/neo-tree.nvim
 
 return {

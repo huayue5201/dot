@@ -49,6 +49,7 @@ end
 local function get_all_marks()
 	local result = {}
 	local cur_buf = vim.api.nvim_get_current_buf()
+	local cur_total = vim.api.nvim_buf_line_count(cur_buf)
 
 	-- 大写（全局）
 	for _, m in ipairs(vim.fn.getmarklist()) do
@@ -65,10 +66,10 @@ local function get_all_marks()
 		end
 	end
 
-	-- 小写（当前 buffer）
+	-- 小写（当前 buffer），过滤越界行号
 	for _, m in ipairs(vim.fn.getmarklist(cur_buf)) do
 		local name = m.mark:match("%l")
-		if name then
+		if name and m.pos[2] >= 1 and m.pos[2] <= cur_total then
 			table.insert(result, {
 				name = name,
 				buf = cur_buf,
@@ -104,25 +105,30 @@ local function display_marks_at_left_side()
 
 	vim.api.nvim_buf_clear_namespace(buf, ns_display, 0, -1)
 
-	for line, list in pairs(marks_by_line) do
-		table.sort(list, function(a, b)
-			if a.is_upper ~= b.is_upper then
-				return a.is_upper
-			end
-			return a.name < b.name
-		end)
+	local total_lines = vim.api.nvim_buf_line_count(buf)
 
-		local col_offset = -2
-		for _, m in ipairs(list) do
-			local hl = m.is_upper and "MarkSignUpper" or "MarkSignLower"
-			vim.api.nvim_buf_set_extmark(buf, ns_display, line - 1, 0, {
-				virt_text = { { m.name, hl } },
-				virt_text_pos = "overlay",
-				virt_text_win_col = col_offset,
-				hl_mode = "combine",
-				priority = 50,
-			})
-			col_offset = col_offset - 1
+	for line, list in pairs(marks_by_line) do
+		-- 关键修复：跳过越界行号，避免 nvim_buf_set_extmark 报 out of range
+		if line >= 1 and line <= total_lines then
+			table.sort(list, function(a, b)
+				if a.is_upper ~= b.is_upper then
+					return a.is_upper
+				end
+				return a.name < b.name
+			end)
+
+			local col_offset = -2
+			for _, m in ipairs(list) do
+				local hl = m.is_upper and "MarkSignUpper" or "MarkSignLower"
+				vim.api.nvim_buf_set_extmark(buf, ns_display, line - 1, 0, {
+					virt_text = { { m.name, hl } },
+					virt_text_pos = "overlay",
+					virt_text_win_col = col_offset,
+					hl_mode = "combine",
+					priority = 50,
+				})
+				col_offset = col_offset - 1
+			end
 		end
 	end
 end
@@ -187,53 +193,61 @@ local function show_preview(marks, idx)
 	vim.api.nvim_buf_clear_namespace(preview_buf, ns_preview, 0, -1)
 
 	local row = 0
+	local preview_total = vim.api.nvim_buf_line_count(preview_buf)
 	for _, m in ipairs(marks) do
-		local path = vim.fn.fnamemodify(m.file, ":p")
-		local dir = vim.fn.fnamemodify(path, ":h") .. "/"
-		local file = vim.fn.fnamemodify(path, ":t")
+		-- 防御：确保要标记的行在 preview_buf 范围内
+		if row < preview_total then
+			local path = vim.fn.fnamemodify(m.file, ":p")
+			local dir = vim.fn.fnamemodify(path, ":h") .. "/"
+			local file = vim.fn.fnamemodify(path, ":t")
 
-		local name_col = 0
-		local dir_col_start = 3
-		local dir_col_end = dir_col_start + #dir
-		local file_col_start = dir_col_end
-		local file_col_end = file_col_start + #file
-		local line_col = file_col_end + 2
-		local line_len = #tostring(m.line)
+			local name_col = 0
+			local dir_col_start = 3
+			local dir_col_end = dir_col_start + #dir
+			local file_col_start = dir_col_end
+			local file_col_end = file_col_start + #file
+			local line_col = file_col_end + 2
+			local line_len = #tostring(m.line)
 
-		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, name_col, {
-			end_col = 1,
-			hl_group = "MarkPreviewName",
-		})
+			vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, name_col, {
+				end_col = 1,
+				hl_group = "MarkPreviewName",
+			})
 
-		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, dir_col_start, {
-			end_col = dir_col_end,
-			hl_group = "MarkPreviewDir",
-		})
+			vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, dir_col_start, {
+				end_col = dir_col_end,
+				hl_group = "MarkPreviewDir",
+			})
 
-		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, file_col_start, {
-			end_col = file_col_end,
-			hl_group = "MarkPreviewFile",
-		})
+			vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, file_col_start, {
+				end_col = file_col_end,
+				hl_group = "MarkPreviewFile",
+			})
 
-		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, line_col, {
-			end_col = line_col + line_len,
-			hl_group = "MarkPreviewLine",
-		})
+			vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row, line_col, {
+				end_col = line_col + line_len,
+				hl_group = "MarkPreviewLine",
+			})
 
-		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row + 1, 4, {
-			end_col = #lines[row + 2] or 999,
-			hl_group = "MarkPreviewCode",
-		})
+			if row + 1 < preview_total then
+				vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, row + 1, 4, {
+					end_col = #(lines[row + 2] or ""),
+					hl_group = "MarkPreviewCode",
+				})
+			end
+		end
 
 		row = row + 2
 	end
 
 	if idx then
 		local start_row = (idx - 1) * 2
-		vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, start_row, 0, {
-			hl_group = "MarkPreviewCurrent",
-			end_line = start_row + 2,
-		})
+		if start_row >= 0 and start_row < preview_total then
+			vim.api.nvim_buf_set_extmark(preview_buf, ns_preview, start_row, 0, {
+				hl_group = "MarkPreviewCurrent",
+				end_line = math.min(start_row + 2, preview_total),
+			})
+		end
 	end
 end
 
@@ -361,14 +375,14 @@ end
 -- 7. Highlight
 ---------------------------------------------------------
 vim.cmd([[
-  highlight MarkSignUpper guifg=#FFFFFF guibg=#8B6969 gui=italic
-  highlight MarkSignLower guifg=#FFFFFF guibg=#0088FF gui=italic
-  highlight MarkPreviewDir  guifg=#de773f
-  highlight MarkPreviewFile guifg=#00D7FF gui=bold
-  highlight MarkPreviewLine guifg=#87FF5F gui=bold
-  highlight MarkPreviewName guifg=#d64f44 gui=bold
-  highlight MarkPreviewCode guifg=#7c8577
-  highlight MarkPreviewCurrent guibg=#3A3A3A
+	highlight MarkSignUpper guifg=#FFFFFF guibg=#8B6969 gui=italic
+	highlight MarkSignLower guifg=#FFFFFF guibg=#0088FF gui=italic
+	highlight MarkPreviewDir  guifg=#de773f
+	highlight MarkPreviewFile guifg=#00D7FF gui=bold
+	highlight MarkPreviewLine guifg=#87FF5F gui=bold
+	highlight MarkPreviewName guifg=#d64f44 gui=bold
+	highlight MarkPreviewCode guifg=#7c8577
+	highlight MarkPreviewCurrent guibg=#3A3A3A
 ]])
 
 ---------------------------------------------------------
@@ -532,7 +546,7 @@ vim.api.nvim_create_autocmd("CursorHold", {
 ---------------------------------------------------------
 -- 13. 删除单个标记
 ---------------------------------------------------------
-vim.keymap.set("n", "<leader>cm", function()
+vim.keymap.set("n", "dm", function()
 	local marks = get_all_marks()
 	if #marks == 0 then
 		print("No marks to delete")
@@ -558,7 +572,7 @@ end, { desc = "Delete specific mark" })
 ---------------------------------------------------------
 -- 14. 清除所有标记
 ---------------------------------------------------------
-vim.keymap.set("n", "<leader>cam", function()
+vim.keymap.set("n", "dam", function()
 	vim.cmd("delmarks a-zA-Z0-9")
 end, { desc = "Delete all marks" })
 

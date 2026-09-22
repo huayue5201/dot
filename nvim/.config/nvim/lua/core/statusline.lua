@@ -1,10 +1,9 @@
 -- TODO: https://github.com/neovim/neovim/issues/34562
 
-require("user.search_status").setup()
 local colors = require("user.colors").palette
 local lsp = require("lsp-config.lsp_status_mod").lsp
-local search_status = require("user.search_status")
 local todo_status = require("todo2.ui.statusline")
+local dap_status = require("dap").status()
 
 local M = {} -- 使用 M 作为模块的局部变量
 
@@ -135,7 +134,7 @@ end
 -- ================================
 -- 保存提示功能
 -- ================================
-function M.save_status()
+local function save_status()
 	local unsaved_count = 0
 	local has_unsaved = false
 
@@ -250,8 +249,7 @@ function M.save_status()
 end
 
 --- 获取调试器状态
-function M.dap_status()
-	local dap_status = require("dap").status()
+local function dap()
 	if dap_status == "" then
 		return ""
 	end
@@ -259,7 +257,7 @@ function M.dap_status()
 end
 
 --- 获取 Git 状态
-function M.vcs()
+local function vcs()
 	local git_info = vim.b.gitsigns_status_dict
 	if not git_info or not git_info.head then
 		-- return "%#GitIcon# %*" .. " "
@@ -284,7 +282,7 @@ function M.vcs()
 end
 
 --- 获取动态滚动条
-function M.get_scrollbar()
+local function get_scrollbar()
 	local total_lines = vim.api.nvim_buf_line_count(0)
 	local cur_line = vim.api.nvim_win_get_cursor(0)[1]
 
@@ -300,7 +298,7 @@ end
 -- ================================
 -- ⭐ TODO 标记数量显示
 -- ================================
-function M.todo_markers()
+local function todo_markers()
 	-- ⭐ 修复：获取当前 buffer 的文件路径
 	local bufnr = vim.api.nvim_get_current_buf()
 	local filepath = vim.api.nvim_buf_get_name(bufnr)
@@ -324,16 +322,15 @@ function M.active()
 	return table.concat({
 		"%#Normal#",
 		string.format("%-45s", M.mode()) .. "  ", -- 模式显示区域
-		M.save_status(),
+		save_status(),
 		"   ",
 		lsp(),
 		"%=", -- 分隔符
-		M.todo_markers(), -- ⭐ 添加 TODO 标记数量显示
-		search_status.get() .. " ",
-		M.dap_status() .. " ",
-		M.vcs() .. "  ",
+		todo_markers(), -- ⭐ 添加 TODO 标记数量显示
+		dap() .. " ",
+		vcs() .. "  ",
 		" %l:%c   ",
-		M.get_scrollbar(),
+		get_scrollbar(),
 		"%p ",
 	})
 end
@@ -353,7 +350,7 @@ end
 local statusline_group = vim.api.nvim_create_augroup("Statusline", { clear = true })
 
 -- 注册自动命令
-vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter", "BufWritePost", "ModeChanged" }, {
+vim.api.nvim_create_autocmd({ "CursorMoved", "WinEnter", "BufEnter", "BufWritePost", "ModeChanged" }, {
 	group = statusline_group,
 	callback = refresh_statusline,
 })

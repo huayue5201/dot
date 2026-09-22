@@ -26,13 +26,13 @@ return {
 		-- end, { desc = "Toggle terminal 1" })
 
 		-- Select a terminal to focus
-		vim.keymap.set("n", "<leader>ts", betterTerm.select, { desc = "Select terminal" })
+		vim.keymap.set("n", "<localleader>ts", betterTerm.select, { desc = "Select terminal" })
 
 		-- Rename the current terminal
-		vim.keymap.set("n", "<leader>tr", betterTerm.rename, { desc = "Rename terminal" })
+		vim.keymap.set("n", "<localleader>tr", betterTerm.rename, { desc = "Rename terminal" })
 
 		-- Toggle the tabs bar
-		vim.keymap.set("n", "<leader>tt", betterTerm.toggle_tabs, { desc = "Toggle terminal tabs" })
+		vim.keymap.set("n", "<localleader>tt", betterTerm.toggle_tabs, { desc = "Toggle terminal tabs" })
 
 		function _G.set_terminal_keymaps()
 			local opts = { buffer = 0 }
