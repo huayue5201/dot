@@ -51,28 +51,19 @@ M.diagnostic_config = function()
 	-- vim.cmd([[autocmd CursorMoved * lua vim.diagnostic.open_float(nil, {focusable = false})]])
 end
 
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
 M.global_config = function()
+	local capabilities = vim.lsp.protocol.make_client_capabilities()
+	capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
+	capabilities.textDocument.semanticTokens.multilineTokenSupport = true
+
+	local ok, file_ops = pcall(require, "nvim-file-operations.config")
+	if ok then
+		capabilities = vim.tbl_deep_extend("force", capabilities, file_ops.default_capabilities())
+	end
+
 	vim.lsp.config("*", {
-		capabilities = {
-			textDocument = {
-				semanticTokens = {
-					multilineTokenSupport = true,
-				},
-				capabilities,
-			},
-			require("nvim-file-operations.config").default_capabilities(),
-		},
+		capabilities = capabilities,
 		root_markers = { ".git" },
-		on_attach = function(client, bufnr)
-			-- some clients support workspace diagnostics natively
-			if client:supports_method("workspace/diagnostic", bufnr) then
-				vim.lsp.buf.workspace_diagnostics({ client_id = client.id })
-			else
-				require("workspace-diagnostics").populate_workspace_diagnostics(client, bufnr)
-			end
-		end,
 	})
 end
 
@@ -88,11 +79,11 @@ M.lsp_Start = function()
 
 			for _, lsp_name in ipairs(lsp_names) do
 				local state = Store:get("lsp." .. lsp_name)
+				local should_enable = state ~= "inactive"
 
-				if state == "inactive" then
-					vim.lsp.enable(lsp_name, false)
-				else
-					vim.lsp.enable(lsp_name, true)
+				-- 幂等：只有状态不一致时才调用 enable，避免重复触发 doautoall
+				if vim.lsp.is_enabled(lsp_name) ~= should_enable then
+					vim.lsp.enable(lsp_name, should_enable)
 				end
 			end
 		end,

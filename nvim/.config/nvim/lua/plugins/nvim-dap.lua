@@ -81,44 +81,36 @@ return {
 		local repl = require("dap.repl")
 		---@diagnostic disable-next-line: inject-field
 		repl.commands = vim.tbl_extend("force", repl.commands, {
-			-- 添加 .copy 命令
+			-- 添加 .copy 命令：求值并把结果放入剪贴板
 			custom_commands = {
 				[".copy"] = function(text)
-					local evaluated = repl.execute(text, { context = "clipboard" })
-					local result = evaluated.result
-					-- 将结果放入系统剪贴板（+寄存器）
-					vim.fn.setreg("+", result)
-					-- 输出信息到 REPL
-					dap.repl.append("Copied to clipboard: " .. result)
+					local session = dap.session()
+					if not session then
+						dap.repl.append("No active debug session")
+						return
+					end
+					session:evaluate(text, function(err, resp)
+						if err then
+							dap.repl.append(tostring(err))
+							return
+						end
+						local result = resp and resp.result or ""
+						vim.fn.setreg("+", result)
+						vim.fn.setreg('"', result)
+						dap.repl.append("Copied to clipboard: " .. result)
+					end)
 				end,
 			},
 		})
 
-		-- 配置加载方法
-		local function load_dap_adapter()
-			local filetype = vim.bo.filetype
-			if filetype == "rust" then
-				-- require("dap-config.adapters.rust-gdb").setup(dap) -- gdb在macOS上有bug
-				require("dap-config.adapters.codelldb").setup(dap)
-				require("dap-config.adapters.probe_rs").setup(dap)
-				-- require("dap-config.adapters.pyocd").setup(dap)
-			elseif filetype == "javascript" or filetype == "typescript" then
-				-- 如果是 JavaScript 或 TypeScript 文件，加载 vscode-js-debug 适配器
-				require("dap-config.adapters.vscode-js-debug").setup(dap)
-			elseif filetype == "c" then
-				require("dap-config.adapters.probe_rs").setup(dap)
-				require("dap-config.adapters.openocd").setup(dap)
-				require("dap-config.adapters.pyocd").setup(dap)
-			elseif filetype == "lua" then
-				require("dap-config.adapters.nlua").setup(dap)
-			end
-		end
-
-		-- 创建自动命令，根据文件类型加载调试适配器
-		vim.api.nvim_create_autocmd("FileType", {
-			pattern = "*", -- 对所有文件类型生效
-			callback = load_dap_adapter, -- 调用加载配置的函数
-		})
+		-- 适配器统一在此注册一次（每个 adapter 只 setup 一次，避免重复/覆盖）
+		-- gdb 在 macOS 上有 bug，rust-gdb 暂不启用
+		require("dap-config.adapters.codelldb").setup(dap)
+		require("dap-config.adapters.probe_rs").setup(dap)
+		require("dap-config.adapters.vscode-js-debug").setup(dap)
+		require("dap-config.adapters.openocd").setup(dap)
+		require("dap-config.adapters.pyocd").setup(dap)
+		require("dap-config.adapters.nlua").setup(dap)
 
 		vim.api.nvim_create_autocmd({ "VimLeave" }, {
 			callback = function()

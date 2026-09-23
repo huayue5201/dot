@@ -251,6 +251,16 @@ function M.setup()
 			if client:supports_method("textDocument/linkedEditingRange") then
 				vim.lsp.linked_editing_range.enable(true, { client_id = client.id, bufnr = bufnr })
 			end
+
+			-- workspace 级诊断（原生支持优先，否则用插件回退）
+			if client:supports_method("workspace/diagnostic", bufnr) then
+				vim.lsp.buf.workspace_diagnostics({ client_id = client.id })
+			else
+				local ok, wsdiag = pcall(require, "workspace-diagnostics")
+				if ok then
+					wsdiag.populate_workspace_diagnostics(client, bufnr)
+				end
+			end
 		end,
 	})
 

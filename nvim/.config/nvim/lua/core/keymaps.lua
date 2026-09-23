@@ -1,6 +1,8 @@
 vim.keymap.set("n", "<localleader>elf", "<cmd>echo &filetype<cr>", { silent = true, desc = "调试: file类型" })
 vim.keymap.set("n", "<localleader>elb", "<cmd>echo &buftype<cr>", { silent = true, desc = "调试: buffer类型" })
 
+vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
+
 -- 📝 Basic operations
 vim.keymap.set("n", "c", '"_c', { desc = "Basic: change to blackhole" })
 

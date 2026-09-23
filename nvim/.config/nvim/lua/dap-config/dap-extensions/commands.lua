@@ -56,7 +56,7 @@ local function get_function_location(function_name)
 	for _, client in ipairs(clients) do
 		local caps = client.server_capabilities
 		if caps and caps.workspaceSymbolProvider then
-			local result = client.request_sync("workspace/symbol", {
+			local result = client:request_sync("workspace/symbol", {
 				query = function_name,
 			}, 1000)
 			if result and result.result then
@@ -96,12 +96,17 @@ local function get_data_location()
 end
 
 local function check_capability(cap_name, error_msg)
-	if capabilities.supports then
-		if not capabilities.supports(cap_name) then
-			vim.notify(error_msg or "Current debug adapter does not support " .. cap_name, "error")
-			return false
-		end
+	-- 无活动会话时无法查询能力，放行并交给后续 pending 流程
+	if not require("dap").session() then
 		return true
+	end
+
+	-- cap_name 形如 "supportsFunctionBreakpoints" -> supports_function_breakpoints
+	local fn_name = cap_name:gsub("(%u)", "_%1"):lower():gsub("^_", "")
+	local fn = capabilities[fn_name]
+	if fn and not fn() then
+		vim.notify(error_msg or "Current debug adapter does not support " .. cap_name, "error")
+		return false
 	end
 	return true
 end

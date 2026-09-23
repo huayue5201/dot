@@ -19,7 +19,7 @@ local function is_executable_position_by_lsp(bufnr, line, col)
 			}
 
 			local ok, result = pcall(function()
-				return client.request_sync("textDocument/documentSymbol", params, 500)
+				return client:request_sync("textDocument/documentSymbol", params, 500)
 			end)
 
 			if not ok or not result or not result.result then

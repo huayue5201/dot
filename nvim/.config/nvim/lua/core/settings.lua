@@ -1,5 +1,4 @@
 -------------- Neovim 插件加载相关 --------------
--- vim.ui.select = require("user.simple-select")
 -- 禁用 Perl 和 Ruby 提供者
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_ruby_provider = 0

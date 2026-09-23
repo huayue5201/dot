@@ -127,11 +127,12 @@ local function sync_data_breakpoints(session, event, data_bps)
 					dataId = dataId,
 					accessType = bp.accessType or "write",
 				}
-				if bp.condition then
-					bp_def.condition = bp.condition
+				-- 修复：condition / hitCondition 统一从 bp.config 读取
+				if bp.config and bp.config.condition then
+					bp_def.condition = bp.config.condition
 				end
-				if bp.hitCondition then
-					bp_def.hitCondition = bp.hitCondition
+				if bp.config and bp.config.hitCondition then
+					bp_def.hitCondition = bp.config.hitCondition
 				end
 				table.insert(data_breakpoints, bp_def)
 			end

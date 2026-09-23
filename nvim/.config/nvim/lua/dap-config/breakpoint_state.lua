@@ -20,6 +20,35 @@ local function decode_key(key)
 end
 
 ---------------------------------------------------------------------
+-- bufnr <-> 文件路径 转换（跨会话持久化：bufnr 重启后会失效，改用路径）
+---------------------------------------------------------------------
+local function bufnr_to_path(bufnr)
+	if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+		local path = vim.api.nvim_buf_get_name(bufnr)
+		if path and path ~= "" then
+			return path
+		end
+	end
+	return nil
+end
+
+local function path_to_bufnr(path)
+	if path and path ~= "" and vim.fn.filereadable(path) == 1 then
+		return vim.fn.bufnr(path, true)
+	end
+	return nil
+end
+
+-- 加载时优先用 path 重新解析 bufnr，失败则回退到旧的 bufnr 值
+local function resolve_bufnr(saved_bp)
+	local bufnr = saved_bp.config.bufnr
+	if saved_bp.config.path then
+		return path_to_bufnr(saved_bp.config.path) or bufnr
+	end
+	return bufnr
+end
+
+---------------------------------------------------------------------
 -- 获取存储实例
 ---------------------------------------------------------------------
 local function get_store()
@@ -98,7 +127,7 @@ local function schedule_sync_breakpoints()
 		sync_timer:close()
 		sync_timer = nil
 	end
-	sync_timer = vim.loop.new_timer()
+	sync_timer = vim.uv.new_timer()
 	sync_timer:start(100, 0, function()
 		vim.schedule(function()
 			M.sync_breakpoints()
@@ -141,6 +170,7 @@ function M.sync_ext_breakpoints()
 			if bp.config.bufnr and bp.config.line then
 				save_bp.config.bufnr = bp.config.bufnr
 				save_bp.config.line = bp.config.line
+				save_bp.config.path = bufnr_to_path(bp.config.bufnr)
 			end
 		elseif bp.type == "data" then
 			save_bp.config.expression = bp.config.expression
@@ -150,6 +180,7 @@ function M.sync_ext_breakpoints()
 			if bp.config.bufnr and bp.config.line then
 				save_bp.config.bufnr = bp.config.bufnr
 				save_bp.config.line = bp.config.line
+				save_bp.config.path = bufnr_to_path(bp.config.bufnr)
 			end
 		elseif bp.type == "instruction" then
 			save_bp.config.instruction_reference = bp.config.instruction_reference
@@ -158,6 +189,13 @@ function M.sync_ext_breakpoints()
 			save_bp.config.size = bp.config.size
 			save_bp.config.condition = bp.config.condition
 			save_bp.config.hitCondition = bp.config.hitCondition
+		elseif bp.type == "column" then
+			save_bp.config.bufnr = bp.config.bufnr
+			save_bp.config.line = bp.config.line
+			save_bp.config.column = bp.config.column
+			save_bp.config.condition = bp.config.condition
+			save_bp.config.hitCondition = bp.config.hitCondition
+			save_bp.config.path = bufnr_to_path(bp.config.bufnr)
 		end
 
 		table.insert(to_save, save_bp)
@@ -245,19 +283,21 @@ function M.load_ext_breakpoints()
 	for _, saved_bp in ipairs(saved) do
 		local bp = nil
 		if saved_bp.type == "function" then
+			local bufnr = resolve_bufnr(saved_bp)
 			bp = dap_ext.add_function_breakpoint(saved_bp.config.function_name, {
 				condition = saved_bp.config.condition,
 				hitCondition = saved_bp.config.hitCondition,
-				bufnr = saved_bp.config.bufnr,
+				bufnr = bufnr,
 				line = saved_bp.config.line,
 			})
 			-- 不强行覆盖 status，由调试器重新决定
 		elseif saved_bp.type == "data" then
+			local bufnr = resolve_bufnr(saved_bp)
 			bp = dap_ext.add_data_breakpoint(saved_bp.config.expression, {
 				accessType = saved_bp.config.accessType,
 				condition = saved_bp.config.condition,
 				hitCondition = saved_bp.config.hitCondition,
-				bufnr = saved_bp.config.bufnr,
+				bufnr = bufnr,
 				line = saved_bp.config.line,
 			})
 		elseif saved_bp.type == "instruction" then
@@ -285,6 +325,13 @@ function M.load_ext_breakpoints()
 					hitCondition = saved_bp.config.hitCondition,
 				})
 			end
+		elseif saved_bp.type == "column" then
+			local bufnr = resolve_bufnr(saved_bp)
+			bp = dap_ext.add_column_breakpoint(saved_bp.config.line, saved_bp.config.column, {
+				condition = saved_bp.config.condition,
+				hitCondition = saved_bp.config.hitCondition,
+				bufnr = bufnr,
+			})
 		end
 
 		if bp and bp.config.bufnr and bp.config.line then
@@ -424,5 +471,10 @@ function M.setup()
 	-- 不在这里调用 load_all，避免与 BufReadPost 重复
 	return M
 end
+
+-- 导出内部函数供测试
+M._bufnr_to_path = bufnr_to_path
+M._path_to_bufnr = path_to_bufnr
+M._resolve_bufnr = resolve_bufnr
 
 return M

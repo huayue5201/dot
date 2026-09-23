@@ -38,14 +38,15 @@ end
 -- 重启 LSP
 ---------------------------------------------------------
 local function restart_lsp()
-	local clients = vim.lsp.get_clients()
+	local bufnr = vim.api.nvim_get_current_buf()
+	local clients = vim.lsp.get_clients({ bufnr = bufnr })
 	for _, client in ipairs(clients) do
 		client:stop(true)
 	end
 
 	vim.defer_fn(function()
-		local lsp_name = lsp_get.get_lsp_name()
-		vim.lsp.enable(lsp_name, true)
+		local lsp_names = lsp_get.get_lsp_name()
+		vim.lsp.enable(lsp_names, true)
 	end, 500)
 end
 

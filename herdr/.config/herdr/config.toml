@@ -10,3 +10,42 @@ key = "prefix+o"
 type = "plugin_action"
 command = "chmarax.herdr-nvim.pick-file"
 description = "open file from agent output"
+
+[[keys.command]]
+key = "alt+h"
+type = "plugin_action"
+command = "smart-splits.nvim.left"
+description = "navigate left (vim/herdr)"
+
+[[keys.command]]
+key = "alt+j"
+type = "plugin_action"
+command = "smart-splits.nvim.down"
+description = "navigate down (vim/herdr)"
+
+[[keys.command]]
+key = "alt+k"
+type = "plugin_action"
+command = "smart-splits.nvim.up"
+description = "navigate up (vim/herdr)"
+
+[[keys.command]]
+key = "alt+l"
+type = "plugin_action"
+command = "smart-splits.nvim.right"
+description = "navigate right (vim/herdr)"
+
+[sidebar]
+nvim_bin = "nvim" # binary used to spawn the per-tab nvim daemon
+nvim_env = []     # env overrides for that nvim, applied to the daemon,
+# the sidebar window, and open-file clients. For
+# example, nvim_env = ["NVIM_APPNAME=myapp"] runs the
+# sidebar under the config in ~/.config/myapp instead
+# of vanilla nvim (replace myapp with your app name).
+position = "right" # right (default), left, top, or bottom
+
+[picker]
+scan_lines = 300 # pane lines scanned by the fallback text-scrape
+max_files = 20   # session entries shown before you type a query
+# (a typed query fuzzy-searches the whole repo, uncapped)
+frecency = true # let fff reuse ~/.cache/nvim/fff_nvim (read-only copy)

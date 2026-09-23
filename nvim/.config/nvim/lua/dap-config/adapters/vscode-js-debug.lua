@@ -3,25 +3,28 @@
 return {
 	setup = function(dap)
 		-- Node.js 调试适配器
-		dap.adapters = {
-			["pwa-node"] = {
-				type = "server",
-				port = "${port}",
-				executable = {
-					command = "js-debug-adapter",
-					args = {
-						"${port}",
-					},
+		dap.adapters["pwa-node"] = {
+			type = "server",
+			port = "${port}",
+			executable = {
+				command = "js-debug-adapter",
+				args = {
+					"${port}",
 				},
-				-- resolveSourceMapLocations = { "${workspaceFolder}/build/**/*.js", "!**/node_modules/**" },
-				-- skipFiles = { "<node_internals>/**", "node_modules/**" },
 			},
+			-- resolveSourceMapLocations = { "${workspaceFolder}/build/**/*.js", "!**/node_modules/**" },
+			-- skipFiles = { "<node_internals>/**", "node_modules/**" },
+		}
 
-			-- -- Chrome 调试适配器
-			["pwa-chrome"] = {
-				type = "executable",
-				command = "node",
-				args = { "${port}" },
+		-- Chrome 调试适配器
+		dap.adapters["pwa-chrome"] = {
+			type = "server",
+			port = "${port}",
+			executable = {
+				command = "js-debug-adapter",
+				args = {
+					"${port}",
+				},
 			},
 		}
 

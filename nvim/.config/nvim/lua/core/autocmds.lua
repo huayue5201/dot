@@ -204,3 +204,11 @@ vim.cmd([[
 		autocmd TextYankPost * silent! lua vim.hl.hl_op {higroup='Visual', timeout=300}
 		autocmd TextPutPost  * silent! lua vim.hl.hl_op {higroup='Visual', timeout=300}
 ]])
+
+vim.api.nvim_create_autocmd("InsertEnter", {
+	callback = function()
+		if vim.v.hlsearch == 1 then
+			vim.v.hlsearch = 0
+		end
+	end,
+})

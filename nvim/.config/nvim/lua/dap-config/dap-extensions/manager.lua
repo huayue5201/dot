@@ -109,7 +109,7 @@ function M.add_column_breakpoint(line, column, opts)
 		column = column,
 		condition = opts.condition,
 		hitCondition = opts.hitCondition,
-		bufnr = vim.api.nvim_get_current_buf(),
+		bufnr = opts.bufnr or vim.api.nvim_get_current_buf(),
 	})
 end
 

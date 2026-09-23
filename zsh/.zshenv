@@ -11,12 +11,15 @@ export PATH="/opt/homebrew/opt/python@3.14/libexec/bin:/opt/homebrew/opt/llvm/bi
 # Neovim
 export PATH="$PATH:$HOME/Downloads/nvim-macos-arm64/bin"
 
-# Local bin
-export PATH="$PATH:$HOME/.local/bin"
-
 # 编辑器
 export EDITOR=nvim
 export VISUAL=nvim
+
+# herdr
+export SMART_SPLITS_HERDR_PASSTHROUGH_RE='^(lazygit|k9s|vi-sql)$'
+
+# Local bin
+export PATH="$PATH:$HOME/.local/bin"
 
 # LLVM flags
 export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"

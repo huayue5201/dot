@@ -80,7 +80,7 @@ local function spinner_start()
 		spinner_index = 1
 
 		-- 创建并启动定时器
-		spinner_timer = vim.loop.new_timer()
+		spinner_timer = vim.uv.new_timer()
 		spinner_timer:start(
 			0,
 			M.config.spinner_interval,
