@@ -7,6 +7,7 @@ return {
 		"Jorenar/nvim-dap-disasm",
 		-- https://github.com/jbyuki/one-small-step-for-vimkind
 		"jbyuki/one-small-step-for-vimkind",
+		"nvim-dap-extensions",
 	},
 	config = function()
 		-- repl 自动补全支持
@@ -62,8 +63,8 @@ return {
 
 		require("dap-config.exception-breakpoints")
 
-		-- . 加载 dap-extensions（在你的 dap 配置之后）
-		require("dap-config.dap-extensions").setup({
+		-- . 加载 dap-extensions（自定义断点扩展，独立插件）
+		require("dap-extensions").setup({
 			ui = {
 				sign = true, -- 显示符号标记
 				virtual_text = true, -- 显示虚拟文本

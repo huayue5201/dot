@@ -2,7 +2,10 @@
 -- https://github.com/igorlfs/nvim-dap-view
 
 return {
-	"igorlfs/nvim-dap-view",
+	dir = "~/neovim-plugins/nvim-dap-view",
+	name = "nvim-dap-view",
+	dev = true,
+	dependencies = { "nvim-dap-extensions" },
 	lazy = true,
 	-- event = "VeryLazy",
 	config = function()
@@ -77,6 +80,21 @@ return {
 					return " " .. variable.value:gsub("%s+", " ")
 				end,
 			},
+			-----------------------------------------------------------
+			-- 渲染配置：接入自定义断点（function / data / hw / column）
+			-----------------------------------------------------------
+			render = {
+				breakpoints = {
+					get_extra = function()
+						local ok, integration = pcall(require, "dap-extensions.integration")
+						if not ok then
+							return {}
+						end
+						return integration.get_view_entries()
+					end,
+				},
+			},
+
 			-----------------------------------------------------------
 			-- 跳转行为配置
 			-----------------------------------------------------------

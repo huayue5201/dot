@@ -144,7 +144,7 @@ function M.sync_ext_breakpoints()
 		return
 	end
 
-	local ok, dap_ext = pcall(require, "dap-config.dap-extensions.manager")
+	local ok, dap_ext = pcall(require, "dap-extensions.manager")
 	if not ok then
 		return
 	end
@@ -160,6 +160,7 @@ function M.sync_ext_breakpoints()
 		local save_bp = {
 			type = bp.type,
 			status = bp.status,
+			enabled = bp.enabled,
 			config = {},
 		}
 
@@ -275,7 +276,7 @@ function M.load_ext_breakpoints()
 		return
 	end
 
-	local ok, dap_ext = pcall(require, "dap-config.dap-extensions.manager")
+	local ok, dap_ext = pcall(require, "dap-extensions.manager")
 	if not ok then
 		return
 	end
@@ -334,8 +335,12 @@ function M.load_ext_breakpoints()
 			})
 		end
 
+		if bp and saved_bp.enabled == false then
+			bp.enabled = false
+		end
+
 		if bp and bp.config.bufnr and bp.config.line then
-			local ok_sign, sign = pcall(require, "dap-config.dap-extensions.ui.sign")
+			local ok_sign, sign = pcall(require, "dap-extensions.ui.sign")
 			if ok_sign then
 				sign.show_sign(bp)
 			end
@@ -382,7 +387,7 @@ function M.clear_all_breakpoints()
 		store:delete(EXT_NAMESPACE)
 	end
 
-	local ok, dap_ext = pcall(require, "dap-config.dap-extensions.manager")
+	local ok, dap_ext = pcall(require, "dap-extensions.manager")
 	if ok then
 		dap_ext.clear_breakpoints()
 	end
@@ -448,7 +453,7 @@ function M.setup_autoload()
 	})
 
 	-- 监听自定义断点事件
-	local ok, event = pcall(require, "dap-config.dap-extensions.event")
+	local ok, event = pcall(require, "dap-extensions.event")
 	if ok then
 		local function delayed_sync()
 			vim.defer_fn(M.sync_ext_breakpoints, 100)

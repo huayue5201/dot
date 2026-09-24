@@ -38,10 +38,8 @@ return {
 			},
 		}
 
-		-- 只用大模型
-		-- vim.g.translator_default_engines = { "llm" }
 		-- 想混合免费引擎做 fallback 可以改成：
-		vim.g.translator_default_engines = { "llm", "google", "baidu" }
+		vim.g.translator_default_engines = { "llm", "google", "baidu", "bing" }
 
 		----------------------------------------------------------------------
 		-- Keymap

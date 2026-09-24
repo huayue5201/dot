@@ -29,7 +29,7 @@ require("vim._core.ui2").enable({
 -- -------------- 基本设置 --------------
 -- local directory = vim.fs.root(0, ".git") or "."
 -- vim.cmd.cd(directory)
-vim.opt.messagesopt:append("maxheight:50,pager:<CR>,timeout:4000")
+vim.opt.messagesopt:append("maxheight:50,timeout:4000")
 vim.o.autoread = true -- 自动处理外部更改
 vim.o.mousemoveevent = true -- 启用鼠标移动事件
 vim.opt.fileencodings = { "utf-8", "gbk", "cp936", "ucs-bom", "latin1" }

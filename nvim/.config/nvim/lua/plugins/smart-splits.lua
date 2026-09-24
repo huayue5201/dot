@@ -1,14 +1,10 @@
 -- https://github.com/smart-splits-nvim/smart-splits.nvim
 
 return {
-	"mrjones2014/smart-splits.nvim",
+	"smart-splits-nvim/smart-splits.nvim",
+	branch = "v3",
 	event = "VeryLazy",
-	dependencies = {
-		"pogyomo/submode.nvim",
-		"smart-splits-nvim/backend-ghostty",
-	},
 	config = function()
-		require("ghostty-smart-splits").setup()
 		-- recommended mappings
 		-- resizing splits
 		-- these keymaps will also accept a range,

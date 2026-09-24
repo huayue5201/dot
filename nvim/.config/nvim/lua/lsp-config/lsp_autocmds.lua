@@ -141,50 +141,47 @@ end
 -- 处理设置变化
 ---------------------------------------------------------
 local function setup_settings_watcher()
-	-- 监听内联提示设置变化
-	Store:on("lsp.inlay_hints", function(value)
+	-- 监听设置变化（nvim-store3 事件为 set/delete/flush，回调参数为 payload 表）
+	Store:on("set", function(payload)
+		local key = payload.key
+		local value = payload.value
+
 		-- 如果调试处于活动状态，忽略设置变化
 		if vim.g.dap_active then
 			return
 		end
 
-		local clients = vim.lsp.get_clients()
-		for _, client in ipairs(clients) do
-			for _, bufnr in ipairs(client.attached_buffers or {}) do
-				if value == "on" then
-					vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-					if buffer_states[bufnr] then
-						buffer_states[bufnr].inlay_hint_enabled = true
-					end
-				else
-					vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
-					if buffer_states[bufnr] then
-						buffer_states[bufnr].inlay_hint_enabled = false
+		if key == "lsp.inlay_hints" then
+			local clients = vim.lsp.get_clients()
+			for _, client in ipairs(clients) do
+				for _, bufnr in ipairs(client.attached_buffers or {}) do
+					if value == "on" then
+						vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+						if buffer_states[bufnr] then
+							buffer_states[bufnr].inlay_hint_enabled = true
+						end
+					else
+						vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
+						if buffer_states[bufnr] then
+							buffer_states[bufnr].inlay_hint_enabled = false
+						end
 					end
 				end
 			end
-		end
-	end)
-
-	-- 监听诊断设置变化
-	Store:on("lsp.diagnostics", function(value)
-		-- 如果调试处于活动状态，忽略设置变化
-		if vim.g.dap_active then
-			return
-		end
-
-		local clients = vim.lsp.get_clients()
-		for _, client in ipairs(clients) do
-			for _, bufnr in ipairs(client.attached_buffers or {}) do
-				if value == "on" then
-					vim.diagnostic.enable(true, { bufnr = bufnr })
-					if buffer_states[bufnr] then
-						buffer_states[bufnr].diagnostics_enabled = true
-					end
-				else
-					vim.diagnostic.enable(false, { bufnr = bufnr })
-					if buffer_states[bufnr] then
-						buffer_states[bufnr].diagnostics_enabled = false
+		elseif key == "lsp.diagnostics" then
+			local clients = vim.lsp.get_clients()
+			for _, client in ipairs(clients) do
+				for _, bufnr in ipairs(client.attached_buffers or {}) do
+					if value == "on" then
+						vim.diagnostic.enable(true, { bufnr = bufnr })
+						if buffer_states[bufnr] then
+							buffer_states[bufnr].diagnostics_enabled = true
+						end
+					else
+						vim.diagnostic.enable(false, { bufnr = bufnr })
+						if buffer_states[bufnr] then
+							buffer_states[bufnr].diagnostics_enabled = false
+						end
 					end
 				end
 			end

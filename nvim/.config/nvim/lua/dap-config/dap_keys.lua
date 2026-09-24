@@ -2,7 +2,7 @@ local M = {}
 
 function M.setup()
 	local dap = require("dap")
-	local dap_ext = require("dap-config.dap-extensions")
+	local dap_ext = require("dap-extensions")
 	local breakpoint_state = require("dap-config.breakpoint_state")
 	local widgets = require("dap.ui.widgets")
 	local sidebar = nil
@@ -17,7 +17,7 @@ function M.setup()
 			end,
 		})
 		require("dap-view").virtual_text_disable()
-		require("dap-config.dap-extensions.ui.virtual_text").clear_all()
+		require("dap-extensions.ui.virtual_text").clear_all()
 	end, { desc = "[D]ap [T]erminate" })
 
 	vim.keymap.set("n", "<leader>dp", dap.pause, { desc = "[D]ap [P]ause" })
@@ -143,7 +143,7 @@ function M.setup()
 
 	-- 查询并显示调试器能力
 	vim.keymap.set("n", "<localleader>dp", function()
-		require("dap-config.dap-capabilities").show()
+		require("dap-extensions.capabilities").show()
 	end, { desc = "[D]ap Show [C]a[P]abilities" })
 
 	-- 清除所有断点
