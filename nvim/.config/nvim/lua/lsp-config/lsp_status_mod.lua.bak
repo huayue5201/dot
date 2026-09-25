@@ -66,7 +66,7 @@ local function schedule_spinner_update()
 			local current_spinner = M.config.spinner_frames[spinner_index]
 			if current_spinner ~= last_spinner then
 				last_spinner = current_spinner
-				vim.api.nvim_exec_autocmds("User", { pattern = "LspStatusSpinner" })
+				vim.cmd("redrawstatus")
 			end
 		end, math.max(100, M.config.spinner_interval / 2)) -- 最小间隔 100ms
 	end
@@ -105,7 +105,7 @@ local function spinner_stop()
 		end
 
 		-- 停止后刷新一次状态栏，清除 spinner
-		vim.api.nvim_exec_autocmds("User", { pattern = "LspStatusSpinner" })
+		vim.cmd("redrawstatus")
 	end
 end
 

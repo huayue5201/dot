@@ -314,172 +314,45 @@ local function todo_markers()
 end
 
 -- ================================
--- 状态栏组装（高性能版：缓存 + 事件驱动）
+-- 状态栏组装
 -- ================================
 
--- 各模块构建函数
-local builders = {
-	mode = M.mode,
-	save = save_status,
-	lsp = lsp,
-	todo = todo_markers,
-	dap = dap,
-	vcs = vcs,
-	scroll = get_scrollbar,
-}
-
--- 渲染结果缓存 + 脏标记
-local state = {}
-local dirty = {}
-
---- 标记模块（或全部）为脏
-local function enqueue(module)
-	if module then
-		dirty[module] = true
-	else
-		for mod in pairs(builders) do
-			dirty[mod] = true
-		end
-	end
-end
-
---- 只重建脏模块，返回是否有变化
-local function update()
-	local changed = false
-	for mod in pairs(dirty) do
-		local builder = builders[mod]
-		if builder then
-			local value = builder()
-			if value ~= state[mod] then
-				state[mod] = value
-				changed = true
-			end
-		end
-		dirty[mod] = nil
-	end
-	return changed
-end
-
---- 拼接最终状态栏（%l/%c/%p 由 Neovim 在绘制时展开，无需 Lua 计算）
-local function compose()
+--- 组装活动状态栏
+function M.active()
 	return table.concat({
 		"%#Normal#",
-		state.mode .. "  ",
-		state.save,
+		string.format("%-45s", M.mode()) .. "  ", -- 模式显示区域
+		save_status(),
 		"   ",
-		state.lsp,
+		lsp(),
 		"%=", -- 分隔符
-		state.todo,
-		state.dap .. " ",
-		state.vcs .. "  ",
-		" %l:%c   ",
-		state.scroll,
+		todo_markers(), -- ⭐ 添加 TODO 标记数量显示
+		dap() .. " ",
+		vcs() .. "  ",
+		" %l:%c   ",
+		get_scrollbar(),
 		"%p ",
 	})
 end
 
---- 应用：重建脏模块 -> 更新 statusline -> 重绘
-local function apply()
-	if vim.o.laststatus == 0 then
-		return
-	end
-	if update() then
-		vim.o.statusline = compose()
-	end
-	vim.cmd("redrawstatus")
+-- ================================
+-- 初始化
+-- ================================
+
+--- 刷新状态栏
+local function refresh_statusline()
+	vim.api.nvim_set_option_value("statusline", "%!v:lua.Statusline.active()", {
+		win = vim.api.nvim_get_current_win(),
+	})
 end
 
--- 初始构建
-enqueue()
-apply()
-
--- 被动兜底：每 1s 全量重建一次（捕获 gitsigns/todo/dap 等遗漏变化）
-local function passive_loop()
-	enqueue()
-	apply()
-	vim.defer_fn(passive_loop, 1000)
-end
-vim.defer_fn(passive_loop, 1000)
-
--- ================================
--- 事件驱动刷新
--- ================================
+-- 创建自动命令组
 local statusline_group = vim.api.nvim_create_augroup("Statusline", { clear = true })
 
--- 光标移动：只更新滚动条（便宜）
-vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+-- 注册自动命令
+vim.api.nvim_create_autocmd({ "CursorMoved", "WinEnter", "BufEnter", "BufWritePost", "ModeChanged" }, {
 	group = statusline_group,
-	callback = function()
-		enqueue("scroll")
-		apply()
-	end,
-})
-
--- 模式变化：只更新模式
-vim.api.nvim_create_autocmd("ModeChanged", {
-	group = statusline_group,
-	callback = function()
-		enqueue("mode")
-		apply()
-	end,
-})
-
--- 缓冲区/修改状态变化
-vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "BufAdd", "BufDelete", "BufWipeout", "BufWritePost" }, {
-	group = statusline_group,
-	callback = function()
-		enqueue("save")
-		enqueue("vcs")
-		enqueue("todo")
-		enqueue("lsp")
-		apply()
-	end,
-})
-
--- modified 标志变化（首次编辑/保存时触发）
-vim.api.nvim_create_autocmd("OptionSet", {
-	pattern = "modified",
-	group = statusline_group,
-	callback = function()
-		enqueue("save")
-		apply()
-	end,
-})
-
--- LSP 客户端 attach/detach
-vim.api.nvim_create_autocmd({ "LspAttach", "LspDetach" }, {
-	group = statusline_group,
-	callback = function()
-		enqueue("lsp")
-		apply()
-	end,
-})
-
--- 诊断变化：防抖 200ms
-local diag_pending = false
-vim.api.nvim_create_autocmd("DiagnosticChanged", {
-	group = statusline_group,
-	callback = function()
-		if diag_pending then
-			return
-		end
-		diag_pending = true
-		vim.defer_fn(function()
-			diag_pending = false
-			enqueue("lsp")
-			apply()
-		end, 200)
-	end,
-})
-
--- LSP spinner tick（由 lsp_status_mod 发出，见改动 2）
-vim.api.nvim_create_autocmd("User", {
-	pattern = "LspStatusSpinner",
-	group = statusline_group,
-	callback = function()
-		enqueue("lsp")
-		apply()
-	end,
+	callback = refresh_statusline,
 })
 
 -- 将模块设置为全局变量，确保状态栏可以访问

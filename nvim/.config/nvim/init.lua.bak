@@ -20,7 +20,7 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 require("core.settings") -- 基础 Neovim 选项
 require("core.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
 require("lsp-config").setup() --lsp
-require("core.statusline") -- 状态栏（加载即自动构建并设置，无需手动调用 active）
+require("core.statusline").active() -- 状态栏
 
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()
