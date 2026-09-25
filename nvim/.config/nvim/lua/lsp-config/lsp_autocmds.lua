@@ -234,8 +234,10 @@ function M.setup()
 				})
 			end
 
-			-- vim.lsp.codelens.enable(not vim.lsp.codelens.is_enabled())
-			-- vim.lsp.codelens.enable(true)
+			-- Code lens（rust-analyzer 的 ▶ Run / ▶ Debug、引用计数等）
+			-- if client:supports_method("textDocument/codeLens") then
+			-- 	vim.lsp.codelens.enable(true, { bufnr = bufnr })
+			-- end
 
 			-- if client:supports_method("textDocument/onTypeFormatting") then
 			-- 	vim.lsp.on_type_formatting.enable()
@@ -252,12 +254,21 @@ function M.setup()
 			-- workspace 级诊断（原生支持优先，否则用插件回退）
 			if client:supports_method("workspace/diagnostic", bufnr) then
 				vim.lsp.buf.workspace_diagnostics({ client_id = client.id })
-			else
+			elseif vim.tbl_get(client.config, "filetypes") then
 				local ok, wsdiag = pcall(require, "workspace-diagnostics")
 				if ok then
 					wsdiag.populate_workspace_diagnostics(client, bufnr)
 				end
 			end
+		end,
+	})
+
+	-- Code lens 自动刷新（lens 默认不自动更新）
+	vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
+		group = vim.api.nvim_create_augroup("UserLspCodeLensRefresh", { clear = true }),
+		desc = "LSP code lens 自动刷新",
+		callback = function(args)
+			vim.lsp.codelens.enable(true, { bufnr = args.buf })
 		end,
 	})
 

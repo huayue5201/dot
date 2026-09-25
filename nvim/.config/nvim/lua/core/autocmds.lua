@@ -58,13 +58,9 @@ local function apply_keymaps()
 				local desc = config.desc or ("映射: " .. key)
 
 				-- 根据命令类型创建映射函数
-				local map_func = (cmd == "next_error" or cmd == "prev_error")
-						and function()
-							nav.dispatch_command(cmd)
-						end
-					or function()
-						nav.dispatch_command(cmd)
-					end
+				local map_func = function()
+					nav.dispatch_command(cmd)
+				end
 
 				vim.keymap.set("n", key, map_func, {
 					buffer = true,

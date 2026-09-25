@@ -22,12 +22,10 @@ function M.setup()
 
 	vim.keymap.set("n", "<leader>dp", dap.pause, { desc = "[D]ap [P]ause" })
 
-	-- 🪜 步进控制
-	vim.keymap.set("n", "<leader>gb", dap.step_back, { desc = "[D]ap [S]tep [B]ack" })
-	vim.keymap.set("n", "<leader>gi", dap.step_into, { desc = "[D]ap [S]tep [I]nto" })
-	vim.keymap.set("n", "<leader>go", dap.step_out, { desc = "[D]ap [S]tep [O]ut" })
-	vim.keymap.set("n", "<leader>gv", dap.step_over, { desc = "[D]ap [S]tep [O]ver" }) -- v 表示越过
-	vim.keymap.set("n", "<leader>dc", dap.run_to_cursor, { desc = "[D]ap [R]un to [C]ursor" })
+	vim.keymap.set("n", "gji", dap.step_into, { desc = "[D]ap [S]tep [I]nto" })
+	vim.keymap.set("n", "gjo", dap.step_out, { desc = "[D]ap [S]tep [O]ut" })
+	vim.keymap.set("n", "gjv", dap.step_over, { desc = "[D]ap [S]tep [O]ver" }) -- v 表示越过
+	vim.keymap.set("n", "djc", dap.run_to_cursor, { desc = "[D]ap [R]un to [C]ursor" })
 
 	-- 🎯 跳转
 	vim.keymap.set("n", "<leader>dg", function()
@@ -337,7 +335,13 @@ function M.setup()
 				end
 
 				if keymap.rhs then
-					pcall(vim.keymap.set, keymap.mode, keymap.lhs, keymap.rhs, vim.tbl_extend("force", opts, { buffer = keymap.buffer }))
+					pcall(
+						vim.keymap.set,
+						keymap.mode,
+						keymap.lhs,
+						keymap.rhs,
+						vim.tbl_extend("force", opts, { buffer = keymap.buffer })
+					)
 				elseif keymap.callback then
 					pcall(
 						vim.keymap.set,

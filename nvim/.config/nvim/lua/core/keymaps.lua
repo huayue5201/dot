@@ -10,6 +10,9 @@ vim.keymap.set("n", "dd", function()
 	return vim.fn.getline(".") == "" and '"_dd' or "dd"
 end, { expr = true, desc = "Basic: delete line (empty → blackhole)" })
 
+vim.keymap.set("n", "j", "gj")
+vim.keymap.set("n", "k", "gk")
+
 vim.keymap.set("x", "i", function()
 	if #vim.fn.getline(".") == 0 then
 		return [["_cc]]

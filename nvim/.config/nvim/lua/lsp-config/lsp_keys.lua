@@ -125,6 +125,34 @@ local keymaps = {
 		"LSP: open external docs",
 	},
 	{
+		"gO",
+		function()
+			local bufnr = 0
+			local row = vim.api.nvim_win_get_cursor(0)[1] -- 1-based 当前行
+			local lenses = vim.lsp.codelens.get(bufnr) or {}
+
+			local at_current = false -- 当前行就是函数行
+			local at_next = false -- 函数在下一行（当前行是 lens 文字行）
+			for _, lens in pairs(lenses) do
+				if lens.range then
+					local fn_line = lens.range.start.line + 1 -- 1-based 函数行
+					if fn_line == row then
+						at_current = true
+					elseif fn_line == row + 1 then
+						at_next = true
+					end
+				end
+			end
+
+			-- lens 文字渲染在函数上方一行；若光标停在文字行，下移到函数行再执行
+			if not at_current and at_next then
+				vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
+			end
+			vim.lsp.codelens.run()
+		end,
+		"LSP: run code lens (e.g. ▶ Run Test)",
+	},
+	{
 		"grd",
 		function()
 			M.open_buffer_diagnostics()

@@ -128,6 +128,9 @@ return {
 			lens = {
 				enable = true,
 				location = "above_whole_item", -- 或 "above_name"
+				run = { enable = true }, -- ▶ Run（runnables：#[test]、fn main）
+				debug = { enable = true }, -- ▶ Debug
+				implementations = { enable = true },
 				references = {
 					adt = { enable = true },
 					enumVariant = { enable = true },

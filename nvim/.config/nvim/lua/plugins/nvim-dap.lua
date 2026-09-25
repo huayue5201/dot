@@ -112,6 +112,7 @@ return {
 		require("dap-config.adapters.openocd").setup(dap)
 		require("dap-config.adapters.pyocd").setup(dap)
 		require("dap-config.adapters.nlua").setup(dap)
+		require("dap-config.adapters.emmylua").setup(dap)
 
 		vim.api.nvim_create_autocmd({ "VimLeave" }, {
 			callback = function()
