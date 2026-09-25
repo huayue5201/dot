@@ -45,7 +45,7 @@ return {
 			hooks = {
 				-- 自定义阻塞条件：命令行包含 -b 参数时强制阻塞
 				should_block = function(argv)
-					return vim.tbl_contains(argv, "-b")
+					return vim.list_contains(argv, "-b")
 				end,
 
 				-- 打开文件前：保存当前 toggleterm 终端
@@ -74,9 +74,11 @@ return {
 						vim.api.nvim_create_autocmd("BufWritePost", {
 							buffer = opts.bufnr,
 							once = true,
-							callback = vim.schedule_wrap(function()
-								vim.api.nvim_buf_delete(opts.bufnr, {})
-							end),
+							callback = function()
+								vim.schedule(function()
+									vim.api.nvim_buf_delete(opts.bufnr, {})
+								end)
+							end,
 						})
 					end
 				end,

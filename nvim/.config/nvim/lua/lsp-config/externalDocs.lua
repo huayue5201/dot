@@ -131,7 +131,7 @@ function M.get_external_docs(method)
 	--- @diagnostic disable-next-line: param-type-mismatch
 	local success, response = pcall(vim.lsp.buf_request_sync, 0, method, params, 5000)
 
-	if not success or not response or vim.tbl_isempty(response) then
+	if not success or not response or next(response) == nil then
 		return nil
 	end
 
@@ -159,7 +159,7 @@ function M.handle_external_docs(docs)
 	local url = nil
 	if docs["local"] then
 		local local_path = vim.uri_to_fname(docs["local"])
-		if vim.loop.fs_stat(local_path) then
+		if vim.uv.fs_stat(local_path) then
 			url = docs["local"]
 		end
 	end
@@ -209,7 +209,7 @@ function M.get_hover_with_links()
 	--- @diagnostic disable-next-line: param-type-mismatch
 	local success, response = pcall(vim.lsp.buf_request_sync, 0, "textDocument/hover", params, 3000)
 
-	if not success or not response or vim.tbl_isempty(response) then
+	if not success or not response or next(response) == nil then
 		return nil
 	end
 

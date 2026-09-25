@@ -1,6 +1,6 @@
 -- https://rust-analyzer.github.io/book/index.html
 
-local uv = vim.uv or vim.loop
+local uv = vim.uv
 
 -- 安全读取文件
 local function read_file(path)

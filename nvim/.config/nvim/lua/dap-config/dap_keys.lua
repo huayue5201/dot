@@ -226,7 +226,6 @@ function M.setup()
 		group = vim.api.nvim_create_augroup("dapui_keymaps", { clear = true }),
 		desc = "Fix and add insert-mode keymaps for dap-repl",
 		callback = function()
-			vim.cmd("syntax on")
 			vim.opt.signcolumn = "no"
 			-- 向下浏览补全项
 			vim.keymap.set("i", "<tab>", function()
@@ -338,7 +337,7 @@ function M.setup()
 				end
 
 				if keymap.rhs then
-					pcall(vim.api.nvim_buf_set_keymap, keymap.buffer, keymap.mode, keymap.lhs, keymap.rhs, opts)
+					pcall(vim.keymap.set, keymap.mode, keymap.lhs, keymap.rhs, vim.tbl_extend("force", opts, { buffer = keymap.buffer }))
 				elseif keymap.callback then
 					pcall(
 						vim.keymap.set,

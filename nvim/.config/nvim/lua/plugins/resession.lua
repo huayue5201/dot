@@ -73,7 +73,7 @@ return {
 		-- 加载会话（交互式选择）
 		vim.keymap.set("n", "<leader>osl", function()
 			local sessions = require("resession").list()
-			if vim.tbl_isempty(sessions) then
+			if next(sessions) == nil then
 				vim.notify("No sessions found", vim.log.levels.WARN)
 				return
 			end
@@ -92,7 +92,7 @@ return {
 		-- 删除会话
 		vim.keymap.set("n", "<leader>osd", function()
 			local sessions = require("resession").list()
-			if vim.tbl_isempty(sessions) then
+			if next(sessions) == nil then
 				vim.notify("No sessions found", vim.log.levels.WARN)
 				return
 			end

@@ -52,7 +52,6 @@ vim.keymap.set("n", "<c-esc>", ":bp | bd #<cr>", { silent = true, desc = "Basic:
 -- end, { silent = true, desc = "Close other buffers safely" })
 
 -- vim.keymap.set("n", "<leader>fd", ":lcd %:p:h<CR>", { silent = true, desc = "更改为文件目录" })
--- vim.cmd("packadd nvim.undotree")
 -- local function undotree()
 -- 	local close = require("undotree").open({
 -- 		title = "undotree",
@@ -73,8 +72,7 @@ end, { desc = "Toggle line wrap" })
 
 -- 🏷 Tab operaions
 vim.keymap.set("n", "<leader>jtn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
-vim.api.nvim_set_keymap("n", "<leader>jth", ":-tabmove<CR>", {
-	noremap = true,
+vim.keymap.set("n", "<leader>jth", ":-tabmove<CR>", {
 	silent = true,
 	desc = "Tab: 左移",
 })

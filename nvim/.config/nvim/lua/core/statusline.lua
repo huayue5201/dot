@@ -176,8 +176,8 @@ local function save_status()
 		local name = vim.fn.bufname(buf)
 
 		-- 检查是否在忽略列表
-		local ignore_ft = vim.tbl_contains(ignore.filetype, ft)
-		local ignore_bt = vim.tbl_contains(ignore.buftype, bt)
+		local ignore_ft = vim.list_contains(ignore.filetype, ft)
+		local ignore_bt = vim.list_contains(ignore.buftype, bt)
 
 		-- bufname 用 match，避免完整路径不匹配
 		local ignore_name = false
@@ -195,8 +195,8 @@ local function save_status()
 			local current_name = vim.fn.bufname(buf)
 
 			-- 检查当前 buffer 是否应该被忽略
-			local current_ignore_ft = vim.tbl_contains(ignore.filetype, current_ft)
-			local current_ignore_bt = vim.tbl_contains(ignore.buftype, current_bt)
+			local current_ignore_ft = vim.list_contains(ignore.filetype, current_ft)
+			local current_ignore_bt = vim.list_contains(ignore.buftype, current_bt)
 
 			local current_ignore_name = false
 			for _, pat in ipairs(ignore.bufname) do

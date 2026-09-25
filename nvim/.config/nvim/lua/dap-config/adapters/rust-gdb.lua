@@ -20,7 +20,7 @@ return {
 			for _, line in ipairs(out) do
 				local ok, json = pcall(vim.fn.json_decode, line)
 				if ok and type(json) == "table" and json.reason == "compiler-artifact" and json.executable then
-					if vim.tbl_contains(json.target.kind, "bin") or json.profile.test then
+					if vim.list_contains(json.target.kind, "bin") or json.profile.test then
 						table.insert(targets, json.executable)
 					end
 				end

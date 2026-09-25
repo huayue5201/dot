@@ -226,8 +226,8 @@ return {
 		}))
 
 		-- ========== 按键映射（匹配你原有的 barbar 习惯）==========
-		local map = vim.api.nvim_set_keymap
-		local opts = { noremap = true, silent = true }
+		local map = vim.keymap.set
+		local opts = { silent = true }
 
 		-- 移动到上一个/下一个缓冲区
 		map("n", "[b", "<Cmd>BufferLineCyclePrev<CR>", vim.tbl_extend("force", opts, { desc = "上一个缓冲区" }))

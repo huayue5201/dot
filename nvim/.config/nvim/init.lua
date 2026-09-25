@@ -5,17 +5,10 @@
 -- 启用 Lua 加载器加速启动
 vim.loader.enable()
 
--- vim.filetype.add({
--- 	extension = {
--- 		cfg = "dosini",
--- 	},
--- })
-
 -- 设置 Leader 键为空格
 vim.g.mapleader = vim.keycode("<space>")
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
--- vim.lsp.enable("lua_ls")
 -- 立即加载基础配置
 require("core.settings") -- 基础 Neovim 选项
 require("core.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
@@ -31,14 +24,5 @@ vim.defer_fn(function()
 	vim.schedule(function()
 		require("user.dotenv").load() -- token加载模块
 		-- require("user.hl_undo_changes") -- undo高亮
-	end)
-	-- 自动清理lsp日志文件
-	local log = vim.lsp.log.get_filename()
-	local max_size = 20 * 1024 * 1024 -- 20MB
-
-	vim.loop.fs_stat(log, function(err, stat)
-		if not err and stat and stat.size > max_size then
-			vim.loop.fs_unlink(log)
-		end
 	end)
 end, 300)

@@ -24,8 +24,7 @@ return {
 			executable = {
 				command = "codelldb", -- 可替换为绝对路径
 				args = { "--port", "${port}" },
-				---@diagnostic disable-next-line: deprecated
-				detached = vim.loop.os_uname().sysname ~= "Windows",
+				detached = vim.uv.os_uname().sysname ~= "Windows",
 			},
 		}
 
@@ -98,7 +97,7 @@ return {
 				local ok, json = pcall(vim.fn.json_decode, line)
 				if ok and type(json) == "table" and json.reason == "compiler-artifact" and json.executable then
 					-- 只接受 bin 或 test profile
-					if vim.tbl_contains(json.target.kind, "bin") or json.profile.test then
+					if vim.list_contains(json.target.kind, "bin") or json.profile.test then
 						table.insert(targets, json.executable)
 					end
 				end

@@ -84,10 +84,12 @@ local function spinner_start()
 		spinner_timer:start(
 			0,
 			M.config.spinner_interval,
-			vim.schedule_wrap(function()
-				spinner_index = (spinner_index % #M.config.spinner_frames) + 1
-				schedule_spinner_update()
-			end)
+			function()
+				vim.schedule(function()
+					spinner_index = (spinner_index % #M.config.spinner_frames) + 1
+					schedule_spinner_update()
+				end)
+			end
 		)
 	end
 end
@@ -159,7 +161,7 @@ vim.api.nvim_create_autocmd("LspProgress", {
 function M.lsp_clients()
 	local ok, buf_clients = pcall(vim.lsp.get_clients, { bufnr = vim.api.nvim_get_current_buf() })
 
-	if not ok or vim.tbl_isempty(buf_clients) then
+	if not ok or next(buf_clients) == nil then
 		return "%#" .. M.config.highlight_group .. "# " .. "%*"
 	end
 

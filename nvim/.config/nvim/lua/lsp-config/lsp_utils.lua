@@ -99,7 +99,7 @@ function M._build_filetype_index()
 			for _, ft in ipairs(fts) do
 				ft = string.lower(ft)
 				index[ft] = index[ft] or {}
-				if not vim.tbl_contains(index[ft], name) then
+				if not vim.list_contains(index[ft], name) then
 					table.insert(index[ft], name)
 				end
 			end
@@ -121,7 +121,7 @@ end
 function M.reload_lsp_configs()
 	M.clear_lsp_config_cache()
 	local configs = M._load_all_lsp_configs()
-	return configs, vim.tbl_count(configs)
+	return configs, vim.iter(configs):count()
 end
 
 --------------------------------------------------------------
@@ -145,7 +145,7 @@ end
 -- 统一的值处理器 (处理数组和标量)
 function M._process_value_into_results(value, results)
 	local function add_item(item)
-		if not vim.tbl_contains(results, item) then
+		if not vim.list_contains(results, item) then
 			table.insert(results, item)
 		end
 	end
@@ -237,7 +237,7 @@ function M.get_lsp_by_filetype(filetype)
 
 	-- 合并所有 filetypes = nil 的配置
 	for name, config in pairs(M._load_all_lsp_configs()) do
-		if config.filetypes == nil and not vim.tbl_contains(results, name) then
+		if config.filetypes == nil and not vim.list_contains(results, name) then
 			table.insert(results, name)
 		end
 	end

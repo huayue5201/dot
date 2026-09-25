@@ -127,10 +127,10 @@ return {
 						or vim.bo[buf].ft == "oil" -- enable in oil buffers
 						or vim.bo[buf].ft == "fugitive" -- enable in fugitive buffers
 						or pcall(vim.treesitter.get_parser, buf)
-						or not vim.tbl_isempty(vim.lsp.get_clients({
+						or next(vim.lsp.get_clients({
 							bufnr = buf,
 							method = "textDocument/documentSymbol",
-						}))
+						})) ~= nil
 				end,
 			},
 			sources = {
