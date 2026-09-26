@@ -38,8 +38,8 @@
               "allowInsecure": false,  // 不允许不安全的连接
               "alpn": ["http/1.1"],  // 支持的应用层协议
               "certificates": [
-                "/root/.acme.sh/your-server.example.com_ecc/fullchain.cer",  // 证书路径
-                "/root/.acme.sh/your-server.example.com_ecc/your-server.example.com.key"  // 私钥路径
+                "/path/to/fullchain.cer",  // 证书路径
+                "/path/to/private.key"  // 私钥路径
               ]
             }
           }
@@ -89,8 +89,8 @@
       "allowInsecure": false,
       "alpn": ["http/1.1"],
       "certificates": [
-        "/root/.acme.sh/your-server.example.com_ecc/fullchain.cer",
-        "/root/.acme.sh/your-server.example.com_ecc/your-server.example.com.key"
+        "/path/to/fullchain.cer",
+        "/path/to/private.key"
       ]
     }
   }

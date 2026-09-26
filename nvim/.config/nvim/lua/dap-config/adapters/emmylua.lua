@@ -9,7 +9,7 @@
 return {
 	setup = function(dap)
 		-- 优先使用 PATH 中的 emmylua_dap，否则用本地下载的二进制
-		local emmylua_dap_path = "~/Downloads/bin/emmylua_dap"
+		local emmylua_dap_path = vim.fn.expand("~/Downloads/bin/emmylua_dap")
 		if vim.fn.executable("emmylua_dap") == 1 then
 			emmylua_dap_path = "emmylua_dap"
 		end

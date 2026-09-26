@@ -379,14 +379,17 @@ local function compose()
 end
 
 --- 应用：重建脏模块 -> 更新 statusline -> 重绘
+--- 注意：只在状态栏内容真正变化时才 redrawstatus。
+--- 无条件 redrawstatus 会在每次 CursorMoved/CursorMovedI 时触发（例如在 fff 等
+--- 浮动输入框里打字时），虽然不应移动光标，但属于无谓的重绘。
 local function apply()
 	if vim.o.laststatus == 0 then
 		return
 	end
 	if update() then
 		vim.o.statusline = compose()
+		vim.cmd("redrawstatus")
 	end
-	vim.cmd("redrawstatus")
 end
 
 -- 初始构建

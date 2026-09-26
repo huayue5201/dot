@@ -1,4 +1,4 @@
--- File: ~/dotfiles/nvim/.config/nvim/lua/core/autocmds.lua
+-- File: nvim/.config/nvim/lua/core/autocmds.lua
 
 vim.api.nvim_create_autocmd("BufWritePre", {
 	group = vim.api.nvim_create_augroup("RemoveTrailingWhitespace", { clear = true }),

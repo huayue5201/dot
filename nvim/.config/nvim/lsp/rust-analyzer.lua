@@ -85,7 +85,7 @@ return {
 	settings = {
 		["rust-analyzer"] = {
 			showUnlinkedFileNotification = false,
-			typing = { autoformat = true },
+			typing = { autoformat = false },
 			completion = {
 				callable = {
 					-- https://rust-analyzer.github.io/book/configuration.html#completion.callable.snippets
@@ -98,10 +98,10 @@ return {
 			},
 			diagnostics = {
 				enable = true,
-				trigger = "onType",
+				trigger = "save",
 			},
 			cargo = {
-				allFeatures = true,
+				allFeatures = false,
 				autoreload = true,
 				buildScripts = { enable = true },
 			},

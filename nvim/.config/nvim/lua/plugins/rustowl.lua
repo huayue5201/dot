@@ -12,6 +12,7 @@ return {
 			-- 自动附加 LSP 客户端（默认 true）
 			auto_attach = true,
 			-- 自动启用高亮（默认 false）
+			-- 持续分析很吃 CPU，改为按需手动 toggle
 			auto_enable = true,
 			-- 悬停等待时间（毫秒），默认 500
 			idle_time = 500,

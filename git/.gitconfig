@@ -11,4 +11,4 @@
     # consistent with the behaviour of `git diff`.
     difftool = true
 [core]
-	excludesfile = ~/dotfile/.gitignore_global
+	excludesfile = ~/.gitignore_global

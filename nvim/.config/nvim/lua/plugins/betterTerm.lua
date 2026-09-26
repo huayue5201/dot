@@ -29,7 +29,7 @@ return {
 		vim.keymap.set("n", "<localleader>ts", betterTerm.select, { desc = "Select terminal" })
 
 		-- Rename the current terminal
-		vim.keymap.set("n", "<localleader>tr", betterTerm.rename, { desc = "Rename terminal" })
+		vim.keymap.set("n", "<localleader>tn", betterTerm.rename, { desc = "Rename terminal" })
 
 		-- Toggle the tabs bar
 		vim.keymap.set("n", "<localleader>tt", betterTerm.toggle_tabs, { desc = "Toggle terminal tabs" })

@@ -1,4 +1,4 @@
---- File: ~/dotfile/nvim/.config/nvim/lua/lsp-config/lsp_autocmds.lua
+--- File: nvim/.config/nvim/lua/lsp-config/lsp_autocmds.lua
 ---@diagnostic disable: need-check-nil
 -- LSP 配置模块
 local M = {}

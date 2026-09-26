@@ -16,8 +16,8 @@ return {
 
 				-- 2. 你正在开发的插件（绝对路径）
 				-- 修改为你的实际插件路径
-				"~/neovim-plugins/neotest-rust",
-				-- "~/neovim-plugins/your-other-plugin",
+				vim.fn.expand("~/neovim-plugins/neotest-rust"),
+				-- vim.fn.expand("~/neovim-plugins/your-other-plugin"),
 
 				-- 3. 自动加载 luv 类型（vim.uv / vim.loop）
 				{ path = "${3rd}/luv/library", words = { "vim%.uv", "vim%.loop" } },

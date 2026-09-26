@@ -14,6 +14,7 @@ return {
 	config = function()
 		local neogit = require("neogit")
 		neogit.setup({
+			treesitter_diff_highlight = true,
 			-- 窗口与布局
 			kind = "split", -- 可选 "tab" | "split" | "vsplit" | "floating"
 

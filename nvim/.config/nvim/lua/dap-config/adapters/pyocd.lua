@@ -38,8 +38,8 @@ return {
 						return require("dap.utils").pick_file()
 					end,
 					-- configFiles = { vim.fn.getcwd() .. "/openocd.cfg" },
-					svdFile = "~/MCU-Project/cmsis-svd-data/data/STMicro/STM32F103xx.svd",
-					-- svdFile = "~/MCU-Project/cmsis-svd-data/data/STMicro/STM32H743x.svd",
+					svdFile = vim.fn.expand("~/MCU-Project/cmsis-svd-data/data/STMicro/STM32F103xx.svd"),
+					-- svdFile = vim.fn.expand("~/MCU-Project/cmsis-svd-data/data/STMicro/STM32H743x.svd"),
 					rttConfig = {
 						enabled = true,
 						address = "auto",

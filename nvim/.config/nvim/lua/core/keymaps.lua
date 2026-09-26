@@ -23,6 +23,12 @@ end, { expr = true })
 
 vim.keymap.set("n", "p", "p`[v`]=")
 
+vim.keymap.set("x", "y", function()
+	local save = vim.fn.getpos(".")
+	vim.cmd("normal! y")
+	vim.fn.setpos(".", save)
+end, { desc = "Yank: 保持光标位置" })
+
 vim.keymap.set("n", "<localleader>s", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
 
 vim.keymap.set("n", "<localleader>as", function()
