@@ -43,14 +43,14 @@ brew_cask_install_parallel() {
   wait
 }
 
-pip3_install_parallel() {
+uv_tool_install() {
   local packages=("$@")
   for pkg in "${packages[@]}"; do
-    if ! pip3 show "$pkg" &>/dev/null; then
-      log "开始安装 pip3 包 $pkg ..."
-      pip3 install "$pkg" &
+    if ! uv tool list 2>/dev/null | awk '{print $1}' | grep -qx "$pkg"; then
+      log "开始安装 uv 工具 $pkg ..."
+      uv tool install "$pkg" &
     else
-      log "pip3 包 $pkg 已安装，跳过"
+      log "uv 工具 $pkg 已安装，跳过"
     fi
   done
   wait
@@ -69,19 +69,29 @@ else
 fi
 
 # -----------------------------
+# 第三方 tap（须先于 jiq 安装）
+# -----------------------------
+brew tap bellicose100xp/tap || true
+
+# -----------------------------
 # 1. 基础工具并行安装
 # -----------------------------
 log "安装基础工具..."
-brew_install_parallel stow git lazygit fzf fd ripgrep bat btop llvm lsusb zoxide jless otree jiq jq rust universal-ctags orbstack tree-sitter-cli
+# 注：
+#   - orbstack 是 cask 应用，见第 6 步
+#   - rust 由 rustup 安装（见第 7 步），这里不再用 brew 装
+#   - llvm 已移除：clangd 由 mason 提供，无需 brew 的巨型 llvm
+#   - openocd 的 formula 名是 open-ocd（带连字符），见第 3 步
+brew_install_parallel stow git lazygit fzf fd ripgrep bat btop lsusb zoxide jless otree jiq jq universal-ctags tree-sitter-cli tmux aria2 node
 
 # -----------------------------
 # 2. dotfiles 管理（顺序执行）
 # -----------------------------
-DOTFILES_DIR="$HOME/dotfile"
+DOTFILES_DIR="$HOME/dotfiles"
 if [ -d "$DOTFILES_DIR" ]; then
   log "开始 stow 链接 dotfiles..."
   cd "$DOTFILES_DIR"
-  for d in git nvim ghostty btop tmux aria2; do
+  for d in git nvim ghostty tmux aria2 zsh herdr jiq kitty xray; do
     stow "$d" || warn "stow $d 失败"
   done
 else
@@ -92,9 +102,9 @@ fi
 # 3. MCU 开发环境并行安装
 # -----------------------------
 log "安装 MCU 开发环境..."
-brew_install_parallel openocd telnet node
+brew_install_parallel open-ocd telnet
 brew install --cask gcc-arm-embedded # cask 建议单独安装
-pip3_install_parallel compiledb
+uv_tool_install compiledb
 
 # -----------------------------
 # 4. LSP / 语言工具并行安装
@@ -102,25 +112,19 @@ pip3_install_parallel compiledb
 log "安装 LSP 和语言工具..."
 brew_install_parallel uv ast-grep
 if command_exists uv; then
-  uv tool install ty@latest || warn "uv tool install ty@latest 失败"
+  uv tool install ty || warn "uv tool install ty 失败"
 fi
 
 # -----------------------------
-# 5. Brew 扩展（顺序执行即可）
-# -----------------------------
-brew tap buo/cask-upgrade || true
-brew tap beeftornado/rmtre || true
-
-# -----------------------------
-# 6. Cask 应用 & 字体并行安装
+# 5. Cask 应用 & 字体并行安装
 # -----------------------------
 log "安装 cask 应用和字体..."
-brew_cask_install_parallel orbstack ghostty
-brew tap homebrew/cask-fonts || true
+# 字体已全部迁移到 homebrew/cask 核心，无需再 tap homebrew/cask-fonts
+brew_cask_install_parallel orbstack ghostty kitty
 brew_cask_install_parallel font-fira-code-nerd-font font-victor-mono-nerd-font font-gohufont-nerd-font font-anonymice-nerd-font font-terminess-ttf-nerd-font
 
 # -----------------------------
-# 7. Rust 安装（顺序执行）
+# 6. Rust 安装（顺序执行）
 # -----------------------------
 if ! command_exists rustc; then
   log "安装 Rust..."
@@ -130,11 +134,11 @@ else
 fi
 
 # -----------------------------
-# 8. 完成提示
+# 7. 完成提示
 # -----------------------------
 log "======================="
 log "一键环境部署完成！"
 log "建议操作："
-log "  - brew cu 升级 cask"
-log "  - uv tool upgrade 更新 python 工具"
+log "  - brew upgrade --cask 升级 cask 应用（旧 brew cu 已废弃）"
+log "  - uv tool upgrade --all 更新 python 工具"
 log "======================="
