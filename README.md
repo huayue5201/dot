@@ -17,7 +17,6 @@
 ├── aria2/         # aria2 下载器配置
 ├── herdr/         # herdr 会话管理配置
 ├── jiq/           # jiq 工具配置
-├── lspmux/        # lspmux 配置
 ├── xray/          # xray 配置（已替换为占位符）
 └── install_dev_tools.sh  # 开发工具安装脚本
 ```
