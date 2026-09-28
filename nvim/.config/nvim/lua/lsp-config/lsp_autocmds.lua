@@ -264,13 +264,13 @@ function M.setup()
 	})
 
 	-- Code lens 自动刷新（lens 默认不自动更新）
-	vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
-		group = vim.api.nvim_create_augroup("UserLspCodeLensRefresh", { clear = true }),
-		desc = "LSP code lens 自动刷新",
-		callback = function(args)
-			vim.lsp.codelens.enable(true, { bufnr = args.buf })
-		end,
-	})
+	-- vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
+	-- 	group = vim.api.nvim_create_augroup("UserLspCodeLensRefresh", { clear = true }),
+	-- 	desc = "LSP code lens 自动刷新",
+	-- 	callback = function(args)
+	-- 		vim.lsp.codelens.enable(true, { bufnr = args.buf })
+	-- 	end,
+	-- })
 
 	-- 当缓冲区卸载时清理状态
 	vim.api.nvim_create_autocmd("BufUnload", {

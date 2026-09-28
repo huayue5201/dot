@@ -13,7 +13,7 @@ return {
 					adapter = {
 						-- name = "piacp",
 						name = "deepseek",
-						model = "deepseek-v4-flash",
+						model = "deepseek-flash",
 					},
 					sessions = {
 						enabled = true,

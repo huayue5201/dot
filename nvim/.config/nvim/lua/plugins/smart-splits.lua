@@ -3,12 +3,6 @@
 return {
 	"smart-splits-nvim/smart-splits.nvim",
 	version = "^3.0.0", -- 锁定 v3 大版本，比 branch = "v3" 更稳定
-	dependencies = {
-		{
-			"smart-splits-nvim/backend-ghostty",
-			main = "smart-splits-backend-ghostty",
-		},
-	},
 	keys = {
 		-- 移动光标到相邻窗口（最高频，Alt+hjkl 单键）
 		{
@@ -98,13 +92,9 @@ return {
 			desc = "Smart-splits: 与右窗口换 buffer",
 		},
 	},
-	opts = {
-		mux = {
-			backend = "smart-splits-backend-ghostty",
-		},
-		move = {
-			at_edge = "stop", -- ghostty backend 要求
-		},
-		log = { file = false }, -- v3 默认会写日志文件，这里关掉
-	},
+	config = function()
+		require("smart-splits").setup({
+			log = { file = false }, -- v3 默认会写日志文件，这里关掉
+		})
+	end,
 }

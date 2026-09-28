@@ -129,28 +129,3 @@ clipboard-write = allow
 
 # 剪贴板自动修剪末尾空格
 clipboard-trim-trailing-spaces = true
-
-# ================================================
-#           smart-splits backend-ghostty
-# ================================================
-# Neovim 外：移动（Alt+hjkl）
-keybind = performable:alt+h=goto_split:left
-keybind = performable:alt+j=goto_split:down
-keybind = performable:alt+k=goto_split:up
-keybind = performable:alt+l=goto_split:right
-
-# Neovim 外：调整（Alt+Shift+hjkl）
-keybind = performable:shift+alt+h=resize_split:left,30
-keybind = performable:shift+alt+j=resize_split:down,30
-keybind = performable:shift+alt+k=resize_split:up,30
-keybind = performable:shift+alt+l=resize_split:right,30
-
-# Neovim 内：转义序列（Alt 已由 macos-option-as-alt=left 处理）
-keybind = nvim/alt+h=esc:h
-keybind = nvim/alt+j=esc:j
-keybind = nvim/alt+k=esc:k
-keybind = nvim/alt+l=esc:l
-keybind = nvim/shift+alt+h=esc:H
-keybind = nvim/shift+alt+j=esc:J
-keybind = nvim/shift+alt+k=esc:K
-keybind = nvim/shift+alt+l=esc:L

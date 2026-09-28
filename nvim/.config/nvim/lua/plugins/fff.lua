@@ -1,7 +1,7 @@
 -- https://github.com/dmtrKovalenko/fff
 
 return {
-	"dmtrKovalenko/fff.nvim",
+	"dmtrKovalenko/fff", -- 上游已从 fff.nvim 改名为 fff
 	build = function()
 		-- downloads a prebuilt binary or falls back to cargo build
 		require("fff.download").download_or_build_binary()

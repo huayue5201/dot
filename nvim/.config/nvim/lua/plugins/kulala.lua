@@ -6,7 +6,7 @@ return {
 	event = { "SessionLoadPost", "VimLeavePre" },
 	-- 查看 opts.lsp.enforce_external_script_naming_convention
 	-- 以限制 LSP 功能只对 *.http, *.http.js, *.http.ts 和 *.http.lua 文件生效
-	ft = { "http", "rest", "javascript", "lua" },
+	-- ft = { "http", "rest", "javascript", "lua", "rust" },
 	opts = {
 		kulala_core = {
 			path = nil,

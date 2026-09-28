@@ -4,7 +4,6 @@ return {
 	"huayue5201/nvim-translator",
 	dir = "~/neovim-plugins/nvim-translator",
 	dev = true,
-	event = "VeryLazy",
 	build = "make build", -- 确保后端二进制是最新构建
 	config = function()
 		----------------------------------------------------------------------
@@ -26,11 +25,12 @@ return {
 				end,
 			},
 			schema = {
-				model = { default = "deepseek-chat" },
+				model = { default = "deepseek-flash" },
 			},
 		}
 		vim.g.translator_default_engines = { "llm", "google", "baidu", "bing" }
 
+		vim.g.translator_bilingual = true
 		----------------------------------------------------------------------
 		-- Keymap
 		----------------------------------------------------------------------
@@ -39,19 +39,22 @@ return {
 
 		-- 普通模式：翻译当前词（回显）
 		vim.keymap.set("n", "<localLeader>te", function()
-			translator.start("echo", false, 0, 1, 1, vim.fn.expand("<cword>"))
+			translator.start("echo", { bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.expand("<cword>") })
 		end, { silent = true, desc = "翻译并回显（当前词）" })
 
-		-- 普通模式：翻译当前句（回显）—— key 改为 tlE，避免与"读原文"冲突
+		-- 普通模式：翻译当前句（回显）—— key 改为 tE，避免与"读原文"冲突
 		vim.keymap.set("n", "<localLeader>tE", function()
 			vim.cmd("normal! vis")
 			local text = util.get_visual_selection()
-			translator.start("echo", false, 2, 1, 1, text)
+			translator.start("echo", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
 		end, { silent = true, desc = "翻译并回显（当前句）" })
 
 		-- 窗口显示（当前词）
 		vim.keymap.set("n", "<leader>te", function()
-			translator.start("window", false, 0, 1, 1, vim.fn.expand("<cword>"))
+			translator.start(
+				"window",
+				{ bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.expand("<cword>") }
+			)
 		end, { silent = true, desc = "翻译并窗口显示（当前词）" })
 
 		vim.keymap.set("n", "<leader>ti", "<Cmd>TranslateI<CR>", { desc = "交互翻译" })
@@ -64,12 +67,12 @@ return {
 		vim.keymap.set("n", "<localLeader>tr", function()
 			vim.cmd("normal! viw")
 			local text = util.get_visual_selection()
-			translator.start("replace", false, 2, 1, 1, text)
+			translator.start("replace", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
 		end, { silent = true, desc = "翻译并替换（当前词）" })
 
 		-- 翻译剪贴板
 		vim.keymap.set("n", "<localLeader>tx", function()
-			translator.start("echo", false, 0, 1, 1, vim.fn.getreg("*"))
+			translator.start("echo", { bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.getreg("*") })
 		end, { silent = true, desc = "翻译剪贴板" })
 
 		-- 二级操作（也可在翻译浮窗 footer 里直接按 s/S/a/y/Esc）
@@ -82,17 +85,17 @@ return {
 		----------------------------------------------------------------------
 		vim.keymap.set("v", "<localLeader>te", function()
 			local text = util.get_visual_selection()
-			translator.start("echo", false, 2, 1, 1, text)
+			translator.start("echo", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
 		end, { silent = true, desc = "翻译并回显（选区）" })
 
 		vim.keymap.set("v", "<leader>te", function()
 			local text = util.get_visual_selection()
-			translator.start("window", false, 2, 1, 1, text)
+			translator.start("window", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
 		end, { silent = true, desc = "翻译并窗口显示（选区）" })
 
 		vim.keymap.set("v", "<localLeader>tr", function()
 			local text = util.get_visual_selection()
-			translator.start("replace", false, 2, 1, 1, text)
+			translator.start("replace", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
 		end, { silent = true, desc = "翻译并替换（选区）" })
 
 		----------------------------------------------------------------------
