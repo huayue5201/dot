@@ -33,7 +33,6 @@ return {
 				-- "harper-ls",
 				-- "copilot-language-server",
 				"bash-language-server",
-				"luacheck",
 				"marksman",
 			}
 

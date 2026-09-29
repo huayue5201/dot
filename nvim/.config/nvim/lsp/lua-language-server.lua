@@ -5,10 +5,7 @@ return {
 	root_markers = {
 		".luarc.json",
 		".luarc.jsonc",
-		".luacheckrc",
 		".stylua.toml",
-		"selene.toml",
-		"selene.yml",
 		".git",
 	},
 	filetypes = { "lua" },
@@ -42,9 +39,9 @@ return {
 			},
 			diagnostics = {
 				globals = { "vim" },
-				-- 禁用一些不必要的诊断
+				-- 只用 lua_ls 做诊断，因此重新启用 undefined-global
+				-- （vim 已由 globals + lazydev 覆盖，误报很少）
 				disable = {
-					"undefined-global", -- 如果你知道某些全局变量存在
 					"unused-function", -- 可选
 				},
 				-- 启用库诊断

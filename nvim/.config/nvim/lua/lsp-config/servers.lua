@@ -22,6 +22,38 @@ function M.apply_for_buffer(bufnr)
 	end
 end
 
+---某个 server 在当前项目里是否启用（未设置视为启用）
+---@param name string
+---@param bufnr integer|nil
+---@return boolean
+function M.is_enabled(name, bufnr)
+	return state.get("lsp." .. name, bufnr, true) ~= false
+end
+
+---启用/停用某个 server，并记录到当前项目
+---@param name string
+---@param enabled boolean
+---@param bufnr integer|nil
+function M.set_enabled(name, enabled, bufnr)
+	state.set("lsp." .. name, enabled, bufnr)
+	if vim.lsp.is_enabled(name) ~= enabled then
+		vim.lsp.enable(name, enabled)
+	end
+end
+
+---重启某个 server（先停其客户端，再重新启用）
+---@param name string
+---@param bufnr integer|nil
+function M.restart_server(name, bufnr)
+	bufnr = bufnr or vim.api.nvim_get_current_buf()
+	for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr, name = name })) do
+		client:stop(true)
+	end
+	vim.defer_fn(function()
+		M.set_enabled(name, true, bufnr)
+	end, 300)
+end
+
 ---交互式切换当前文件类型的某个 server（项目级持久化）
 function M.toggle()
 	local lsp_names = registry.get_lsp_by_filetype(vim.bo.filetype)
@@ -29,7 +61,7 @@ function M.toggle()
 	vim.ui.select(lsp_names, {
 		prompt = "选择 LSP 客户端：",
 		format_item = function(item)
-			local enabled = state.get("lsp." .. item, nil, true)
+			local enabled = M.is_enabled(item)
 			return string.format("%-20s • 状态: %s", item, enabled and "active" or "inactive")
 		end,
 	}, function(selected)
@@ -37,12 +69,7 @@ function M.toggle()
 			return
 		end
 
-		local key = "lsp." .. selected
-		local next_enabled = not state.get(key, nil, true)
-
-		vim.lsp.enable(selected, next_enabled)
-		state.set(key, next_enabled)
-
+		M.set_enabled(selected, not M.is_enabled(selected))
 		vim.schedule(vim.cmd.redrawstatus)
 	end)
 end

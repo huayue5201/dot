@@ -65,13 +65,15 @@ end
 ---------------------------------------------------------
 -- 诊断 / 内联提示 开关（项目级持久化）
 ---------------------------------------------------------
-function M.toggle_diagnostics()
-	local enabled = state.toggle("lsp.diagnostics")
+function M.toggle_diagnostics(bufnr)
+	bufnr = bufnr or vim.api.nvim_get_current_buf()
+	local enabled = state.toggle("lsp.diagnostics", bufnr)
 	vim.diagnostic.enable(enabled)
 end
 
-function M.toggle_inlay_hints()
-	local enabled = state.toggle("lsp.inlay_hints")
+function M.toggle_inlay_hints(bufnr)
+	bufnr = bufnr or vim.api.nvim_get_current_buf()
+	local enabled = state.toggle("lsp.inlay_hints", bufnr)
 	vim.lsp.inlay_hint.enable(enabled)
 end
 

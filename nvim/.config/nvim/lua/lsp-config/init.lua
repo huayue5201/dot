@@ -7,6 +7,7 @@ function M.setup()
 	require("lsp-config.diagnostics").setup() -- 诊断 UI
 	require("lsp-config.autocmds").setup() -- 所有 autocmd（含 FileType 启停 / LspAttach）
 	require("lsp-config.keys").global() -- 全局按键映射
+	require("lsp-config.panel").setup() -- :LspPanel 控制面板命令
 end
 
 return M

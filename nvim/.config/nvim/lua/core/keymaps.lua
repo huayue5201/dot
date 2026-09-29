@@ -73,7 +73,7 @@ vim.keymap.set("n", "<c-esc>", ":bp | bd #<cr>", { silent = true, desc = "Basic:
 --
 -- vim.keymap.set("n", "<leader>eu", undotree, { desc = "UndoTree: toggle undotree" })
 
-vim.keymap.set("n", "<leader>Rw", function()
+vim.keymap.set("n", "<leader>rtw", function()
 	local new_wrap = not vim.wo.wrap
 	vim.wo.wrap = new_wrap
 	print("Wrap " .. (new_wrap and "enabled" or "disabled"))
@@ -95,7 +95,7 @@ vim.keymap.set("n", "<leader>ct", "<cmd>tabclose<cr>", { silent = true, desc = "
 vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
 -- 📜 Messages & reload
-vim.keymap.set("n", "<leader>Re", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
+vim.keymap.set("n", "<leader>rte", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
 
 -- 🔍 Search
 vim.keymap.set("x", "/", "<C-\\><C-n>`</\\%V", { desc = "Search: forward in visual range" })
