@@ -29,6 +29,7 @@ local function close()
 		pcall(vim.api.nvim_win_close, panel.win, true)
 	end
 	panel.win, panel.buf = nil, nil
+	pcall(vim.api.nvim_del_augroup_by_name, "lsp_panel_refresh")
 end
 
 ---------------------------------------------------------------------
@@ -122,6 +123,71 @@ local function render(buf, rows, bufnr)
 end
 
 ---------------------------------------------------------------------
+-- 帮助浮窗（按键映射）
+---------------------------------------------------------------------
+local HELP = {
+	{ "<CR>", "切换选中行（启用/停用）" },
+	{ "R", "重启选中的 LSP" },
+	{ "r", "刷新附加状态" },
+	{ "j / k", "上下移动" },
+	{ "1-9", "直接切换对应行" },
+	{ "?", "显示/隐藏本帮助" },
+	{ "q / <Esc> / <Tab> / <C-s>", "关闭面板" },
+}
+
+---@param parent_win integer|nil 关闭帮助后返回的窗口
+local function show_help(parent_win)
+	local hbuf = vim.api.nvim_create_buf(false, true)
+
+	local lines = {}
+	local width = 40
+	for _, kv in ipairs(HELP) do
+		local line = string.format("  %-30s %s", kv[1], kv[2])
+		table.insert(lines, line)
+		width = math.max(width, vim.fn.strdisplaywidth(line))
+	end
+	width = math.min(width + 4, 84)
+
+	local height = #lines + 2
+	-- 右下角（留 2 行/列边距）
+	local margin = 2
+	local col = math.max(0, vim.o.columns - width - margin)
+	local row = math.max(0, vim.o.lines - vim.o.cmdheight - height - margin)
+	local hwin = vim.api.nvim_open_win(hbuf, true, {
+		relative = "editor",
+		width = width,
+		height = height,
+		col = col,
+		row = row,
+		border = "rounded",
+		style = "minimal",
+		title = " LSP 面板 · 按键帮助 ",
+		title_pos = "center",
+		zindex = 200,
+	})
+
+	vim.api.nvim_buf_set_lines(hbuf, 0, -1, false, lines)
+	vim.bo[hbuf].modifiable = false
+	vim.bo[hbuf].bufhidden = "wipe"
+
+	-- 键位列用 Special，说明列用普通色
+	for i, kv in ipairs(HELP) do
+		vim.api.nvim_buf_add_highlight(hbuf, -1, "Special", i - 1, 2, 2 + #kv[1])
+	end
+
+	local function close_help()
+		pcall(vim.api.nvim_win_close, hwin, true)
+		if parent_win and vim.api.nvim_win_is_valid(parent_win) then
+			vim.api.nvim_set_current_win(parent_win)
+		end
+	end
+
+	for _, key in ipairs({ "q", "<Esc>", "?", "<CR>" }) do
+		vim.keymap.set("n", key, close_help, { buffer = hbuf, nowait = true })
+	end
+end
+
+---------------------------------------------------------------------
 -- 行操作
 ---------------------------------------------------------------------
 local function stop_external(name, bufnr)
@@ -203,6 +269,18 @@ function M.toggle()
 
 	render(buf, rows, bufnr)
 
+	-- LSP 附加/断开是异步的：开关 server 后附加状态不会立刻变。
+	-- 面板开着时监听这两个事件，到了就重渲染。
+	local aug = vim.api.nvim_create_augroup("lsp_panel_refresh", { clear = true })
+	vim.api.nvim_create_autocmd({ "LspAttach", "LspDetach" }, {
+		group = aug,
+		callback = function(ev)
+			if ev.buf == bufnr then
+				vim.schedule(refresh)
+			end
+		end,
+	})
+
 	local opts = { buffer = buf, nowait = true }
 
 	-- CR：切换选中行
@@ -256,6 +334,11 @@ function M.toggle()
 			end
 		end, opts)
 	end
+
+	-- ?：按键帮助
+	vim.keymap.set("n", "?", function()
+		show_help(win)
+	end, opts)
 
 	vim.keymap.set("n", "q", close, opts)
 	vim.keymap.set("n", "<Esc>", close, opts)

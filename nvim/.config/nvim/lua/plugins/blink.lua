@@ -74,6 +74,13 @@ return {
 
 			keymap = {
 				preset = "default",
+				["<Tab>"] = {
+					"snippet_forward",
+					function() -- sidekick Next Edit Suggestion
+						return require("sidekick").nes_jump_or_apply()
+					end,
+					"fallback",
+				},
 				["<A-1>"] = {
 					function(cmp)
 						cmp.accept({ index = 1 })
