@@ -1,6 +1,11 @@
+local project = require("dap-config.project")
+
 return {
 	setup = function(dap)
 		dap.providers.configs["PyOCD"] = function(bufnr)
+			if project.kind(bufnr) ~= "embedded" then
+				return {}
+			end
 			return {
 				{
 					-- name = "OpenOCD",

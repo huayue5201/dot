@@ -1,8 +1,14 @@
+local project = require("dap-config.project")
+
 return {
 	setup = function(dap)
 		local dap_cortex_debug = require("dap-cortex-debug")
 
 		dap.providers.configs["OpenOCD"] = function(bufnr)
+			if project.kind(bufnr) ~= "embedded" then
+				return {}
+			end
+			local env = project.env_config(bufnr) or {}
 			return {
 				{
 					name = "OpenOCD",
@@ -20,8 +26,8 @@ return {
 					executable = function()
 						return require("dap.utils").pick_file()
 					end,
-					svdFile = vim.g.envConfig and vim.g.envConfig.svdFile or nil,
-					configFiles = vim.g.envConfig and vim.g.envConfig.configFiles or nil,
+					svdFile = env.svdFile,
+					configFiles = env.configFiles,
 					rttConfig = dap_cortex_debug.rtt_config(0),
 				},
 			}

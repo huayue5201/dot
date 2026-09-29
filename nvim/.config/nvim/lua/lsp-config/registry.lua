@@ -1,13 +1,7 @@
+-- lua/lsp-config/registry.lua
+---@brief LSP 配置注册表：发现 lsp/*.lua、校验、建立 filetype 索引、查询
+--（原 lsp_utils；图标已移到 icons.lua，配置重载 autocmd 已移到 autocmds.lua）
 local M = {}
-
-M.icons = {
-	diagnostic = {
-		ERROR = "󰅚 ",
-		WARN = "󰀪 ",
-		HINT = " ",
-		INFO = " ",
-	},
-}
 
 -- 缓存系统
 M._lsp_config_cache = nil
@@ -135,11 +129,7 @@ function M._extract_field_value(config, field, filename, quiet)
 		return config.name or filename
 	end
 
-	local value = config[field]
-	-- if value == nil and not quiet then
-	-- 	vim.notify("Field '" .. field .. "' not found in config: " .. filename, vim.log.levels.DEBUG)
-	-- end
-	return value
+	return config[field]
 end
 
 -- 统一的值处理器 (处理数组和标量)
@@ -273,19 +263,5 @@ function M.get_active_lsps(bufnr)
 	end
 	return active
 end
-
---------------------------------------------------------------
--- 自动重载配置 (优化监控模式)
---------------------------------------------------------------
-vim.api.nvim_create_autocmd("BufWritePost", {
-	pattern = { "lsp/*.lua", "after/lsp/*.lua" },
-	callback = function(args)
-		-- 只重载与当前文件相关的配置
-		local filename = vim.fn.fnamemodify(args.file, ":t:r")
-		local _, count = M.reload_lsp_configs()
-		vim.notify(string.format("LSP configurations reloaded (%d configs total)", count), vim.log.levels.INFO)
-	end,
-	group = vim.api.nvim_create_augroup("LSPConfigAutoReload", { clear = true }),
-})
 
 return M

@@ -12,6 +12,8 @@ Rust / C / C++ 的统一 LLDB 调试配置模块
 此模块由外部通过 require("dap-config.rust-lldb").setup(dap) 调用。
 --]]
 
+local project = require("dap-config.project")
+
 return {
 	setup = function(dap)
 		----------------------------------------------------------------------
@@ -168,10 +170,10 @@ return {
 		end
 
 		----------------------------------------------------------------------
-		-- 6. C 语言调试配置
+		-- 6. C / C++ 调试配置（桌面/host）
 		--    通过 vim.tbl_extend("force") 复用 cfg
 		----------------------------------------------------------------------
-		dap.configurations.c = {
+		local c_configs = {
 			vim.tbl_extend("force", cfg, {
 				program = function()
 					return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
@@ -191,15 +193,10 @@ return {
 		}
 
 		----------------------------------------------------------------------
-		-- 7. C++ 配置：复制 C 的配置（修复原 tbl_extend("keep", {}) 返回空表的问题）
-		----------------------------------------------------------------------
-		dap.configurations.cpp = vim.deepcopy(dap.configurations.c)
-
-		----------------------------------------------------------------------
-		-- 8. Rust 调试配置
+		-- 7. Rust 调试配置（桌面/host）
 		--    使用 cargo JSON 自动选择 bin/test
 		----------------------------------------------------------------------
-		dap.configurations.rust = {
+		local rust_configs = {
 			-- Debug 二进制
 			vim.tbl_extend("force", cfg, {
 				program = function()
@@ -257,5 +254,25 @@ return {
 				end,
 			}),
 		}
+
+		----------------------------------------------------------------------
+		-- 8. 按项目类型过滤（provider）
+		--    codelldb 属于桌面/host 调试；嵌入式项目改走 OpenOCD/probe-rs/PyOCD。
+		--    用 provider 而非 dap.configurations.*，才能按 buffer 所属项目动态过滤。
+		----------------------------------------------------------------------
+		local function desktop_provider(filetypes, configs)
+			return function(bufnr)
+				if not vim.tbl_contains(filetypes, vim.bo[bufnr].filetype) then
+					return {}
+				end
+				if project.kind(bufnr) ~= "desktop" then
+					return {}
+				end
+				return configs
+			end
+		end
+
+		dap.providers.configs["c.desktop"] = desktop_provider({ "c", "cpp" }, c_configs)
+		dap.providers.configs["rust.desktop"] = desktop_provider({ "rust" }, rust_configs)
 	end,
 }

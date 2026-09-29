@@ -1,6 +1,6 @@
 local M = {}
 
-local utils = require("lsp-config.lsp_utils")
+local icons = require("lsp-config.icons")
 
 -- =========================================================
 -- 配置选项
@@ -37,19 +37,19 @@ local spinner_update_scheduled = false
 -- 诊断级别配置
 local DIAGNOSTIC_SEVERITY = {
 	[vim.diagnostic.severity.ERROR] = {
-		icon = utils.icons.diagnostic.ERROR,
+		icon = icons.ERROR,
 		hl = "DiagnosticError",
 	},
 	[vim.diagnostic.severity.WARN] = {
-		icon = utils.icons.diagnostic.WARN,
+		icon = icons.WARN,
 		hl = "DiagnosticWarn",
 	},
 	[vim.diagnostic.severity.INFO] = {
-		icon = utils.icons.diagnostic.INFO,
+		icon = icons.INFO,
 		hl = "DiagnosticInfo",
 	},
 	[vim.diagnostic.severity.HINT] = {
-		icon = utils.icons.diagnostic.HINT,
+		icon = icons.HINT,
 		hl = "DiagnosticHint",
 	},
 }

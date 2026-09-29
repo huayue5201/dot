@@ -152,7 +152,5 @@ return {
 			config.settings["rust-analyzer"].check.noDefaultFeatures = false
 		end
 	end,
-	on_attach = function(client, bufnr)
-		require("lsp-config.rust_macro_preview").setup(client, bufnr)
-	end,
+	-- Rust 宏展开预览已由 lsp-config/autocmds.lua 的 LspAttach 统一接入（模块自守卫）
 }

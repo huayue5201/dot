@@ -1,20 +1,16 @@
---- File: nvim/.config/nvim/lua/lsp-config/lsp_autocmds.lua
+-- lua/lsp-config/autocmds.lua
+---@brief 所有 LSP 相关 autocmd 的注册中心
 ---@diagnostic disable: need-check-nil
--- LSP 配置模块
 local M = {}
-local keymaps = require("lsp-config.lsp_keys")
-local configs = require("lsp-config.lsp_settings")
 
--- 使用 nvim-store3（项目级）
-local Store = require("nvim-store3").project()
+local keys = require("lsp-config.keys")
+local registry = require("lsp-config.registry")
+local servers = require("lsp-config.servers")
+local state = require("lsp-config.state")
+local ctx = require("core.context")
 
--- 确保有默认值
-if Store:get("lsp.inlay_hints") == nil then
-	Store:set("lsp.inlay_hints", "on")
-end
-if Store:get("lsp.diagnostics") == nil then
-	Store:set("lsp.diagnostics", "on")
-end
+-- 缓存调试状态，热路径不再反复读 vim.g
+local debug_active = ctx.is_debug()
 
 -- 存储当前缓冲区的状态
 local buffer_states = {}
@@ -31,16 +27,15 @@ local function auto_diagnostic()
 			local mode = vim.fn.mode()
 
 			-- 如果调试处于活动状态，不做任何操作
-			if vim.g.dap_active then
+			if debug_active then
 				return
 			end
 
 			-- 诊断功能不需要检查客户端支持，因为 vim.diagnostic 是 Neovim 内置功能
-
-			local diagnostics_enabled = Store:get("lsp.diagnostics")
+			local diagnostics_enabled = state.get("lsp.diagnostics", bufnr)
 
 			-- 只在诊断启用时才进行切换
-			if diagnostics_enabled == "on" then
+			if diagnostics_enabled then
 				if mode == "i" or mode == "s" or mode == "v" then
 					-- 进入插入或选择模式
 					vim.diagnostic.enable(false, { bufnr = bufnr })
@@ -62,31 +57,28 @@ end
 ---------------------------------------------------------
 local function auto_inlay_hint()
 	-- 这个自动命令会在 LspAttach 中根据客户端能力有条件地启用
-	-- 所以这里只创建组，实际注册在 LspAttach 中
 	local group = vim.api.nvim_create_augroup("UserLspInlayHint", { clear = true })
 
-	-- 创建自动命令但先禁用
 	vim.api.nvim_create_autocmd({ "InsertEnter", "InsertLeave" }, {
 		group = group,
 		desc = "LSP inlay hints 自动切换",
 		callback = function(args)
-			-- 这个回调会被调用，但我们可以通过检查 buffer_states 中的标志来决定是否执行
 			local bufnr = args.buf
 
-			-- 如果这个缓冲区没有启用 inlay hint 自动切换，直接返回
+			-- 该缓冲区未启用 inlay hint 自动切换
 			if not buffer_states[bufnr] or not buffer_states[bufnr].inlay_hint_autocmd_enabled then
 				return
 			end
 
-			-- 如果调试处于活动状态，不做任何操作
-			if vim.g.dap_active then
+			-- 调试中不做任何操作
+			if debug_active then
 				return
 			end
 
-			local inlay_hint_enable = Store:get("lsp.inlay_hints")
+			local inlay_hint_enable = state.get("lsp.inlay_hints", bufnr)
 			local is_insert = args.event == "InsertEnter"
 
-			if inlay_hint_enable == "on" then
+			if inlay_hint_enable then
 				vim.lsp.inlay_hint.enable(not is_insert, { bufnr = bufnr })
 				buffer_states[bufnr] = buffer_states[bufnr] or {}
 				buffer_states[bufnr].inlay_hint_enabled = not is_insert
@@ -101,8 +93,8 @@ end
 -- 应用当前缓冲区的设置
 ---------------------------------------------------------
 local function apply_buffer_settings(bufnr)
-	-- 如果调试处于活动状态，强制禁用 LSP 功能
-	if vim.g.dap_active then
+	-- 调试中：强制禁用 LSP 功能
+	if debug_active then
 		vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
 		vim.diagnostic.enable(false, { bufnr = bufnr })
 		buffer_states[bufnr] = buffer_states[bufnr] or {}
@@ -111,15 +103,12 @@ local function apply_buffer_settings(bufnr)
 		return
 	end
 
-	-- 正常模式下的设置
-	local inlay_hint_enable = Store:get("lsp.inlay_hints")
-	local diagnostics_enabled = Store:get("lsp.diagnostics")
+	local inlay_hint_enable = state.get("lsp.inlay_hints", bufnr)
+	local diagnostics_enabled = state.get("lsp.diagnostics", bufnr)
 
-	-- 初始化缓冲区状态
 	buffer_states[bufnr] = buffer_states[bufnr] or {}
 
-	-- 应用内联提示设置
-	if inlay_hint_enable == "on" then
+	if inlay_hint_enable then
 		vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 		buffer_states[bufnr].inlay_hint_enabled = true
 	else
@@ -127,8 +116,7 @@ local function apply_buffer_settings(bufnr)
 		buffer_states[bufnr].inlay_hint_enabled = false
 	end
 
-	-- 应用诊断设置
-	if diagnostics_enabled == "on" then
+	if diagnostics_enabled then
 		vim.diagnostic.enable(true, { bufnr = bufnr })
 		buffer_states[bufnr].diagnostics_enabled = true
 	else
@@ -141,47 +129,33 @@ end
 -- 处理设置变化
 ---------------------------------------------------------
 local function setup_settings_watcher()
-	-- 监听设置变化（nvim-store3 事件为 set/delete/flush，回调参数为 payload 表）
-	Store:on("set", function(payload)
-		local key = payload.key
-		local value = payload.value
-
-		-- 如果调试处于活动状态，忽略设置变化
-		if vim.g.dap_active then
+	-- 监听设置变化（nvim-store3 set 事件），跨项目实例自动接入
+	state.subscribe(function(key, value)
+		if debug_active then
 			return
 		end
 
-		if key == "lsp.inlay_hints" then
-			local clients = vim.lsp.get_clients()
-			for _, client in ipairs(clients) do
-				for _, bufnr in ipairs(client.attached_buffers or {}) do
-					if value == "on" then
-						vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-						if buffer_states[bufnr] then
-							buffer_states[bufnr].inlay_hint_enabled = true
-						end
-					else
-						vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
-						if buffer_states[bufnr] then
-							buffer_states[bufnr].inlay_hint_enabled = false
-						end
+		if key ~= "lsp.inlay_hints" and key ~= "lsp.diagnostics" then
+			return
+		end
+
+		-- 兼容历史字符串值
+		local enabled = value
+		if type(value) == "string" then
+			enabled = value == "on" or value == "active" or value == "enabled"
+		end
+
+		for _, client in ipairs(vim.lsp.get_clients()) do
+			for _, bufnr in ipairs(client.attached_buffers or {}) do
+				if key == "lsp.inlay_hints" then
+					vim.lsp.inlay_hint.enable(enabled, { bufnr = bufnr })
+					if buffer_states[bufnr] then
+						buffer_states[bufnr].inlay_hint_enabled = enabled
 					end
-				end
-			end
-		elseif key == "lsp.diagnostics" then
-			local clients = vim.lsp.get_clients()
-			for _, client in ipairs(clients) do
-				for _, bufnr in ipairs(client.attached_buffers or {}) do
-					if value == "on" then
-						vim.diagnostic.enable(true, { bufnr = bufnr })
-						if buffer_states[bufnr] then
-							buffer_states[bufnr].diagnostics_enabled = true
-						end
-					else
-						vim.diagnostic.enable(false, { bufnr = bufnr })
-						if buffer_states[bufnr] then
-							buffer_states[bufnr].diagnostics_enabled = false
-						end
+				else
+					vim.diagnostic.enable(enabled, { bufnr = bufnr })
+					if buffer_states[bufnr] then
+						buffer_states[bufnr].diagnostics_enabled = enabled
 					end
 				end
 			end
@@ -190,21 +164,9 @@ local function setup_settings_watcher()
 end
 
 ---------------------------------------------------------
--- LSP Attach
+-- LspAttach
 ---------------------------------------------------------
-function M.setup()
-	-- 设置配置
-	configs.diagnostic_config()
-
-	-- 创建全局自动命令（诊断不需要客户端支持）
-	auto_diagnostic()
-
-	-- 创建 inlay hint 自动命令组（但默认不启用）
-	local inlay_hint_group = auto_inlay_hint()
-
-	-- 设置设置变化监听器
-	setup_settings_watcher()
-
+local function setup_lsp_attach()
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
 		desc = "LSP 客户端附加到缓冲区时的配置",
@@ -212,20 +174,22 @@ function M.setup()
 			local bufnr = args.buf
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
 
-			-- 设置按键映射
-			keymaps.set_keymaps(bufnr)
+			-- 按键映射
+			keys.attach(bufnr)
 
-			-- 根据客户端能力启用 inlay hint 自动命令
+			-- 根据客户端能力启用 inlay hint 自动切换
 			if client:supports_method("textDocument/inlayHint") then
-				-- 标记这个缓冲区启用了 inlay hint 自动切换
 				buffer_states[bufnr] = buffer_states[bufnr] or {}
 				buffer_states[bufnr].inlay_hint_autocmd_enabled = true
 			end
 
-			-- 应用当前缓冲区的设置
+			-- Rust 宏展开预览（setup 内部自行守卫：仅 rust-analyzer + 支持 expandMacro）
+			require("lsp-config.features.rust_macro_preview").setup(client, bufnr)
+
+			-- 应用当前缓冲区的持久化设置
 			apply_buffer_settings(bufnr)
 
-			-- 其他 LSP 功能设置
+			-- 文档颜色
 			if client:supports_method("textDocument/colorProvider") then
 				vim.lsp.document_color.enable(true, {
 					bufnr = bufnr,
@@ -234,19 +198,7 @@ function M.setup()
 				})
 			end
 
-			-- Code lens（rust-analyzer 的 ▶ Run / ▶ Debug、引用计数等）
-			-- if client:supports_method("textDocument/codeLens") then
-			-- 	vim.lsp.codelens.enable(true, { bufnr = bufnr })
-			-- end
-
-			-- if client:supports_method("textDocument/onTypeFormatting") then
-			-- 	vim.lsp.on_type_formatting.enable()
-			-- end
-
-			-- if client:supports_method("textDocument/foldingRange") then
-			-- 	vim.wo.foldexpr = "v:lua:vim.lsp.foldexpr()"
-			-- end
-
+			-- 链接编辑范围
 			if client:supports_method("textDocument/linkedEditingRange") then
 				vim.lsp.linked_editing_range.enable(true, { client_id = client.id, bufnr = bufnr })
 			end
@@ -262,20 +214,57 @@ function M.setup()
 			end
 		end,
 	})
+end
 
-	-- Code lens 自动刷新（lens 默认不自动更新）
-	-- vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
-	-- 	group = vim.api.nvim_create_augroup("UserLspCodeLensRefresh", { clear = true }),
-	-- 	desc = "LSP code lens 自动刷新",
-	-- 	callback = function(args)
-	-- 		vim.lsp.codelens.enable(true, { bufnr = args.buf })
-	-- 	end,
-	-- })
+---------------------------------------------------------
+-- 注册全部 autocmd
+---------------------------------------------------------
+function M.setup()
+	-- 模式切换时临时开关诊断
+	auto_diagnostic()
 
-	-- 当缓冲区卸载时清理状态
+	-- inlay hint 自动切换组（默认不启用，LspAttach 里按能力开启）
+	auto_inlay_hint()
+
+	-- 设置变化监听器
+	setup_settings_watcher()
+
+	-- 调试状态变化时重新应用所有已知 buffer 的设置
+	ctx.on_debug_change(function(active)
+		debug_active = active
+		for bufnr in pairs(buffer_states) do
+			if vim.api.nvim_buf_is_valid(bufnr) then
+				apply_buffer_settings(bufnr)
+			end
+		end
+	end)
+
+	-- FileType：按项目状态启停 server
+	vim.api.nvim_create_autocmd("FileType", {
+		desc = "根据文件类型启动或停止 LSP",
+		pattern = registry.get_lsp_config("filetypes"),
+		callback = function(args)
+			servers.apply_for_buffer(args.buf)
+		end,
+	})
+
+	-- LSP 客户端附加
+	setup_lsp_attach()
+
+	-- 缓冲区卸载时清理状态
 	vim.api.nvim_create_autocmd("BufUnload", {
 		callback = function(args)
 			buffer_states[args.buf] = nil
+		end,
+	})
+
+	-- lsp/*.lua 改动后重载配置
+	vim.api.nvim_create_autocmd("BufWritePost", {
+		pattern = { "lsp/*.lua", "after/lsp/*.lua" },
+		group = vim.api.nvim_create_augroup("LSPConfigAutoReload", { clear = true }),
+		callback = function()
+			local _, count = registry.reload_lsp_configs()
+			vim.notify(string.format("LSP configurations reloaded (%d configs total)", count), vim.log.levels.INFO)
 		end,
 	})
 end

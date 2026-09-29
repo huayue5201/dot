@@ -1,7 +1,7 @@
 -- TODO: https://github.com/neovim/neovim/issues/34562
 
 local colors = require("user.colors").palette
-local lsp = require("lsp-config.lsp_status_mod").lsp
+local lsp = require("lsp-config.statusline").lsp
 local todo_status = require("todo2.ui.statusline")
 local dap_status = require("dap").status()
 
@@ -382,8 +382,27 @@ end
 --- 注意：只在状态栏内容真正变化时才 redrawstatus。
 --- 无条件 redrawstatus 会在每次 CursorMoved/CursorMovedI 时触发（例如在 fff 等
 --- 浮动输入框里打字时），虽然不应移动光标，但属于无谓的重绘。
+
+--- 判断当前窗口是否需要更新状态栏。
+--- 浮动窗口（如 fff 输入框）与特殊 buffer（prompt/nofile/terminal/quickfix 等）
+--- 不显示状态栏；在这些窗口里 redrawstatus 会触发 neovim#34562，导致光标意外左移。
+local function should_update_statusline()
+	local bt = vim.api.nvim_get_option_value("buftype", { buf = 0 })
+	if bt ~= "" then
+		return false
+	end
+	local cfg = vim.api.nvim_win_get_config(0)
+	if cfg.relative ~= "" then
+		return false
+	end
+	return true
+end
+
 local function apply()
 	if vim.o.laststatus == 0 then
+		return
+	end
+	if not should_update_statusline() then
 		return
 	end
 	if update() then
@@ -475,7 +494,7 @@ vim.api.nvim_create_autocmd("DiagnosticChanged", {
 	end,
 })
 
--- LSP spinner tick（由 lsp_status_mod 发出，见改动 2）
+-- LSP spinner tick（由 lsp-config.statusline 发出）
 vim.api.nvim_create_autocmd("User", {
 	pattern = "LspStatusSpinner",
 	group = statusline_group,

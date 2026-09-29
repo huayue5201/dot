@@ -5,19 +5,14 @@ return {
 	dir = "~/neovim-plugins/nvim-translator",
 	dev = true,
 	build = "make build", -- 确保后端二进制是最新构建
-	config = function()
-		----------------------------------------------------------------------
-		-- 基础配置
-		----------------------------------------------------------------------
-		vim.g.translator_window_type = "float" -- "float" | "preview"
-		vim.g.translator_history_enable = true
-		vim.g.translator_proxy_url = "" -- 需要代理时填 "socks5://127.0.0.1:1080"
-		-- 双语互翻自动检测方向，无需配置 target_lang / source_lang
-
-		----------------------------------------------------------------------
-		-- LLM 引擎（DeepSeek）
-		----------------------------------------------------------------------
-		vim.g.translator_llm = {
+	opts = {
+		-- 语言方向：默认自动检测，一般无需设置
+		source_lang = "auto",
+		target_lang = "zh",
+		bilingual = true,
+		engines = { "llm", "google", "baidu", "bing" },
+		proxy_url = "", -- 需要代理时填 "socks5://127.0.0.1:1080"
+		llm = {
 			name = "deepseek",
 			env = {
 				api_key = function()
@@ -27,10 +22,27 @@ return {
 			schema = {
 				model = { default = "deepseek-flash" },
 			},
-		}
-		vim.g.translator_default_engines = { "llm", "google", "baidu", "bing" }
+		},
+		window = { type = "float" }, -- "float" | "preview"
+		history = { enable = true },
+		cache = {
+			enable = true,
+			ttl = 7 * 24 * 60 * 60, -- 7 天；0 = 永不过期
+		},
+		-- 面板高亮覆盖（克制风是默认值；需要时取消注释）
+		-- highlights = {
+		-- 	source = "Comment", -- 原文行 ⟦ … ⟧（false = 关闭）
+		-- 	source_text = "Identifier", -- 被译对象本身
+		-- 	engine = "Title", -- 引擎头
+		-- 	phonetic = "Comment", -- 音标
+		-- 	marker = "Special", -- 行首标记 • / ↳
+		-- },
+		-- anki = { deck = "翻译", port = 8765, model = "translator" },
+		-- tts = { engine = "say" }, -- "say" | "google"
+	},
+	config = function(_, opts)
+		require("translator").setup(opts)
 
-		vim.g.translator_bilingual = true
 		----------------------------------------------------------------------
 		-- Keymap
 		----------------------------------------------------------------------
@@ -124,5 +136,14 @@ return {
 		----------------------------------------------------------------------
 		vim.keymap.set("n", "<localLeader>th", "<Cmd>TranslateH<CR>", { silent = true, desc = "翻译历史" })
 		vim.keymap.set("n", "<localLeader>tl", "<Cmd>TranslateL<CR>", { silent = true, desc = "翻译日志" })
+		vim.keymap.set("n", "<localLeader>tc", "<Cmd>TranslateCacheClear<CR>", { silent = true, desc = "清空翻译缓存" })
+
+		-- 强制刷新（绕过缓存）：等价于 :Translate --no-cache
+		vim.keymap.set("n", "<localLeader>tC", function()
+			translator.start(
+				"window",
+				{ bang = false, range = 0, line1 = 1, line2 = 1, args = "--no-cache " .. vim.fn.expand("<cword>") }
+			)
+		end, { silent = true, desc = "翻译并窗口显示（强制刷新）" })
 	end,
 }

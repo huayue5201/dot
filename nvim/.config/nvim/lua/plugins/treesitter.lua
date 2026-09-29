@@ -25,6 +25,7 @@ return {
 			"html",
 			"css",
 			"json",
+			"http", -- rest.nvim 需要（.http 文件解析）
 			"markdown",
 			"markdown_inline",
 			"dap_repl",

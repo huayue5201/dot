@@ -114,6 +114,9 @@ return {
 		require("dap-config.adapters.nlua").setup(dap)
 		require("dap-config.adapters.emmylua").setup(dap)
 
+		-- 调试配置项目级记忆（记住上次配置 + 项目模板）
+		require("dap-config.persist").setup()
+
 		vim.api.nvim_create_autocmd({ "VimLeave" }, {
 			callback = function()
 				-- 通过系统命令关闭 OpenOCD

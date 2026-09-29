@@ -10,6 +10,16 @@ function M.setup()
 	-- ▶ 控制
 	vim.keymap.set("n", "<leader>dr", dap.continue, { desc = "[D]ap [C]ontinue / [S]tart" })
 
+	-- 运行本项目上次使用的调试配置（无 picker；无记录时回退到选择器）
+	vim.keymap.set("n", "<leader>dL", function()
+		require("dap-config.persist").continue_last(0)
+	end, { desc = "[D]ap [L]ast config" })
+
+	-- 生成项目调试配置模板 .nvim/dap.lua
+	vim.keymap.set("n", "<leader>dP", function()
+		require("dap-config.project").init(0)
+	end, { desc = "[D]ap [P]roject config template" })
+
 	vim.keymap.set("n", "<leader>ds", function()
 		dap.terminate({
 			on_done = function()
@@ -283,6 +293,7 @@ function M.setup()
 
 		dap.listeners.after["event_initialized"]["me"] = function()
 			vim.g.dap_active = true
+			require("core.context").set_debug(true)
 			vim.lsp.inlay_hint.enable(false)
 			vim.diagnostic.enable(false)
 			require("dap-view").virtual_text_enable()
@@ -318,6 +329,7 @@ function M.setup()
 
 		dap.listeners.after["event_terminated"]["me"] = function()
 			vim.g.dap_active = false
+			require("core.context").set_debug(false)
 			vim.lsp.inlay_hint.enable(true)
 			vim.diagnostic.enable(true)
 			require("dap-view").virtual_text_disable()

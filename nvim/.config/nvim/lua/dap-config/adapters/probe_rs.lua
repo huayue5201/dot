@@ -1,4 +1,6 @@
 -- https://probe.rs/docs/tools/debugger/
+local project = require("dap-config.project")
+
 return {
 	setup = function(dap)
 		-- probe-rs Adapter 配置
@@ -11,10 +13,14 @@ return {
 			},
 		}
 
-		-- 动态 Provider
+		-- 动态 Provider（仅嵌入式项目参与）
 		dap.providers.configs["probe-rs-debug"] = function(bufnr)
-			local chip = vim.g.envConfig and vim.g.envConfig.chip or nil
-			local svdFile = vim.g.envConfig and vim.g.envConfig.svdFile or nil
+			if project.kind(bufnr) ~= "embedded" then
+				return {}
+			end
+			local env = project.env_config(bufnr) or {}
+			local chip = env.chip
+			local svdFile = env.svdFile
 
 			local function pick_program()
 				return require("dap.utils").pick_file()

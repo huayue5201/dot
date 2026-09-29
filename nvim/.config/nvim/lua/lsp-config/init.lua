@@ -1,16 +1,12 @@
--- lsp server 配置参考
--- https://github.com/neovim/nvim-lspconfig/tree/16666f1bc40f69ce05eb1883fd8c0d076284d8a5/lua/lspconfig/configs
-
+-- lua/lsp-config/init.lua
+---@brief lsp-config 入口：只负责编排各子模块
 local M = {}
-local configs = require("lsp-config.lsp_settings")
-local autocmds = require("lsp-config.lsp_autocmds")
-local keymap = require("lsp-config.lsp_keys")
 
 function M.setup()
-	configs.lsp_Start() -- 启动lsp
-	configs.global_config() -- 全局配置
-	autocmds.setup() -- 配置初始化
-	keymap.global_keymaps() -- 全局按键映射
+	require("lsp-config.capabilities").setup() -- 全局 capabilities / root_markers
+	require("lsp-config.diagnostics").setup() -- 诊断 UI
+	require("lsp-config.autocmds").setup() -- 所有 autocmd（含 FileType 启停 / LspAttach）
+	require("lsp-config.keys").global() -- 全局按键映射
 end
 
 return M

@@ -1,8 +1,8 @@
--- lua/lsp-config/rust_macro_preview.lua
+-- lua/lsp-config/features/rust_macro_preview.lua
 -- Rust 宏展开预览（依赖 rust-analyzer 的 rust-analyzer/expandMacro 扩展请求）
 --
 -- 用法（在 LspAttach 中）：
---   require("lsp-config.rust_macro_preview").setup(client, bufnr)
+--   require("lsp-config.features.rust_macro_preview").setup(client, bufnr)
 --
 -- 之后在当前 buffer：
 --   - 用户命令 `:RustExpandMacro`
