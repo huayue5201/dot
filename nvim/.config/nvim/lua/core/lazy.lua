@@ -24,7 +24,7 @@ require("lazy").setup({
 		server = "https://lumen-oss.github.io/rocks-binaries/",
 	},
 	timeout = 1000000,
-	concurrency = 10, -- 限制并行任务数，避免代理被大量并发连接压垮
+	-- concurrency = 10, -- 限制并行任务数，避免代理被大量并发连接压垮
 	spec = {
 		-- import your plugins
 		{ import = "plugins" },

@@ -11,17 +11,7 @@ return {
 		-- 可选：自定义配置（以下均为顶层键，均有默认值，按需覆盖）
 		vim.g.todo2_config = {
 			-- 核心开关
-			show_status = true, -- 显示状态
 			conceal_enable = true, -- TODO 文件 conceal 渲染（复选框图标等）
-
-			-- 状态高亮颜色（对应 TodoStatusXxx 高亮组）
-			status_colors = {
-				normal = "#51cf66",
-				urgent = "#ff6b6b",
-				waiting = "#ffd43b",
-				completed = "#868e96",
-				archived = "#868e96",
-			},
 
 			-- 解析器行为
 			parser = {
@@ -73,15 +63,6 @@ return {
 				width = 58, -- position = "right" 时的宽度
 				height = 12, -- position = "bottom" 时的高度
 				focus_on_jump = false, -- true 时 <CR> 跳转后焦点跟随到代码窗口
-			},
-
-			-- 状态图标（图标 + 颜色 + 标签）
-			status_icons = {
-				normal = { icon = "", color = "#51cf66", label = "正常" },
-				urgent = { icon = "󰚰", color = "#ff6b6b", label = "紧急" },
-				waiting = { icon = "󱫖", color = "#ffd43b", label = "等待" },
-				completed = { icon = "", color = "#868e96", label = "完成" },
-				archived = { icon = "📦", color = "#868e96", label = "归档" },
 			},
 
 			-- 归档区域标题前缀

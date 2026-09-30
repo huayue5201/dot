@@ -144,9 +144,6 @@ return {
 
 			sources = {
 				default = { "lsp", "path", "snippets", "buffer", "ripgrep" },
-				per_filetype = {
-					codecompanion = { "codecompanion" },
-				},
 				providers = {
 					ripgrep = {
 						module = "blink-ripgrep",

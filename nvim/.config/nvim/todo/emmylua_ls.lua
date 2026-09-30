@@ -6,7 +6,6 @@ return {
 		".git/",
 		".luarc.json",
 		".emmyrc.json",
-		".luacheckrc",
 	},
 	filetypes = { "lua" },
 	single_file_support = true,
