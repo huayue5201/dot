@@ -100,6 +100,9 @@ return {
 		-- 状态
 		vim.keymap.set("n", "<leader>mt", "<cmd>TodoStatus<cr>", { desc = "选择任务状态" })
 
+		-- 任务正文
+		vim.keymap.set("n", "<leader>mD", "<cmd>TodoDesc<cr>", { desc = "编辑任务正文" })
+
 		-- 从代码创建任务
 		vim.keymap.set("n", "<leader>ma", "<cmd>TodoAdd<cr>", { desc = "从代码创建任务" })
 
