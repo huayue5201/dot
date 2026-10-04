@@ -18,15 +18,4 @@ return {
 			vim.opt_local.winfixbuf = true
 		end,
 	},
-	sidekick_terminal = {
-		setup = function()
-			local keys_to_disable = { "<c-o>", "<c-i>", "<c-q>" }
-			local modes = { "n", "v" } -- n=普通, v=可视
-			for _, mode in ipairs(modes) do
-				for _, key in ipairs(keys_to_disable) do
-					vim.keymap.set(mode, key, "<Nop>", { buffer = true, silent = true })
-				end
-			end
-		end,
-	},
 }

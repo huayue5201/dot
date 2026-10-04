@@ -12,7 +12,7 @@ font-family = iosevka
 # font-thicken = true
 
 # 设置字体大小
-font-size = 18
+font-size = 16
 adjust-cell-height = 5
 
 # 下划线配置

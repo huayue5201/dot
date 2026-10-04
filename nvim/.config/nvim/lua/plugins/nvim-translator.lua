@@ -11,8 +11,10 @@ return {
 		target_lang = "zh",
 		bilingual = true,
 		engines = { "llm", "google", "baidu", "bing" },
+		request_timeout = 60000, -- 本地 LLM 推理较慢，放宽整体超时（默认 15s）
 		proxy_url = "", -- 需要代理时填 "socks5://127.0.0.1:1080"
 		llm = {
+			-- 主端点：DeepSeek（在线，质量优先）
 			name = "deepseek",
 			env = {
 				api_key = function()
@@ -21,6 +23,36 @@ return {
 			},
 			schema = {
 				model = { default = "deepseek-flash" },
+			},
+			-- 降级端点：本地 llama.cpp（断网时自动兜底）
+			fallback = {
+				base_url = "http://127.0.0.1:8080/v1",
+				model = "qwen2.5-7b",
+				prompt = [[You are a professional translation engine and dictionary. Translate the user's text from {sl} to {tl}.
+
+Reply with ONLY a valid JSON object (no markdown fences, no commentary) in this exact shape:
+{"paraphrase":"...","explains":["..."],"phonetic":"..."}
+
+Rules:
+- "paraphrase": the complete, natural translation of the user's text.
+- "explains": detailed dictionary-style annotations as an array of strings. Each string describes a key word or phrase with part of speech and meaning, e.g. "quick (adj.) 快速的". For a single word, list its main senses as separate strings.
+- "phonetic": pronunciation (IPA) of the SOURCE text. Use ONLY when the input is a single word; otherwise use "".
+- Preserve meaning, tone, and line breaks faithfully.]],
+			},
+			-- 本地 llama-server 按需启动 + 空闲回收（配合 ~/models/llm-watchdog.sh + launchd 定时器）
+			server = {
+				cmd = {
+					"/opt/homebrew/bin/llama-server",
+					"-m", vim.fn.expand("~/models/qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf"),
+					"--alias", "qwen2.5-7b",
+					"--host", "127.0.0.1",
+					"--port", "8080",
+					"-c", "8192",
+				},
+				health = "http://127.0.0.1:8080/health",
+				wait = 120, -- 等待服务就绪的最长秒数
+				poll_ms = 1000, -- 健康检查轮询间隔（毫秒）
+				stamp = vim.fn.expand("~/.cache/translator/llm.last_active"),
 			},
 		},
 		window = { type = "float" }, -- "float" | "preview"

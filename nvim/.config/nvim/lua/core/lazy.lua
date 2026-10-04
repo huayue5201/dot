@@ -20,7 +20,7 @@ vim.opt.rtp:prepend(lazypath)
 -- Setup lazy.nvim
 require("lazy").setup({
 	rocks = {
-		enabled = true,
+		enabled = false,
 		server = "https://lumen-oss.github.io/rocks-binaries/",
 	},
 	timeout = 1000000,

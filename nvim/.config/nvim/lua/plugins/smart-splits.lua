@@ -3,26 +3,47 @@
 return {
 	"smart-splits-nvim/smart-splits.nvim",
 	version = "^3.0.0", -- 锁定 v3 大版本，比 branch = "v3" 更稳定
-	-- 注意：tmux 集成依赖插件在「加载时」设置 pane 级变量 @pane-is-vim，
+	-- 注意：herdr 集成依赖插件在「加载时」检测 HERDR_ENV 并注册按键映射，
 	-- 所以这里刻意不懒加载（不用 keys/event），保证 Neovim 启动即注册。
 	config = function()
 		local ss = require("smart-splits")
 
 		ss.setup({
 			log = { file = false }, -- v3 默认会写日志文件，这里关掉
-			multiplexer_integration = "tmux", -- 显式启用 tmux 集成（自动探测可能因 $TERM_PROGRAM=ghostty 失败）
-			disable_multiplexer_nav_when_zoomed = true, -- 当前 tmux 面板放大时不做跳转
+			default_amount = 1, -- 每次 resize 1 行/列，更精细（默认 3 太粗）
+			multiplexer_integration = "herdr", -- 显式启用 herdr 集成（自动探测可能因 $TERM_PROGRAM=ghostty 失败）
+			disable_multiplexer_nav_when_zoomed = true, -- 当前 herdr 面板放大时不做跳转
 		})
+
+		-- 修正 herdr 跨 pane resize 的语义：
+		-- smart-splits 把「格数」传给 mux.resize_pane（default_amount=1 即 1 列/行），
+		-- 但 herdr 的 `pane resize --amount` 期望的是「比例增量」（0.05 = 5%），
+		-- 传 1 会被当成 100% 再 clamp 到 50%，一下跳半屏。这里按窗口列/行数换算成比例，
+		-- 让跨 pane 的 resize 也是 1 格一档（可叠加 count 前缀）。
+		local ok_herdr, herdr_mux = pcall(require, "smart-splits.mux.herdr")
+		if ok_herdr and herdr_mux then
+			local herdr_resize_orig = herdr_mux.resize_pane
+			herdr_mux.resize_pane = function(direction, amount)
+				amount = amount or 1
+				local horizontal = direction == "left" or direction == "right"
+				local cells = horizontal and vim.o.columns or vim.o.lines
+				local ratio = amount / math.max(cells, 1)
+				if ratio > 0.5 then
+					ratio = 0.5 -- herdr 内部对 delta 的 clamp 上限
+				end
+				return herdr_resize_orig(direction, ratio)
+			end
+		end
 
 		local map = vim.keymap.set
 
-		-- 移动光标到相邻窗口（Alt+hjkl，最高频）
-		map("n", "<A-h>", ss.move_cursor_left, { desc = "Smart-splits: 光标去左窗口" })
-		map("n", "<A-j>", ss.move_cursor_down, { desc = "Smart-splits: 光标去下窗口" })
-		map("n", "<A-k>", ss.move_cursor_up, { desc = "Smart-splits: 光标去上窗口" })
-		map("n", "<A-l>", ss.move_cursor_right, { desc = "Smart-splits: 光标去右窗口" })
+		-- 移动光标到相邻窗口（ctrl+alt+hjkl，与 herdr 统一）
+		map("n", "<C-A-h>", ss.move_cursor_left, { desc = "Smart-splits: 光标去左窗口" })
+		map("n", "<C-A-j>", ss.move_cursor_down, { desc = "Smart-splits: 光标去下窗口" })
+		map("n", "<C-A-k>", ss.move_cursor_up, { desc = "Smart-splits: 光标去上窗口" })
+		map("n", "<C-A-l>", ss.move_cursor_right, { desc = "Smart-splits: 光标去右窗口" })
 
-		-- 调整窗口大小（<A-HJKL> = Alt+Shift+hjkl，匹配 ghostty 协议）
+		-- 调整窗口大小（Alt+Shift+hjkl；不用 ctrl+alt+shift——macOS 上 ctrl+Option+Shift 会被特殊字符组合吞掉）
 		map("n", "<A-H>", ss.resize_left, { desc = "Smart-splits: 左边界左移(变宽)" })
 		map("n", "<A-J>", ss.resize_down, { desc = "Smart-splits: 下边界下移(变高)" })
 		map("n", "<A-K>", ss.resize_up, { desc = "Smart-splits: 上边界上移(变高)" })

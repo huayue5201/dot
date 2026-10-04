@@ -196,16 +196,21 @@ return {
 		-- 7. Rust 调试配置（桌面/host）
 		--    使用 cargo JSON 自动选择 bin/test
 		----------------------------------------------------------------------
+		-- Rust 专用基表：只影响 Rust，C/C++ 仍用 native 求值器
+		-- expressions = "simple"：让 x.field / v[i] / *ptr 这类简单读取走 codelldb 预处理器，
+		-- 减少直接丢给 LLDB（macOS 上会退回 ObjC++）的噪音；不改变 LLDB 无 Rust 求值的事实。
+		local rust_cfg = vim.tbl_extend("force", cfg, { expressions = "simple" })
+
 		local rust_configs = {
 			-- Debug 二进制
-			vim.tbl_extend("force", cfg, {
+			vim.tbl_extend("force", rust_cfg, {
 				program = function()
 					return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
 				end,
 			}),
 
 			-- Debug (+args)
-			vim.tbl_extend("force", cfg, {
+			vim.tbl_extend("force", rust_cfg, {
 				name = "Debug (+args)",
 				program = function()
 					return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
@@ -214,7 +219,7 @@ return {
 			}),
 
 			-- Debug tests
-			vim.tbl_extend("force", cfg, {
+			vim.tbl_extend("force", rust_cfg, {
 				name = "Debug tests",
 				program = function()
 					return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
@@ -223,7 +228,7 @@ return {
 			}),
 
 			-- Debug tests (+args)
-			vim.tbl_extend("force", cfg, {
+			vim.tbl_extend("force", rust_cfg, {
 				name = "Debug tests (+args)",
 				program = function()
 					return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
@@ -234,7 +239,7 @@ return {
 			}),
 
 			-- Debug 光标所在测试（未来可加入 Treesitter 自动检测）
-			vim.tbl_extend("force", cfg, {
+			vim.tbl_extend("force", rust_cfg, {
 				name = "Debug test (cursor)",
 				program = function()
 					return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
@@ -246,7 +251,7 @@ return {
 			}),
 
 			-- Attach
-			vim.tbl_extend("force", cfg, {
+			vim.tbl_extend("force", rust_cfg, {
 				name = "Attach debugger",
 				request = "attach",
 				program = function()

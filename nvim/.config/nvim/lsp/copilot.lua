@@ -1,6 +1,5 @@
 -- https://github.com/github/copilot-language-server
 -- 取自 nvim-lspconfig（本机没装 nvim-lspconfig，所以直接内置）
--- sidekick.nvim 的 NES 需要它，并且要用 vim.lsp.enable 启用（由 lsp-config 的 FileType 逻辑统一启用）
 
 local function sign_in(bufnr, client)
 	client:request("signIn", vim.empty_dict(), function(err, result)

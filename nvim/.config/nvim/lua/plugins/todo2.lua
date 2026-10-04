@@ -106,6 +106,8 @@ return {
 		-- 从代码创建任务
 		vim.keymap.set("n", "<leader>ma", "<cmd>TodoAdd<cr>", { desc = "从代码创建任务" })
 
+		vim.keymap.set("n", "<leader>mA", "<cmd>TodoLink<cr>", { desc = "代码关联任务" })
+
 		-- 链接
 		vim.keymap.set("n", "<leader>mq", "<cmd>TodoLinks<cr>", { desc = "显示所有双链标记 (QF)" })
 		vim.keymap.set(

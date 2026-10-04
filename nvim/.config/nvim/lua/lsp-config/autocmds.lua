@@ -186,6 +186,12 @@ local function setup_lsp_attach()
 			-- Rust 宏展开预览（setup 内部自行守卫：仅 rust-analyzer + 支持 expandMacro）
 			require("lsp-config.features.rust_macro_preview").setup(client, bufnr)
 
+			-- LSP UTF-8 守卫：发送前扫描 params，发现非法 UTF-8 就替换为 U+FFFD 并告警。
+			-- 背景：rust-analyzer 收到非法 UTF-8 报文会直接 run_session 报错退出
+			-- （invalid utf-8 sequence ...），didOpen/didChange 又是广播给所有 client 的。
+			-- 详见模块头部注释。幂等，多次 LspAttach 只会包一次。
+			require("lsp-config.features.utf8_guard").setup(client)
+
 			-- 应用当前缓冲区的持久化设置
 			apply_buffer_settings(bufnr)
 
@@ -250,6 +256,10 @@ function M.setup()
 
 	-- LSP 客户端附加
 	setup_lsp_attach()
+
+	-- 缓冲区级 UTF-8 守卫：在非法字节进入 buffer 后就地修复，
+	-- 保证 client 内部文档与 buffer 一致（避免 range 落在字符中间导致 server panic）。
+	require("lsp-config.features.utf8_guard").setup_buffer_guard()
 
 	-- 缓冲区卸载时清理状态
 	vim.api.nvim_create_autocmd("BufUnload", {

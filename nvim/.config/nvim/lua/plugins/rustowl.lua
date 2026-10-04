@@ -10,7 +10,7 @@ return {
 		local rustowl = require("rustowl")
 		rustowl.setup({
 			-- 自动附加 LSP 客户端（默认 true）
-			auto_attach = true,
+			auto_attach = false,
 			-- 自动启用高亮（默认 false）
 			-- 持续分析很吃 CPU，改为按需手动 toggle
 			auto_enable = true,
@@ -31,6 +31,21 @@ return {
 			-- 	call = "#cccc00", -- 🟧 黄色：函数调用
 			-- 	outlive = "#cc0000", -- 🟥 红色：生命周期错误
 			-- },
+			client = {
+				on_attach = function(_, buffer)
+					vim.keymap.set("n", "<leader>rtR", function()
+						require("rustowl").toggle(buffer)
+					end, { buffer = buffer, desc = "Toggle RustOwl" })
+
+					vim.keymap.set("n", "<localleader>re", function()
+						require("rustowl").enable(buffer)
+					end, { buffer = buffer, desc = "Enable RustOwl" })
+
+					vim.keymap.set("n", "<localleader>rd", function()
+						require("rustowl").disable(buffer)
+					end, { buffer = buffer, desc = "Disable RustOwl" })
+				end,
+			},
 		})
 	end,
 }

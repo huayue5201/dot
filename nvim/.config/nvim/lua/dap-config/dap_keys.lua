@@ -35,7 +35,7 @@ function M.setup()
 	vim.keymap.set("n", "gji", dap.step_into, { desc = "[D]ap [S]tep [I]nto" })
 	vim.keymap.set("n", "gjo", dap.step_out, { desc = "[D]ap [S]tep [O]ut" })
 	vim.keymap.set("n", "gjv", dap.step_over, { desc = "[D]ap [S]tep [O]ver" }) -- v 表示越过
-	vim.keymap.set("n", "djc", dap.run_to_cursor, { desc = "[D]ap [R]un to [C]ursor" })
+	vim.keymap.set("n", "gjc", dap.run_to_cursor, { desc = "[D]ap [R]un to [C]ursor" })
 
 	-- 🎯 跳转
 	vim.keymap.set("n", "<leader>dg", function()
