@@ -117,10 +117,20 @@ return {
 
 		-- Go to either the start or the end, whichever is closer.
 		-- Use if you want more granular movements
-		vim.keymap.set({ "n", "x", "o" }, "]d", function()
+		-- [d / ]d 的 n 模式已让位给 LSP 诊断跳转（lua/lsp-config/keys.lua）
+		-- 这里只保留 x / o 模式的条件块选择与移动，避免两个全局 n 绑定冲突。
+		vim.keymap.set({ "x", "o" }, "]d", function()
 			require("nvim-treesitter-textobjects.move").goto_next("@conditional.outer", "textobjects")
 		end)
-		vim.keymap.set({ "n", "x", "o" }, "[d", function()
+		vim.keymap.set({ "x", "o" }, "[d", function()
+			require("nvim-treesitter-textobjects.move").goto_previous("@conditional.outer", "textobjects")
+		end)
+
+		-- 正常模式下跳条件块改绑到 [i / ]i（[d / ]d 已归 LSP 诊断跳转）
+		vim.keymap.set("n", "]i", function()
+			require("nvim-treesitter-textobjects.move").goto_next("@conditional.outer", "textobjects")
+		end)
+		vim.keymap.set("n", "[i", function()
 			require("nvim-treesitter-textobjects.move").goto_previous("@conditional.outer", "textobjects")
 		end)
 	end,

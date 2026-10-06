@@ -263,32 +263,65 @@ function M.setup()
 	})
 
 	do
-		local keymap_restore = {}
-		local original_global_k = nil
-		local original_global_bracket_d = {}
+		-- 只处理 [d / ]d（frame up/down）的覆盖与恢复。
+		-- K 已交给 hover.nvim 的 DAP provider，无需在这里切换。
+		-- 用 override_count 保证多会话 / 重启场景下只保存一次原始映射、
+		-- 只在最后一个会话结束时恢复，避免误删或把 DAP 映射当作原始映射。
+		local frame_keys = { "[d", "]d" }
+		local saved_globals = {} -- lhs -> map（全局映射）
+		local saved_buffers = {} -- 各 buffer 的局部映射
+		local override_count = 0
 
-		local function save_and_remove_keymap(key, restore_table)
-			local global_maps = vim.api.nvim_get_keymap("n")
-			for _, map in ipairs(global_maps) do
+		local function restore_map(map)
+			local opts = {
+				silent = map.silent == 1,
+				expr = map.expr == 1,
+				nowait = map.nowait == 1,
+			}
+			if map.desc and map.desc ~= "" then
+				opts.desc = map.desc
+			end
+			if map.buffer and map.buffer > 0 then
+				opts.buffer = map.buffer
+			end
+			if map.callback then
+				pcall(vim.keymap.set, map.mode, map.lhs, map.callback, opts)
+			elseif map.rhs then
+				pcall(vim.keymap.set, map.mode, map.lhs, map.rhs, opts)
+			end
+		end
+
+		local function save_global_keymap(key)
+			for _, map in ipairs(vim.api.nvim_get_keymap("n")) do
 				if map.lhs == key then
-					restore_table[key] = map
+					saved_globals[key] = map
+					pcall(vim.keymap.del, "n", key)
 					break
 				end
 			end
-			pcall(vim.keymap.del, "n", key)
 		end
 
-		local function save_and_remove_buffer_keymaps(key)
+		local function save_buffer_keymaps(key)
 			for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-				local keymaps = vim.api.nvim_buf_get_keymap(buf, "n")
-				for _, keymap in ipairs(keymaps) do
-					if keymap.lhs == key then
-						keymap.buffer = buf
-						table.insert(keymap_restore, keymap)
+				for _, map in ipairs(vim.api.nvim_buf_get_keymap(buf, "n")) do
+					if map.lhs == key then
+						table.insert(saved_buffers, map)
 						pcall(vim.api.nvim_buf_del_keymap, buf, "n", key)
 					end
 				end
 			end
+		end
+
+		local function restore_all()
+			for _, map in ipairs(saved_buffers) do
+				restore_map(map)
+			end
+			saved_buffers = {}
+
+			for _, map in pairs(saved_globals) do
+				restore_map(map)
+			end
+			saved_globals = {}
 		end
 
 		dap.listeners.after["event_initialized"]["me"] = function()
@@ -298,25 +331,14 @@ function M.setup()
 			vim.diagnostic.enable(false)
 			require("dap-view").virtual_text_enable()
 
-			local global_maps = vim.api.nvim_get_keymap("n")
-			for _, map in ipairs(global_maps) do
-				if map.lhs == "K" then
-					original_global_k = map
-					break
+			-- 只在第一次覆盖时保存原始映射，多会话时二次 initialize 不会把 DAP 自己的映射当原始
+			override_count = override_count + 1
+			if override_count == 1 then
+				for _, key in ipairs(frame_keys) do
+					save_global_keymap(key)
+					save_buffer_keymaps(key)
 				end
 			end
-			pcall(vim.keymap.del, "n", "K")
-
-			save_and_remove_keymap("[d", original_global_bracket_d)
-			save_and_remove_keymap("]d", original_global_bracket_d)
-
-			save_and_remove_buffer_keymaps("K")
-			save_and_remove_buffer_keymaps("[d")
-			save_and_remove_buffer_keymaps("]d")
-
-			vim.keymap.set("n", "K", function()
-				require("dap.ui.widgets").hover()
-			end, { silent = true, desc = "[D]ap [H]over" })
 
 			vim.keymap.set("n", "[d", function()
 				require("dap").up()
@@ -334,83 +356,18 @@ function M.setup()
 			vim.diagnostic.enable(true)
 			require("dap-view").virtual_text_disable()
 
-			for _, keymap in ipairs(keymap_restore) do
-				local opts = { silent = keymap.silent == 1 }
-				if keymap.expr then
-					opts.expr = keymap.expr == 1
-				end
-				if keymap.nowait then
-					opts.nowait = keymap.nowait == 1
-				end
-				if keymap.desc then
-					opts.desc = keymap.desc
-				end
-
-				if keymap.rhs then
-					pcall(
-						vim.keymap.set,
-						keymap.mode,
-						keymap.lhs,
-						keymap.rhs,
-						vim.tbl_extend("force", opts, { buffer = keymap.buffer })
-					)
-				elseif keymap.callback then
-					pcall(
-						vim.keymap.set,
-						keymap.mode,
-						keymap.lhs,
-						keymap.callback,
-						vim.tbl_extend("force", opts, { buffer = keymap.buffer })
-					)
-				end
-			end
-			keymap_restore = {}
-
-			pcall(vim.keymap.del, "n", "K")
-			pcall(vim.keymap.del, "n", "[d")
-			pcall(vim.keymap.del, "n", "]d")
-
-			if original_global_k then
-				local opts = { silent = original_global_k.silent == 1 }
-				if original_global_k.expr then
-					opts.expr = original_global_k.expr == 1
-				end
-				if original_global_k.nowait then
-					opts.nowait = original_global_k.nowait == 1
-				end
-				if original_global_k.desc then
-					opts.desc = original_global_k.desc
-				end
-
-				if original_global_k.rhs then
-					pcall(vim.keymap.set, "n", "K", original_global_k.rhs, opts)
-				elseif original_global_k.callback then
-					pcall(vim.keymap.set, "n", "K", original_global_k.callback, opts)
-				end
-				original_global_k = nil
+			-- 无配对 initialize 时（适配器未初始化就退出）不删除任何映射
+			if override_count == 0 then
+				return
 			end
 
-			for key, mapping in pairs(original_global_bracket_d) do
-				if mapping then
-					local opts = { silent = mapping.silent == 1 }
-					if mapping.expr then
-						opts.expr = mapping.expr == 1
-					end
-					if mapping.nowait then
-						opts.nowait = mapping.nowait == 1
-					end
-					if mapping.desc then
-						opts.desc = mapping.desc
-					end
-
-					if mapping.rhs then
-						pcall(vim.keymap.set, "n", key, mapping.rhs, opts)
-					elseif mapping.callback then
-						pcall(vim.keymap.set, "n", key, mapping.callback, opts)
-					end
+			override_count = override_count - 1
+			if override_count == 0 then
+				for _, key in ipairs(frame_keys) do
+					pcall(vim.keymap.del, "n", key)
 				end
+				restore_all()
 			end
-			original_global_bracket_d = {}
 		end
 	end
 end

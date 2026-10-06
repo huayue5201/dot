@@ -37,17 +37,20 @@ return {
 
 		local map = vim.keymap.set
 
-		-- 移动光标到相邻窗口（ctrl+alt+hjkl，与 herdr 统一）
-		map("n", "<C-A-h>", ss.move_cursor_left, { desc = "Smart-splits: 光标去左窗口" })
-		map("n", "<C-A-j>", ss.move_cursor_down, { desc = "Smart-splits: 光标去下窗口" })
-		map("n", "<C-A-k>", ss.move_cursor_up, { desc = "Smart-splits: 光标去上窗口" })
-		map("n", "<C-A-l>", ss.move_cursor_right, { desc = "Smart-splits: 光标去右窗口" })
+		-- 移动光标到相邻窗口（ctrl+hjkl，单修饰符，与 herdr 统一）
+		map({ "n", "x" }, "<C-h>", ss.move_cursor_left, { desc = "Smart-splits: 光标去左窗口" })
+		map({ "n", "x" }, "<C-j>", ss.move_cursor_down, { desc = "Smart-splits: 光标去下窗口" })
+		map({ "n", "x" }, "<C-k>", ss.move_cursor_up, { desc = "Smart-splits: 光标去上窗口" })
+		map({ "n", "x" }, "<C-l>", ss.move_cursor_right, { desc = "Smart-splits: 光标去右窗口" })
 
-		-- 调整窗口大小（Alt+Shift+hjkl；不用 ctrl+alt+shift——macOS 上 ctrl+Option+Shift 会被特殊字符组合吞掉）
-		map("n", "<A-H>", ss.resize_left, { desc = "Smart-splits: 左边界左移(变宽)" })
-		map("n", "<A-J>", ss.resize_down, { desc = "Smart-splits: 下边界下移(变高)" })
-		map("n", "<A-K>", ss.resize_up, { desc = "Smart-splits: 上边界上移(变高)" })
-		map("n", "<A-L>", ss.resize_right, { desc = "Smart-splits: 右边界右移(变宽)" })
+		-- 调整窗口大小（ctrl+alt+hjkl）。
+		-- 不用裸 alt：macOS 下 Option 会被终端组合成特殊字符，且 alt 以 ESC 前缀传输时
+		-- 与真正的 Esc 同前缀，经 herdr 消歧义后可能被拆成 esc+字母而失效。
+		-- ctrl+alt 是 herdr 官方推荐、跨终端最稳的直接修饰键家族。
+		map("n", "<C-A-h>", ss.resize_left, { desc = "Smart-splits: 左边界左移(变宽)" })
+		map("n", "<C-A-j>", ss.resize_down, { desc = "Smart-splits: 下边界下移(变高)" })
+		map("n", "<C-A-k>", ss.resize_up, { desc = "Smart-splits: 上边界上移(变高)" })
+		map("n", "<C-A-l>", ss.resize_right, { desc = "Smart-splits: 右边界右移(变宽)" })
 
 		-- 交换窗口 buffer（<leader><leader> + hjkl）
 		map("n", "<leader><leader>h", ss.swap_buf_left, { desc = "Smart-splits: 与左窗口换 buffer" })

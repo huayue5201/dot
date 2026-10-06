@@ -18,5 +18,6 @@ return {
 		-- 覆盖率映射：<leader>t 前缀，与 neotest 的测试映射保持一致
 		vim.keymap.set("n", "<leader>tc", "<cmd>CoverageToggle<CR>", { desc = "切换覆盖率" })
 		vim.keymap.set("n", "<leader>tg", "<cmd>CoverageSummary<CR>", { desc = "覆盖率汇总" })
+		vim.keymap.set("n", "<leader>te", "<cmd>CoverageToggleNeoTree<CR>", { desc = "切换neotree覆盖率" })
 	end,
 }

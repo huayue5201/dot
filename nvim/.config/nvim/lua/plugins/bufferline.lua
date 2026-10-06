@@ -4,13 +4,14 @@ return {
 	"akinsho/bufferline.nvim",
 	event = "UIEnter",
 	dependencies = {
-		-- "nvim-tree/nvim-web-devicons",
-		"Mirsmog/real-icons.nvim",
+		"nvim-tree/nvim-web-devicons",
+		-- "Mirsmog/real-icons.nvim",
 	},
 	config = function()
 		local bufferline = require("bufferline")
 
-		bufferline.setup(require("real-icons.integrations.bufferline").opts({
+		-- bufferline.setup(require("real-icons.integrations.bufferline").opts({
+		bufferline.setup({
 			options = {
 				-- ========== 基础设置 ==========
 				-- 模式：buffers（显示缓冲区）或 tabs（显示标签页）
@@ -223,7 +224,7 @@ return {
 					-- end,
 				},
 			},
-		}))
+		})
 
 		-- ========== 按键映射（匹配你原有的 barbar 习惯）==========
 		local map = vim.keymap.set

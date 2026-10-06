@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "todo2": {
+      "command": "nvim",
+      "args": [
+        "--headless",
+        "-u",
+        "NONE",
+        "-l",
+        "~/neovim-plugins/todo2/mcp/todo2-mcp.lua"
+      ],
+      "exposure": "direct",
+      "description": "todo2 tasks from the live Neovim"
+    }
+  }
+}

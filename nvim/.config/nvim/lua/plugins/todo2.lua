@@ -100,6 +100,11 @@ return {
 		-- 状态
 		vim.keymap.set("n", "<leader>mt", "<cmd>TodoStatus<cr>", { desc = "选择任务状态" })
 
+		-- 标签
+		vim.keymap.set("n", "<leader>mT", "<cmd>TodoTag<cr>", { desc = "给任务加/删/设置标签" })
+		vim.keymap.set("n", "<leader>mF", "<cmd>TodoFilter<cr>", { desc = "按标签筛选 TODO（! 清除）" })
+		vim.keymap.set("n", "<leader>mM", "<cmd>TodoMigrateTags<cr>", { desc = "迁移旧类型状态为标签" })
+
 		-- 任务正文
 		vim.keymap.set("n", "<leader>mD", "<cmd>TodoDesc<cr>", { desc = "编辑任务正文" })
 
@@ -125,6 +130,6 @@ return {
 		vim.keymap.set("n", "<leader>me", "<cmd>TodoEdit<cr>", { desc = "编辑模式打开" })
 
 		-- 额外
-		vim.keymap.set("n", "<C-k>", "<cmd>SmartPreview<cr>", { desc = "todo2: todo预览" })
+		vim.keymap.set("n", "<leader>mp", "<cmd>SmartPreview<cr>", { desc = "todo2: todo预览" })
 	end,
 }

@@ -1,7 +1,14 @@
 vim.keymap.set("n", "<localleader>elf", "<cmd>echo &filetype<cr>", { silent = true, desc = "调试: file类型" })
 vim.keymap.set("n", "<localleader>elb", "<cmd>echo &buftype<cr>", { silent = true, desc = "调试: buffer类型" })
 
-vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
+-- vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
+local mc_ns = vim.api.nvim_create_namespace("nvim.multicursor")
+vim.keymap.set("n", "<Esc>", function()
+	-- 1. 清除 multicursor 的视觉标记
+	vim.api.nvim_buf_clear_namespace(0, mc_ns, 0, -1)
+	-- 2. 清除搜索高亮
+	vim.cmd("nohlsearch")
+end)
 
 -- 📝 Basic operations
 vim.keymap.set("n", "c", '"_c', { desc = "Basic: change to blackhole" })

@@ -13,25 +13,25 @@ command = "chmarax.herdr-nvim.pick-file"
 description = "open file from agent output"
 
 [[keys.command]]
-key = "ctrl+alt+h"
+key = "ctrl+h"
 type = "plugin_action"
 command = "smart-splits.nvim.left"
 description = "navigate left (vim/herdr)"
 
 [[keys.command]]
-key = "ctrl+alt+j"
+key = "ctrl+j"
 type = "plugin_action"
 command = "smart-splits.nvim.down"
 description = "navigate down (vim/herdr)"
 
 [[keys.command]]
-key = "ctrl+alt+k"
+key = "ctrl+k"
 type = "plugin_action"
 command = "smart-splits.nvim.up"
 description = "navigate up (vim/herdr)"
 
 [[keys.command]]
-key = "ctrl+alt+l"
+key = "ctrl+l"
 type = "plugin_action"
 command = "smart-splits.nvim.right"
 description = "navigate right (vim/herdr)"

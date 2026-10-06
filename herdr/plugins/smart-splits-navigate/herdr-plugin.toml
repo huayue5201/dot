@@ -2,17 +2,17 @@ id = "smart-splits.nvim"
 name = "smart-splits.nvim"
 version = "0.1.0"
 min_herdr_version = "0.7.0"
-description = "Seamless ctrl+alt+h/j/k/l navigation across herdr panes and Vim/Neovim splits"
+description = "Seamless ctrl+h/j/k/l navigation across herdr panes and Vim/Neovim splits"
 platforms = ["linux", "macos"]
 
 # One action per direction. Bind them in herdr's config.toml (see README):
 #
 #   [[keys.command]]
-#   key = "ctrl+alt+h"
+#   key = "ctrl+h"
 #   type = "plugin_action"
 #   command = "smart-splits.nvim.left"
 #
-# (likewise for ctrl+alt+j/k/l and the down/up/right actions).
+# (likewise for ctrl+j/k/l and the down/up/right actions).
 
 [[actions]]
 id = "left"

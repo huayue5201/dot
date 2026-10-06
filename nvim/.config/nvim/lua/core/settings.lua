@@ -89,7 +89,9 @@ local data_dir = vim.fn.stdpath("data")
 local unique_id = vim.fn.fnamemodify(workspace_path, ":t") .. "_" .. vim.fn.sha256(workspace_path):sub(1, 8)
 local shadafile = data_dir .. "/shada/" .. unique_id .. ".shada"
 vim.o.shadafile = shadafile
-vim.o.sessionoptions = "blank,buffers,curdir,folds,help,globals,tabpages,winsize,winpos,localoptions,options"
+-- 不包含 options/localoptions：避免把 tabline/statusline/winbar 等含 v:lua 动态表达式的
+-- 选项存进会话文件，否则重启时插件懒加载前恢复会触发 nil 调用（如 nvim_bufferline/dropbar）。
+vim.o.sessionoptions = "blank,buffers,curdir,folds,help,globals,tabpages,winsize,winpos"
 
 -- -------------- 补全设置 --------------
 vim.bo.omnifunc = "" -- 禁用 omnifunc 补全

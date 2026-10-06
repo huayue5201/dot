@@ -43,11 +43,16 @@ Rules:
 			server = {
 				cmd = {
 					"/opt/homebrew/bin/llama-server",
-					"-m", vim.fn.expand("~/models/qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf"),
-					"--alias", "qwen2.5-7b",
-					"--host", "127.0.0.1",
-					"--port", "8080",
-					"-c", "8192",
+					"-m",
+					vim.fn.expand("~/models/qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf"),
+					"--alias",
+					"qwen2.5-7b",
+					"--host",
+					"127.0.0.1",
+					"--port",
+					"8080",
+					"-c",
+					"8192",
 				},
 				health = "http://127.0.0.1:8080/health",
 				wait = 120, -- 等待服务就绪的最长秒数
@@ -94,14 +99,14 @@ Rules:
 		end, { silent = true, desc = "翻译并回显（当前句）" })
 
 		-- 窗口显示（当前词）
-		vim.keymap.set("n", "<leader>te", function()
+		vim.keymap.set("n", "<localleader>tw", function()
 			translator.start(
 				"window",
 				{ bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.expand("<cword>") }
 			)
 		end, { silent = true, desc = "翻译并窗口显示（当前词）" })
 
-		vim.keymap.set("n", "<leader>ti", "<Cmd>TranslateI<CR>", { desc = "交互翻译" })
+		vim.keymap.set("n", "<localleader>ti", "<Cmd>TranslateI<CR>", { desc = "交互翻译" })
 
 		-- API 文档翻译（面向代码符号，需配置 translator_llm）
 		vim.keymap.set("n", "<localLeader>td", "<Cmd>TranslateApi<CR>", { desc = "API 文档翻译" })
@@ -132,7 +137,7 @@ Rules:
 			translator.start("echo", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
 		end, { silent = true, desc = "翻译并回显（选区）" })
 
-		vim.keymap.set("v", "<leader>te", function()
+		vim.keymap.set("v", "<localleader>tw", function()
 			local text = util.get_visual_selection()
 			translator.start("window", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
 		end, { silent = true, desc = "翻译并窗口显示（选区）" })
@@ -168,7 +173,12 @@ Rules:
 		----------------------------------------------------------------------
 		vim.keymap.set("n", "<localLeader>th", "<Cmd>TranslateH<CR>", { silent = true, desc = "翻译历史" })
 		vim.keymap.set("n", "<localLeader>tl", "<Cmd>TranslateL<CR>", { silent = true, desc = "翻译日志" })
-		vim.keymap.set("n", "<localLeader>tc", "<Cmd>TranslateCacheClear<CR>", { silent = true, desc = "清空翻译缓存" })
+		vim.keymap.set(
+			"n",
+			"<localLeader>tc",
+			"<Cmd>TranslateCacheClear<CR>",
+			{ silent = true, desc = "清空翻译缓存" }
+		)
 
 		-- 强制刷新（绕过缓存）：等价于 :Translate --no-cache
 		vim.keymap.set("n", "<localLeader>tC", function()

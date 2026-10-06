@@ -1,0 +1,12 @@
+# 敏感信息 —— 绝不进入公开仓库
+agent/auth.json
+agent/mcp-auth.json
+
+# 缓存 / 运行时数据 —— 自动生成或含绝对路径
+agent/models-store.json
+agent/mcp.log
+agent/mcp.log.*
+agent/sessions/
+agent/npm/
+agent/install/
+pi-acp/

@@ -18,6 +18,7 @@
 ├── herdr/         # herdr 会话管理配置
 ├── jiq/           # jiq 工具配置
 ├── xray/          # xray 配置（已替换为占位符）
+├── pi/            # pi 编码代理配置（settings/mcp，密钥走环境变量）
 └── install_dev_tools.sh  # 开发工具安装脚本
 ```
 
@@ -40,9 +41,12 @@ stow -t ~ nvim
 stow -t ~ zsh
 stow -t ~ git
 stow -t ~ tmux
+stow --no-folding -t ~ pi
 ```
 
 > 注意：部分配置（如 xray、nvim 的 DAP 路径）为占位符或示例值，部署后需按本机实际情况修改。
+>
+> `pi/` 必须用 `--no-folding`：`~/.pi` 同时混有受管配置与运行时数据（`auth.json` / `sessions/` / `npm/`），默认折叠会把整个 `~/.pi` 软链进仓库，导致密钥和会话日志写回仓库工作区。
 
 ## 环境要求
 

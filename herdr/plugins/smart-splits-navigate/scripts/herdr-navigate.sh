@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# smart-splits.nvim — herdr side (ctrl+alt variant)
+# smart-splits.nvim — herdr side (ctrl+hjkl variant)
 #
 # Invoked by a herdr keybind as: herdr-navigate.sh <left|down|up|right>
 #
@@ -11,7 +11,7 @@
 #      - there is a neighbor (changed == true): focus moved, done.
 #      - no neighbor (reason == "no_neighbor") or the focus command fails: send the
 #        key back to the pane so the shell/app keeps its default binding (harmless
-#        for ctrl+alt+hjkl in a shell).
+#        for ctrl+hjkl in a shell).
 #
 # Requires `jq`. Without it, Vim detection is skipped: keys move herdr focus when
 # a neighbor exists, and fall through to send-keys otherwise.
@@ -23,10 +23,10 @@ herdr="${HERDR_BIN_PATH:-herdr}"
 pane="${HERDR_PANE_ID:-}"
 
 case "$dir" in
-  left)  key="ctrl+alt+h" ;;
-  down)  key="ctrl+alt+j" ;;
-  up)    key="ctrl+alt+k" ;;
-  right) key="ctrl+alt+l" ;;
+  left)  key="ctrl+h" ;;
+  down)  key="ctrl+j" ;;
+  up)    key="ctrl+k" ;;
+  right) key="ctrl+l" ;;
   *) echo "herdr-navigate.sh: unknown direction: $dir" >&2; exit 2 ;;
 esac
 
