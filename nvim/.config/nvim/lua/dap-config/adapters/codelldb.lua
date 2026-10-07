@@ -38,14 +38,8 @@ return {
 			name = "Debug",
 			type = "codelldb",
 			request = "launch",
-			cargo = {
-				args = { "test", "foo", "--", "--test-threads=3" }, -- Cargo command line to run the debug target
-				-- Optional fields:
-				env = { RUSTFLAGS = "-Clinker=ld.mold" }, -- Extra environment variables
-				cwd = "${workspaceFolder}", -- Cargo working directory
-				problemMatcher = "$rustc", -- Problem matcher(s) for Cargo output
-			},
-			args = { "--test=test1" }, -- These arguments will be appended to those passed to the debug target by Cargo
+			-- 可执行文件由各 config 的 `program` 决定，此处不预置任何参数；
+			-- 切勿再放示例占位值（如 `args = { "--test=test1" }`），它会被追加到被调试程序的 argv。
 			cwd = "${workspaceFolder}",
 			-- 启动后是否停止调试器.
 			stopOnEntry = false,

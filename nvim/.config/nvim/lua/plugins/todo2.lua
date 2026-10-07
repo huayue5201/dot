@@ -65,6 +65,17 @@ return {
 				focus_on_jump = false, -- true 时 <CR> 跳转后焦点跟随到代码窗口
 			},
 
+			-- Git 集成（提交消息关单 / 锚点历史 / 提交前自查）
+			git = {
+				enable = true, -- 总开关（:TodoGitSync! 可临时绕过）
+				trigger = "manual", -- "manual" | "on_open"（on_open 时打开 TODO 自动增量同步）
+				show_metadata = true, -- 在查看器 / 抽屉显示关联提交
+				refs = {
+					-- 提交消息里出现 [Tt]odo:<id> 时把该任务标为完成
+					{ pattern = "[Tt]odo[:：]%s*([0-9a-z]+)", status = "completed" },
+				},
+			},
+
 			-- 归档区域标题前缀
 			archive_section = {
 				title_prefix = "## Archived",
@@ -131,5 +142,10 @@ return {
 
 		-- 额外
 		vim.keymap.set("n", "<leader>mp", "<cmd>SmartPreview<cr>", { desc = "todo2: todo预览" })
+
+		-- Git 集成
+		vim.keymap.set("n", "<leader>mGs", "<cmd>TodoGitSync<cr>", { desc = "增量同步提交并应用任务引用" })
+		vim.keymap.set("n", "<leader>mGr", "<cmd>TodoGitReview<cr>", { desc = "提交前自查：脏文件中的任务锚点" })
+		vim.keymap.set("n", "<leader>mGb", "<cmd>TodoGitBlame<cr>", { desc = "查看任务锚点的 git 历史" })
 	end,
 }

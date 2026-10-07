@@ -35,3 +35,21 @@ key = "ctrl+l"
 type = "plugin_action"
 command = "smart-splits.nvim.right"
 description = "navigate right (vim/herdr)"
+
+[[keys.command]]
+key = "prefix+shift+l"
+type = "shell"
+command = "herdr plugin action invoke open-dashboard --plugin llmtrim.proxy"
+description = "llmtrim: savings dashboard"
+
+[[keys.command]]
+key = "prefix+shift+s"
+type = "shell"
+command = "herdr plugin action invoke summary --plugin llmtrim.proxy"
+description = "llmtrim: session savings"
+
+[[keys.command]]
+key = "prefix+shift+i"
+type = "shell"
+command = "herdr plugin action invoke diagnose --plugin llmtrim.proxy"
+description = "llmtrim: diagnose"

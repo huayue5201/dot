@@ -162,3 +162,15 @@ if [ -n "$OTTY_SHELL_INTEGRATION" ] && [ -r "$OTTY_SHELL_INTEGRATION/otty-integr
   . "$OTTY_SHELL_INTEGRATION/otty-integration.zsh"
 fi
 # <<< otty shell integration <<<
+# >>> llmtrim >>>
+if command -v llmtrim >/dev/null 2>&1 && llmtrim _alive 2>/dev/null; then
+    export HTTPS_PROXY='http://127.0.0.1:43117'
+    export HTTP_PROXY='http://127.0.0.1:43117'
+    export NO_PROXY='localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,fd00::/8,*.local'
+    export no_proxy='localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,fd00::/8,*.local'
+    export NODE_EXTRA_CA_CERTS='/Users/lijia/.llmtrim/ca.pem'
+    export NODE_USE_ENV_PROXY='1'
+    export SSL_CERT_FILE='/Users/lijia/.llmtrim/ca-bundle.pem'
+    export CURL_CA_BUNDLE='/Users/lijia/.llmtrim/ca-bundle.pem'
+fi
+# <<< llmtrim <<<

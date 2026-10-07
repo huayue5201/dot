@@ -263,11 +263,10 @@ function M.setup()
 	})
 
 	do
-		-- 只处理 [d / ]d（frame up/down）的覆盖与恢复。
-		-- K 已交给 hover.nvim 的 DAP provider，无需在这里切换。
+		-- 处理 K（DAP hover）与 [d / ]d（frame up/down）的覆盖与恢复。
 		-- 用 override_count 保证多会话 / 重启场景下只保存一次原始映射、
 		-- 只在最后一个会话结束时恢复，避免误删或把 DAP 映射当作原始映射。
-		local frame_keys = { "[d", "]d" }
+		local override_keys = { "K", "[d", "]d" }
 		local saved_globals = {} -- lhs -> map（全局映射）
 		local saved_buffers = {} -- 各 buffer 的局部映射
 		local override_count = 0
@@ -334,11 +333,15 @@ function M.setup()
 			-- 只在第一次覆盖时保存原始映射，多会话时二次 initialize 不会把 DAP 自己的映射当原始
 			override_count = override_count + 1
 			if override_count == 1 then
-				for _, key in ipairs(frame_keys) do
+				for _, key in ipairs(override_keys) do
 					save_global_keymap(key)
 					save_buffer_keymaps(key)
 				end
 			end
+
+			vim.keymap.set("n", "K", function()
+				require("dap.ui.widgets").hover()
+			end, { silent = true, desc = "[D]ap [H]over" })
 
 			vim.keymap.set("n", "[d", function()
 				require("dap").up()
@@ -363,7 +366,7 @@ function M.setup()
 
 			override_count = override_count - 1
 			if override_count == 0 then
-				for _, key in ipairs(frame_keys) do
+				for _, key in ipairs(override_keys) do
 					pcall(vim.keymap.del, "n", key)
 				end
 				restore_all()
