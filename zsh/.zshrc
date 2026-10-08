@@ -5,6 +5,13 @@ export ZSH="$HOME/.zsh"
 export EDITOR="nvim"
 export LANG="en_US.UTF-8"
 
+# herdr 强制 pane 使用 TERM=xterm-256color，而该 terminfo 无 smxx 能力，
+# 会让 Neovim 认为终端不支持删除线，从而不再输出 SGR 9（\e[9m）。
+# 覆盖 terminfo 以恢复删除线渲染（只影响 nvim，不影响其他程序）。
+if [ "$TERM_PROGRAM" = "herdr" ]; then
+  export NVIM_TERMDEFS='{"enter_strikethrough_mode":"\u001b[9m"}'
+fi
+
 # ---------------------------------------
 # Zinit 插件管理器
 # ---------------------------------------
