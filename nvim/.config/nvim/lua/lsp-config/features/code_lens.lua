@@ -31,6 +31,10 @@ M.config = {
 		local t = (lens.command and lens.command.title or ""):lower()
 		return not (t:find("reference") or t:find("implementation"))
 	end,
+	-- 悬停时对“字符本身”的强调（不画背景块）：会叠加到
+	-- { fg = <主题 Special 的前景色>, bold = true } 上。
+	-- 设为 false 则退回整块背景高亮（CodeLensHover link Visual）。
+	hover_style = { bold = true },
 }
 
 ---覆盖配置（与当前值合并）
@@ -71,7 +75,16 @@ local function setup_highlights()
 	hl_ready = true
 	vim.api.nvim_set_hl(0, "CodeLensTitle", { link = "LspCodeLens", default = true })
 	vim.api.nvim_set_hl(0, "CodeLensSep", { link = "LspCodeLensSeparator", default = true })
-	vim.api.nvim_set_hl(0, "CodeLensHover", { link = "Visual", default = true })
+	local style = M.config.hover_style
+	if style then
+		-- 只强调字符本身：取主题 Special 的前景色 + 加粗，不设背景
+		local fg = (vim.api.nvim_get_hl(0, { name = "Special" }) or {}).fg
+		local opts = vim.tbl_extend("force", { fg = fg, bold = true }, style)
+		opts.default = true
+		vim.api.nvim_set_hl(0, "CodeLensHover", opts)
+	else
+		vim.api.nvim_set_hl(0, "CodeLensHover", { link = "Visual", default = true })
+	end
 end
 
 ---@param bufnr integer
