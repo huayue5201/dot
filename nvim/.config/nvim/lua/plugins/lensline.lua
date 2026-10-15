@@ -22,7 +22,7 @@ return {
 					},
 					style = {
 						highlight = "Comment", -- fallback for providers without a highlight
-						render = "focused", -- 只渲染光标所在的函数（大文件更清爽）
+						render = "all", -- 渲染全文透镜（focused 只在光标所在函数显示，易看起来"没显示"）
 					},
 				},
 			},
