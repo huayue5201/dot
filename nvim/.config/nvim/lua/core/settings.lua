@@ -143,8 +143,8 @@ vim.opt.fillchars = {
 	verthoriz = "", -- 垂直和水平重叠的分隔符
 	-- 折叠相关字符（VSCode 风格的 chevron；用 nr2char 避免源码里的私有区字形被编辑器弄坏）
 	fold = " ", -- 折叠文本填充字符
-	foldopen = "", -- 折叠打开时的标记字符
-	foldclose = "", -- 折叠关闭时的标记字符
+	foldopen = "⊞", -- 折叠打开时的标记字符
+	foldclose = "⊟", -- 折叠关闭时的标记字符
 	foldsep = "│", -- 打开折叠时的中间分隔符（fillchars 要求单字符）
 	foldinner = " ", -- 折叠层级，默认显示数字
 	-- 其他

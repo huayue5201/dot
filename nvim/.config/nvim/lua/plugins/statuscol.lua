@@ -33,7 +33,7 @@ return {
 				-- git（gitsigns 的 extmark 命名空间为 gitsigns_signs_*）
 				{ sign = { namespace = { "gitsigns" }, colwidth = 1, maxwidth = 1 }, click = "v:lua.ScSa" },
 				-- 折叠列放在最后，紧贴代码（还原旧 statuscolumn 的 "%s%=%l%=%C " 布局）
-				{ text = { "%C " }, click = "v:lua.ScFa" },
+				{ text = { " %C " }, click = "v:lua.ScFa" },
 			},
 			-- clickhandlers 用内置默认即可：
 			--   gitsigns   左键预览 hunk
