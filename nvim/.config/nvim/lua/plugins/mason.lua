@@ -19,7 +19,7 @@ return {
 					"lua-language-server",
 					"codelldb",
 					"cortex-debug",
-					"copilot-language-server",
+					-- "copilot-language-server",
 					-- "delve",
 					-- "gofumpt",
 					-- "gopls",

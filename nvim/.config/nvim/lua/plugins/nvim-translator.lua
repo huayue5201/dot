@@ -3,14 +3,13 @@
 return {
 	"huayue5201/nvim-translator",
 	dir = "~/neovim-plugins/nvim-translator",
-	dev = true,
 	build = "make build", -- 确保后端二进制是最新构建
 	opts = {
 		-- 语言方向：默认自动检测，一般无需设置
 		source_lang = "auto",
 		target_lang = "zh",
 		bilingual = true,
-		engines = { "llm", "google", "baidu", "bing" },
+		engines = { "llm", "google", "baidu" },
 		request_timeout = 60000, -- 本地 LLM 推理较慢，放宽整体超时（默认 15s）
 		proxy_url = "", -- 需要代理时填 "socks5://127.0.0.1:1080"
 		llm = {
@@ -60,6 +59,15 @@ Rules:
 				stamp = vim.fn.expand("~/.cache/translator/llm.last_active"),
 			},
 		},
+		-- 百度翻译开放平台：配置后 baidu 引擎支持整句翻译；不配置则回退到
+		-- 免费的 /sug 词典接口（仅单词，整句返回空）。凭据由 core.dotenv 从
+		-- ~/.env 读入 vim.env（BAIDU_APPID / BAIDU_KEY），这里只引用变量名。
+		baidu = {
+			appid_name = "BAIDU_APPID",
+			key_name = "BAIDU_KEY",
+		},
+		-- 增量显示默认开启：第一个引擎返回即弹窗，之后结果到达即增长浮窗。
+		incremental = true,
 		window = { type = "float" }, -- "float" | "preview"
 		history = { enable = true },
 		cache = {

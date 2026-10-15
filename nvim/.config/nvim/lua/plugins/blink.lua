@@ -3,7 +3,7 @@
 
 return {
 	"saghen/blink.cmp",
-	version = "*",
+	sem_version = "1.*",
 	event = { "InsertEnter", "CmdlineEnter" },
 	dependencies = {
 		"saghen/blink.lib",
@@ -11,15 +11,15 @@ return {
 		"bramdelta/blink-dap",
 		"mikavilpas/blink-ripgrep.nvim",
 	},
-	build = function()
-		require("blink.cmp").build():wait(60000)
-	end,
+	-- 使用预编译的 fuzzy 二进制（sem_version = "1.*" 会自动下载）；
+	-- 如需从源码构建，改用：build = "cargo build --release"（或 :BlinkCmp build）。
+	-- 注意旧写法 require("blink.cmp").build() 在 v1.10.x 已不存在，会报 nil。
 
 	config = function()
 		local cmp = require("blink.cmp")
 
 		cmp.setup({
-			fuzzy = { implementation = "rust" },
+			fuzzy = { implementation = "prefer_rust_with_warning" },
 
 			snippets = {
 				expand = function(snippet)
@@ -130,7 +130,7 @@ return {
 				},
 			},
 			appearance = {
-				use_nvim_cmp_as_default = true,
+				-- use_nvim_cmp_as_default 已废弃（tokyonight 原生支持 blink，无需回退）
 				nerd_font_variant = "mono",
 			},
 
@@ -140,7 +140,12 @@ return {
 			},
 
 			sources = {
-				default = { "lsp", "path", "snippets", "buffer", "ripgrep" },
+				-- dap 必须列在这里（或 per_filetype）才会启用，否则 provider 是死配置
+				default = { "lsp", "path", "snippets", "buffer", "ripgrep", "dap", "sqmeow" },
+				-- lazydev 不会自动注册，必须显式列出（仅 lua 文件）
+				per_filetype = {
+					lua = { "lazydev", inherit_defaults = true },
+				},
 				providers = {
 					ripgrep = {
 						module = "blink-ripgrep",
@@ -170,10 +175,17 @@ return {
 						-- 如果需要配置项可以在这里添加
 						-- opts = {},
 					},
+					-- sqmeow 数据库补全：模块懒加载时会自动把 sqmeow 插件拉起来；
+					-- 无活动连接时其 enabled() 返回 false，不会干扰普通补全。
+					sqmeow = {
+						name = "Sqmeow",
+						module = "sqmeow.completion.blink",
+					},
 				},
 				transform_items = function(ctx, items)
 					local line = ctx.cursor[1] - 1
-					local col = ctx.cursor[2]
+					-- ctx.cursor[2] 是 0-based 字节列，而 LSP 的 character 是 UTF-16 code unit
+					local _, col = vim.str_utfindex(ctx.line, ctx.cursor[2])
 					for _, item in ipairs(items) do
 						if item.textEdit then
 							if item.textEdit.range then
@@ -217,7 +229,8 @@ return {
 
 			term = {
 				enabled = true,
-				keymap = { preset = "default" },
+				-- inherit 才会继承顶层自定义键位（<Tab>/<A-N>）；default 不会。
+				keymap = { preset = "inherit" },
 				-- term.sources 是字符串列表，只包含源名称
 				sources = {
 					"lsp",
@@ -226,20 +239,8 @@ return {
 					"ripgrep",
 					"cargo", -- ✅ 在 sources 列表中添加 cargo
 				},
-				completion = {
-					trigger = {
-						show_on_blocked_trigger_characters = {},
-						show_on_x_blocked_trigger_characters = nil,
-					},
-					list = {
-						selection = {
-							preselect = nil,
-							auto_insert = nil,
-						},
-					},
-					menu = { auto_show = nil },
-					ghost_text = { enabled = nil },
-				},
+				-- 注意：不要在 term.completion 里写 `= nil`——在 Lua 里那等于没写，
+				-- 只会继承顶层值（清不掉任何东西）。需要覆盖就写具体值。
 			},
 		})
 	end,

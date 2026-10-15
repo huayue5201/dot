@@ -1,0 +1,10 @@
+[sqlfluff]
+# 全局默认 SQL 方言（当前主要用于 MySQL）。
+# 解析顺序：
+#   1) SQL 文件所在目录向上找到的 .sqlfluff   ← 项目级覆盖
+#   2) 本文件（$XDG_CONFIG_HOME/sqlfluff/.sqlfluff）
+#   3) 命令行 --dialect
+# 某项目要用别的方言（sqlite / postgres / ...），在项目根放一个 .sqlfluff：
+#   [sqlfluff]
+#   dialect = sqlite
+dialect = mysql

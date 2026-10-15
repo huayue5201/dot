@@ -36,9 +36,10 @@ vim.keymap.set("x", "y", function()
 	vim.fn.setpos(".", save)
 end, { desc = "Yank: 保持光标位置" })
 
-vim.keymap.set("n", "<localleader>s", "<cmd>w<cr>", { silent = true, desc = "Basic: save buffer" })
+-- 保存键统一收纳在 <localleader>s 分组下（s 本身不映射，避免成为子映射前缀而拖慢触发）
+vim.keymap.set("n", "<localleader>sw", "<cmd>w<cr>", { silent = true, desc = "Save: write buffer" })
 
-vim.keymap.set("n", "<localleader>as", function()
+vim.keymap.set("n", "<localleader>sa", function()
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		if vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_get_option_value("modified", { buf = buf }) then
 			vim.api.nvim_buf_call(buf, function()
@@ -46,7 +47,13 @@ vim.keymap.set("n", "<localleader>as", function()
 			end)
 		end
 	end
-end, { silent = true, desc = "Save all modified buffers" })
+end, { silent = true, desc = "Save: write all modified buffers" })
+
+vim.keymap.set("n", "<localleader>sl", function()
+	require("core.save-panel").toggle()
+end, { silent = true, desc = "Save: list unsaved buffers (panel)" })
+
+require("core.save-panel").setup() -- :SavePanel 命令
 
 vim.keymap.set("n", "<c-esc>", ":bp | bd #<cr>", { silent = true, desc = "Basic: close buffer" })
 
@@ -132,7 +139,7 @@ end, { silent = true, desc = "Path: copy filename" })
 
 -- 🪟 Window management
 -- vim.keymap.set("n", "<Leader>caw", function()
--- 	local nav = require("user.navigation")
+-- 	local nav = require("core.navigation")
 -- 	local cur_win = vim.api.nvim_get_current_win()
 -- 	local cur_buf = vim.api.nvim_win_get_buf(cur_win)
 -- 	local cur_dir = vim.fn.fnamemodify(vim.fn.bufname(cur_buf), ":p:h")
@@ -149,3 +156,77 @@ end, { silent = true, desc = "Path: copy filename" })
 --
 -- 	print("Deleted windows outside the current directory!")
 -- end, { silent = true, desc = "Window: close outside windows" })
+
+-- ============================================================================
+-- 终端 / 交换文件（原 after/plugin/keymaps.vim 迁移而来）
+-- ============================================================================
+
+-- 终端模式 <C-l> 清屏（betterTerm 的 buffer-local <C-l> 会覆盖它，两者互不影响）
+vim.keymap.set("t", "<C-l>", [[<C-\><C-n>:call term_sendkeys(0, 'clear' . "\r")<CR>]], { silent = true, desc = "Term: clear screen" })
+
+---@return string 展开后的交换文件目录（取 &directory 的第一段）
+local function swap_dir()
+	local dir = vim.o.directory:gsub("//.*$", ""):gsub(",.*$", "")
+	return vim.fn.expand(dir)
+end
+
+-- 删除当前文件的交换文件（.swp 及 .swo/.swn/.swm 备选后缀）
+local function delete_current_swap()
+	local current_file = vim.fn.expand("%:p")
+	if current_file == "" then
+		vim.notify("没有对应的文件路径。", vim.log.levels.WARN)
+		return
+	end
+	local dir = swap_dir()
+	local escaped = current_file:gsub("/", "%%")
+	local swap_file = dir .. "/" .. escaped .. ".swp"
+	if vim.fn.filereadable(swap_file) == 1 then
+		if vim.fn.delete(swap_file) == 0 then
+			vim.notify("已删除交换文件: " .. swap_file)
+			return
+		end
+		vim.notify("删除失败: " .. swap_file, vim.log.levels.ERROR)
+	end
+	for _, suffix in ipairs({ ".swo", ".swn", ".swm" }) do
+		local try_file = dir .. "/" .. escaped .. suffix
+		if vim.fn.filereadable(try_file) == 1 and vim.fn.delete(try_file) == 0 then
+			vim.notify("已删除: " .. try_file)
+			return
+		end
+	end
+	local actual_swap = vim.v.swapname
+	if actual_swap ~= "" and vim.fn.filereadable(actual_swap) == 1 and vim.fn.delete(actual_swap) == 0 then
+		vim.notify("已删除: " .. actual_swap)
+		return
+	end
+	vim.notify("未找到交换文件: " .. swap_file, vim.log.levels.WARN)
+end
+
+-- 删除所有交换文件
+local function delete_all_swaps()
+	local dir = swap_dir()
+	if vim.fn.isdirectory(dir) == 0 then
+		vim.notify("交换文件目录不存在: " .. dir, vim.log.levels.WARN)
+		return
+	end
+	local files = {}
+	for _, pat in ipairs({ "**/*.swp", "**/*.swo", "**/*.swn", "**/*.swm" }) do
+		vim.list_extend(files, vim.fn.globpath(dir, pat, false, true))
+	end
+	if #files == 0 then
+		vim.notify("未找到交换文件")
+		return
+	end
+	table.sort(files)
+	files = vim.fn.uniq(files)
+	local count = 0
+	for _, f in ipairs(files) do
+		if vim.fn.delete(f) == 0 then
+			count = count + 1
+		end
+	end
+	vim.notify("已删除 " .. count .. " 个交换文件")
+end
+
+vim.keymap.set("n", "<leader>csw", delete_current_swap, { silent = true, desc = "Swap: 删除当前文件交换文件" })
+vim.keymap.set("n", "<leader>csW", delete_all_swaps, { silent = true, desc = "Swap: 删除所有交换文件" })

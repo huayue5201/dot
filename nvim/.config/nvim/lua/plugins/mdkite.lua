@@ -1,4 +1,5 @@
 -- https://github.com/selimacerbas/mdkite.nvim
+-- NOTE: mermaid-rs-renderer（可选）：cargo install mermaid-rs-renderer，使美人鱼渲染速度提高约400倍。在配置中设置mermaid_renderer = "rust"以启用。
 
 return {
 	"selimacerbas/mdkite.nvim",
@@ -13,6 +14,7 @@ return {
 		require("mdkite").setup({
 			-- all optional; sane defaults shown
 			instance_mode = "takeover", -- "takeover" (one tab) or "multi" (tab per instance)
+			mermaid_renderer = "rust",
 			port = 0, -- 0 = auto (8421 for takeover, OS-assigned for multi)
 			open_browser = true,
 			default_theme = "dark", -- "dark" or "light"; initial preview theme

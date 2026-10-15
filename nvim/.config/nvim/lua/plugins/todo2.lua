@@ -3,8 +3,7 @@
 return {
 	dir = "~/neovim-plugins/todo2",
 	"huayue5201/todo2",
-	dev = true,
-	dependencies = { "nvim-store3" },
+	dependencies = { { dir = "~/neovim-plugins/nvim-store3" } },
 	name = "todo2",
 	-- 懒加载已由插件端处理（plugin/todo2.lua 惰性触发 setup），无需 lazy 配置
 	init = function()
@@ -60,7 +59,7 @@ return {
 			-- 任务树抽屉（:TodoDrawer）
 			drawer = {
 				position = "right", -- "right" | "bottom"（bottom 上下拆分可展示更多）
-				width = 58, -- position = "right" 时的宽度
+				width = 48, -- position = "right" 时的宽度
 				height = 12, -- position = "bottom" 时的高度
 				focus_on_jump = false, -- true 时 <CR> 跳转后焦点跟随到代码窗口
 			},
@@ -76,9 +75,16 @@ return {
 				},
 			},
 
-			-- 归档区域标题前缀
+			-- 归档区域标题前缀（归档任务存放于文件内 `## Archived (YYYY-MM)` 段）
 			archive_section = {
 				title_prefix = "## Archived",
+			},
+
+			-- 归档（归档 = 把任务行移入文件内 `## Archived (YYYY-MM)` 段，可逆；:TodoArchive / :TodoUnarchive）
+			archive = {
+				allow_unfinished = true, -- 是否允许归档含未完成任务的组（<leader>mA! 可强制）
+				include_in_render = false, -- 抽屉初次打开时是否并入归档任务（抽屉内按 A 可切换）
+				auto_after_days = 0, -- 自动归档阈值（天，0=关闭）
 			},
 
 			-- TODO 文件识别（可扩展任意格式）
@@ -98,54 +104,64 @@ return {
 	config = function()
 		------------------------------------------------------------------
 		-- 全局映射（插件不再提供默认 <leader>m* 映射，这里手动加入）
+		-- 约定：<leader>m<组> 是纯分组前缀（本身不映射，杜绝超时歧义），
+		--       具体动作一律 <leader>m<组><动作>，语义 = 组 + 动作。
 		------------------------------------------------------------------
-		-- 文件操作
-		vim.keymap.set("n", "<leader>mn", "<cmd>TodoNew<cr>", { desc = "创建 TODO 文件" })
-		vim.keymap.set("n", "<leader>mr", "<cmd>TodoRename<cr>", { desc = "重命名 TODO 文件" })
-		vim.keymap.set("n", "<leader>mc", "<cmd>TodoDelete<cr>", { desc = "删除 TODO 文件" })
+		-- 文件（mf-）
+		vim.keymap.set("n", "<leader>mfn", "<cmd>TodoNew<cr>", { desc = "创建 TODO 文件" })
+		vim.keymap.set("n", "<leader>mfr", "<cmd>TodoRename<cr>", { desc = "重命名 TODO 文件" })
+		vim.keymap.set("n", "<leader>mfd", "<cmd>TodoDelete<cr>", { desc = "删除 TODO 文件" })
 
-		-- 归档 / 恢复
-		vim.keymap.set("n", "<leader>mg", "<cmd>TodoArchive<cr>", { desc = "归档任务组" })
-		vim.keymap.set("n", "<leader>mu", "<cmd>TodoRestore<cr>", { desc = "恢复归档任务" })
-
-		-- 状态
-		vim.keymap.set("n", "<leader>mt", "<cmd>TodoStatus<cr>", { desc = "选择任务状态" })
-
-		-- 标签
-		vim.keymap.set("n", "<leader>mT", "<cmd>TodoTag<cr>", { desc = "给任务加/删/设置标签" })
-		vim.keymap.set("n", "<leader>mF", "<cmd>TodoFilter<cr>", { desc = "按标签筛选 TODO（! 清除）" })
-		vim.keymap.set("n", "<leader>mM", "<cmd>TodoMigrateTags<cr>", { desc = "迁移旧类型状态为标签" })
-
-		-- 任务正文
-		vim.keymap.set("n", "<leader>mD", "<cmd>TodoDesc<cr>", { desc = "编辑任务正文" })
-
-		-- 从代码创建任务
-		vim.keymap.set("n", "<leader>ma", "<cmd>TodoAdd<cr>", { desc = "从代码创建任务" })
-
-		vim.keymap.set("n", "<leader>mA", "<cmd>TodoLink<cr>", { desc = "代码关联任务" })
-
-		-- 链接
-		vim.keymap.set("n", "<leader>mq", "<cmd>TodoLinks<cr>", { desc = "显示所有双链标记 (QF)" })
+		-- 任务（mt-）
+		vim.keymap.set("n", "<leader>mta", "<cmd>TodoAdd<cr>", { desc = "从代码创建任务" })
+		vim.keymap.set("n", "<leader>mts", "<cmd>TodoStatus<cr>", { desc = "选择任务状态" })
+		vim.keymap.set("n", "<leader>mtd", "<cmd>TodoDesc<cr>", { desc = "编辑任务正文" })
+		vim.keymap.set("n", "<leader>mtt", "<cmd>TodoTag<cr>", { desc = "给任务加/删/设置标签" })
+		vim.keymap.set("n", "<leader>mtf", "<cmd>TodoFilter<cr>", { desc = "按标签筛选 TODO（! 清除）" })
 		vim.keymap.set(
 			"n",
-			"<leader>ml",
+			"<leader>mtc",
+			"<cmd>TodoContext<cr>",
+			{ desc = "复制任务上下文（Markdown，供 AI）" }
+		)
+		vim.keymap.set("n", "<leader>mtl", "<cmd>TodoLink<cr>", { desc = "代码关联任务" })
+
+		-- 归档（ma-）
+		vim.keymap.set(
+			"n",
+			"<leader>maa",
+			"<cmd>TodoArchive<cr>",
+			{ desc = "归档任务组（:TodoArchive! 强制）" }
+		)
+		vim.keymap.set("n", "<leader>mau", "<cmd>TodoUnarchive<cr>", { desc = "恢复归档任务" })
+		vim.keymap.set("n", "<leader>mav", "<cmd>TodoArchiveView<cr>", { desc = "归档任务树 (QF)" })
+		vim.keymap.set("n", "<leader>maq", "<cmd>TodoArchiveQF<cr>", { desc = "归档任务平铺 (QF)" })
+
+		-- 视图 / 打开方式（mv-）
+		vim.keymap.set("n", "<leader>mld", "<cmd>TodoDrawer<cr>", { desc = "打开任务抽屉" })
+		vim.keymap.set("n", "<leader>mvf", "<cmd>TodoFloat<cr>", { desc = "浮窗打开" })
+		vim.keymap.set("n", "<leader>mvs", "<cmd>TodoSplit<cr>", { desc = "水平分割打开" })
+		vim.keymap.set("n", "<leader>mvv", "<cmd>TodoVSplit<cr>", { desc = "垂直分割打开" })
+		vim.keymap.set("n", "<leader>mve", "<cmd>TodoEdit<cr>", { desc = "编辑模式打开" })
+		vim.keymap.set("n", "<leader>mp", "<cmd>SmartPreview<cr>", { desc = "todo2: todo预览" })
+
+		-- 链接（ml-）
+		vim.keymap.set("n", "<leader>mla", "<cmd>TodoLinks<cr>", { desc = "显示所有双链标记 (QF)" })
+		vim.keymap.set(
+			"n",
+			"<leader>mlb",
 			"<cmd>TodoLinksBuf<cr>",
 			{ desc = "显示当前缓冲区双链标记 (LocList)" }
 		)
-		vim.keymap.set("n", "<leader>md", "<cmd>TodoDrawer<cr>", { desc = "打开任务抽屉" })
 
-		-- 打开 TODO 文件
-		vim.keymap.set("n", "<leader>mf", "<cmd>TodoFloat<cr>", { desc = "浮窗打开" })
-		vim.keymap.set("n", "<leader>ms", "<cmd>TodoSplit<cr>", { desc = "水平分割打开" })
-		vim.keymap.set("n", "<leader>mv", "<cmd>TodoVSplit<cr>", { desc = "垂直分割打开" })
-		vim.keymap.set("n", "<leader>me", "<cmd>TodoEdit<cr>", { desc = "编辑模式打开" })
-
-		-- 额外
-		vim.keymap.set("n", "<leader>mp", "<cmd>SmartPreview<cr>", { desc = "todo2: todo预览" })
-
-		-- Git 集成
-		vim.keymap.set("n", "<leader>mGs", "<cmd>TodoGitSync<cr>", { desc = "增量同步提交并应用任务引用" })
-		vim.keymap.set("n", "<leader>mGr", "<cmd>TodoGitReview<cr>", { desc = "提交前自查：脏文件中的任务锚点" })
-		vim.keymap.set("n", "<leader>mGb", "<cmd>TodoGitBlame<cr>", { desc = "查看任务锚点的 git 历史" })
+		-- Git 集成（mg-）
+		vim.keymap.set("n", "<leader>mgs", "<cmd>TodoGitSync<cr>", { desc = "增量同步提交并应用任务引用" })
+		vim.keymap.set(
+			"n",
+			"<leader>mgr",
+			"<cmd>TodoGitReview<cr>",
+			{ desc = "提交前自查：脏文件中的任务锚点" }
+		)
+		vim.keymap.set("n", "<leader>mgb", "<cmd>TodoGitBlame<cr>", { desc = "查看任务锚点的 git 历史" })
 	end,
 }

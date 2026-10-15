@@ -6,14 +6,10 @@ local M = {}
 
 function M.setup()
 	vim.diagnostic.config({
-		-- 虚拟文本（行内提示）
-		virtual_text = {
-			spacing = 2,
-			current_line = false,
-		},
-		virtual_lines = {
-			current_line = true,
-		},
+		-- 行内提示交给 tiny-inline-diagnostic.nvim（见 lua/plugins/tiny-inline-diagnostic.lua）
+		-- 必须关闭内置的 virtual_text / virtual_lines，否则会与插件重复渲染
+		virtual_text = false,
+		virtual_lines = false,
 		-- 浮动窗口
 		float = {
 			border = "rounded",

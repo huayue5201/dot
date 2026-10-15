@@ -114,6 +114,7 @@ return {
 						or vim.fn.win_gettype(win) ~= ""
 						or vim.wo[win].winbar ~= ""
 						or vim.bo[buf].ft == "help"
+						or vim.bo[buf].ft == "todo2drawer" -- todo2 抽屉（ui buffer，不显示 winbar）
 					then
 						return false
 					end

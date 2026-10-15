@@ -2,7 +2,7 @@
 
 return{
   url = "https://gitlab.com/david_wright/nvim-dap-image",
-	event = "VeryLazy",
+	event = "User VeryLazy",
   -- GitHub mirror: "dav1d-wright/nvim-dap-image"
   dependencies = { "mfussenegger/nvim-dap", "3rd/image.nvim" },
   config = function()

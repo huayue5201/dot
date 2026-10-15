@@ -7,7 +7,7 @@ return {
 		"Jorenar/nvim-dap-disasm",
 		-- https://github.com/jbyuki/one-small-step-for-vimkind
 		"jbyuki/one-small-step-for-vimkind",
-		"nvim-dap-extensions",
+		{ dir = "~/neovim-plugins/nvim-dap-extensions" },
 	},
 	config = function()
 		-- repl 自动补全支持

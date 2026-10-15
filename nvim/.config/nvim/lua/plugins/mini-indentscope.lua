@@ -2,7 +2,7 @@
 
 return {
 	"nvim-mini/mini.indentscope",
-	version = "*",
+	sem_version = "*",
 	config = function()
 		require("mini.indentscope").setup({
 			symbol = "│",

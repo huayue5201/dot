@@ -135,14 +135,14 @@ function M.setup()
 	end, { desc = "[D]ap [T]oggle breakpoint enabled/disabled" })
 
 	-- 删除当前行断点
-	vim.keymap.set("n", "<leader>cd", function()
+	vim.keymap.set("n", "<leader>dD", function()
 		dap_ext.delete_breakpoint_at_current_line()
-	end, { desc = "[D]ap Delete breakpoint at current line" })
+	end, { desc = "[D]ap [D]elete breakpoint at current line" })
 
 	-- 选择删除断点
-	vim.keymap.set("n", "<leader>cD", function()
+	vim.keymap.set("n", "<leader>dS", function()
 		dap_ext.toggle_breakpoint_deletion()
-	end, { desc = "[D]ap Select breakpoint to delete" })
+	end, { desc = "[D]ap [S]elect breakpoint to delete" })
 
 	-- 查看所有断点（扩展断点）
 	vim.keymap.set("n", "<leader>dla", function()
@@ -155,7 +155,7 @@ function M.setup()
 	end, { desc = "[D]ap Show [C]a[P]abilities" })
 
 	-- 清除所有断点
-	vim.keymap.set("n", "<leader>cad", function()
+	vim.keymap.set("n", "<leader>dC", function()
 		dap_ext.clear_breakpoints()
 		dap.clear_breakpoints()
 		breakpoint_state.clear_all_breakpoints()

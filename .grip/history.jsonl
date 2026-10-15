@@ -1,0 +1,1 @@
+{"url": "sqlite:/Users/lijia/rust-project/data_pulse/data/date_pulse.db", "table": "company", "elapsed_ms": 21, "ts": 1792040399, "type": "query", "sql": "SELECT * FROM (SELECT * FROM company LIMIT 3) AS _grip LIMIT 200"}

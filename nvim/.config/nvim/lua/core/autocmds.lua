@@ -28,7 +28,7 @@ vim.api.nvim_create_autocmd("FocusGained", {
 	end,
 })
 
-local nav = require("user.navigation")
+local nav = require("core.navigation")
 
 -- ============================
 -- 通用函数：为当前 buffer 应用快捷键映射
@@ -208,3 +208,4 @@ vim.api.nvim_create_autocmd("InsertEnter", {
 		end
 	end,
 })
+

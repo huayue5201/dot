@@ -31,6 +31,7 @@ return {
 			"dap_repl",
 			"go",
 			"rust",
+			"sql", -- sqmeow 查询感知补全（列/别名建议）需要
 			"regex",
 			"comment",
 			"query",

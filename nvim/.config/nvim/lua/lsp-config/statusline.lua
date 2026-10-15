@@ -81,16 +81,12 @@ local function spinner_start()
 
 		-- 创建并启动定时器
 		spinner_timer = vim.uv.new_timer()
-		spinner_timer:start(
-			0,
-			M.config.spinner_interval,
-			function()
-				vim.schedule(function()
-					spinner_index = (spinner_index % #M.config.spinner_frames) + 1
-					schedule_spinner_update()
-				end)
-			end
-		)
+		spinner_timer:start(0, M.config.spinner_interval, function()
+			vim.schedule(function()
+				spinner_index = (spinner_index % #M.config.spinner_frames) + 1
+				schedule_spinner_update()
+			end)
+		end)
 	end
 end
 
@@ -174,6 +170,7 @@ function M.lsp_clients()
 		["ruff_lsp"] = 30,
 		["eslint"] = 40,
 		["copilot"] = 20,
+		["copilot_ls"] = 20,
 		["rustowl"] = 30,
 		["harper-ls"] = 50,
 	}

@@ -1,0 +1,13 @@
+{
+  "lastChangelogVersion": "1.0.3",
+  "theme": "dark",
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-flash",
+  "packages": [
+    "npm:@ff-labs/pi-fff",
+    "npm:billion-context",
+    "npm:@narumitw/pi-usage",
+    "npm:pi-vim"
+  ],
+  "hideThinkingBlock": true
+}

@@ -1,7 +1,7 @@
--- https://github.com/s1n7ax/nvim-window-picker
+-- https://github.com/huayue5201/nvim-window-picker
 
 return {
-	"s1n7ax/nvim-window-picker", -- for open_with_window_picker keymaps
+	dir = "/Users/lijia/neovim-plugins/nvim-window-picker", -- for open_with_window_picker keymaps
 	event = "WinNew",
 	config = function()
 		require("window-picker").setup({
@@ -20,7 +20,7 @@ return {
 			-- 以下是与选择器相关的配置
 			picker_config = {
 				-- 是否通过点击左键选择窗口
-				handle_mouse_click = false,
+				handle_mouse_click = true,
 				statusline_winbar_picker = {
 					-- 是否希望使用 winbar 代替 statusline
 					-- "always" 意味着始终使用 winbar，
@@ -85,7 +85,7 @@ return {
 			},
 		})
 
-		vim.keymap.set("n", "<Leader>cw", function()
+		vim.keymap.set("n", "<leader>wc", function()
 			-- 尝试加载 window-picker 插件
 			local ok, picker = pcall(require, "window-picker")
 			if not ok then
@@ -108,28 +108,48 @@ return {
 			-- 切换到目标窗口
 			vim.api.nvim_set_current_win(picked_window_id)
 			-- ⭐ 使用统一关闭逻辑
-			require("user.navigation").smart_close(picked_window_id)
+			require("core.navigation").smart_close(picked_window_id)
 			-- 恢复原窗口
 			if vim.api.nvim_win_is_valid(current_win) then
 				vim.api.nvim_set_current_win(current_win)
 			end
-		end, { silent = true, desc = "window: 删除选中的窗口（统一 smart_close）" })
+		end, { silent = true, desc = "窗口: 关闭选中的窗口（统一 smart_close）" })
 
-		vim.keymap.set("n", "<Leader>w", function()
+		vim.keymap.set("n", "<leader>ww", function()
 			local success, picker = pcall(require, "window-picker")
 			if not success then
 				print("You'll need to install window-picker to use this command.")
 				return
 			end
-			local picked_window_id = picker.pick_window()
-			if picked_window_id then
-				vim.api.nvim_set_current_win(picked_window_id)
-			else
-				print("No window picked!")
+			-- 跨工具选择：nvim 窗口 + herdr 外部 pane
+			-- scope: "tab" | "workspace" | "all"; 不在 herdr 环境自动跳过
+			-- respect_zoom 仅 scope="tab" 生效：tab 被 zoom 时
+			--   只列出可见 pane；若被 zoom 的是别的 pane（nvim 被藏）则不弹选择器
+			local target, abort_info = picker.pick_target({
+				sources = {
+					nvim = true,
+					herdr = { scope = "tab", respect_zoom = true },
+				},
+			})
+			if not target then
+				if abort_info and abort_info.aborted then
+					print(
+						"herdr tab 被 zoom 到其他 pane，选择器已跳过（source: "
+							.. abort_info.source
+							.. "）"
+					)
+				else
+					print("No window picked!")
+				end
+				return
 			end
-		end, { silent = true, desc = "window: 选择一个窗口并切换" })
+			-- herdr pane 在 pick_target 内部已 focus，无需再切换
+			if target.kind == "nvim" then
+				vim.api.nvim_set_current_win(target.window)
+			end
+		end, { silent = true, desc = "窗口: 选择 nvim 窗口 / herdr pane" })
 
-		vim.keymap.set("n", "<leader>sw", function()
+		vim.keymap.set("n", "<leader>ws", function()
 			local success, picker = pcall(require, "window-picker")
 			if not success then
 				print("You'll need to install window-picker to use this command.")
@@ -149,6 +169,6 @@ return {
 			else
 				print("No window picked!")
 			end
-		end, { silent = true, desc = "window: 交换当前窗口与目标窗口的位置" })
+		end, { silent = true, desc = "窗口: 与目标窗口交换 buffer" })
 	end,
 }

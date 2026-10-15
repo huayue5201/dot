@@ -1,6 +1,6 @@
 -- TODO: https://github.com/neovim/neovim/issues/34562
 
-local colors = require("user.colors").palette
+local colors = require("core.colors").palette
 local lsp = require("lsp-config.statusline").lsp
 local todo_status = require("todo2.ui.statusline")
 local dap_status = require("dap").status()
@@ -135,95 +135,8 @@ end
 -- 保存提示功能
 -- ================================
 local function save_status()
-	local unsaved_count = 0
-	local has_unsaved = false
-
-	-- 定义需要忽略的缓冲区类型和文件类型
-	local ignore = {
-		filetype = {
-			"dap",
-			"fugitive",
-			"terminal",
-			"log",
-			"help",
-			"dapui-scopes",
-			"dapui-stacks",
-			"dapui-breakpoints",
-			"dapui-watches",
-			"dap-repl",
-			"dapui-console",
-			"snacks_picker_input",
-			"pager",
-			"msgmore",
-			"*.todo.md",
-			"neo-tree-popup",
-		},
-		buftype = {
-			"terminal",
-			"nofile",
-			"quickfix",
-			"qf",
-		},
-		bufname = {
-			"dap-terminal",
-		},
-	}
-
-	-- 遍历所有缓冲区
-	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-		local ft = vim.api.nvim_get_option_value("filetype", { buf = buf })
-		local bt = vim.api.nvim_get_option_value("buftype", { buf = buf })
-		local name = vim.fn.bufname(buf)
-
-		-- 检查是否在忽略列表
-		local ignore_ft = vim.list_contains(ignore.filetype, ft)
-		local ignore_bt = vim.list_contains(ignore.buftype, bt)
-
-		-- bufname 用 match，避免完整路径不匹配
-		local ignore_name = false
-		for _, pat in ipairs(ignore.bufname) do
-			if name:match(pat) then
-				ignore_name = true
-				break
-			end
-		end
-
-		-- 如果是当前 buffer，进行额外检查
-		if buf == 0 then
-			local current_ft = vim.api.nvim_get_option_value("filetype", { buf = buf })
-			local current_bt = vim.api.nvim_get_option_value("buftype", { buf = buf })
-			local current_name = vim.fn.bufname(buf)
-
-			-- 检查当前 buffer 是否应该被忽略
-			local current_ignore_ft = vim.list_contains(ignore.filetype, current_ft)
-			local current_ignore_bt = vim.list_contains(ignore.buftype, current_bt)
-
-			local current_ignore_name = false
-			for _, pat in ipairs(ignore.bufname) do
-				if current_name:match(pat) then
-					current_ignore_name = true
-					break
-				end
-			end
-
-			if current_ignore_ft or current_ignore_bt or current_ignore_name then
-				return "" -- 如果当前 buffer 也在黑名单中，直接返回空
-			end
-		end
-
-		if ignore_ft or ignore_bt or ignore_name then
-			goto continue
-		end
-
-		-- 检查缓冲区是否已修改
-		local modified = vim.api.nvim_get_option_value("modified", { buf = buf })
-		if modified then
-			unsaved_count = unsaved_count + 1
-			has_unsaved = true
-		end
-
-		::continue::
-	end
+	local unsaved_count = require("core.unsaved").count()
+	local has_unsaved = unsaved_count > 0
 
 	-- 当前 buffer 是否已保存
 	local current_modified = vim.api.nvim_get_option_value("modified", { buf = 0 })

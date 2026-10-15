@@ -22,6 +22,9 @@ return {
 				-- 3. 自动加载 luv 类型（vim.uv / vim.loop）
 				{ path = "${3rd}/luv/library", words = { "vim%.uv", "vim%.loop" } },
 
+				-- nvim-chainsaw 的全局调试函数 _G.Chainsaw()（nvim_lua 调试用）
+				{ path = "nvim-chainsaw", words = { "Chainsaw" } },
+
 				-- 4. 你本地的 Neovim 配置目录
 				vim.fn.stdpath("config"), -- ~/.config/nvim
 			},

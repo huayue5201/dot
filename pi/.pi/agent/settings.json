@@ -3,11 +3,22 @@
   "theme": "dark",
   "defaultProvider": "deepseek",
   "defaultModel": "deepseek-flash",
+  "defaultThinkingLevel": "minimal",
+  "modelThinkingLevels": {
+    "deepseek/deepseek-flash": "minimal",
+    "deepseek/deepseek-v4-pro": "minimal"
+  },
+  "thinkingBudgets": {
+    "low": 2000,
+    "medium": 4000,
+    "high": 8000
+  },
   "packages": [
     "npm:@ff-labs/pi-fff",
     "npm:billion-context",
     "npm:@narumitw/pi-usage",
-    "npm:pi-vim"
+    "npm:pi-vim",
+    "npm:pi-declutter"
   ],
   "hideThinkingBlock": true
 }

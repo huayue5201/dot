@@ -1,8 +1,8 @@
 -- 命令分发器：把 cmd 字符串/函数分发到对应逻辑
 local M = {}
 
-local errors = require("user.navigation.errors")
-local smart_close = require("user.navigation.smart_close")
+local errors = require("core.navigation.errors")
+local smart_close = require("core.navigation.smart_close")
 
 -- 支持的命令：next_error, prev_error, next_error_repeatable,
 -- prev_error_repeatable, smart_close, 任意函数, 或 vim 命令字符串

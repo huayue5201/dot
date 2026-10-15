@@ -1,15 +1,19 @@
 -- https://github.com/oxfist/night-owl.nvim
 -- https://github.com/EdenEast/nightfox.nvim
+-- https://github.com/folke/tokyonight.nvim
 
 return {
-	"oxfist/night-owl.nvim",
+	-- "oxfist/night-owl.nvim",
+	"folke/tokyonight.nvim",
 	-- "EdenEast/nightfox.nvim",
 	-- "ShiraiEd/Wolf359_nvim_rust_theme",
 	lazy = false,
 	priority = 1000,
 	config = function()
-		require("night-owl").setup()
-		vim.cmd.colorscheme("night-owl")
+		-- require("night-owl").setup()
+		-- vim.cmd.colorscheme("night-owl")
+
+		vim.cmd([[colorscheme tokyonight]])
 
 		-- require("nightfox").setup({
 		-- 	options = {

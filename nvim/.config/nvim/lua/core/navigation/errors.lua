@@ -111,14 +111,14 @@ end
 -- 下一个错误（支持 . 重复）
 function M.next_error_repeatable()
 	last_jump_direction = "next"
-	vim.o.operatorfunc = "v:lua.require'user.navigation'._repeat_jump_callback"
+	vim.o.operatorfunc = "v:lua.require'core.navigation'._repeat_jump_callback"
 	vim.api.nvim_feedkeys("g@l", "i", false)
 end
 
 -- 上一个错误（支持 . 重复）
 function M.prev_error_repeatable()
 	last_jump_direction = "prev"
-	vim.o.operatorfunc = "v:lua.require'user.navigation'._repeat_jump_callback"
+	vim.o.operatorfunc = "v:lua.require'core.navigation'._repeat_jump_callback"
 	vim.api.nvim_feedkeys("g@l", "i", false)
 end
 

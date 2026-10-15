@@ -4,7 +4,6 @@ return {
 	dir = "~/neovim-plugins/nvim-store3",
 	-- "huayue5201/nvim-store3",
 	name = "nvim-store3",
-	dev = true,
 	main = "nvim-store3", -- 核心修复：明确指定主模块，阻止 lazy.nvim 自动分析内部配置
 	config = function()
 		require("nvim-store3.plugins.project_query").setup()

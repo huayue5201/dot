@@ -3,7 +3,7 @@
 
 return {
 	"cordx56/rustowl",
-	version = "*", -- Latest stable version
+	sem_version = "*", -- Latest stable version
 	-- build = "cargo install rustowl",
 	lazy = false,
 	config = function()

@@ -11,7 +11,8 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
 -- 立即加载基础配置
 require("core.settings") -- 基础 Neovim 选项
-require("core.lazy") -- Lazy.nvim 插件管理（插件的懒加载由 Lazy.nvim 负责）
+require("core.dotenv").load() -- 环境变量（须早于 core.pack，见 ~/.env）
+require("core.pack") -- Neovim 自带 vim.pack + zpack 插件管理（懒加载由 zpack 负责）
 require("lsp-config").setup() --lsp
 require("core.statusline") -- 状态栏（加载即自动构建并设置，无需手动调用 active）
 
@@ -19,10 +20,4 @@ require("core.statusline") -- 状态栏（加载即自动构建并设置，无�
 vim.defer_fn(function()
 	require("core.autocmds") -- 加载自动命令
 	require("core.keymaps") -- 加载按键映射
-
-	-- 延迟修改 runtimepath，避免影响启动速度
-	vim.schedule(function()
-		require("user.dotenv").load() -- token加载模块
-		-- require("user.hl_undo_changes") -- undo高亮
-	end)
 end, 300)

@@ -2,7 +2,7 @@ id = "smart-splits.nvim"
 name = "smart-splits.nvim"
 version = "0.1.0"
 min_herdr_version = "0.7.0"
-description = "Seamless ctrl+h/j/k/l navigation across herdr panes and Vim/Neovim splits"
+description = "Seamless ctrl+h/j/k/l navigation and ctrl+alt+h/j/k/l resizing across herdr panes and Vim/Neovim splits"
 platforms = ["linux", "macos"]
 
 # One action per direction. Bind them in herdr's config.toml (see README):
@@ -13,6 +13,13 @@ platforms = ["linux", "macos"]
 #   command = "smart-splits.nvim.left"
 #
 # (likewise for ctrl+j/k/l and the down/up/right actions).
+#
+# Resize uses ctrl+alt+hjkl and the resize-* actions:
+#
+#   [[keys.command]]
+#   key = "ctrl+alt+h"
+#   type = "plugin_action"
+#   command = "smart-splits.nvim.resize-left"
 
 [[actions]]
 id = "left"
@@ -37,3 +44,27 @@ id = "right"
 title = "Navigate right (Vim/herdr)"
 contexts = ["global"]
 command = ["bash", "scripts/herdr-navigate.sh", "right"]
+
+[[actions]]
+id = "resize-left"
+title = "Resize left (Vim/herdr)"
+contexts = ["global"]
+command = ["bash", "scripts/herdr-navigate.sh", "resize", "left"]
+
+[[actions]]
+id = "resize-down"
+title = "Resize down (Vim/herdr)"
+contexts = ["global"]
+command = ["bash", "scripts/herdr-navigate.sh", "resize", "down"]
+
+[[actions]]
+id = "resize-up"
+title = "Resize up (Vim/herdr)"
+contexts = ["global"]
+command = ["bash", "scripts/herdr-navigate.sh", "resize", "up"]
+
+[[actions]]
+id = "resize-right"
+title = "Resize right (Vim/herdr)"
+contexts = ["global"]
+command = ["bash", "scripts/herdr-navigate.sh", "resize", "right"]

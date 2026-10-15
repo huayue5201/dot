@@ -4,11 +4,11 @@
 local M = {}
 
 -- 数据
-M.settings = require("user.navigation.settings")
-M.buf_keymaps = require("user.navigation.keymaps")
+M.settings = require("core.navigation.settings")
+M.buf_keymaps = require("core.navigation.keymaps")
 
 -- 错误跳转
-local errors = require("user.navigation.errors")
+local errors = require("core.navigation.errors")
 M.error_patterns = errors.error_patterns
 M.get_error_lines = errors.get_error_lines
 M.next_error = errors.next_error
@@ -18,9 +18,9 @@ M.prev_error_repeatable = errors.prev_error_repeatable
 M._repeat_jump_callback = errors._repeat_jump_callback
 
 -- 智能关闭
-M.smart_close = require("user.navigation.smart_close").smart_close
+M.smart_close = require("core.navigation.smart_close").smart_close
 
 -- 命令分发
-M.dispatch_command = require("user.navigation.dispatch").dispatch_command
+M.dispatch_command = require("core.navigation.dispatch").dispatch_command
 
 return M

@@ -5,7 +5,6 @@ return {
 	event = "VeryLazy",
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
-		"MeanderingProgrammer/render-markdown.nvim",
 		"esmuellert/codediff.nvim",
 	},
 	config = function()
@@ -18,7 +17,7 @@ return {
 			pulls = {
 				delete_notes = false,
 				default_merge_method = "merge",
-				default_delete_branch = false,
+				default_delete_source_branch = false,
 				git_transport = "https",
 
 				comment_templates = {
@@ -39,7 +38,6 @@ return {
 					},
 					layout = "inline",
 					compact = true,
-					compact_context_lines = 3,
 					lsp = {
 						enabled = false,
 						dir = nil,

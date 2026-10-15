@@ -56,7 +56,7 @@ window-theme = system
 #           背景与颜色设置
 # ================================================
 # 设置背景不透明度为 0.8
-background-opacity = 0.8
+# background-opacity = 0.8
 
 # 设置背景模糊半径为 20
 background-blur = 20
@@ -129,3 +129,36 @@ clipboard-write = allow
 
 # 剪贴板自动修剪末尾空格
 clipboard-trim-trailing-spaces = true
+
+# >>> herdr-radar font block
+font-codepoint-map = U+E1A0-U+E1BA=Herdr Agent Icons Max
+font-codepoint-map = U+E1C0-U+E1C5=Herdr Agent Icons Max
+# <<< herdr-radar font block
+
+# ================================================
+#   smart-splits.nvim / backend-ghostty（裸 Ghostty 分屏）
+# ================================================
+# 与 nvim 侧映射对齐：移动 ctrl+hjkl，缩放 ctrl+alt+hjkl（c-a-* 系列）。
+# 纯 Ghostty/shell 面板（未在 nvim 中）：
+keybind = performable:ctrl+h=goto_split:left
+keybind = performable:ctrl+j=goto_split:down
+keybind = performable:ctrl+k=goto_split:up
+keybind = performable:ctrl+l=goto_split:right
+keybind = performable:ctrl+alt+h=resize_split:left,30
+keybind = performable:ctrl+alt+j=resize_split:down,30
+keybind = performable:ctrl+alt+k=resize_split:up,30
+keybind = performable:ctrl+alt+l=resize_split:right,30
+
+# neovim 运行期间占用的按键表（名字必须与 backend 的 key_table='nvim' 一致）。
+# 把按键原样送进 nvim，让 nvim 先处理；到达 nvim 边缘时由后端经 AppleScript 操作 Ghostty 分屏。
+keybind = nvim/
+keybind = nvim/ctrl+h=text:\x08
+keybind = nvim/ctrl+j=text:\x0a
+keybind = nvim/ctrl+k=text:\x0b
+keybind = nvim/ctrl+l=text:\x0c
+# c-a-* 用 kitty CSI-u 编码回送（modifier 7 = ctrl(4)+alt(2)+1）
+# 104=h 106=j 107=k 108=l
+keybind = nvim/ctrl+alt+h=csi:104;7u
+keybind = nvim/ctrl+alt+j=csi:106;7u
+keybind = nvim/ctrl+alt+k=csi:107;7u
+keybind = nvim/ctrl+alt+l=csi:108;7u

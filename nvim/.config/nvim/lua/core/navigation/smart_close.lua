@@ -1,7 +1,7 @@
 -- 智能关闭窗口：按 filetype/buftype 匹配关闭策略，无策略时走 fallback 逻辑
 local M = {}
 
-local buf_keymaps = require("user.navigation.keymaps")
+local buf_keymaps = require("core.navigation.keymaps")
 
 -- 记录已关闭的窗口，防止重复关闭
 local closed_windows = {}

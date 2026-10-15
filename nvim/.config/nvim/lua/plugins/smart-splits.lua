@@ -1,39 +1,36 @@
 -- https://github.com/smart-splits-nvim/smart-splits.nvim
+--
+-- v3 把复用器后端拆成独立插件。herdr 没有官方后端，用本仓库自维护的
+-- lua/vendor/smart-splits-backend-herdr/init.lua（实现 v3 协议）。
 
 return {
 	"smart-splits-nvim/smart-splits.nvim",
-	version = "^3.0.0", -- 锁定 v3 大版本，比 branch = "v3" 更稳定
-	-- 注意：herdr 集成依赖插件在「加载时」检测 HERDR_ENV 并注册按键映射，
-	-- 所以这里刻意不懒加载（不用 keys/event），保证 Neovim 启动即注册。
+	tag = "v3.0.0", -- 锁定 v3 大版本，避免再次被动跨大版本升级
+	-- backend-ghostty 必须在 smart-splits 激活前 setup（lazy 会先加载依赖）。
+	-- key_table 默认 'nvim'，与 ~/.config/ghostty/config 里的 `nvim/` 前缀一致。
+	-- https://github.com/smart-splits-nvim/backend-ghostty
+	dependencies = { { "smart-splits-nvim/backend-ghostty", main = "smart-splits-backend-ghostty", opts = {} } },
 	config = function()
 		local ss = require("smart-splits")
 
 		ss.setup({
-			log = { file = false }, -- v3 默认会写日志文件，这里关掉
-			default_amount = 1, -- 每次 resize 1 行/列，更精细（默认 3 太粗）
-			multiplexer_integration = "herdr", -- 显式启用 herdr 集成（自动探测可能因 $TERM_PROGRAM=ghostty 失败）
-			disable_multiplexer_nav_when_zoomed = true, -- 当前 herdr 面板放大时不做跳转
+			move = {
+				-- 到达整个终端最外层边缘（无相邻 herdr/Ghostty pane）时原地不动，
+				-- 避免 wrap 悄悄绕到对面 nvim 窗口。有相邻 pane 时仍会切过去。
+				at_edge = "stop",
+			},
+			resize = {
+				amount = 1, -- 每次 resize 1 行/列，更精细（默认 3 太粗）；原 default_amount
+			},
+			mux = {
+				-- 按顺序探测，取第一个 detect() 为真的：
+				--   herdr 面板内 → 自维护后端 vendor.smart-splits-backend-herdr
+				--   裸 Ghostty 面板 → 官方 backend-ghostty
+				-- 跨 pane resize 的「格数 → 比例」换算已收进 herdr 后端内部。
+				backend = { "vendor.smart-splits-backend-herdr", "smart-splits-backend-ghostty" },
+			},
+			log = { file = false }, -- v3 默认写日志文件，这里关掉
 		})
-
-		-- 修正 herdr 跨 pane resize 的语义：
-		-- smart-splits 把「格数」传给 mux.resize_pane（default_amount=1 即 1 列/行），
-		-- 但 herdr 的 `pane resize --amount` 期望的是「比例增量」（0.05 = 5%），
-		-- 传 1 会被当成 100% 再 clamp 到 50%，一下跳半屏。这里按窗口列/行数换算成比例，
-		-- 让跨 pane 的 resize 也是 1 格一档（可叠加 count 前缀）。
-		local ok_herdr, herdr_mux = pcall(require, "smart-splits.mux.herdr")
-		if ok_herdr and herdr_mux then
-			local herdr_resize_orig = herdr_mux.resize_pane
-			herdr_mux.resize_pane = function(direction, amount)
-				amount = amount or 1
-				local horizontal = direction == "left" or direction == "right"
-				local cells = horizontal and vim.o.columns or vim.o.lines
-				local ratio = amount / math.max(cells, 1)
-				if ratio > 0.5 then
-					ratio = 0.5 -- herdr 内部对 delta 的 clamp 上限
-				end
-				return herdr_resize_orig(direction, ratio)
-			end
-		end
 
 		local map = vim.keymap.set
 
@@ -47,6 +44,8 @@ return {
 		-- 不用裸 alt：macOS 下 Option 会被终端组合成特殊字符，且 alt 以 ESC 前缀传输时
 		-- 与真正的 Esc 同前缀，经 herdr 消歧义后可能被拆成 esc+字母而失效。
 		-- ctrl+alt 是 herdr 官方推荐、跨终端最稳的直接修饰键家族。
+		-- herdr 侧同步把 ctrl+alt+hjkl 绑到 smart-splits.nvim.resize-*（见 dotfiles/herdr）：
+		-- 焦点在 vim pane 时转发回下面的 <C-A-*> 映射，在非 vim pane 时直接 resize herdr 面板。
 		map("n", "<C-A-h>", ss.resize_left, { desc = "Smart-splits: 左边界左移(变宽)" })
 		map("n", "<C-A-j>", ss.resize_down, { desc = "Smart-splits: 下边界下移(变高)" })
 		map("n", "<C-A-k>", ss.resize_up, { desc = "Smart-splits: 上边界上移(变高)" })
