@@ -5,6 +5,27 @@ local M = {}
 local registry = require("lsp-config.registry")
 local state = require("lsp-config.state")
 
+-- 外部管理器（如 on-idle）临时挂起的 server。挂起期间禁止本模块自动重新启用，
+-- 否则 FileType autocmd 会在挂起后立刻把 server 拉起来，导致 client 生命周期错乱。
+local suspended = {}
+
+---标记/取消某个 server 的挂起状态
+---@param name string
+---@param value boolean
+function M.set_suspended(name, value)
+	if value then
+		suspended[name] = true
+	else
+		suspended[name] = nil
+	end
+end
+
+---@param name string
+---@return boolean
+function M.is_suspended(name)
+	return suspended[name] == true
+end
+
 ---按 buffer 所属项目的持久化状态，启用/停用其文件类型对应的 server（幂等）
 ---@param bufnr integer|nil
 function M.apply_for_buffer(bufnr)
@@ -15,8 +36,9 @@ function M.apply_for_buffer(bufnr)
 		-- 未设置视为启用；只有用户显式改成 false 才禁用
 		local should_enable = state.get("lsp." .. lsp_name, bufnr, true) ~= false
 
-		-- 幂等：只有状态不一致时才调用 enable，避免重复触发 doautoall
-		if vim.lsp.is_enabled(lsp_name) ~= should_enable then
+		-- 幂等：只有状态不一致时才调用 enable，避免重复触发 doautoall；
+		-- 挂起期间只允许停用、不允许自动启用
+		if vim.lsp.is_enabled(lsp_name) ~= should_enable and not (should_enable and suspended[lsp_name]) then
 			vim.lsp.enable(lsp_name, should_enable)
 		end
 	end

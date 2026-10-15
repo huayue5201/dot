@@ -32,6 +32,42 @@ return {
 			vim.notify("on-idle 加载失败: " .. tostring(mod), vim.log.levels.ERROR)
 			return
 		end
-		mod.setup(opts)
+
+		-- 自定义挂起/恢复：
+		-- 1. 挂起前把 server 登记为 suspended，阻止 lsp-config.servers 的 FileType
+		--    autocmd 把刚停掉的 server 又自动拉起来（会造成 client 生命周期错乱，
+		--    旧 server 收到重复 didOpen，文档索引与服务端不同步，
+		--    随后 semanticTokens/range 报 -32603 Invalid offset）。
+		-- 2. 恢复前等旧客户端完全退出，确保 vim.lsp.start 不复用停止中的 client。
+		local servers = require("lsp-config.servers")
+		local sleep_names = {}
+		local callbacks = {
+			suspend = function()
+				sleep_names = {}
+				for _, client in ipairs(vim.lsp.get_clients()) do
+					local name = client.config and client.config.name
+					if name and vim.lsp.is_enabled(name) then
+						sleep_names[name] = true
+					end
+				end
+				for name in pairs(sleep_names) do
+					servers.set_suspended(name, true)
+					vim.lsp.enable(name, false)
+				end
+			end,
+			resume = function()
+				for name in pairs(sleep_names) do
+					-- 等旧客户端真正退出：is_enabled 已禁用，client:stop 异步收尾
+					vim.wait(2000, function()
+						return #vim.lsp.get_clients({ name = name, _uninitialized = true }) == 0
+					end, 50)
+					vim.lsp.enable(name, true)
+					servers.set_suspended(name, false)
+				end
+				sleep_names = {}
+			end,
+		}
+
+		mod.setup(vim.tbl_deep_extend("force", opts, { callbacks = callbacks }))
 	end,
 }
