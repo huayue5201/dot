@@ -351,7 +351,15 @@ function M.click()
 	end
 	local client = vim.lsp.get_client_by_id(entry.client_id)
 	if client and entry.lens.command then
-		client:exec_cmd(entry.lens.command, { bufnr = bufnr })
+		-- 点击来自 expr 映射，此处处于 textlock，直接执行会触发
+		-- E565（not allowed to change text or window），故调度到安全上下文。
+		local command = entry.lens.command
+		vim.schedule(function()
+			local c = vim.lsp.get_client_by_id(entry.client_id)
+			if c then
+				c:exec_cmd(command, { bufnr = bufnr })
+			end
+		end)
 	end
 	return true
 end
