@@ -183,8 +183,15 @@ local function setup_lsp_attach()
 				buffer_states[bufnr].inlay_hint_autocmd_enabled = true
 			end
 
+			-- 代码透镜（▶ Run / ▶ Debug 等）：0.13 起默认不渲染，交给本模块自行请求/渲染，
+			-- 以支持“悬停高亮 + 点击运行”（原生渲染的高亮组是硬编码的）。
+			require("lsp-config.features.code_lens").setup(client, bufnr)
+
 			-- Rust 宏展开预览（setup 内部自行守卫：仅 rust-analyzer + 支持 expandMacro）
 			require("lsp-config.features.rust_macro_preview").setup(client, bufnr)
+
+			-- Rust runnable/debuggable：补齐 ▶ Run / ▶ Debug 代码透镜与运行/调试快捷键
+			require("lsp-config.features.runnables").setup(client, bufnr)
 
 			-- LSP UTF-8 守卫：发送前扫描 params，发现非法 UTF-8 就替换为 U+FFFD 并告警。
 			-- 背景：rust-analyzer 收到非法 UTF-8 报文会直接 run_session 报错退出

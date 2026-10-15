@@ -80,6 +80,16 @@ return {
 	cmd = { "rust-analyzer" },
 	filetypes = { "rust" },
 	root_markers = { "Cargo.toml", ".git" },
+	-- 告知 rust-analyzer 本客户端支持这些命令，否则不会生成 ▶ Run / ▶ Debug 代码透镜
+	-- （rust-analyzer lsp/to_proto.rs 里按 client_commands 门控）。
+	-- 实际执行见 lsp-config/features/rust_runnables.lua。
+	capabilities = {
+		experimental = {
+			commands = {
+				commands = { "rust-analyzer.runSingle", "rust-analyzer.debugSingle" },
+			},
+		},
+	},
 	-- Neovim 0.13 用 workspace_required 替代旧 lspconfig 的 single_file_support
 	workspace_required = false,
 	settings = {

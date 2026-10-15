@@ -94,24 +94,13 @@ end
 
 ---运行光标处 code lens（处理 lens 文字渲染在函数上方一行的偏移）
 function M.run_code_lens()
-	local bufnr = 0
+	local bufnr = vim.api.nvim_get_current_buf()
 	local row = vim.api.nvim_win_get_cursor(0)[1] -- 1-based
-	local lenses = vim.lsp.codelens.get(bufnr) or {}
+	-- 本模块自己渲染透镜，不经过 vim.lsp.codelens 的 provider 缓存，故用它的状态判断
+	local cl = require("lsp-config.features.code_lens")
 
-	local at_current, at_next = false, false
-	for _, lens in pairs(lenses) do
-		if lens.range then
-			local fn_line = lens.range.start.line + 1 -- 1-based 函数行
-			if fn_line == row then
-				at_current = true
-			elseif fn_line == row + 1 then
-				at_next = true
-			end
-		end
-	end
-
-	-- lens 文字渲染在函数上方一行；若光标停在文字行，下移到函数行再执行
-	if not at_current and at_next then
+	-- lens 文字渲染在函数上方一行；若光标“实际”停在文字所在行（下一行才是函数），下移再执行
+	if not cl.lens_on_line(bufnr, row) and cl.lens_on_line(bufnr, row + 1) then
 		vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
 	end
 	vim.lsp.codelens.run()

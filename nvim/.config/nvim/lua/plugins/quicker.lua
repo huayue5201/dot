@@ -7,14 +7,6 @@ return {
 		require("quicker").setup({
 			-- 是否使用默认 quickfix buffer 的选项
 			use_default_opts = true,
-			opts = {
-				buflisted = false,
-				number = false,
-				relativenumber = false,
-				signcolumn = "auto",
-				winfixheight = true,
-				wrap = false,
-			},
 			-- 编辑 quickfix buffer 的支持
 			edit = {
 				enabled = true,
@@ -40,13 +32,13 @@ return {
 			},
 			-- 边框字符
 			borders = {
-				vert = "",
-				strong_header = "",
-				strong_cross = "",
-				strong_end = "",
+				vert = "┃",
+				strong_header = "━",
+				strong_cross = "╋",
+				strong_end = "┫",
 				soft_header = "╌",
-				soft_cross = "",
-				soft_end = "",
+				soft_cross = "╂",
+				soft_end = "┨",
 			},
 			trim_leading_whitespace = "common",
 			max_filename_width = function()

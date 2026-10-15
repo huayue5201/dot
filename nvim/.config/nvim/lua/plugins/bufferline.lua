@@ -1,14 +1,29 @@
--- https://github.com/akinsho/bufferline.nvim
+-- https://github.com/huayue5201/bufferline.nvim
 
 return {
+	dir = "~/neovim-plugins/bufferline.nvim",
 	"akinsho/bufferline.nvim",
-	event = "UIEnter",
+	-- 必须在首帧渲染前加载,否则会先画出内置 tabline 再被 bufferline 替换(启动闪烁)
+	lazy = false,
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
 		-- "Mirsmog/real-icons.nvim",
 	},
 	config = function()
 		local bufferline = require("bufferline")
+
+		-- bufferline 默认把分隔线画成 tabline 填充色(tint(normal_bg,-45)),
+		-- 在非当前 tab 上几乎不可见,看起来只有当前 tab 有分隔。这里改用主题的
+		-- gutter 色,让每个 tab 之间都有清晰的分隔线。
+		-- 传函数而非颜色字符串:bufferline 在 ColorScheme 重新应用高亮时会重新求值,
+		-- 分隔线颜色可跟随主题切换(修复上游 #1030)。
+		local function sep_fg()
+			local hl = vim.api.nvim_get_hl(0, { name = "LineNr" })
+			if hl and hl.fg then
+				return string.format("#%06x", hl.fg)
+			end
+			return "#4f5258"
+		end
 
 		-- bufferline.setup(require("real-icons.integrations.bufferline").opts({
 		bufferline.setup({
@@ -76,8 +91,8 @@ return {
 				-- 是否截断名称
 				truncate_names = true,
 
-				-- 标签页大小
-				tab_size = 18,
+				-- 标签页大小（"auto" 自动按窗口宽度均分铺满）
+				tab_size = "auto",
 
 				-- 是否显示重复前缀
 				show_duplicate_prefix = true,
@@ -224,6 +239,11 @@ return {
 					-- end,
 				},
 			},
+			highlights = {
+				separator = { fg = sep_fg },
+				separator_selected = { fg = sep_fg },
+				separator_visible = { fg = sep_fg },
+			},
 		})
 
 		-- ========== 按键映射（匹配你原有的 barbar 习惯）==========
@@ -237,18 +257,18 @@ return {
 		-- 移动缓冲区位置
 		map(
 			"n",
-			"<leader>jbp",
+			"<leader>wbP",
 			"<Cmd>BufferLineMovePrev<CR>",
 			vim.tbl_extend("force", opts, { desc = "向左移动缓冲区" })
 		)
 		map(
 			"n",
-			"<leader>jbn",
+			"<leader>wbn",
 			"<Cmd>BufferLineMoveNext<CR>",
 			vim.tbl_extend("force", opts, { desc = "向右移动缓冲区" })
 		)
 
-		-- 跳转到指定位置的缓冲区（可见位置）
+		-- 跳转到指定序号的缓冲区（完整列表序号，含隐藏/折叠组内的缓冲区）
 		for i = 1, 9 do
 			map(
 				"n",
@@ -261,7 +281,7 @@ return {
 		-- 固定/取消固定
 		map(
 			"n",
-			"<leader>jbp",
+			"<leader>wbp",
 			"<Cmd>BufferLineTogglePin<CR>",
 			vim.tbl_extend("force", opts, { desc = "固定/取消固定当前缓冲区" })
 		)
@@ -305,20 +325,20 @@ return {
 		-- 排序命令
 		map(
 			"n",
-			"<leader>jbsn",
+			"<leader>wbsn",
 			"<Cmd>BufferLineSortByBufferNumber<CR>",
 			vim.tbl_extend("force", opts, { desc = "按缓冲区编号排序" })
 		)
 		-- map("n", "gbbn", "<Cmd>BufferLineSortByName<CR>", vim.tbl_extend("force", opts, { desc = "按名称排序" }))
 		map(
 			"n",
-			"<leader>jbsd",
+			"<leader>wbsd",
 			"<Cmd>BufferLineSortByDirectory<CR>",
 			vim.tbl_extend("force", opts, { desc = "按目录排序" })
 		)
 		map(
 			"n",
-			"<leader>jbse",
+			"<leader>wbse",
 			"<Cmd>BufferLineSortByExtension<CR>",
 			vim.tbl_extend("force", opts, { desc = "按扩展名排序" })
 		)

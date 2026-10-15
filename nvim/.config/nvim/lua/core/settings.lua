@@ -68,7 +68,7 @@ vim.opt.guicursor:append({
 -- vim.o.foldmethod = "expr"
 -- vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 -- vim.o.foldlevelstart = 99 -- 默认展开所有内容
--- vim.o.foldcolumn = "1" -- 显示折叠列
+vim.o.foldcolumn = "1" -- 显示折叠列（statuscolumn 的 %C 依赖它，否则折叠标记不显示）
 
 -- -------------- 编辑行为设置 --------------
 vim.o.expandtab = true -- 将 Tab 转为空格
@@ -116,10 +116,13 @@ vim.o.showmode = false -- 禁用模式显示
 vim.o.laststatus = 3 -- 启用全局状态栏
 vim.o.cmdheight = 0 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
 vim.o.showtabline = 2 -- 始终显示标签页栏
+-- statuscolumn / signcolumn 由 luukvbaal/statuscol.nvim 接管（见 lua/plugins/statuscol.lua）：
+-- 它为 git/诊断/DAP/书签 各分配固定列，并把 signcolumn 设为 no 自行渲染。
+-- 下面两行仅作为插件加载前的回退值。
 vim.o.statuscolumn = "%s%=%l%=%C "
 vim.o.number = true --显示行号
 vim.o.relativenumber = true -- 启用相对行号
-vim.o.signcolumn = "yes:3" -- 始终显示标志列
+vim.o.signcolumn = "yes:3" -- 始终显示标志列（statuscol.nvim 生效后会改成 no）
 vim.o.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换到最近使用过的标签页（如果有）
 
 -- -------------- 显示和符号设置 --------------
@@ -138,11 +141,11 @@ vim.opt.fillchars = {
 	vertleft = "", -- 向左的垂直分隔符
 	vertright = "", -- 向右的垂直分隔符
 	verthoriz = "", -- 垂直和水平重叠的分隔符
-	-- 折叠相关字符
+	-- 折叠相关字符（VSCode 风格的 chevron；用 nr2char 避免源码里的私有区字形被编辑器弄坏）
 	fold = " ", -- 折叠文本填充字符
-	foldopen = "-", -- 折叠打开时的标记字符
-	foldclose = "+", -- 折叠关闭时的标记字符
-	foldsep = "│", -- 打开折叠时的中间分隔符
+	foldopen = "", -- 折叠打开时的标记字符
+	foldclose = "", -- 折叠关闭时的标记字符
+	foldsep = "│", -- 打开折叠时的中间分隔符（fillchars 要求单字符）
 	foldinner = " ", -- 折叠层级，默认显示数字
 	-- 其他
 	diff = "╱", -- 显示差异时，已删除的行字符
