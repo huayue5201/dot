@@ -94,12 +94,12 @@ vim.keymap.set("n", "<leader>rtw", function()
 end, { desc = "Toggle line wrap" })
 
 -- 🏷 Tab operaions
-vim.keymap.set("n", "<leader>jtn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
-vim.keymap.set("n", "<leader>jth", ":-tabmove<CR>", {
+vim.keymap.set("n", "<leader>wtn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
+vim.keymap.set("n", "<leader>wth", ":-tabmove<CR>", {
 	silent = true,
 	desc = "Tab: 左移",
 })
-vim.keymap.set("n", "<leader>jtl", ":+tabmove<CR>", {
+vim.keymap.set("n", "<leader>wtl", ":+tabmove<CR>", {
 	noremap = true,
 	silent = true,
 	desc = "Tab: 右移",

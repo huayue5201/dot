@@ -59,7 +59,7 @@ return {
 			-- 任务树抽屉（:TodoDrawer）
 			drawer = {
 				position = "right", -- "right" | "bottom"（bottom 上下拆分可展示更多）
-				width = 48, -- position = "right" 时的宽度
+				width = 45, -- position = "right" 时的宽度
 				height = 12, -- position = "bottom" 时的高度
 				focus_on_jump = false, -- true 时 <CR> 跳转后焦点跟随到代码窗口
 			},
