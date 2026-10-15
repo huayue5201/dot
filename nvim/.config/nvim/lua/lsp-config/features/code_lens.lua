@@ -411,10 +411,12 @@ local function install_server_refresh()
 	end
 end
 
--- 观察（不消费）鼠标移动事件。
--- 注意：不能用 buffer-local 的 <MouseMove> 映射：它会遮蔽 bufferline.nvim 等注册的
--- 全局 <MouseMove> 映射，导致对方的悬停高亮失效。vim.on_key 只观察、不拦截按键。
+-- 观察（不消费）鼠标事件。
+-- 注意：不能用 buffer-local 的 <MouseMove>/<LeftMouse> 映射：它会遮蔽 bufferline.nvim
+-- 等注册的全局 <MouseMove> 映射，且 expr 映射会吞掉普通 <LeftMouse>（返回 termcode 的
+-- 透传对鼠标不可靠），导致单击无法定位光标。vim.on_key 只观察、不拦截。
 local mousemove_key = vim.api.nvim_replace_termcodes("<MouseMove>", true, false, true)
+local leftmouse_key = vim.api.nvim_replace_termcodes("<LeftMouse>", true, false, true)
 local observer_installed = false
 local function install_mousemove_observer()
 	if observer_installed then
@@ -424,6 +426,8 @@ local function install_mousemove_observer()
 	vim.on_key(function(key)
 		if key == mousemove_key then
 			pcall(M.mousemove)
+		elseif key == leftmouse_key then
+			pcall(M.click)
 		end
 	end, ns)
 end
@@ -464,19 +468,9 @@ function M.setup(client, bufnr)
 
 		-- 悬停高亮需要鼠标移动事件
 		vim.o.mousemoveevent = true
+		-- 鼠标事件通过 vim.on_key 观察（见 install_mousemove_observer），不安装
+		-- <LeftMouse>/<MouseMove> 映射：映射会吞掉/遮蔽普通点击与其他插件的映射。
 		install_mousemove_observer()
-		vim.keymap.set("n", "<LeftMouse>", function()
-			if M.click() then
-				return ""
-			end
-			return vim.api.nvim_replace_termcodes("<LeftMouse>", true, false, true)
-		end, {
-			expr = true,
-			noremap = true,
-			silent = true,
-			buffer = bufnr,
-			desc = "LSP: 点击 code lens",
-		})
 	end
 
 	local st = bufs[bufnr]
