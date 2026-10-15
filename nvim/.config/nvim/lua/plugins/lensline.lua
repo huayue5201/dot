@@ -12,11 +12,17 @@ return {
 				{
 					name = "colorful",
 					providers = {
-						{ name = "usages", enabled = true, highlight = "Function" },
+						{
+							name = "usages",
+							enabled = true,
+							highlight = "Function",
+							include = { "refs", "impls", "defs" },
+						},
 						{ name = "last_author", enabled = true, highlight = "String" },
 					},
 					style = {
 						highlight = "Comment", -- fallback for providers without a highlight
+						render = "focused", -- 只渲染光标所在的函数（大文件更清爽）
 					},
 				},
 			},
