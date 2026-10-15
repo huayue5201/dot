@@ -8,8 +8,41 @@
 ---服务端协议不变（textDocument/codeLens + codeLens/resolve）。
 ---注意：启用本模块后不要再调用 `vim.lsp.codelens.enable`，否则两套渲染会互相覆盖。
 ---`vim.lsp.codelens.run()`（例如 `gO`）仍可独立工作（它会自行请求一次）。
+---
+---渲染位置、黑名单、逐条过滤见 `M.config`。
 
 local M = {}
+
+---可配置项（直接在这里改，或调用 M.configure({...}) 覆盖）
+M.config = {
+	-- 渲染位置：
+	--   "above"  目标行上方（virt_lines_above，原行为）
+	--   "below"  目标条目下方（锚在 range 结束行，即函数结束之后）
+	--   "eol"    目标行行尾，紧跟在代码之后（默认）
+	placement = "eol",
+	-- 不渲染的 server 名称黑名单，例如 { lua_ls = true }
+	blacklist = {},
+	-- 逐条过滤：fun(lens, client): boolean；返回 false 则丢弃该透镜。
+	-- 默认去掉 references / implementations：lensline.nvim 的 usages provider
+	-- 已经在它自己的行里显示引用/实现数量，避免重复。不需要就直接设为 nil。
+	--@param lens table
+	--@param client vim.lsp.Client
+	lens_filter = function(lens)
+		local t = (lens.command and lens.command.title or ""):lower()
+		return not (t:find("reference") or t:find("implementation"))
+	end,
+}
+
+---覆盖配置（与当前值合并）
+---@param opts table
+function M.configure(opts)
+	M.config = vim.tbl_deep_extend("force", M.config, opts or {})
+end
+
+---@return string
+function M.placement()
+	return M.config.placement or "above"
+end
 
 local ns = vim.api.nvim_create_namespace("lsp-config.codelens")
 
@@ -78,13 +111,32 @@ local function lens_title(entry)
 	return (entry.lens.command and entry.lens.command.title) or ""
 end
 
+---逐条过滤：默认全部保留
+---@param lens table
+---@param client vim.lsp.Client
+---@return boolean
+local function passes_filter(lens, client)
+	local f = M.config.lens_filter
+	if not f then
+		return true
+	end
+	local ok, keep = pcall(f, lens, client)
+	return ok and keep ~= false
+end
+
 ---构建一行的 virt_text（空格 + title1 + " | " + title2 ...），hover_idx 对应项使用高亮组
 ---@param bufnr integer
 ---@param entries CodeLensEntry[]
 ---@param hover_idx integer|nil
+---@param placement string
 ---@return string|table[][] chunks
-local function build_chunks(bufnr, entries, hover_idx)
-	local chunks = { { string.rep(" ", lens_indent(bufnr, entries[1])), "CodeLensSep" } }
+local function build_chunks(bufnr, entries, hover_idx, placement)
+	local chunks
+	if placement == "eol" then
+		chunks = { { "  ", "CodeLensSep" } }
+	else
+		chunks = { { string.rep(" ", lens_indent(bufnr, entries[1])), "CodeLensSep" } }
+	end
 	for i, e in ipairs(entries) do
 		if i > 1 then
 			chunks[#chunks + 1] = { " | ", "CodeLensSep" }
@@ -105,15 +157,20 @@ local function render_row(bufnr, row)
 	end
 	local entries = st.rows[row]
 	local hover_idx = (st.hover_row == row) and st.hover_idx or nil
+	local placement = M.placement()
 
 	if st.marks[row] then
 		pcall(vim.api.nvim_buf_del_extmark, bufnr, ns, st.marks[row])
 		st.marks[row] = nil
 	end
-	local ok, id = pcall(vim.api.nvim_buf_set_extmark, bufnr, ns, row, 0, {
-		virt_lines = { build_chunks(bufnr, entries, hover_idx) },
-		virt_lines_above = true,
-	})
+	local chunks = build_chunks(bufnr, entries, hover_idx, placement)
+	local opts
+	if placement == "eol" then
+		opts = { virt_text = chunks, virt_text_pos = "eol" }
+	else
+		opts = { virt_lines = { chunks }, virt_lines_above = (placement == "above") }
+	end
+	local ok, id = pcall(vim.api.nvim_buf_set_extmark, bufnr, ns, row, 0, opts)
 	if ok then
 		st.marks[row] = id
 	end
@@ -129,11 +186,13 @@ local function render(bufnr)
 	vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
 	st.marks = {}
 
+	local placement = M.placement()
 	local rows = {}
 	for _, e in ipairs(st.lenses) do
 		local l = e.lens
 		if l and l.range and l.range.start and lens_title(e) ~= "" then
-			local row = l.range.start.line
+			-- below：锚在 range 结束行（函数结束后）；其余锚在起始行
+			local row = (placement == "below" and l.range["end"] and l.range["end"].line) or l.range.start.line
 			rows[row] = rows[row] or {}
 			rows[row][#rows[row] + 1] = e
 		end
@@ -170,7 +229,7 @@ local function request(bufnr, gen)
 	local clients = {}
 	for _, id in ipairs(st.clients) do
 		local c = vim.lsp.get_client_by_id(id)
-		if c then
+		if c and not M.config.blacklist[c.name] then
 			clients[#clients + 1] = c
 		end
 	end
@@ -215,7 +274,7 @@ local function request(bufnr, gen)
 			local done = 0
 			for _, lens in ipairs(result) do
 				resolve_lens(client, bufnr, lens, function(resolved)
-					if resolved and resolved.range then
+					if resolved and resolved.range and passes_filter(resolved, client) then
 						acc[#acc + 1] = { client_id = client.id, lens = resolved }
 					end
 					done = done + 1
@@ -231,6 +290,7 @@ end
 ---立即刷新
 ---@param bufnr integer
 function M.refresh(bufnr)
+	bufnr = bufnr == 0 and vim.api.nvim_get_current_buf() or bufnr
 	local st = bufs[bufnr]
 	if not st then
 		return
@@ -247,6 +307,7 @@ end
 ---防抖刷新
 ---@param bufnr integer
 function M.schedule_refresh(bufnr)
+	bufnr = bufnr == 0 and vim.api.nvim_get_current_buf() or bufnr
 	local st = bufs[bufnr]
 	if not st then
 		return
@@ -279,25 +340,37 @@ local function mouse_lens()
 	if not line or line < 1 then
 		return nil
 	end
-	local row = line - 1
-	local entries = st.rows[row]
-	if not entries or #entries == 0 then
-		return nil
-	end
-	-- 虚拟行/真实行区分：透镜渲染在函数行上方一格（virt_lines_above）
-	local real = vim.fn.screenpos(win, line, 1)
-	if not (real and real.row and real.row > 0 and mouse.screenrow == real.row - 1) then
-		return nil
-	end
 	local wi = vim.fn.getwininfo(win)[1]
 	local decol = mouse.wincol - ((wi and wi.textoff) or 0) -- 1-based 显示列
-	local col = lens_indent(bufnr, entries[1])
-	for i, e in ipairs(entries) do
-		local width = math.max(vim.fn.strdisplaywidth(lens_title(e)), 1)
-		if decol >= col + 1 and decol <= col + width then
-			return row, i, e
+	local placement = M.placement()
+
+	-- 按渲染位置匹配虚拟行/行尾：above=锚点上一屏行；below=锚点下一屏行；eol=同一屏行
+	for anchor, entries in pairs(st.rows) do
+		local sp = vim.fn.screenpos(win, anchor + 1, 1)
+		if sp and sp.row and sp.row > 0 then
+			local hit
+			if placement == "above" then
+				hit = mouse.screenrow == sp.row - 1 and mouse.line == anchor + 1
+			elseif placement == "below" then
+				hit = mouse.screenrow == sp.row + 1 and (mouse.line == anchor + 1 or mouse.line == anchor + 2)
+			else -- eol
+				hit = mouse.screenrow == sp.row and mouse.line == anchor + 1
+			end
+			if hit then
+				local col = lens_indent(bufnr, entries[1])
+				if placement == "eol" then
+					local text = vim.api.nvim_buf_get_lines(bufnr, anchor, anchor + 1, false)[1] or ""
+					col = vim.fn.strdisplaywidth(text) + 2 -- 行尾前缀 "  "
+				end
+				for i, e in ipairs(entries) do
+					local width = math.max(vim.fn.strdisplaywidth(lens_title(e)), 1)
+					if decol >= col + 1 and decol <= col + width then
+						return anchor, i, e
+					end
+					col = col + width + 3 -- " | "
+				end
+			end
 		end
-		col = col + width + 3 -- " | "
 	end
 	return nil
 end
@@ -436,6 +509,9 @@ end
 ---@param bufnr integer
 function M.setup(client, bufnr)
 	if not (client.server_capabilities and client.server_capabilities.codeLensProvider) then
+		return
+	end
+	if M.config.blacklist[client.name] then
 		return
 	end
 	setup_highlights()

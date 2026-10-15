@@ -99,8 +99,8 @@ function M.run_code_lens()
 	-- 本模块自己渲染透镜，不经过 vim.lsp.codelens 的 provider 缓存，故用它的状态判断
 	local cl = require("lsp-config.features.code_lens")
 
-	-- lens 文字渲染在函数上方一行；若光标“实际”停在文字所在行（下一行才是函数），下移再执行
-	if not cl.lens_on_line(bufnr, row) and cl.lens_on_line(bufnr, row + 1) then
+	-- above：透镜渲染在函数上方一行；若光标“实际”停在文字所在行（下一行才是函数），下移再执行
+	if cl.placement() == "above" and not cl.lens_on_line(bufnr, row) and cl.lens_on_line(bufnr, row + 1) then
 		vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
 	end
 	vim.lsp.codelens.run()
