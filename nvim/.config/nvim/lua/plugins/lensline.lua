@@ -2,6 +2,7 @@
 
 return {
 	"oribarilan/lensline.nvim",
+	dir = "~/neovim-plugins/lensline.nvim",
 	event = { "LspAttach", "BufWritePost" },
 	config = function()
 		require("lensline").setup({
