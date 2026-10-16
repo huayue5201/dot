@@ -106,6 +106,18 @@ vim.keymap.set("n", "<leader>wtl", ":+tabmove<CR>", {
 })
 
 vim.keymap.set("n", "<leader>ct", "<cmd>tabclose<cr>", { silent = true, desc = "Tab: close tab" })
+vim.keymap.set("n", "<leader>wts", function()
+	require("core.tab_workspace").prompt_root()
+end, { silent = true, desc = "Tab: 设置工作区根目录" })
+vim.keymap.set("n", "<leader>wto", function()
+	require("core.tab_workspace").new_workspace()
+end, { silent = true, desc = "工作区: 新建（保存会话 + 新 tab + 设置根目录）" })
+vim.keymap.set("n", "<leader>wtc", function()
+	require("core.tab_workspace").close_workspace()
+end, { silent = true, desc = "工作区: 关闭（保存会话 + 关闭 tab）" })
+vim.keymap.set("n", "<leader>wta", function()
+	require("core.tab_workspace").alternate()
+end, { silent = true, desc = "工作区: 切换到上一个 tab" })
 vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
 -- 📜 Messages & reload

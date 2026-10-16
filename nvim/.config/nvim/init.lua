@@ -15,6 +15,7 @@ require("core.dotenv").load() -- 环境变量（须早于 core.pack，见 ~/.env
 require("core.pack") -- Neovim 自带 vim.pack + zpack 插件管理（懒加载由 zpack 负责）
 require("lsp-config").setup() --lsp
 require("core.statusline") -- 状态栏（加载即自动构建并设置，无需手动调用 active）
+require("core.tab_workspace").setup() -- 一个 tab 一个工作区（切 tab 隔离 buffer + 每 tab cwd + neo-tree 跟随）
 
 -- 延迟执行不必要的设置，提升启动速度
 vim.defer_fn(function()
