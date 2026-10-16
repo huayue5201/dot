@@ -4,8 +4,8 @@
 --   没有对应预编译包时回退 `cargo build`（需本机有 Rust）。
 -- 键位统一收纳在 <localleader>g 分组（原 dadbod-grip 的命名空间），默认 localleader = \。
 return {
-	"2giosangmitom/sqmeow.nvim",
-	sem_version = "*",
+	-- 本地 fork：修复 E95（scratch 同名 buffer 复用），上游合并后切回 "2giosangmitom/sqmeow.nvim"
+	dir = "~/neovim-plugins/sqmeow.nvim",
 	dependencies = { "MunifTanjim/nui.nvim" },
 	cmd = "Sqmeow",
 	keys = {
@@ -28,5 +28,20 @@ return {
 	build = function()
 		require("sqmeow").install()
 	end,
-	opts = {},
+	config = function()
+		require("sqmeow").setup({
+			ui = {
+				drawer = { position = "left", width = 36 },
+				result = { height = 16, page_size = 100, max_column_width = 48 },
+				persist_session = false,
+			},
+			query = {
+				max_rows = 100000,
+				timeout_ms = 0,
+				persist_history = true,
+				confirm_destructive = true,
+			},
+			redact_urls = true,
+		})
+	end,
 }
