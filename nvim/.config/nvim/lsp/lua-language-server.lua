@@ -23,8 +23,7 @@ return {
 					vim.env.VIMRUNTIME,
 					"${3rd}/luv/library",
 					-- 只扫描实际存在的目录，避免性能问题
-					vim.fn.expand("~/.local/share/nvim/site/pack/*/start/*"),
-					vim.fn.expand("~/.local/share/nvim/lazy/*"),
+					vim.fn.expand("~/.local/share/nvim/site/pack/*/opt/*"),
 				},
 				-- 排除不必要扫描的目录
 				ignoreDir = {
