@@ -1,0 +1,254 @@
+#!/usr/bin/env bash
+# fork-upstream — 检查本地维护的 fork 仓库上游是否有新提交
+#
+# 用法:
+#   fork-upstream                    # 拉取并检查所有配置目录下的仓库（只读）
+#   fork-upstream --fix              # 给缺 upstream 远端的 fork 用 gh 自动补上
+#   fork-upstream --no-fetch         # 不联网拉取，只用已有远端引用判断
+#   fork-upstream -r ~/some/dir      # 临时追加/覆盖检查目录（可多次）
+#   fork-upstream --roots-file PATH  # 使用指定的目录表文件
+#
+# 目录表（默认 ~/.config/fork-upstream/roots，每行一个目录，# 开头为注释）:
+#   ~/neovim-plugins
+#   ~/projects
+#
+# 判断逻辑:
+#   * 有 upstream 远端 → 对比 upstream/<当前分支>
+#   * 没有 upstream:
+#       - gh 显示是 fork → 提示 --fix（--fix 时自动加远端再对比）
+#       - 不是 fork（自己的仓库）→ 对比 origin/<当前分支>（一般恒为已同步）
+set -uo pipefail
+
+PROG=$(basename "$0")
+DEFAULT_ROOTS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/fork-upstream/roots"
+ROOTS_FILE="${FORK_UPSTREAM_ROOTS_FILE:-$DEFAULT_ROOTS_FILE}"
+FIX=0
+FETCH=1
+CLI_ROOTS=()
+
+# 内置默认目录表（没有目录表文件时使用）
+BUILTIN_ROOTS=(
+	"$HOME/neovim-plugins"
+)
+
+usage() {
+	sed -n '2,21p' "$0"
+}
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+	--fix) FIX=1 ;;
+	--no-fetch) FETCH=0 ;;
+	-r | --root)
+		[ $# -ge 2 ] || {
+			echo "-r/--root 需要一个目录参数" >&2
+			exit 2
+		}
+		CLI_ROOTS+=("$2")
+		shift
+		;;
+	--roots-file)
+		[ $# -ge 2 ] || {
+			echo "--roots-file 需要一个文件参数" >&2
+			exit 2
+		}
+		ROOTS_FILE="$2"
+		shift
+		;;
+	-h | --help)
+		usage
+		exit 0
+		;;
+	-*)
+		echo "未知参数: $1" >&2
+		exit 2
+		;;
+	*) CLI_ROOTS+=("$1") ;;
+	esac
+	shift
+done
+
+die() {
+	echo "$*" >&2
+	exit 1
+}
+
+expand_dir() {
+	local d="${1%/}"
+	[ "$d" = "~" ] && d="$HOME"
+	case "$d" in "~/"*) d="$HOME/${d#\~/}" ;; esac
+	printf '%s' "$d"
+}
+
+# 组装目录表：CLI 指定 > 目录表文件 > 内置默认
+ROOTS=()
+if [ ${#CLI_ROOTS[@]} -gt 0 ]; then
+	for d in "${CLI_ROOTS[@]}"; do ROOTS+=("$(expand_dir "$d")"); done
+elif [ -f "$ROOTS_FILE" ]; then
+	while IFS= read -r line || [ -n "$line" ]; do
+		line="${line%%#*}"
+		line="$(printf '%s' "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+		[ -n "$line" ] && ROOTS+=("$(expand_dir "$line")")
+	done <"$ROOTS_FILE"
+	[ ${#ROOTS[@]} -gt 0 ] || die "目录表为空: $ROOTS_FILE"
+else
+	ROOTS=("${BUILTIN_ROOTS[@]}")
+fi
+
+missing=()
+for d in "${ROOTS[@]}"; do [ -d "$d" ] || missing+=("$d"); done
+if [ ${#missing[@]} -gt 0 ]; then
+	printf '目录不存在: %s\n' "${missing[@]}" >&2
+	[ ${#missing[@]} -eq ${#ROOTS[@]} ] && exit 1
+fi
+
+if [ -t 1 ]; then
+	BOLD=$'\033[1m'
+	DIM=$'\033[2m'
+	RED=$'\033[31m'
+	GREEN=$'\033[32m'
+	YELLOW=$'\033[33m'
+	RESET=$'\033[0m'
+else
+	BOLD="" DIM="" RED="" GREEN="" YELLOW="" RESET=""
+fi
+
+behind_repos=0
+behind_total=0
+dirty_count=0
+need_fix=()
+
+# git@github.com:owner/repo.git / https://github.com/owner/repo.git → owner/repo
+repo_slug() {
+	local url="${1%.git}"
+	url="${url#git@github.com:}"
+	url="${url#ssh://git@github.com/}"
+	url="${url#https://github.com/}"
+	printf '%s' "$url"
+}
+
+# 用 gh 查 fork 的父仓库，输出 ssh url；不是 fork 或失败则返回 1
+parent_url_from_gh() {
+	command -v gh >/dev/null 2>&1 || return 1
+	local parent
+	parent=$(gh repo view "$1" --json parent \
+		--jq 'if .parent then .parent.owner.login + "/" + .parent.name else "" end' 2>/dev/null) || return 1
+	[ -n "$parent" ] || return 1
+	printf 'git@github.com:%s.git' "$parent"
+}
+
+WIDTH=30
+show_root=0
+[ ${#ROOTS[@]} -gt 1 ] && show_root=1
+
+check_repo() {
+	local dir="$1" label="$2"
+	local name origin slug branch has_upstream is_fork purl
+
+	[ -d "$dir/.git" ] || return 0
+	origin=$(git -C "$dir" remote get-url origin 2>/dev/null) || return 0
+	slug=$(repo_slug "$origin")
+	branch=$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null) || branch=HEAD
+	has_upstream=$(git -C "$dir" remote get-url upstream 2>/dev/null)
+	is_fork=0
+
+	if [ -z "$has_upstream" ]; then
+		if purl=$(parent_url_from_gh "$slug"); then
+			is_fork=1
+			if [ "$FIX" = 1 ]; then
+				git -C "$dir" remote add upstream "$purl" 2>/dev/null && has_upstream="$purl"
+				echo "${GREEN}+ ${label}: 已添加 upstream → ${purl}${RESET}"
+			else
+				need_fix+=("$label")
+			fi
+		fi
+	fi
+
+	if [ -z "$has_upstream" ] && [ "$is_fork" = 1 ]; then
+		printf "%-${WIDTH}s %s\n" "$label" "${YELLOW}未检查：是 fork 但没有 upstream 远端（用 --fix）${RESET}"
+		return 0
+	fi
+
+	if [ -n "$has_upstream" ]; then
+		remote=upstream
+	else
+		remote=origin
+	fi
+	local base="$remote/$branch"
+	[ "$branch" = "HEAD" ] && base="$remote/HEAD"
+
+	if [ "$FETCH" = 1 ]; then
+		git -C "$dir" fetch --quiet --prune "$remote" 2>/dev/null
+	fi
+
+	# 远端分支不存在（分支被改名/删除）时退回远端默认分支
+	if ! git -C "$dir" rev-parse --verify --quiet "$base" >/dev/null; then
+		local def
+		def=$(git -C "$dir" symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null)
+		[ -n "$def" ] && base="$def"
+	fi
+
+	if ! git -C "$dir" rev-parse --verify --quiet "$base" >/dev/null; then
+		printf "%-${WIDTH}s %s\n" "$label" "${YELLOW}无法确定上游分支（$remote 未 fetch？）${RESET}"
+		return 0
+	fi
+
+	local ahead behind
+	read -r ahead behind < <(git -C "$dir" rev-list --left-right --count "$base...HEAD" 2>/dev/null || echo "0 0")
+	ahead=$((ahead + 0))
+	behind=$((behind + 0))
+
+	local note=""
+	if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then
+		note="$note ${DIM}(有未提交改动)${RESET}"
+		dirty_count=$((dirty_count + 1))
+	fi
+	[ "$is_fork" = 1 ] && [ -z "$has_upstream" ] && note="$note ${DIM}(尚未配置 upstream)${RESET}"
+	if [ "$behind" -gt 0 ]; then
+		local last stat
+		behind_repos=$((behind_repos + 1))
+		behind_total=$((behind_total + behind))
+		last=$(git -C "$dir" log -1 --date=short --format='%ad %s' "$base")
+		stat=$(git -C "$dir" diff --shortstat "HEAD...$base" 2>/dev/null | sed 's/^ *//')
+		printf "${BOLD}%-${WIDTH}s${RESET} 落后 ${RED}%d${RESET} 提交 · 本地独有 %s · 上游最后: %s%s\n" \
+			"$label" "$behind" "$ahead" "$last" "$note"
+		[ -n "$stat" ] && printf "%-${WIDTH}s   %s\n" "" "${DIM}${stat}${RESET}"
+		git -C "$dir" log --oneline -3 "$base" ^HEAD | sed 's/^/                         /'
+	else
+		printf "%-${WIDTH}s 已同步 · 本地独有 %s%s\n" "$label" "$ahead" "$note"
+	fi
+}
+
+for root in "${ROOTS[@]}"; do
+	[ -d "$root" ] || continue
+	rootbase=$(basename "$root")
+	for dir in "$root"/*/; do
+		dir="${dir%/}"
+		name=$(basename "$dir")
+		if [ "$show_root" = 1 ]; then
+			[ -d "$dir/.git" ] || continue
+			label="$rootbase/$name"
+		else
+			label="$name"
+		fi
+		check_repo "$dir" "$label"
+	done
+done
+
+echo
+if [ "$behind_repos" -gt 0 ]; then
+	echo "${YELLOW}${behind_repos} 个仓库有上游更新，共 ${behind_total} 个提交待合入${RESET}"
+else
+	echo "${GREEN}全部已是最新${RESET}"
+fi
+[ "$dirty_count" -gt 0 ] && echo "${DIM}${dirty_count} 个仓库有未提交改动${RESET}"
+
+if [ ${#need_fix[@]} -gt 0 ]; then
+	echo
+	echo "${YELLOW}以下 fork 还没有 upstream 远端：${RESET}"
+	printf '  %s\n' "${need_fix[@]}" | sort -u
+	echo "运行 ${BOLD}${PROG} --fix${RESET} 用 gh 自动补上（只动 remote，不改代码）。"
+fi
+
+[ "$behind_repos" -gt 0 ] && exit 1
+exit 0
