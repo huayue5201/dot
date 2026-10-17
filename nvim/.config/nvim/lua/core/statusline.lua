@@ -3,7 +3,7 @@
 local colors = require("core.colors").palette
 local lsp = require("lsp-config.statusline").lsp
 local todo_status = require("todo2.ui.statusline")
-local dap_status = require("dap").status()
+local upstream = require("fork-upstream")
 
 local M = {} -- 使用 M 作为模块的局部变量
 
@@ -163,6 +163,11 @@ end
 
 --- 获取调试器状态
 local function dap()
+	-- dap 只在真正调试时才需要，延迟到状态栏渲染时再加载（启动期省掉 dap/dap-view 初始化）
+	if package.loaded["dap"] == nil then
+		return ""
+	end
+	local dap_status = require("dap").status()
 	if dap_status == "" then
 		return ""
 	end
@@ -238,6 +243,7 @@ local builders = {
 	todo = todo_markers,
 	dap = dap,
 	vcs = vcs,
+	upstream = upstream.component,
 	scroll = get_scrollbar,
 }
 
@@ -284,7 +290,8 @@ local function compose()
 		"%=", -- 分隔符
 		state.todo,
 		state.dap .. " ",
-		state.vcs .. "  ",
+		state.vcs .. "",
+		state.upstream == "" and "" or (state.upstream .. " "),
 		" %l:%c   ",
 		state.scroll,
 		"%p ",
@@ -367,6 +374,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "BufAdd", "BufDelete", "Bu
 		enqueue("vcs")
 		enqueue("todo")
 		enqueue("lsp")
+		enqueue("upstream")
 		apply()
 	end,
 })
@@ -404,6 +412,16 @@ vim.api.nvim_create_autocmd("DiagnosticChanged", {
 			enqueue("lsp")
 			apply()
 		end, 200)
+	end,
+})
+
+-- 上游状态更新（由 fork-upstream 模块发出）
+vim.api.nvim_create_autocmd("User", {
+	pattern = "ForkUpstreamUpdate",
+	group = statusline_group,
+	callback = function()
+		enqueue("upstream")
+		apply()
 	end,
 })
 

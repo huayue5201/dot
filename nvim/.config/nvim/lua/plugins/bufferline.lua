@@ -25,6 +25,11 @@ return {
 			return "#4f5258"
 		end
 
+		-- 关闭按钮/右键：先判断是否被其他 tab 共享，共享则只移除不删除
+		local function close_buffer(bufnr)
+			require("core.tab_workspace").close_buffer(bufnr)
+		end
+
 		-- bufferline.setup(require("real-icons.integrations.bufferline").opts({
 		bufferline.setup({
 			options = {
@@ -73,12 +78,12 @@ return {
 
 				-- ========== 分隔符样式 ==========
 				-- 可选：slant, slope, thick, thin, 或自定义 {"left", "right"}
-				separator_style = "thin",
+				separator_style = "slope",
 
 				-- 指示器样式
 				indicator = {
-					icon = "▎", -- 指示器图标
-					style = "icon", -- icon, underline, none
+					-- icon = "▎", -- 指示器图标（underline 样式下不使用）
+					style = "underline", -- icon, underline, none
 				},
 
 				-- ========== 名称设置 ==========
@@ -125,13 +130,13 @@ return {
 				left_mouse_command = "buffer %d",
 
 				-- 右键点击命令
-				right_mouse_command = "bdelete! %d",
+				right_mouse_command = close_buffer,
 
 				-- 中键点击命令
 				middle_mouse_command = nil,
 
-				-- 关闭按钮命令
-				close_command = "bdelete! %d",
+				-- 关闭按钮命令（CloseOthers/CloseLeft/CloseRight/PickClose 也会走这里）
+				close_command = close_buffer,
 
 				-- ========== 悬停设置（需要 Neovim 0.8+）==========
 				hover = {
@@ -257,18 +262,18 @@ return {
 		-- 移动缓冲区位置
 		map(
 			"n",
-			"<leader>wbP",
+			"<leader>bP",
 			"<Cmd>BufferLineMovePrev<CR>",
 			vim.tbl_extend("force", opts, { desc = "向左移动缓冲区" })
 		)
 		map(
 			"n",
-			"<leader>wbn",
+			"<leader>bn",
 			"<Cmd>BufferLineMoveNext<CR>",
 			vim.tbl_extend("force", opts, { desc = "向右移动缓冲区" })
 		)
 
-		-- 跳转到指定序号的缓冲区（完整列表序号，含隐藏/折叠组内的缓冲区）
+		-- 跳转到指定序号的缓冲区（当前 tab 内可见序号；工作区隔离后只显示本 tab 的 buffer）
 		for i = 1, 9 do
 			map(
 				"n",
@@ -281,7 +286,7 @@ return {
 		-- 固定/取消固定
 		map(
 			"n",
-			"<leader>wbp",
+			"<leader>bp",
 			"<Cmd>BufferLineTogglePin<CR>",
 			vim.tbl_extend("force", opts, { desc = "固定/取消固定当前缓冲区" })
 		)
@@ -289,7 +294,7 @@ return {
 		-- 关闭其他缓冲区
 		map(
 			"n",
-			"<leader>cab",
+			"<leader>bo",
 			"<Cmd>BufferLineCloseOthers<CR>",
 			vim.tbl_extend("force", opts, { desc = "关闭除当前外所有缓冲区" })
 		)
@@ -297,13 +302,13 @@ return {
 		-- 关闭左侧/右侧缓冲区
 		map(
 			"n",
-			"<leader>cbl",
+			"<leader>bl",
 			"<Cmd>BufferLineCloseLeft<CR>",
 			vim.tbl_extend("force", opts, { desc = "关闭左侧所有缓冲区" })
 		)
 		map(
 			"n",
-			"<leader>cbr",
+			"<leader>br",
 			"<Cmd>BufferLineCloseRight<CR>",
 			vim.tbl_extend("force", opts, { desc = "关闭右侧所有缓冲区" })
 		)
@@ -311,13 +316,13 @@ return {
 		-- 缓冲区选择模式
 		map(
 			"n",
-			"<leader>sb",
+			"<leader>bb",
 			"<Cmd>BufferLinePick<CR>",
 			vim.tbl_extend("force", opts, { desc = "缓冲区选择模式" })
 		)
 		map(
 			"n",
-			"<leader>csb",
+			"<leader>bc",
 			"<Cmd>BufferLinePickClose<CR>",
 			vim.tbl_extend("force", opts, { desc = "缓冲区选择删除模式" })
 		)
@@ -325,22 +330,33 @@ return {
 		-- 排序命令
 		map(
 			"n",
-			"<leader>wbsn",
+			"<leader>bsn",
 			"<Cmd>BufferLineSortByBufferNumber<CR>",
 			vim.tbl_extend("force", opts, { desc = "按缓冲区编号排序" })
 		)
 		-- map("n", "gbbn", "<Cmd>BufferLineSortByName<CR>", vim.tbl_extend("force", opts, { desc = "按名称排序" }))
 		map(
 			"n",
-			"<leader>wbsd",
+			"<leader>bsd",
 			"<Cmd>BufferLineSortByDirectory<CR>",
 			vim.tbl_extend("force", opts, { desc = "按目录排序" })
 		)
 		map(
 			"n",
-			"<leader>wbse",
+			"<leader>bse",
 			"<Cmd>BufferLineSortByExtension<CR>",
 			vim.tbl_extend("force", opts, { desc = "按扩展名排序" })
 		)
+
+		-- tab_workspace 在 TabEnter 里改 buflisted，bufferline 没监听该事件；
+		-- 延迟重绘，等 relist 全部完成后再按最终状态刷新（避免画到中间态）。
+		vim.api.nvim_create_autocmd({ "TabEnter", "TabClosed", "BufAdd", "BufDelete" }, {
+			group = vim.api.nvim_create_augroup("BufferlineWorkspaceRedraw", { clear = true }),
+			callback = function()
+				vim.schedule(function()
+					vim.cmd("redrawtabline")
+				end)
+			end,
+		})
 	end,
 }

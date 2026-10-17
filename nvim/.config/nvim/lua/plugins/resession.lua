@@ -2,6 +2,7 @@
 
 return {
 	"stevearc/resession.nvim",
+	event = "VeryLazy",
 	config = function()
 		require("resession").setup({
 			-- 自动保存配置
@@ -30,11 +31,16 @@ return {
 				"winfixwidth",
 			},
 
-			-- 缓冲区过滤：排除 help、quickfix 等特殊缓冲区
+			-- 缓冲区过滤：排除 help、quickfix、终端及无文件名缓冲区
 			buf_filter = function(bufnr)
-				-- 排除无文件名的缓冲区、help 缓冲区等
 				local buftype = vim.bo[bufnr].buftype
-				if buftype == "nofile" or buftype == "help" or buftype == "quickfix" then
+				-- 排除特殊类型缓冲区：nofile / help / quickfix / terminal / prompt 等
+				if buftype ~= "" and buftype ~= "acwrite" then
+					return false
+				end
+				-- 排除无文件名（no name）缓冲区
+				local name = vim.api.nvim_buf_get_name(bufnr)
+				if name == "" then
 					return false
 				end
 				return true
@@ -53,94 +59,38 @@ return {
 			},
 		})
 
-		-- 快捷键配置（使用 <leader>os 作为前缀）
-		local opts = { noremap = true, silent = true }
+		-- 快捷键配置：按标签页（tab）保存会话（<leader>o 组 = 格式 / 会话）
+		local resession = require("resession")
+		vim.keymap.set("n", "<leader>oss", resession.save_tab, { desc = "保存标签会话 (save_tab)" })
+		vim.keymap.set("n", "<leader>osl", resession.load, { desc = "加载会话" })
+		vim.keymap.set("n", "<leader>osd", resession.delete, { desc = "删除会话" })
 
-		-- 保存当前会话
-		vim.keymap.set("n", "<leader>oss", function()
-			local name = vim.fn.input("Session name: ")
-			if name ~= "" then
-				require("resession").save(name)
-			end
-		end, { desc = "Save session" })
+		-- tab_workspace 的 post_load 钩子必须在 resession 加载后才能挂（init 阶段 require 不到）
+		require("core.tab_workspace").attach_resession()
 
-		-- 快速保存（使用当前目录名作为会话名）
-		vim.keymap.set("n", "<leader>osq", function()
-			local cwd = vim.fn.getcwd()
-			local name = vim.fn.fnamemodify(cwd, ":t")
-			require("resession").save(name, { notify = true })
-		end, { desc = "Quick save session (using folder name)" })
-
-		-- 加载会话（交互式选择）
-		vim.keymap.set("n", "<leader>osl", function()
-			local sessions = require("resession").list()
-			if next(sessions) == nil then
-				vim.notify("No sessions found", vim.log.levels.WARN)
-				return
-			end
-			vim.ui.select(sessions, {
-				prompt = "Select session to load:",
-				format_item = function(item)
-					return item
-				end,
-			}, function(choice)
-				if choice then
-					require("resession").load(choice)
+		-- 会话恢复后：确保 todo2 已 setup，并补渲染当前 tab 的 buffer。
+		-- resession 加载期间 eventignore=all 会吞掉 BufRead；tcd 又在 buffer 载入之后才生效，
+		-- 所以必须等 post_load（各 tab cwd 已就位）再渲染，否则 store 会绑到错的目录。
+		resession.add_hook("post_load", function()
+			vim.schedule(function()
+				local ok, todo2 = pcall(require, "todo2")
+				if not ok then
+					return
+				end
+				if not todo2.is_setup() then
+					pcall(todo2.setup, vim.g.todo2_config or {})
+				end
+				local ok_render, autocmds = pcall(require, "todo2.autocmds")
+				if not ok_render then
+					return
+				end
+				for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+					local buf = vim.api.nvim_win_get_buf(win)
+					if not vim.b[buf].todo2_rendered and vim.bo[buf].buftype == "" then
+						pcall(autocmds.render_buffer, buf)
+					end
 				end
 			end)
-		end, { desc = "Load session" })
-
-		-- 删除会话
-		vim.keymap.set("n", "<leader>osd", function()
-			local sessions = require("resession").list()
-			if next(sessions) == nil then
-				vim.notify("No sessions found", vim.log.levels.WARN)
-				return
-			end
-			vim.ui.select(sessions, {
-				prompt = "Select session to delete:",
-				format_item = function(item)
-					return item
-				end,
-			}, function(choice)
-				if choice then
-					require("resession").delete(choice)
-				end
-			end)
-		end, { desc = "Delete session" })
-
-		-- 保存当前标签页为会话
-		vim.keymap.set("n", "<leader>ost", function()
-			local name = vim.fn.input("Tab session name: ")
-			if name ~= "" then
-				require("resession").save_tab(name)
-			end
-		end, { desc = "Save tab session" })
-
-		-- 查看当前会话
-		vim.keymap.set("n", "<leader>osi", function()
-			local current = require("resession").get_current()
-			if current then
-				vim.notify("Current session: " .. current, vim.log.levels.INFO)
-			else
-				vim.notify("No active session", vim.log.levels.INFO)
-			end
-		end, { desc = "Show current session" })
-
-		-- 脱离当前会话（停止自动保存）
-		vim.keymap.set("n", "<leader>osx", function()
-			require("resession").detach()
-			vim.notify("Detached from session", vim.log.levels.INFO)
-		end, { desc = "Detach from session" })
-
-		-- 手动保存当前会话（不弹出提示，使用当前会话名）
-		vim.keymap.set("n", "<leader>osw", function()
-			local current = require("resession").get_current()
-			if current then
-				require("resession").save(current, { notify = true })
-			else
-				vim.notify("No active session, use <leader>oss to save a new one", vim.log.levels.WARN)
-			end
-		end, { desc = "Save current session" })
+		end)
 	end,
 }

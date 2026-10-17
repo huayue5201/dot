@@ -4,7 +4,8 @@
 --   * 记忆每 tab cwd：用的是 Neovim 原生的 tcd（切 tab 自动生效），
 --     resession 保存/恢复会话时也会带上每个 tab 的 cwd（resession 的 tab.cwd）。
 --   * 会话归属持久化：见 lua/resession/extensions/tab_workspace.lua，隐藏 buffer 也能回到原 tab。
---   * 每 tab 的 LSP 生命周期：离开 tab 停掉只属于它的 LSP，进入 tab 再启动（省资源）。
+--   * 每 tab 的 LSP 生命周期：离开 tab 后延迟 lsp_stop_delay 毫秒再停掉只属于它的 LSP，
+--     期间切回则继续用原 client（省资源，又不会因为跨 tab 看一眼就重启）。
 --   * neo-tree 跟随 tab cwd：neo-tree 的 filesystem.bind_to_cwd 默认 true，监听 DirChanged；
 --     切换带 tcd 的 tab 时会触发 DirChanged(match="tabpage")，因此 neo-tree 会自动换根，无需额外处理。
 local M = {}
@@ -12,13 +13,13 @@ local M = {}
 ---@class TabWorkspaceConfig
 ---@field lsp_stop_on_leave boolean 离开 tab 时停掉只属于该 tab 的 LSP 客户端
 ---@field lsp_restart_on_enter boolean 进入 tab 时按需重启 LSP 客户端
----@field autoload_last_session boolean 启动时自动加载上次会话（_last）
+---@field lsp_stop_delay integer 离开 tab 后延迟多少毫秒再停 LSP（期间切回则不重启），0 表示立即
 
 ---@type TabWorkspaceConfig
 M.config = {
 	lsp_stop_on_leave = true,
 	lsp_restart_on_enter = true,
-	autoload_last_session = false,
+	lsp_stop_delay = 5000,
 }
 
 ---@type table<integer, table<integer, boolean>> tabpage handle -> set of bufnrs
@@ -31,11 +32,13 @@ local toggling = false
 -- 本模块的 resession 扩展是否已经从会话里恢复了归属：若有则无需再从窗口布局重建
 local imported = false
 
+-- post_load 钩子是否已挂到 resession 上（resession 懒加载，可能晚于本模块 setup）
+local attached = false
+
 -- 上一个 tab（用于 alternate）
 local last_tab
 
 local GROUP = "TabWorkspace"
-local AUTOSAVE_SESSION = "_last"
 
 local function is_workspace_buf(bufnr)
 	if not vim.api.nvim_buf_is_valid(bufnr) then
@@ -112,6 +115,9 @@ end
 --- 被本模块停掉、等待重新进入 tab 时恢复的 LSP 服务名
 local suspended = {}
 
+-- 延迟停止 LSP 的定时器（切 tab 时重置）
+local stop_timer
+
 --- 为 tab 中的 buffer 恢复已启用的、先前被停掉的服务
 ---@param tab integer
 local function resume_tab_clients(tab)
@@ -142,17 +148,28 @@ local function resume_tab_clients(tab)
 	end
 end
 
---- 切换 tab 后同步 LSP：停掉当前 tab 不再需要的 client，再为需要的 buffer 启动
+--- 切走后延迟停掉「当前 tab 不再使用」的 client。
+--- 快速来回切 tab 时 TabEnter 会取消该定时器，避免刚停就重启。
 ---@param tab integer
-local function sync_lsp(tab)
-	if not vim.api.nvim_tabpage_is_valid(tab) then
+local function schedule_lsp_stop(tab)
+	if stop_timer then
+		stop_timer:stop()
+		stop_timer:close()
+		stop_timer = nil
+	end
+	if not M.config.lsp_stop_on_leave then
 		return
 	end
-	local current = {}
-	for _, bufnr in ipairs(tab_buffers(tab)) do
-		current[bufnr] = true
-	end
-	if M.config.lsp_stop_on_leave then
+	local delay = tonumber(M.config.lsp_stop_delay) or 0
+	stop_timer = vim.defer_fn(function()
+		stop_timer = nil
+		if not vim.api.nvim_tabpage_is_valid(tab) or vim.api.nvim_get_current_tabpage() ~= tab then
+			return
+		end
+		local current = {}
+		for _, bufnr in ipairs(tab_buffers(tab)) do
+			current[bufnr] = true
+		end
 		for _, client in ipairs(vim.lsp.get_clients()) do
 			local used = false
 			for bufnr in pairs(client.attached_buffers or {}) do
@@ -168,10 +185,20 @@ local function sync_lsp(tab)
 				end)
 			end
 		end
+	end, delay)
+end
+
+--- 切换 tab 后同步 LSP：立即恢复本 tab 需要的 client，
+--- 并延迟停止不再需要的（给「快速切走看一眼再切回来」留时间）。
+---@param tab integer
+local function sync_lsp(tab)
+	if not vim.api.nvim_tabpage_is_valid(tab) then
+		return
 	end
 	if M.config.lsp_restart_on_enter then
 		resume_tab_clients(tab)
 	end
+	schedule_lsp_stop(tab)
 end
 
 --- 按「当前 tab 的归属」重设所有 buffer 的 buflisted
@@ -188,6 +215,57 @@ function M.relist()
 		end
 	end
 	toggling = false
+	-- 改完 buflisted 后主动重绘 tabline：会话恢复（post_load）时没有 TabEnter/BufAdd，
+	-- bufferline 会先画出别的 tab 的 buffer；这里保证隔离结果立即生效。
+	vim.schedule(function()
+		pcall(vim.cmd, "redrawtabline")
+	end)
+end
+
+--- 关闭 buffer：若它仍显示在其他 tab 的窗口里（同一 buffer 被多个 tab 共享），
+--- 只从当前 tab 移除，并把归属转给仍在显示它的 tab（切回去仍可见），不 bdelete。
+--- 否则直接 bdelete!（BufDelete 会触发 forget）。
+---@param bufnr integer
+function M.close_buffer(bufnr)
+	if not vim.api.nvim_buf_is_valid(bufnr) then
+		return
+	end
+	local cur = vim.api.nvim_get_current_tabpage()
+	local other
+	for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
+		if tab ~= cur then
+			for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
+				if vim.api.nvim_win_get_buf(win) == bufnr then
+					other = tab
+					break
+				end
+			end
+		end
+		if other then
+			break
+		end
+	end
+	if other then
+		for _, win in ipairs(vim.api.nvim_tabpage_list_wins(cur)) do
+			if vim.api.nvim_win_get_buf(win) == bufnr then
+				vim.api.nvim_win_call(win, function()
+					vim.cmd("enew")
+				end)
+			end
+		end
+		if vim.api.nvim_buf_is_valid(bufnr) and is_workspace_buf(bufnr) then
+			claim(other, bufnr)
+		else
+			forget(bufnr)
+			if vim.api.nvim_buf_is_valid(bufnr) then
+				vim.bo[bufnr].buflisted = false
+			end
+		end
+		M.relist()
+	else
+		vim.cmd(("bdelete! %d"):format(bufnr))
+	end
+	vim.cmd("redrawtabline")
 end
 
 --- 导出每 tab 的归属（buffer 名），供 resession 扩展保存进会话文件
@@ -380,41 +458,47 @@ function M.setup(opts)
 		end,
 	})
 
-	local ok, resession = pcall(require, "resession")
-	if ok then
-		-- 优先用会话里保存的归属（resession.extensions.tab_workspace）；旧会话没有时才从窗口布局重建
-		resession.add_hook("post_load", function()
-			vim.schedule(function()
-				if imported then
-					imported = false
-					M.relist()
-				else
-					M.rebuild()
-				end
-			end)
-		end)
-
-		if M.config.autoload_last_session then
-			vim.api.nvim_create_autocmd("VimEnter", {
-				group = group,
-				once = true,
-				callback = function()
-					if #vim.fn.argv() > 0 or #vim.api.nvim_list_tabpages() > 1 then
-						return
-					end
-					if vim.tbl_contains(resession.list() or {}, AUTOSAVE_SESSION) then
-						resession.load(AUTOSAVE_SESSION, { notify = false })
-					end
-				end,
-			})
-			vim.api.nvim_create_autocmd("VimLeavePre", {
-				group = group,
-				callback = function()
-					resession.save(AUTOSAVE_SESSION, { notify = false })
-				end,
-			})
-		end
+	-- resession 是懒加载插件（event = VeryLazy），init 阶段 require 不到；
+	-- 这里先试一次，失败则由 lua/plugins/resession.lua 在其 config 里调用 attach_resession()。
+	if not M.attach_resession() then
+		vim.api.nvim_create_autocmd("User", {
+			group = group,
+			pattern = "VeryLazy",
+			once = true,
+			callback = function()
+				M.attach_resession()
+			end,
+		})
 	end
+end
+
+--- 把 post_load 钩子挂到 resession 上（可重复调用，只在首次生效）
+--- 必须在 resession 加载完成之后调用
+---@return boolean 是否挂载成功
+function M.attach_resession()
+	if attached then
+		return true
+	end
+	local ok, resession = pcall(require, "resession")
+	if not ok then
+		return false
+	end
+	attached = true
+
+	-- 优先用会话里保存的归属（resession.extensions.tab_workspace）；旧会话没有时才从窗口布局重建
+	resession.add_hook("post_load", function()
+		-- post_load 时 _is_loading 已为 false，且各 tab 的 tcd 都已生效。
+		-- 同步 relist，避免等下一个 tick 时 bufferline 先画出未隔离的 buffer 列表。
+		if imported then
+			imported = false
+			M.relist()
+		else
+			M.rebuild()
+		end
+		pcall(vim.cmd, "redrawtabline")
+	end)
+
+	return true
 end
 
 return M

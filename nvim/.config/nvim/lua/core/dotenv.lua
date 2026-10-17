@@ -87,13 +87,58 @@ local function create_default_env_files()
 	end
 end
 
+-- npm 全局前缀缓存：`npm config get prefix` 是启动期最大瓶颈（约 150ms 同步 shell）
+-- 优先从 npm 可执行文件路径推导，失败才调用 shell，并把结果缓存 7 天
+local function npm_prefix()
+	local cache_dir = vim.fn.stdpath("cache")
+	local cache_file = cache_dir .. "/npm_prefix"
+	local st = (vim.uv or vim.loop).fs_stat(cache_file)
+	local mtime = st and (type(st.mtime) == "table" and st.mtime.sec or st.mtime)
+	if mtime and os.time() - mtime < 7 * 24 * 3600 then
+		local f = io.open(cache_file, "r")
+		if f then
+			local p = f:read("*l")
+			f:close()
+			if p and p ~= "" then
+				return p
+			end
+		end
+	end
+
+	-- 从 npm 可执行文件路径推导：/opt/homebrew/bin/npm -> /opt/homebrew
+	local exe = vim.fn.exepath("npm")
+	local p
+	if exe ~= "" then
+		local dir = vim.fs.dirname(vim.fs.dirname(exe))
+		if vim.fn.isdirectory(dir .. "/bin") == 1 then
+			p = dir
+		end
+	end
+
+	if not p then
+		p = vim.fn.system({ "npm", "config", "get", "prefix" }):gsub("%s+$", "")
+		if vim.v.shell_error ~= 0 or p == "" then
+			return nil
+		end
+	end
+
+	vim.fn.mkdir(cache_dir, "p")
+	local f = io.open(cache_file, "w")
+	if f then
+		f:write(p .. "\n")
+		f:close()
+	end
+	return p
+end
+
 -- 自动补全 PATH，保证常用命令可被 LSP/DAP 找到
 local function ensure_common_paths()
 	local home = vim.env.HOME
+	local npm = npm_prefix()
 	local paths = {
 		-- "/opt/homebrew/bin",                                           -- macOS Homebrew
 		-- home .. "/.local/bin",                                         -- 用户本地 bin
-		vim.fn.system("npm config get prefix"):gsub("\n", "") .. "/bin", -- npm global
+		npm and (npm .. "/bin") or nil, -- npm global
 	}
 
 	local valid_paths = {}
