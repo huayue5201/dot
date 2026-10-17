@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+# nvim-plugin-upstream — 检查本地维护的 nvim 插件（多为 fork）上游是否有新提交
+#
+# 用法:
+#   nvim-plugin-upstream            # 拉取并检查（只读，不改仓库）
+#   nvim-plugin-upstream --fix      # 给缺 upstream 远端的 fork 用 gh 自动补上
+#   nvim-plugin-upstream --no-fetch # 不联网拉取，只用已有远端引用判断
+#   NVIM_PLUGIN_ROOT=~/path nvim-plugin-upstream
+#
+# 判断逻辑:
+#   * 有 upstream 远端 → 对比 upstream/<当前分支>
+#   * 没有 upstream:
+#       - gh 显示是 fork → 提示 --fix（--fix 时自动加远端再对比）
+#       - 不是 fork（自己的仓库）→ 对比 origin/<当前分支>（一般恒为已同步）
+set -uo pipefail
+
+ROOT="${NVIM_PLUGIN_ROOT:-$HOME/neovim-plugins}"
+FIX=0
+FETCH=1
+for arg in "$@"; do
+	case "$arg" in
+	--fix) FIX=1 ;;
+	--no-fetch) FETCH=0 ;;
+	-h | --help)
+		sed -n '2,14p' "$0"
+		exit 0
+		;;
+	*)
+		echo "未知参数: $arg" >&2
+		exit 2
+		;;
+	esac
+done
+
+[ -d "$ROOT" ] || {
+	echo "目录不存在: $ROOT" >&2
+	exit 1
+}
+
+if [ -t 1 ]; then
+	BOLD=$'\033[1m'
+	DIM=$'\033[2m'
+	RED=$'\033[31m'
+	GREEN=$'\033[32m'
+	YELLOW=$'\033[33m'
+	RESET=$'\033[0m'
+else
+	BOLD="" DIM="" RED="" GREEN="" YELLOW="" RESET=""
+fi
+
+behind_repos=0
+behind_total=0
+dirty_count=0
+need_fix=()
+
+# git@github.com:owner/repo.git / https://github.com/owner/repo.git → owner/repo
+repo_slug() {
+	local url="${1%.git}"
+	url="${url#git@github.com:}"
+	url="${url#ssh://git@github.com/}"
+	url="${url#https://github.com/}"
+	printf '%s' "$url"
+}
+
+# 用 gh 查 fork 的父仓库，输出 ssh url；不是 fork 或失败则返回 1
+parent_url_from_gh() {
+	command -v gh >/dev/null 2>&1 || return 1
+	local parent
+	parent=$(gh repo view "$1" --json parent \
+		--jq 'if .parent then .parent.owner.login + "/" + .parent.name else "" end' 2>/dev/null) || return 1
+	[ -n "$parent" ] || return 1
+	printf 'git@github.com:%s.git' "$parent"
+}
+
+for dir in "$ROOT"/*/; do
+	dir="${dir%/}"
+	name=$(basename "$dir")
+	[ -d "$dir/.git" ] || continue
+	origin=$(git -C "$dir" remote get-url origin 2>/dev/null) || continue
+	slug=$(repo_slug "$origin")
+	branch=$(git -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null) || branch=HEAD
+	has_upstream=$(git -C "$dir" remote get-url upstream 2>/dev/null)
+	is_fork=0
+
+	if [ -z "$has_upstream" ]; then
+		if purl=$(parent_url_from_gh "$slug"); then
+			is_fork=1
+			if [ "$FIX" = 1 ]; then
+				git -C "$dir" remote add upstream "$purl" 2>/dev/null && has_upstream="$purl"
+				echo "${GREEN}+ ${name}: 已添加 upstream → ${purl}${RESET}"
+			else
+				need_fix+=("$name")
+			fi
+		fi
+	fi
+
+	if [ -z "$has_upstream" ] && [ "$is_fork" = 1 ]; then
+		printf '%-24s %s\n' "$name" "${YELLOW}未检查：是 fork 但没有 upstream 远端（用 --fix）${RESET}"
+		continue
+	fi
+
+	if [ -n "$has_upstream" ]; then
+		remote=upstream
+	else
+		remote=origin
+	fi
+	base="$remote/$branch"
+	[ "$branch" = "HEAD" ] && base="$remote/HEAD"
+
+	if [ "$FETCH" = 1 ]; then
+		git -C "$dir" fetch --quiet --prune "$remote" 2>/dev/null
+	fi
+
+	# 远端分支不存在（分支被改名/删除）时退回远端默认分支
+	if ! git -C "$dir" rev-parse --verify --quiet "$base" >/dev/null; then
+		def=$(git -C "$dir" symbolic-ref --quiet --short "refs/remotes/$remote/HEAD" 2>/dev/null)
+		[ -n "$def" ] && base="$def"
+	fi
+
+	if ! git -C "$dir" rev-parse --verify --quiet "$base" >/dev/null; then
+		printf '%-24s %s\n' "$name" "${YELLOW}无法确定上游分支（$remote 未 fetch？）${RESET}"
+		continue
+	fi
+
+	read -r ahead behind < <(git -C "$dir" rev-list --left-right --count "$base...HEAD" 2>/dev/null || echo "0 0")
+	ahead=$((ahead + 0))
+	behind=$((behind + 0))
+
+	note=""
+	if [ -n "$(git -C "$dir" status --porcelain 2>/dev/null)" ]; then
+		note="$note ${DIM}(有未提交改动)${RESET}"
+		dirty_count=$((dirty_count + 1))
+	fi
+	[ "$is_fork" = 1 ] && [ -z "$has_upstream" ] && note="$note ${DIM}(尚未配置 upstream)${RESET}"
+	if [ "$behind" -gt 0 ]; then
+		behind_repos=$((behind_repos + 1))
+		behind_total=$((behind_total + behind))
+		last=$(git -C "$dir" log -1 --date=short --format='%ad %s' "$base")
+		stat=$(git -C "$dir" diff --shortstat "HEAD...$base" 2>/dev/null | sed 's/^ *//')
+		printf '%s%-24s%s 落后 %s%d%s 提交 · 本地独有 %s · 上游最后: %s%s\n' \
+			"$BOLD" "$name" "$RESET" "$RED" "$behind" "$RESET" "$ahead" "$last" "$note"
+		[ -n "$stat" ] && printf '%-24s   %s\n' "" "${DIM}${stat}${RESET}"
+		git -C "$dir" log --oneline -3 "$base" ^HEAD | sed 's/^/                         /'
+	else
+		printf '%-24s 已同步 · 本地独有 %s%s\n' "$name" "$ahead" "$note"
+	fi
+done
+
+echo
+if [ "$behind_repos" -gt 0 ]; then
+	echo "${YELLOW}${behind_repos} 个仓库有上游更新，共 ${behind_total} 个提交待合入${RESET}"
+else
+	echo "${GREEN}全部已是最新${RESET}"
+fi
+[ "$dirty_count" -gt 0 ] && echo "${DIM}${dirty_count} 个仓库有未提交改动${RESET}"
+
+if [ ${#need_fix[@]} -gt 0 ]; then
+	echo
+	echo "${YELLOW}以下 fork 还没有 upstream 远端：${RESET}"
+	printf '  %s\n' "${need_fix[@]}" | sort -u
+	echo "运行 ${BOLD}nvim-plugin-upstream --fix${RESET} 用 gh 自动补上（只动 remote，不改代码）。"
+fi
+
+[ "$behind_repos" -gt 0 ] && exit 1
+exit 0

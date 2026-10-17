@@ -9,6 +9,7 @@
 ```
 .
 ├── nvim/          # Neovim 配置（lazy.nvim + LSP + DAP + 大量插件）
+├── bin/           # 自制命令行脚本（部署到 ~/.local/bin）
 ├── zsh/           # zsh 配置（.zshrc、.zshenv、脚本）
 ├── tmux/          # tmux 配置
 ├── git/           # git 全局配置（.gitconfig、.gitignore_global）
@@ -41,6 +42,7 @@ stow -t ~ nvim
 stow -t ~ zsh
 stow -t ~ git
 stow -t ~ tmux
+stow -t ~/.local bin   # 自制脚本 → ~/.local/bin
 stow --no-folding -t ~ pi
 ```
 
