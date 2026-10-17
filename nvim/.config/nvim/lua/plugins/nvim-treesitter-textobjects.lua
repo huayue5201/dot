@@ -1,138 +1,130 @@
 -- https://github.com/nvim-treesitter/nvim-treesitter-textobjects/tree/main
-
+--
+-- 约定：
+--   aX / iX  = 外层 / 内层 textobject
+--   ]X / [X  = 下一个 / 上一个开头
+--   ]X 大写  = 下一个 / 上一个结尾
+--
+-- 尽量避开内置/插件常用键位；条件沿用旧配置的 ]i/[i（会覆盖内置标识符搜索）。
+-- Rust / Go / Python / Lua / C 都覆盖；没有对应查询的语言里调用会安静地不动作。
 return {
 	"nvim-treesitter/nvim-treesitter-textobjects",
 	branch = "main",
 	event = "VeryLazy",
 	init = function()
-		-- Disable entire built-in ftplugin mappings to avoid conflicts.
-		-- See https://github.com/neovim/neovim/tree/master/runtime/ftplugin for built-in ftplugins.
+		-- 关闭内置 ftplugin 的 mappings（Python/Rust/Go 等自带 [[ ]] 等映射），
+		-- 避免和下面的 treesitter 映射互相覆盖。
 		vim.g.no_plugin_maps = true
-
-		-- Or, disable per filetype (add as you like)
-		-- vim.g.no_python_maps = true
-		-- vim.g.no_ruby_maps = true
-		-- vim.g.no_rust_maps = true
-		-- vim.g.no_go_maps = true
 	end,
 	config = function()
-		-- configuration
 		require("nvim-treesitter-textobjects").setup({
 			move = {
-				-- whether to set jumps in the jumplist
 				set_jumps = true,
 			},
 			select = {
-				-- Automatically jump forward to textobj, similar to targets.vim
 				lookahead = true,
-				-- You can choose the select mode (default is charwise 'v')
-				--
-				-- Can also be a function which gets passed a table with the keys
-				-- * query_string: eg '@function.inner'
-				-- * method: eg 'v' or 'o'
-				-- and should return the mode ('v', 'V', or '<c-v>') or a table
-				-- mapping query_strings to modes.
+				-- 外层对象按整行选，内层默认按字符选。
 				selection_modes = {
-					["@parameter.outer"] = "v", -- charwise
-					["@function.outer"] = "V", -- linewise
-					["@class.outer"] = "<c-v>", -- blockwise
+					["@function.outer"] = "V",
+					["@class.outer"] = "V",
+					["@conditional.outer"] = "V",
+					["@loop.outer"] = "V",
+					["@block.outer"] = "V",
+					["@comment.outer"] = "V",
 				},
-				-- If you set this to `true` (default is `false`) then any textobject is
-				-- extended to include preceding or succeeding whitespace. Succeeding
-				-- whitespace has priority in order to act similarly to eg the built-in
-				-- `ap`.
-				--
-				-- Can also be a function which gets passed a table with the keys
-				-- * query_string: eg '@function.inner'
-				-- * selection_mode: eg 'v'
-				-- and should return true of false
 				include_surrounding_whitespace = false,
 			},
 		})
 
-		-- keymaps
-		-- You can use the capture groups defined in `textobjects.scm`
-		vim.keymap.set({ "x", "o" }, "af", function()
-			require("nvim-treesitter-textobjects.select").select_textobject("@function.outer", "textobjects")
-		end)
-		vim.keymap.set({ "x", "o" }, "if", function()
-			require("nvim-treesitter-textobjects.select").select_textobject("@function.inner", "textobjects")
-		end)
-		vim.keymap.set({ "x", "o" }, "ac", function()
-			require("nvim-treesitter-textobjects.select").select_textobject("@class.outer", "textobjects")
-		end)
-		vim.keymap.set({ "x", "o" }, "ic", function()
-			require("nvim-treesitter-textobjects.select").select_textobject("@class.inner", "textobjects")
-		end)
-		-- You can also use captures from other query groups like `locals.scm`
-		vim.keymap.set({ "x", "o" }, "as", function()
-			require("nvim-treesitter-textobjects.select").select_textobject("@local.scope", "locals")
-		end)
-		-- keymaps
+		local select = require("nvim-treesitter-textobjects.select")
+		local move = require("nvim-treesitter-textobjects.move")
+
+		local function select_object(query)
+			return function()
+				-- 没有 parser 的 buffer 保持安静，不打断普通编辑。
+				if not pcall(vim.treesitter.get_parser, 0) then
+					return
+				end
+				pcall(select.select_textobject, query, "textobjects")
+			end
+		end
+
+		local function map_select(key, query, desc)
+			vim.keymap.set({ "x", "o" }, "a" .. key, select_object(query .. ".outer"), {
+				silent = true,
+				desc = "选择外层" .. desc,
+			})
+			vim.keymap.set({ "x", "o" }, "i" .. key, select_object(query .. ".inner"), {
+				silent = true,
+				desc = "选择内层" .. desc,
+			})
+		end
+
+		-- 选择：aX / iX
+		map_select("f", "@function", "函数")
+		map_select("c", "@class", "类/类型")
+		map_select("a", "@parameter", "参数")
+		map_select("l", "@loop", "循环")
+		map_select("i", "@conditional", "条件")
+		map_select("C", "@call", "调用")
+		map_select("K", "@block", "语法块")
+		map_select("A", "@assignment", "赋值")
+		map_select("R", "@return", "返回")
+
+		local function map_move(key, query, desc)
+			local function do_move(fn)
+				if not pcall(vim.treesitter.get_parser, 0) then
+					return
+				end
+				pcall(fn, query, "textobjects")
+			end
+
+			vim.keymap.set({ "n", "x", "o" }, "]" .. key, function()
+				do_move(move.goto_next_start)
+			end, { silent = true, desc = "下一个" .. desc .. "开头" })
+
+			vim.keymap.set({ "n", "x", "o" }, "[" .. key, function()
+				do_move(move.goto_previous_start)
+			end, { silent = true, desc = "上一个" .. desc .. "开头" })
+
+			local upper = key:upper()
+			if upper == key then
+				return
+			end
+
+			vim.keymap.set({ "n", "x", "o" }, "]" .. upper, function()
+				do_move(move.goto_next_end)
+			end, { silent = true, desc = "下一个" .. desc .. "结尾" })
+
+			vim.keymap.set({ "n", "x", "o" }, "[" .. upper, function()
+				do_move(move.goto_previous_end)
+			end, { silent = true, desc = "上一个" .. desc .. "结尾" })
+		end
+
+		-- 移动：]X / [X 开头，]X 大写 / [X 大写 结尾
+		-- 避开内置 ]a/]l/]t（参数/位置列表/标签）、]c（gitsigns）、]d（诊断）、
+		-- ]b（bufferline）、]m（Rust 宏展开）、]T（neotest）等。
+		map_move("f", "@function.outer", "函数")
+		map_move("o", "@loop.outer", "循环")
+		map_move("i", "@conditional.outer", "条件")
+		map_move("k", "@block.outer", "语法块")
+
+		-- 参数交换：适合改 Rust/Go/Python/Lua/C 的函数实参顺序。
+		local function swap_parameter(fn)
+			if not pcall(vim.treesitter.get_parser, 0) then
+				return
+			end
+			local swap = require("nvim-treesitter-textobjects.swap")
+			pcall(swap[fn], "@parameter.inner")
+		end
+
 		vim.keymap.set("n", "<A-=>", function()
-			require("nvim-treesitter-textobjects.swap").swap_next("@parameter.inner")
-		end)
+			swap_parameter("swap_next")
+		end, { silent = true, desc = "交换下一个参数" })
 		vim.keymap.set("n", "<A-->", function()
-			require("nvim-treesitter-textobjects.swap").swap_previous("@parameter.outer")
-		end)
+			swap_parameter("swap_previous")
+		end, { silent = true, desc = "交换上一个参数" })
 
-		-- You can use the capture groups defined in `textobjects.scm`
-		vim.keymap.set({ "n", "x", "o" }, "]f", function()
-			require("nvim-treesitter-textobjects.move").goto_next_start("@function.outer", "textobjects")
-		end)
-		vim.keymap.set({ "n", "x", "o" }, "]]", function()
-			require("nvim-treesitter-textobjects.move").goto_next_start("@class.outer", "textobjects")
-		end)
-		-- You can also pass a list to group multiple queries.
-		vim.keymap.set({ "n", "x", "o" }, "]o", function()
-			require("nvim-treesitter-textobjects.move").goto_next_start({ "@loop.inner", "@loop.outer" }, "textobjects")
-		end)
-		-- You can also use captures from other query groups like `locals.scm` or `folds.scm`
-		vim.keymap.set({ "n", "x", "o" }, "]s", function()
-			require("nvim-treesitter-textobjects.move").goto_next_start("@local.scope", "locals")
-		end)
-		vim.keymap.set({ "n", "x", "o" }, "]z", function()
-			require("nvim-treesitter-textobjects.move").goto_next_start("@fold", "folds")
-		end)
-
-		vim.keymap.set({ "n", "x", "o" }, "[F", function()
-			require("nvim-treesitter-textobjects.move").goto_next_end("@function.outer", "textobjects")
-		end)
-		vim.keymap.set({ "n", "x", "o" }, "][", function()
-			require("nvim-treesitter-textobjects.move").goto_next_end("@class.outer", "textobjects")
-		end)
-
-		vim.keymap.set({ "n", "x", "o" }, "[f", function()
-			require("nvim-treesitter-textobjects.move").goto_previous_start("@function.outer", "textobjects")
-		end)
-		vim.keymap.set({ "n", "x", "o" }, "[[", function()
-			require("nvim-treesitter-textobjects.move").goto_previous_start("@class.outer", "textobjects")
-		end)
-
-		vim.keymap.set({ "n", "x", "o" }, "[F", function()
-			require("nvim-treesitter-textobjects.move").goto_previous_end("@function.outer", "textobjects")
-		end)
-		vim.keymap.set({ "n", "x", "o" }, "[]", function()
-			require("nvim-treesitter-textobjects.move").goto_previous_end("@class.outer", "textobjects")
-		end)
-
-		-- Go to either the start or the end, whichever is closer.
-		-- Use if you want more granular movements
-		-- [d / ]d 的 n 模式已让位给 LSP 诊断跳转（lua/lsp-config/keys.lua）
-		-- 这里只保留 x / o 模式的条件块选择与移动，避免两个全局 n 绑定冲突。
-		vim.keymap.set({ "x", "o" }, "]d", function()
-			require("nvim-treesitter-textobjects.move").goto_next("@conditional.outer", "textobjects")
-		end)
-		vim.keymap.set({ "x", "o" }, "[d", function()
-			require("nvim-treesitter-textobjects.move").goto_previous("@conditional.outer", "textobjects")
-		end)
-
-		-- 正常模式下跳条件块改绑到 [i / ]i（[d / ]d 已归 LSP 诊断跳转）
-		vim.keymap.set("n", "]i", function()
-			require("nvim-treesitter-textobjects.move").goto_next("@conditional.outer", "textobjects")
-		end)
-		vim.keymap.set("n", "[i", function()
-			require("nvim-treesitter-textobjects.move").goto_previous("@conditional.outer", "textobjects")
-		end)
+		-- 兼容旧习惯：]o 仍然跳循环；]i 仍然跳条件。
 	end,
 }
