@@ -67,13 +67,13 @@ return {
 		})
 
 		-- 切换 quickfix 窗口
-		vim.keymap.set("n", "<leader>q", function()
+		vim.keymap.set("n", "<leader>xq", function()
 			require("quicker").toggle()
-		end, { desc = "Toggle quickfix" })
+		end, { desc = "列表: 切换 quickfix" })
 
 		-- 切换 loclist 窗口
-		vim.keymap.set("n", "<leader>l", function()
+		vim.keymap.set("n", "<leader>xl", function()
 			require("quicker").toggle({ loclist = true })
-		end, { desc = "Toggle loclist" })
+		end, { desc = "列表: 切换 loclist" })
 	end,
 }

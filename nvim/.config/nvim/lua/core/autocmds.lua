@@ -8,6 +8,62 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 	end,
 })
 
+-- 进入真实文件时，清理残留的空 [No Name] buffer（nvim 无参启动/旧 tab 留下的）
+local function is_empty_scratch(b)
+	return vim.api.nvim_buf_is_valid(b)
+		and vim.api.nvim_buf_get_name(b) == ""
+		and vim.bo[b].buftype == ""
+		and not vim.bo[b].modified
+		and vim.api.nvim_buf_line_count(b) == 1
+		and vim.api.nvim_buf_get_lines(b, 0, -1, false)[1] == ""
+end
+
+-- 白名单：这些是侧栏/UI buffer，进入它们绝不能触发清理。
+-- 否则在侧栏开分屏的过程中删掉空 buffer，会把侧栏挤成全窗口
+-- （实测 <leader>ef 打开 neo-tree 时会发生）。
+local cleanup_skip_filetypes = {
+	"alpha",
+	"dashboard",
+	"grug-far",
+	"help",
+	"lazy",
+	"neo-tree",
+	"NvimTree",
+	"sqmeow-drawer",
+	"todo2drawer",
+	"Trouble",
+}
+
+-- buffer 是否正在某个窗口里显示；正在显示的空 buffer 不删，避免窗口布局被破坏
+local function is_buffer_visible(b)
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		if vim.api.nvim_win_get_buf(win) == b then
+			return true
+		end
+	end
+	return false
+end
+
+vim.api.nvim_create_autocmd("BufEnter", {
+	group = vim.api.nvim_create_augroup("DropEmptyBuffers", { clear = true }),
+	desc = "进入命名文件后删除残留的无名空 buffer",
+	callback = function(args)
+		-- 只对「真实文件」触发：无名、特殊 buftype、白名单侧栏一律跳过
+		if
+			vim.api.nvim_buf_get_name(args.buf) == ""
+			or vim.bo[args.buf].buftype ~= ""
+			or vim.tbl_contains(cleanup_skip_filetypes, vim.bo[args.buf].filetype)
+		then
+			return
+		end
+		for _, b in ipairs(vim.api.nvim_list_bufs()) do
+			if b ~= args.buf and not is_buffer_visible(b) and is_empty_scratch(b) then
+				vim.api.nvim_buf_delete(b, { force = false })
+			end
+		end
+	end,
+})
+
 -- Ensure that the binary spl file is up-to-date with the source add file
 vim.api.nvim_create_autocmd("FocusGained", {
 	pattern = "*",
@@ -24,84 +80,6 @@ vim.api.nvim_create_autocmd("FocusGained", {
 			if add_mtime > spl_mtime or spl_mtime == -1 then
 				vim.cmd("silent! mkspell! " .. spl_file .. " " .. add_file)
 			end
-		end
-	end,
-})
-
-local nav = require("core.navigation")
-
--- ============================
--- 通用函数：为当前 buffer 应用快捷键映射
--- ============================
-local function apply_keymaps()
-	local ft = vim.bo.filetype
-	local bt = vim.bo.buftype
-	local bufname = vim.fn.bufname("%")
-	local applied = vim.b.keymaps_applied or {}
-
-	-- 确定当前窗口的类型标识（优先级：filetype > buftype > 特殊匹配）
-	local buf_type = ft ~= "" and ft or bt
-
-	for key, type_configs in pairs(nav.buf_keymaps) do
-		-- 跳过已映射的按键
-		if not applied[key] then
-			-- 获取配置（精确匹配 或 dap-repl 特殊处理）
-			local config = type_configs[buf_type]
-
-			if not config and bufname:match("dap%-repl") then
-				config = type_configs["dap-repl"]
-			end
-
-			-- 如果有配置，应用映射
-			if config and config.cmd then
-				local cmd = config.cmd
-				local desc = config.desc or ("映射: " .. key)
-
-				-- 根据命令类型创建映射函数
-				local map_func = function()
-					nav.dispatch_command(cmd)
-				end
-
-				vim.keymap.set("n", key, map_func, {
-					buffer = true,
-					silent = true,
-					noremap = true,
-					nowait = true,
-					desc = desc,
-				})
-
-				applied[key] = true
-			end
-		end
-	end
-
-	vim.b.keymaps_applied = applied
-end
-
--- ============================
--- 注册自动命令
--- ============================
-
--- 快捷键映射：当进入 buffer 或切换文件类型时应用
-vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
-	group = vim.api.nvim_create_augroup("CustomKeyMappings", { clear = true }),
-	desc = "根据配置表自动应用窗口快捷键",
-	callback = apply_keymaps,
-})
-
--- Buffer 设置
-local buffer_settings = nav.settings
-vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
-	group = vim.api.nvim_create_augroup("CustomBufferSettings", { clear = true }),
-	desc = "根据配置表自动应用 buffer 设置",
-	callback = function(args)
-		local buf = args.buf
-		local ft = vim.bo[buf].filetype
-		local bt = vim.bo[buf].buftype
-		local kind = (ft ~= "" and ft) or bt
-
-		if buffer_settings[kind] and buffer_settings[kind].setup then
-			buffer_settings[kind].setup()
 		end
 	end,
 })
@@ -208,4 +186,3 @@ vim.api.nvim_create_autocmd("InsertEnter", {
 		end
 	end,
 })
-

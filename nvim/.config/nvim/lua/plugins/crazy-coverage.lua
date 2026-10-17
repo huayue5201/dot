@@ -2,6 +2,11 @@
 
 return {
 	"mr-u0b0dy/crazy-coverage.nvim",
+	keys = {
+		{ "<leader>tc", "<cmd>CoverageToggle<CR>", desc = "切换覆盖率" },
+		{ "<leader>tg", "<cmd>CoverageSummary<CR>", desc = "覆盖率汇总" },
+		{ "<leader>te", "<cmd>CoverageToggleNeoTree<CR>", desc = "切换neotree覆盖率" },
+	},
 	config = function()
 		require("crazy-coverage").setup({
 			-- 命中次数显示（覆盖率开启时默认显示，位置在行尾）

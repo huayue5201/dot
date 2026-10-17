@@ -18,24 +18,24 @@ return {
 		----------------------------------------------------------------------
 
 		-- 使用光标下的单词作为搜索内容
-		vim.keymap.set("n", "<leader>gw", function()
+		vim.keymap.set("n", "<localleader>gw", function()
 			require("grug-far").open({
 				prefills = { search = vim.fn.expand("<cword>") },
 			})
 		end, { desc = "grug-far：使用光标下的单词进行搜索" })
 
 		-- 使用 AST 引擎
-		vim.keymap.set("n", "<leader>ga", function()
+		vim.keymap.set("n", "<localleader>ga", function()
 			require("grug-far").open({ engine = "astgrep" })
 		end, { desc = "grug-far：使用 AST 引擎进行搜索" })
 
 		-- 以临时缓冲区打开（关闭后删除）
-		vim.keymap.set("n", "<leader>gt", function()
+		vim.keymap.set("n", "<localleader>gt", function()
 			require("grug-far").open({ transient = true })
 		end, { desc = "grug-far：以临时缓冲区打开（关闭后删除）" })
 
 		-- 切换 grug-far 实例可见性
-		vim.keymap.set("n", "<leader>gf", function()
+		vim.keymap.set("n", "<localleader>gf", function()
 			require("grug-far").toggle_instance({
 				instanceName = "far",
 				staticTitle = "Find and Replace",
@@ -43,19 +43,19 @@ return {
 		end, { desc = "grug-far：切换实例可见性" })
 
 		-- 限制搜索范围为当前文件
-		vim.keymap.set("n", "<leader>gr", function()
+		vim.keymap.set("n", "<localleader>gr", function()
 			require("grug-far").open({
 				prefills = { paths = vim.fn.expand("%") },
 			})
 		end, { desc = "grug-far：仅搜索当前文件" })
 
 		-- 范围内搜索（自动检测可视选择类型）
-		vim.keymap.set({ "n", "x" }, "<leader>gi", function()
+		vim.keymap.set({ "n", "x" }, "<localleader>gi", function()
 			require("grug-far").open({ visualSelectionUsage = "auto-detect" })
 		end, { desc = "grug-far: Search within range" })
 
 		-- 使用上次搜索寄存器（@/）的值，或可视选择内容
-		vim.keymap.set({ "n", "x" }, "<leader>gs", function()
+		vim.keymap.set({ "n", "x" }, "<localleader>gs", function()
 			local search = vim.fn.getreg("/")
 			-- 如果是单词搜索（如按 * 键），用 \b 包围
 			if search and vim.startswith(search, "\\<") and vim.endswith(search, "\\>") then

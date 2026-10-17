@@ -87,6 +87,6 @@ return {
 				},
 			},
 		})
-		vim.keymap.set("n", "<leader>eu", "<cmd>Atone toggle<cr>", { desc = "UndoTree: toggle undotree" })
+		vim.keymap.set("n", "<leader>ut", "<cmd>Atone toggle<cr>", { desc = "UndoTree: toggle undotree" })
 	end,
 }

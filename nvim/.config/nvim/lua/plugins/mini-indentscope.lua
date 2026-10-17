@@ -3,6 +3,7 @@
 return {
 	"nvim-mini/mini.indentscope",
 	sem_version = "*",
+	event = { "BufReadPost", "BufNewFile" },
 	config = function()
 		require("mini.indentscope").setup({
 			symbol = "│",

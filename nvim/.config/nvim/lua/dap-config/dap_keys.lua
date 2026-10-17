@@ -52,7 +52,7 @@ function M.setup()
 	end, { desc = "[D]ap [G]oto line" })
 
 	-- 💡 断点管理
-	vim.keymap.set("n", "<leader>b", function()
+	vim.keymap.set("n", "<leader>db", function()
 		local bufnr = vim.api.nvim_get_current_buf()
 		local line = vim.api.nvim_win_get_cursor(0)[1]
 
@@ -150,7 +150,7 @@ function M.setup()
 	end, { desc = "[D]ap List all breakpoints" })
 
 	-- 查询并显示调试器能力
-	vim.keymap.set("n", "<localleader>dp", function()
+	vim.keymap.set("n", "<leader>dvc", function()
 		require("dap-extensions.capabilities").show()
 	end, { desc = "[D]ap Show [C]a[P]abilities" })
 
@@ -181,42 +181,42 @@ function M.setup()
 	end, { desc = "[D]ap [L]ist breakpoints (quickfix)" })
 
 	-- REPL / Eval 相关映射
-	vim.keymap.set("n", "<localleader>de", "<cmd>DapEval<cr>", { desc = "[D]ap [E]val expression" })
-	vim.keymap.set("n", "<localleader>dr", function()
+	vim.keymap.set("n", "<leader>dve", "<cmd>DapEval<cr>", { desc = "[D]ap [E]val expression" })
+	vim.keymap.set("n", "<leader>dvr", function()
 		dap.repl.toggle()
 	end, { desc = "[D]ap [R]EPL toggle" })
 
 	-- 🔧 作用域 / 堆栈 / 会话 / 线程
-	vim.keymap.set("n", "<localleader>ds", function()
+	vim.keymap.set("n", "<leader>dvs", function()
 		if not sidebar then
 			sidebar = widgets.sidebar(widgets.scopes, { width = 40, winblend = 15, signcolumn = "no" })
 		end
 		sidebar.toggle()
 	end, { desc = "[D]ap [S]copes sidebar" })
 
-	vim.keymap.set("n", "<localleader>df", function()
+	vim.keymap.set("n", "<leader>dvf", function()
 		widgets.cursor_float(widgets.frames, { border = "rounded" })
 	end, { desc = "[D]ap [F]rames float" })
 
-	vim.keymap.set("n", "<localleader>dt", function()
+	vim.keymap.set("n", "<leader>dvt", function()
 		widgets.cursor_float(widgets.threads, { border = "rounded" })
 	end, { desc = "[D]ap [T]hreads float" })
 
-	vim.keymap.set("n", "<localleader>d,", function()
+	vim.keymap.set("n", "<leader>dvS", function()
 		widgets.cursor_float(widgets.sessions, { border = "rounded" })
 	end, { desc = "[D]ap [S]essions float" })
 
 	-- 日志相关
-	vim.keymap.set("n", "<localleader>dl", "<cmd>DapShowLog<cr>", { desc = "[D]ap [L]og show" })
+	vim.keymap.set("n", "<leader>dvl", "<cmd>DapShowLog<cr>", { desc = "[D]ap [L]og show" })
 	vim.keymap.set(
 		"n",
-		"<localleader>dL",
+		"<leader>dvL",
 		require("dap-config.dap_log_keymap").set_debuglog,
 		{ desc = "[D]ap [L]og level set" }
 	)
 
 	-- 查看光标下变量 / 自动刷新表达式
-	vim.keymap.set("n", "<localleader>dE", function()
+	vim.keymap.set("n", "<leader>dvE", function()
 		widgets.preview(nil, {
 			listener = {
 				"event_stopped",

@@ -2,6 +2,7 @@
 
 return {
 	"minigian/juan-logs.nvim",
+	event = "BufReadPre",
 	build = function(plugin)
 		local path = plugin.dir .. "/build.lua"
 		if vim.fn.filereadable(path) == 1 then

@@ -6,6 +6,7 @@
 return {
 	"smart-splits-nvim/smart-splits.nvim",
 	tag = "v3.0.0", -- 锁定 v3 大版本，避免再次被动跨大版本升级
+	event = "VeryLazy",
 	-- backend-ghostty 必须在 smart-splits 激活前 setup（lazy 会先加载依赖）。
 	-- key_table 默认 'nvim'，与 ~/.config/ghostty/config 里的 `nvim/` 前缀一致。
 	-- https://github.com/smart-splits-nvim/backend-ghostty

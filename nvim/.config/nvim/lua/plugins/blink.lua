@@ -4,7 +4,9 @@
 return {
 	"saghen/blink.cmp",
 	sem_version = "1.*",
-	event = { "InsertEnter", "CmdlineEnter" },
+	-- TermEnter 必须显式列出：blink 只在普通 buffer 进插入/命令行时才加载，
+	-- 新会话直接 :terminal 不会加载，term 补全与 t 模式键位都不生效。
+	event = { "InsertEnter", "CmdlineEnter", "TermEnter" },
 	dependencies = {
 		"saghen/blink.lib",
 		"xzbdmw/colorful-menu.nvim",
@@ -205,7 +207,13 @@ return {
 
 			cmdline = {
 				enabled = true,
-				keymap = { preset = "cmdline" },
+				keymap = {
+					preset = "cmdline",
+					-- cmdline preset 会把左右箭头改成选补全项（select_prev/next），
+					-- 这里还原成正常移动光标；仍可用 <C-n>/<C-p>/<Tab> 选补全。
+					["<Left>"] = false,
+					["<Right>"] = false,
+				},
 				sources = { "buffer", "cmdline" },
 				completion = {
 					trigger = {
@@ -227,20 +235,28 @@ return {
 				},
 			},
 
+			-- 终端里只做「手动触发」补全。
+			-- 原因：term 用 inherit 会继承顶层 default preset，把 shell 的
+			-- <Up>/<Down>（历史）、<C-b>/<C-f>（左右移动）、<C-e>/<C-y>/<C-p>/<C-n>
+			-- 等 readline 键全部抢走；而 term 模式下并没有真正的 shell 补全源
+			-- （blink 官方 term 支持仍是 TODO），自动弹菜单只有噪音。
 			term = {
 				enabled = true,
-				-- inherit 才会继承顶层自定义键位（<Tab>/<A-N>）；default 不会。
-				keymap = { preset = "inherit" },
-				-- term.sources 是字符串列表，只包含源名称
-				sources = {
-					"lsp",
-					"path",
-					"buffer",
-					"ripgrep",
-					"cargo", -- ✅ 在 sources 列表中添加 cargo
+				keymap = {
+					preset = "none", -- 不继承 default，键位还给 shell
+					["<C-space>"] = { "show", "fallback" },
+					["<Tab>"] = { "select_next", "fallback" },
+					["<S-Tab>"] = { "select_prev", "fallback" },
+					["<C-y>"] = { "select_and_accept", "fallback" },
+					["<C-e>"] = { "hide", "fallback" },
 				},
-				-- 注意：不要在 term.completion 里写 `= nil`——在 Lua 里那等于没写，
-				-- 只会继承顶层值（清不掉任何东西）。需要覆盖就写具体值。
+				-- term.sources 是字符串列表，只包含源名称；lsp/ripgrep/cargo 在 shell 里没用
+				sources = { "path", "buffer" },
+				completion = {
+					menu = { auto_show = false },
+					list = { selection = { preselect = false, auto_insert = false } },
+					ghost_text = { enabled = false },
+				},
 			},
 		})
 	end,

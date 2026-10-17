@@ -35,6 +35,24 @@ return {
 					-- 另外，用户可以传入一个字体表，使用自己定义的字体
 					font = "ansi-shadow", -- ansi-shadow |
 				},
+
+				-- 外部工具（herdr 等）目标的浮动列表，bento 风格
+				floating_list = {
+					-- 浮窗位置：'top-left' | 'top-right' | 'middle-left'
+					-- | 'middle-right' | 'bottom-left' | 'bottom-right' | 'center'
+					position = "middle-right",
+					-- 距所选边缘的偏移（单位：格）
+					offset_x = 1,
+					offset_y = 0,
+					-- 边框，见 :h winborder
+					border = "none",
+					-- 跳转字母与信息之间的间距
+					label_padding = 1,
+					-- 跳转字母的高亮组
+					label_hl = "DiagnosticVirtualTextHint",
+					-- 浮窗背景高亮组；'WindowPickerWindow' 的 bg=NONE 使其透明
+					window_bg = "WindowPickerWindow",
+				},
 			},
 
 			-- 是否显示 'Pick window:' 提示

@@ -129,9 +129,10 @@ return {
 						or vim.bo[buf].ft == "fugitive" -- enable in fugitive buffers
 						or pcall(vim.treesitter.get_parser, buf)
 						or next(vim.lsp.get_clients({
-							bufnr = buf,
-							method = "textDocument/documentSymbol",
-						})) ~= nil
+								bufnr = buf,
+								method = "textDocument/documentSymbol",
+							}))
+							~= nil
 				end,
 			},
 			sources = {
@@ -159,7 +160,7 @@ return {
 		})
 		vim.ui.select = require("dropbar.utils.menu").select
 		local dropbar_api = require("dropbar.api")
-		vim.keymap.set("n", "<Leader>;", dropbar_api.pick, { desc = "dropbar: Pick symbols in winbar" })
+		vim.keymap.set("n", "<Leader>s;", dropbar_api.pick, { desc = "dropbar: Pick symbols in winbar" })
 		vim.keymap.set("n", "[;", dropbar_api.goto_context_start, { desc = "dropbar: Go to start of current context" })
 		vim.keymap.set("n", "];", dropbar_api.select_next_context, { desc = "dropbar: Select next context" })
 	end,

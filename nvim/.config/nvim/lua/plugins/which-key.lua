@@ -21,7 +21,7 @@ return {
 			{ "<leader>D", group = "Docker / DevContainer", icon = { icon = "󰡨", color = "blue" } },
 			{ "<leader>e", group = "资源管理器", icon = { icon = "󰙅", color = "azure" } },
 			{ "<leader>f", group = "查找文件", icon = { icon = "󰈞", color = "green" } },
-			{ "<leader>g", group = "grug-far 搜索替换", icon = { icon = "󰛔", color = "blue" } },
+			{ "<leader>g", group = "数据库 (sqmeow)", icon = { icon = "󰆼", color = "green" } },
 			{ "<leader>h", group = "Git / 历史", icon = { icon = "󰊢", color = "orange" } },
 			{ "<leader>j", group = "上下文 / 跳转", icon = { icon = "󰓩", color = "purple" } },
 			{ "<leader>m", group = "TODO / Markdown", icon = { icon = "󰍔", color = "blue" } },
@@ -33,21 +33,25 @@ return {
 			{ "<leader>S", group = "代码片段", icon = { icon = "󰅩", color = "orange" } },
 			{ "<leader>t", group = "测试 / 覆盖率", icon = { icon = "󰙨", color = "green" } },
 			{ "<leader>w", group = "窗口", icon = { icon = "󰖲", color = "blue" } },
-			-- { "<leader>x", group = "诊断 / 列表", icon = { icon = "󰀦", color = "yellow" } },
+			{ "<leader>T", group = "终端 (betterTerm)" },
+			{ "<leader>x", group = "列表 / 诊断", icon = { icon = "󰀦", color = "yellow" } },
 			{ "<leader>y", group = "复制", icon = { icon = "󰆏", color = "azure" } },
 			{ "<leader>z", group = "工具", icon = { icon = "󱁤", color = "grey" } },
-			{ "<leader><Space>", group = "窗口: 交换 buffer", icon = { icon = "󰓡", color = "cyan" } },
+			{ "<leader>b", group = "缓冲区" },
+			{ "<leader>l", group = "标签页 / 工作区" },
+			{ "<leader>u", group = "撤销 / 历史" },
 
 			-- 非 leader 前缀分组：调试打印 (nvim-chainsaw)
 			{ "g?", group = "调试打印 (chainsaw)", icon = { icon = "󰹈", color = "orange" } },
 
 			-- 二级分组
-			{ "<leader>ca", group = "关闭" },
-			{ "<leader>cb", group = "关闭缓冲区" },
-			{ "<leader>cs", group = "选择关闭" },
+			{ "<leader>bs", group = "排序" },
+			{ "<leader>cs", group = "交换文件 (swap)" },
 			{ "<leader>dl", group = "断点列表 / 图像" },
-			{ "<leader>wb", group = "缓冲区操作" },
-			{ "<leader>wt", group = "标签页 (Tab)" },
+			{ "<leader>dv", group = "DAP 视图 / REPL" },
+			{ "<leader>lt", group = "标签页" },
+			{ "<leader>lw", group = "工作区" },
+			{ "<leader>ms", group = "存储 (store)" },
 			{ "<leader>ma", group = "归档任务" },
 			{ "<leader>mf", group = "TODO 文件" },
 			{ "<leader>mg", group = "锚点 / Git" },
@@ -61,8 +65,11 @@ return {
 			{ "<leader>ss", group = "跳转符号" },
 
 			-- localleader 分组
-			{ "<localleader>g", group = "数据库 (sqmeow)", icon = { icon = "󰆼", color = "green" } },
+			{ "<localleader>g", group = "grug-far 搜索替换", icon = { icon = "󰛔", color = "blue" } },
 			{ "<localleader>s", group = "保存 (save)", icon = { icon = "󰆓", color = "green" } },
+			{ "<localleader>t", group = "翻译 (translator)" },
+			{ "<localleader>c", group = "依赖 (crates)" },
+			{ "<localleader>r", group = "RustOwl" },
 		})
 
 		vim.keymap.set("n", "<leader>?", function()
@@ -81,8 +88,8 @@ return {
 			end, { desc = "Hydra: " .. desc })
 		end
 
-		hydra_trigger("<leader>W", "<c-w>", "窗口操作") -- 触发后：l/h/j/k 移动、s/v 分屏、o 关其他、= 均分…
-		hydra_trigger("<leader>Z", "z", "折叠 / 滚动") -- 触发后：a/ o/c 折叠、z/t/b 定位、R/M 全展/全折…
+		hydra_trigger("<leader>wW", "<c-w>", "窗口操作") -- 触发后：l/h/j/k 移动、s/v 分屏、o 关其他、= 均分…
+		hydra_trigger("<leader>zz", "z", "折叠 / 滚动") -- 触发后：a/ o/c 折叠、z/t/b 定位、R/M 全展/全折…
 		-- 想再加就照抄一行，例如：
 		-- hydra_trigger("<leader>]", "]", "下一个"); hydra_trigger("<leader>[", "[", "上一个")
 	end,

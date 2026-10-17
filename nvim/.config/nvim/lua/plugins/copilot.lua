@@ -20,7 +20,7 @@ return {
 					jump_next = "]]",
 					accept = "<CR>",
 					refresh = "gr",
-					open = "<M-CR>",
+					open = "<M-p>", -- 原为 <M-CR>（终端普遍发不出）；panel.open 实际注册在插入模式
 				},
 				layout = {
 					position = "bottom", -- | top | left | right | bottom |
@@ -35,18 +35,21 @@ return {
 				trigger_on_accept = true,
 				keymap = {
 					accept = "<M-l>",
-					accept_word = false,
-					accept_line = false,
+					accept_word = "<M-w>",
+					accept_line = "<M-j>",
 					next = "<M-]>",
 					prev = "<M-[>",
 					dismiss = "<C-]>",
 					toggle_auto_trigger = false,
 				},
 			},
+			-- NES（next-edit-suggestion）映射是「普通模式」，由 copilot-lsp 提供
 			nes = {
 				enabled = true,
+				-- 注意：copilot.lua 当前版本不会把这个字段传给 copilot-lsp（实际是空转）
+				auto_trigger = true,
 				keymap = {
-					accept_and_goto = "<c-p>",
+					accept_and_goto = "<M-k>", -- 原为 <c-cr>（多数终端无法发送 Ctrl+Enter）；不能用 <M-l>，会被 copilot 的模式校验误报为重复键
 					accept = false,
 					dismiss = "<Esc>",
 				},

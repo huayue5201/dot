@@ -55,10 +55,10 @@ return {
 			{ desc = "依赖: 显示依赖项" }
 		)
 		map_filetype("toml", "n", "<localleader>cu", crates.update_crate, { desc = "依赖: 更新当前包" })
-		map_filetype("v", "<localleader>u", crates.update_crates, { desc = "依赖: 更新选中包" })
+		map_filetype("v", "<localleader>cu", crates.update_crates, { desc = "依赖: 更新选中包" })
 		map_filetype("toml", "n", "<localleader>ca", crates.update_all_crates, { desc = "依赖: 更新所有包" })
 		map_filetype("toml", "n", "<localleader>cU", crates.upgrade_crate, { desc = "依赖: 升级当前包" })
-		map_filetype("v", "<localleader>oU", crates.upgrade_crates, { desc = "依赖: 升级选中包" })
+		map_filetype("v", "<localleader>cU", crates.upgrade_crates, { desc = "依赖: 升级选中包" })
 		map_filetype("toml", "n", "<localleader>cA", crates.upgrade_all_crates, { desc = "依赖: 升级所有包" })
 		map_filetype(
 			"toml",

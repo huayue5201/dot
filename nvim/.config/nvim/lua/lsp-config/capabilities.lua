@@ -7,7 +7,7 @@ function M.setup()
 	capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
 	capabilities.textDocument.semanticTokens.multilineTokenSupport = true
 
-	local ok, file_ops = pcall(require, "nvim-file-operations.config")
+	local ok, file_ops = pcall(require, "lsp-file-operations")
 	if ok then
 		capabilities = vim.tbl_deep_extend("force", capabilities, file_ops.default_capabilities())
 	end

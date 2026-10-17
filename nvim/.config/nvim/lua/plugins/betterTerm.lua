@@ -21,20 +21,31 @@ return {
 		end, { desc = "Toggle terminal" })
 
 		-- Open a specific terminal
-		-- vim.keymap.set({ "n", "t" }, "<C-\\>", function()
-		-- 	betterTerm.open(1)
-		-- end, { desc = "Toggle terminal 1" })
+		vim.keymap.set({ "n", "t" }, "<C-;>", function()
+			betterTerm.open(1)
+		end, { desc = "Toggle terminal 1" })
 
 		-- Select a terminal to focus
-		vim.keymap.set("n", "<localleader>ts", betterTerm.select, { desc = "Select terminal" })
+		vim.keymap.set("n", "<leader>Ts", betterTerm.select, { desc = "终端: 选择" })
 
 		-- Rename the current terminal
-		vim.keymap.set("n", "<localleader>tn", betterTerm.rename, { desc = "Rename terminal" })
+		vim.keymap.set("n", "<leader>Tn", betterTerm.rename, { desc = "终端: 重命名" })
 
 		-- Toggle the tabs bar
-		vim.keymap.set("n", "<localleader>tt", betterTerm.toggle_tabs, { desc = "Toggle terminal tabs" })
+		vim.keymap.set("n", "<leader>Tt", betterTerm.toggle_tabs, { desc = "终端: 切换标签栏" })
 
-		function _G.set_terminal_keymaps()
+		-- Toggle the whole terminal window (all terminals, remembers last active)
+		vim.keymap.set("n", "<leader>To", betterTerm.toggle_termwindow, { desc = "终端: 切换终端窗口" })
+
+		-- Cycle between terminals
+		vim.keymap.set({ "n", "t" }, "<C-PageUp>", function()
+			betterTerm.cycle(1)
+		end, { desc = "Cycle terminals right" })
+		vim.keymap.set({ "n", "t" }, "<C-PageDown>", function()
+			betterTerm.cycle(-1)
+		end, { desc = "Cycle terminals left" })
+
+		local function set_terminal_keymaps()
 			local opts = { buffer = 0 }
 			vim.keymap.set("t", "<esc>", [[<C-\><C-n>]], opts)
 			vim.keymap.set("t", "<C-h>", [[<Cmd>wincmd h<CR>]], opts)

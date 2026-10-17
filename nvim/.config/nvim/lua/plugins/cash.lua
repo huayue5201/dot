@@ -2,6 +2,8 @@
 
 return {
 	"nullromo/cash.nvim",
+	event = "VeryLazy",
+	cmd = "Cash",
 	opts = {}, -- specify options here
 	config = function(_, opts)
 		local cash = require("cash")

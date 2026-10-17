@@ -1,7 +1,7 @@
--- https://github.com/Crysthamus/nvim-file-operations
+-- https://github.com/antosha417/nvim-lsp-file-operations
 
 return {
-	"Crysthamus/nvim-file-operations",
+	"antosha417/nvim-lsp-file-operations",
 	event = "VeryLazy",
 	dependencies = {
 		-- Uncomment whichever supported plugin(s) you use
@@ -9,6 +9,6 @@ return {
 		"nvim-neo-tree/neo-tree.nvim",
 	},
 	config = function()
-		require("nvim-file-operations").setup()
+		require("lsp-file-operations").setup()
 	end,
 }

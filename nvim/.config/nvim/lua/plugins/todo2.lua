@@ -19,6 +19,12 @@ return {
 				context_split = false, -- 上下文拆分
 			},
 
+			-- 代码文件里的任务渲染（above/below 虚拟行）
+			code_render = {
+				-- "trunc"（默认，不随横滚）| "scroll"（nowrap 时随代码横滚）| "auto" | "wrap"
+				virt_lines_overflow = "trunc",
+			},
+
 			-- 进度条样式
 			progress_bar = {
 				style = "full",
@@ -114,6 +120,7 @@ return {
 
 		-- 任务（mt-）
 		vim.keymap.set("n", "<leader>mta", "<cmd>TodoAdd<cr>", { desc = "从代码创建任务" })
+		vim.keymap.set("n", "<leader>mte", "<cmd>TodoEditTask<cr>", { desc = "从代码编辑关联任务" })
 		vim.keymap.set("n", "<leader>mts", "<cmd>TodoStatus<cr>", { desc = "选择任务状态" })
 		vim.keymap.set("n", "<leader>mtd", "<cmd>TodoDesc<cr>", { desc = "编辑任务正文" })
 		vim.keymap.set("n", "<leader>mtt", "<cmd>TodoTag<cr>", { desc = "给任务加/删/设置标签" })

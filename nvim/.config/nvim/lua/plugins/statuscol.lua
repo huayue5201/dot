@@ -16,7 +16,7 @@ return {
 			setopt = true, -- 由插件设置 'statuscolumn'
 			-- 不为这些 filetype 注入 statuscolumn（否则 neotree 等侧栏会继承
 			-- setopt 写入的全局默认值，多出整块行号/符号列把内容右推）。
-			ft_ignore = { "neo-tree", "todo2drawer", "NvimTree", "help", "alpha", "lazy" },
+			ft_ignore = { "sqmeow-drawer", "neo-tree", "todo2drawer", "NvimTree", "help", "alpha", "lazy" },
 			-- 每行同类 sign 只显示 1 个；colwidth = 1，配合插件「去掉图标内空白」
 			-- 的行为（sign_text:gsub('%s','')），像 " " 这种带尾随空格的图标
 			-- 不会被撑成两格，列宽才稳定。
@@ -25,8 +25,14 @@ return {
 				{ sign = { namespace = { "diagnostic" }, colwidth = 1, maxwidth = 1 }, click = "v:lua.ScSa" },
 				-- DAP 断点（原生 sign，名字 Dap*）
 				{ sign = { name = { "Dap" }, colwidth = 1, maxwidth = 1 }, click = "v:lua.ScSa" },
-				-- marks.nvim（原生 sign，名字 Marks_*）
-				{ sign = { name = { "Marks_" }, colwidth = 1, maxwidth = 1 }, click = "v:lua.ScSa" },
+				-- marks.nvim（原生 sign，名字 Marks_*）与 todo2 代码任务状态（extmark sign，
+				-- namespace = code_render）共用一列：原生 sign 只按 name 匹配、extmark sign
+				-- 只按 namespace 匹配，同一 segment 里两者可以并存；maxwidth = 1 所以同行
+				-- 冲突时只显示一个（按 sign priority）。
+				{
+					sign = { name = { "Marks_" }, namespace = { "code_render" }, colwidth = 1, maxwidth = 1 },
+					click = "v:lua.ScSa",
+				},
 				-- 行号（沿用内置实现，遵循 number/relativenumber）
 				{
 					text = { builtin.lnumfunc, " " },

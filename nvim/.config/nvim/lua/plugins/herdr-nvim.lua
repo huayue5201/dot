@@ -2,6 +2,7 @@
 
 return {
 	"ChmaraX/herdr-nvim",
+	event = "VeryLazy",
 	config = function()
 		require("herdr-nvim").setup({
 			prefix = "<leader>a", -- keymap prefix
