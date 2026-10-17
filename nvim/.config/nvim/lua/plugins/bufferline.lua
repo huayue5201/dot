@@ -170,6 +170,11 @@ return {
 					if vim.bo[buf_number].filetype == "qf" then
 						return false
 					end
+					-- 终端 buffer 是全局的（tab_workspace 不接管 buftype ~= ""），
+					-- 不过滤会出现在每个 tab 的 bufferline 里。
+					if vim.bo[buf_number].buftype == "terminal" then
+						return false
+					end
 					return true
 				end,
 

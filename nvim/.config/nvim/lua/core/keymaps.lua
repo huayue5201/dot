@@ -1,6 +1,3 @@
-vim.keymap.set("n", "<localleader>elf", "<cmd>echo &filetype<cr>", { silent = true, desc = "调试: file类型" })
-vim.keymap.set("n", "<localleader>elb", "<cmd>echo &buftype<cr>", { silent = true, desc = "调试: buffer类型" })
-
 -- vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 local mc_ns = vim.api.nvim_create_namespace("nvim.multicursor")
 vim.keymap.set("n", "<Esc>", function()
@@ -94,31 +91,40 @@ vim.keymap.set("n", "<leader>rtw", function()
 end, { desc = "Toggle line wrap" })
 
 -- 🏷 Tab operaions
-vim.keymap.set("n", "<leader>wtn", "<cmd>$tabnew<cr>", { silent = true, desc = "Tab: new tab" })
-vim.keymap.set("n", "<leader>wth", ":-tabmove<CR>", {
+vim.keymap.set("n", "<leader>ltn", "<cmd>$tabnew<cr>", {
+	silent = true,
+	desc = "Tab: 新建（不设根目录，工作区版见 <leader>lwn）",
+})
+vim.keymap.set("n", "<leader>lth", ":-tabmove<CR>", {
 	silent = true,
 	desc = "Tab: 左移",
 })
-vim.keymap.set("n", "<leader>wtl", ":+tabmove<CR>", {
-	noremap = true,
+vim.keymap.set("n", "<leader>ltl", ":+tabmove<CR>", {
 	silent = true,
 	desc = "Tab: 右移",
 })
 
-vim.keymap.set("n", "<leader>ct", "<cmd>tabclose<cr>", { silent = true, desc = "Tab: close tab" })
-vim.keymap.set("n", "<leader>wts", function()
+vim.keymap.set("n", "<leader>ltc", "<cmd>tabclose<cr>", {
+	silent = true,
+	desc = "Tab: 关闭（不保存会话，工作区版见 <leader>lwc）",
+})
+vim.keymap.set("n", "<leader>lws", function()
 	require("core.tab_workspace").prompt_root()
 end, { silent = true, desc = "Tab: 设置工作区根目录" })
-vim.keymap.set("n", "<leader>wto", function()
+vim.keymap.set("n", "<leader>lwn", function()
 	require("core.tab_workspace").new_workspace()
 end, { silent = true, desc = "工作区: 新建（保存会话 + 新 tab + 设置根目录）" })
-vim.keymap.set("n", "<leader>wtc", function()
+vim.keymap.set("n", "<leader>lwc", function()
 	require("core.tab_workspace").close_workspace()
 end, { silent = true, desc = "工作区: 关闭（保存会话 + 关闭 tab）" })
-vim.keymap.set("n", "<leader>wta", function()
+vim.keymap.set("n", "<leader>lwa", function()
 	require("core.tab_workspace").alternate()
 end, { silent = true, desc = "工作区: 切换到上一个 tab" })
-vim.keymap.set("n", "<leader>cat", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
+vim.keymap.set("n", "<leader>lta", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
+
+-- 🌐 Upstream 状态（fork-upstream，属于 <leader>h git 分组）
+vim.keymap.set("n", "<leader>hu", "<cmd>ForkUpstream<cr>", { silent = true, desc = "Upstream: 检查上游更新（fetch + 详情）" })
+vim.keymap.set("n", "<leader>hU", "<cmd>ForkUpstreamFix<cr>", { silent = true, desc = "Upstream: 自动补 upstream 远端" })
 
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>rte", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
@@ -174,7 +180,12 @@ end, { silent = true, desc = "Path: copy filename" })
 -- ============================================================================
 
 -- 终端模式 <C-l> 清屏（betterTerm 的 buffer-local <C-l> 会覆盖它，两者互不影响）
-vim.keymap.set("t", "<C-l>", [[<C-\><C-n>:call term_sendkeys(0, 'clear' . "\r")<CR>]], { silent = true, desc = "Term: clear screen" })
+vim.keymap.set(
+	"t",
+	"<C-l>",
+	[[<C-\><C-n>:call term_sendkeys(0, 'clear' . "\r")<CR>]],
+	{ silent = true, desc = "Term: clear screen" }
+)
 
 ---@return string 展开后的交换文件目录（取 &directory 的第一段）
 local function swap_dir()
@@ -240,5 +251,10 @@ local function delete_all_swaps()
 	vim.notify("已删除 " .. count .. " 个交换文件")
 end
 
-vim.keymap.set("n", "<leader>csw", delete_current_swap, { silent = true, desc = "Swap: 删除当前文件交换文件" })
+vim.keymap.set(
+	"n",
+	"<leader>csw",
+	delete_current_swap,
+	{ silent = true, desc = "Swap: 删除当前文件交换文件" }
+)
 vim.keymap.set("n", "<leader>csW", delete_all_swaps, { silent = true, desc = "Swap: 删除所有交换文件" })
