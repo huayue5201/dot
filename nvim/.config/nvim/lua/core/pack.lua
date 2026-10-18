@@ -17,3 +17,7 @@ require("zpack").setup({
 		{ import = "plugins" },
 	},
 })
+
+-- dir = "~/neovim-plugins/*" 的本地插件：vim.pack 会 clone 一份副本，
+-- 启动后异步把副本快进到源仓库最新提交（只 fast-forward）。
+require("core.pack_local").setup()
