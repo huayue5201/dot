@@ -57,11 +57,27 @@ zinit ice depth"1" wait"1" lucid
 zinit load MichaelAquilina/zsh-auto-notify
 
 # zsh-vi-mode（必须在 fzf-tab 之后）
+# 用 wait 延迟加载，初始化时会重置键位；fzf 的 ^R 必须等它初始化后再绑定。
 zinit ice depth"1" wait"2" lucid
 zinit load jeffreytse/zsh-vi-mode
 
-# fzf（必须在 zsh-vi-mode 之后）
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# 找 fzf 的 key bindings（Homebrew 安装，只有 key-bindings，不含 completion，
+# 避免抢掉 fzf-tab 的 Tab 补全）。
+_fzf_key_bindings="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fzf/shell/key-bindings.zsh"
+if [[ ! -r "$_fzf_key_bindings" ]]; then
+  _fzf_key_bindings="/usr/local/opt/fzf/shell/key-bindings.zsh"
+fi
+if [[ ! -r "$_fzf_key_bindings" && -r "$HOME/.fzf.zsh" ]]; then
+  _fzf_key_bindings="$HOME/.fzf.zsh"
+fi
+
+if [[ -r "$_fzf_key_bindings" ]]; then
+  # 先绑一次，保证 zsh-vi-mode 延迟初始化前也能用。
+  source "$_fzf_key_bindings"
+  # zsh-vi-mode 初始化后它会重置键位，这里再绑一次，解决“过几秒 ^R 失效”。
+  zvm_after_init_commands+=("source '$_fzf_key_bindings'")
+fi
+unset _fzf_key_bindings
 
 # ---------------------------------------
 # fzf-tab 配置
