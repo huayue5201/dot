@@ -1,164 +1,122 @@
--------------- Neovim 插件加载相关 --------------
+-- Neovim 选项按功能分类。
+-- ui2 相关设置必须放在 require("core.ui2").setup() 之后。
 
-require("vim._core.ui2").enable({
-	enable = true, -- Whether to enable or disable the UI.
-	msg = { -- Options related to the message module.
-		---@type string|table<string, 'cmd'|'msg'|'pager'> Default message target
-		---or table mapping |ui-messages| kinds, triggers and IDs to a target.
-		---Table keys are matched as a Lua pattern to the message ID. 'default'
-		---mapping applies to any omitted kind: { default = 'cmd', progress = 'msg' }.
-		targets = "cmd",
-		dialog = { -- Options related to dialog window.
-			height = 0.5, -- Maximum height.
-		},
-		msg = { -- Options related to msg window.
-			height = 0.5, -- Maximum height.
-		},
-		pager = { -- Options related to message window.
-			height = 0.999, -- Maximum height.
-		},
-	},
-})
+-- ================ 核心 UI / 消息 ================
+require("core.ui2").setup()
 
--- -------------- 基本设置 --------------
--- local directory = vim.fs.root(0, ".git") or "."
--- vim.cmd.cd(directory)
-vim.opt.messagesopt:append("maxheight:50,timeout:4000")
-vim.o.autoread = true -- 自动处理外部更改
-vim.o.mousemoveevent = true -- 启用鼠标移动事件
+-- ================ 文件、编码与持久化 ================
 vim.opt.fileencodings = { "utf-8", "gbk", "cp936", "ucs-bom", "latin1" }
-vim.o.inccommand = "split" -- 启用增量命令模式（即时显示命令效果）
-vim.opt.scrolloff = 99
-vim.opt.scrolloffpad = 1
-vim.schedule(function()
-	vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
-end)
--- vim.g.clipboard = "osc52"
+vim.o.autoread = true -- 自动处理外部更改
 vim.o.modeline = false -- 禁用 modeline
-vim.o.updatetime = 300 -- 设置更新延迟时间（毫秒）
-vim.o.jumpoptions = "stack,view" -- 跳转选项：stack 和 view
-vim.o.cursorline = true -- 高亮当前行
-vim.o.cursorcolumn = true -- 启用当前列高亮
-vim.g.vimsyn_embed = "alpPrj" -- 嵌入语法高亮
--- vim.o.textwidth = 1000 -- 超过 1000 列才换行
-vim.o.wrap = false -- 显示换行
-vim.o.linebreak = true -- 在单词边界换行（视觉更自然）
-vim.o.showbreak = "↪ " -- 换行提示符（可选）
-vim.opt.listchars:append({ precedes = "<", extends = ">" }) -- 长行可视化提示
-vim.o.sidescroll = 5 -- 如果行仍然超出窗口宽度，水平滚动 5 列
-vim.o.smoothscroll = true -- 开启平滑滚动
 vim.o.undofile = true -- 启用持久撤销
 vim.o.confirm = true -- 未保存退出确认
--- vim.o.spelloptions = "camel" -- 开启驼峰拼写检查
--- vim.opt.spell = true
--- vim.opt.spelllang = "en_us"
--- 限制 Neovim 在重绘时发送的最大行数
-vim.o.maxcombine = 8 -- 最大组合字符数
--- 在光标所在的第81列显示一条垂直警示线
-vim.opt.colorcolumn = "80"
--- 光标配置
+
+-- ================ 项目本地配置与会话 ================
+-- 项目本地配置：安全边界由 :trust 信任列表控制，secure 在 Neovim 中已无实际作用
+vim.o.exrc = true
+-- 不设置 shadafile：使用 Neovim 默认的全局 shada（~/.local/state/nvim/shada/main.shada）
+-- 多项目 tab / resession 场景下无法按项目隔离 shada，统一使用全局文件最稳定。
+-- 不包含 options/localoptions：避免把 tabline/statusline/winbar 等含 v:lua 动态表达式的
+-- 选项存进会话文件，否则重启时插件懒加载前恢复会触发 nil 调用（如 nvim_bufferline/dropbar）。
+vim.o.sessionoptions = "blank,buffers,curdir,folds,help,globals,tabpages,winsize,winpos"
+
+-- ================ 编辑行为 ================
+vim.o.expandtab = true -- 将 Tab 转为空格
+vim.o.tabstop = 2 -- Tab 显示宽度
+vim.o.shiftwidth = 2 -- 自动缩进宽度
+vim.opt.smartindent = true
+vim.opt.smarttab = true
+vim.o.nrformats = "unsigned" -- 数字增减不识别八进制/十六进制
+vim.o.inccommand = "split" -- 增量命令预览（如 :s）
+vim.o.jumpoptions = "stack,view" -- 跳转时保留视图并维护跳转栈
+vim.o.updatetime = 300 -- 更新延迟（毫秒）
+
+-- ================ 补全 ================
+vim.bo.omnifunc = "" -- 禁用 omnifunc
+vim.o.complete = "" -- 禁用内置补全来源
+vim.o.completeopt = "menu,menuone,popup,fuzzy" -- 现代补全菜单
+
+-- ================ 搜索 ================
+vim.o.ignorecase = true -- 搜索忽略大小写
+vim.o.smartcase = true -- 含大写时区分大小写
+
+-- ================ 光标、滚动与高亮 ================
+vim.opt.scrolloff = 8 -- 光标上下至少保留 8 行
+vim.opt.scrolloffpad = 1
+vim.o.sidescrolloff = 5 -- 光标左右至少保留 5 列
+vim.o.sidescroll = 5 -- 水平滚动步长
+vim.o.smoothscroll = true -- 平滑滚动
+vim.o.cursorline = true -- 高亮当前行
+vim.o.cursorcolumn = true -- 高亮当前列
+vim.opt.colorcolumn = "80" -- 第 80 列警示线
 vim.opt.guicursor:append({
 	"n-v-c-sm:block",
 	"i-ci-ve:ver25",
 	"r-cr-o:hor20",
 	"t:ver25-blinkon500-blinkoff500-TermCursor",
 })
--- -------------- 折叠设置 --------------
--- 设置折叠表达式
--- vim.o.foldmethod = "expr"
--- vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
--- vim.o.foldlevelstart = 99 -- 默认展开所有内容
-vim.o.foldcolumn = "1" -- 显示折叠列（statuscolumn 的 %C 依赖它，否则折叠标记不显示）
 
--- -------------- 编辑行为设置 --------------
-vim.o.expandtab = true -- 将 Tab 转为空格
-vim.o.tabstop = 2 -- 设置 Tab 为 2 个空格宽度
-vim.o.shiftwidth = 2 -- 设置自动缩进为 2 个空格
-vim.opt.smartindent = true
-vim.opt.smarttab = true
-vim.o.scrolloff = 8 -- 保持光标上方和下方至少 8 行可见
-vim.o.sidescrolloff = 5 -- 保持光标左右至少 5 列可见
-vim.o.nrformats = "unsigned"
-
--- shada设置
-vim.o.exrc = true -- 启用 exrc 配置
-vim.o.secure = true -- 启用安全模式
--- 生成唯一的 shada 文件路径
-local workspace_path = vim.fn.getcwd()
-local data_dir = vim.fn.stdpath("data")
-local unique_id = vim.fn.fnamemodify(workspace_path, ":t") .. "_" .. vim.fn.sha256(workspace_path):sub(1, 8)
-local shadafile = data_dir .. "/shada/" .. unique_id .. ".shada"
-vim.o.shadafile = shadafile
--- 不包含 options/localoptions：避免把 tabline/statusline/winbar 等含 v:lua 动态表达式的
--- 选项存进会话文件，否则重启时插件懒加载前恢复会触发 nil 调用（如 nvim_bufferline/dropbar）。
-vim.o.sessionoptions = "blank,buffers,curdir,folds,help,globals,tabpages,winsize,winpos"
-
--- -------------- 补全设置 --------------
-vim.bo.omnifunc = "" -- 禁用 omnifunc 补全
-vim.o.complete = "" -- 禁用补全
--- vim.o.completeopt = "menuone,noinsert,noselect" -- 补全菜单的选项
-vim.o.completeopt = "menu,menuone,popup,fuzzy" -- 现代补全菜单
--- vim.o.autocomplete = true -- 启用自动补全
-
--- -------------- 搜索设置 --------------
-vim.o.ignorecase = true -- 搜索时忽略大小写
-vim.o.smartcase = true -- 智能区分大小写
-
--- -------------- 窗口和分割设置 --------------
-vim.o.splitbelow = true -- 新分割窗口默认在下方
-vim.o.splitright = true -- 新分割窗口默认在右边
-vim.o.splitkeep = "screen" -- 保持分割窗口屏幕位置
-vim.o.winborder = "rounded" -- 浮动窗口边框
-vim.opt.equalalways = false -- Does not make windows equal automatically
-
--- -------------- 状态栏和标签页 --------------
-vim.o.showmode = false -- 禁用模式显示
-vim.o.laststatus = 3 -- 启用全局状态栏
-vim.o.cmdheight = 0 -- 状态栏高度 PS:< 0 noice插件会在启动时产生跳动
-vim.o.showtabline = 2 -- 始终显示标签页栏
--- statuscolumn / signcolumn 由 luukvbaal/statuscol.nvim 接管（见 lua/plugins/statuscol.lua）：
--- 它为 git/诊断/DAP/书签 各分配固定列，并把 signcolumn 设为 no 自行渲染。
--- 下面两行仅作为插件加载前的回退值。
-vim.o.statuscolumn = "%s%=%l%=%C "
-vim.o.number = true --显示行号
-vim.o.relativenumber = true -- 启用相对行号
-vim.o.signcolumn = "yes:3" -- 始终显示标志列（statuscol.nvim 生效后会改成 no）
-vim.o.tabclose = "left,uselast" -- 关闭当前标签页后，会自动切换到最近使用过的标签页（如果有）
-
--- -------------- 显示和符号设置 --------------
+-- ================ 换行与不可见字符 ================
+vim.o.wrap = false -- 不自动换行
+vim.o.linebreak = true -- 按单词边界换行
+vim.o.showbreak = "↪ " -- 换行提示符
 vim.o.list = true -- 显示不可见字符
--- vim.wo.foldtext = ""
+vim.opt.listchars = {
+	tab = "╎ ",
+	multispace = " ",
+	trail = "␣",
+	nbsp = " ",
+	eol = " ",
+}
 vim.opt.fillchars = {
-	stl = " ", -- 当前窗口的状态栏区域字符
-	stlnc = " ", -- 非当前窗口的状态栏区域字符
-	wbr = " ", -- winbar 区域字符
-	-- 水平分隔符字符
-	horiz = "", -- 水平分隔符（例如 :split 使用）
+	stl = " ", -- 当前窗口状态栏区域
+	stlnc = " ", -- 非当前窗口状态栏区域
+	wbr = " ", -- winbar 区域
+	horiz = "", -- 水平分隔符
 	horizup = "", -- 向上的水平分隔符
 	horizdown = "", -- 向下的水平分隔符
-	-- 垂直分隔符字符
-	vert = "", -- 垂直分隔符（例如 :vsplit 使用）
+	vert = "", -- 垂直分隔符
 	vertleft = "", -- 向左的垂直分隔符
 	vertright = "", -- 向右的垂直分隔符
-	verthoriz = "", -- 垂直和水平重叠的分隔符
-	-- 折叠相关字符（VSCode 风格的 chevron；用 nr2char 避免源码里的私有区字形被编辑器弄坏）
-	fold = " ", -- 折叠文本填充字符
-	foldopen = "⊞", -- 折叠打开时的标记字符
-	foldclose = "⊟", -- 折叠关闭时的标记字符
-	foldsep = "│", -- 打开折叠时的中间分隔符（fillchars 要求单字符）
-	foldinner = " ", -- 折叠层级，默认显示数字
-	-- 其他
-	diff = "╱", -- 显示差异时，已删除的行字符
-	msgsep = " ", -- 消息分隔符字符（例如用于 `display`）
-	eob = " ", -- 空行字符（用于表示缓冲区末尾）
-	lastline = "@", -- 最后一行或截断字符
+	verthoriz = "", -- 垂直/水平重叠分隔符
+	fold = " ", -- 折叠文本填充
+	foldopen = "⊞", -- 折叠展开标记
+	foldclose = "⊟", -- 折叠关闭标记
+	foldsep = "│", -- 折叠中间分隔符
+	foldinner = " ", -- 折叠层级填充
+	diff = "╱", -- 差异删除行
+	msgsep = " ", -- 消息分隔符
+	eob = " ", -- 缓冲区末尾空行
+	lastline = "@", -- 截断的最后一行
 }
 
-vim.opt.listchars = {
-	tab = "╎ ", -- 显示 Tab 字符
-	-- leadmultispace = "-", -- 显示多余空格
-	multispace = " ",
-	trail = "␣", -- 显示尾随空格
-	nbsp = " ", -- 显示不间断空格
-	eol = " ", -- 换行符
-}
+-- ================ 窗口与分割 ================
+vim.o.splitbelow = true -- 新分割在下方
+vim.o.splitright = true -- 新分割在右侧
+vim.o.splitkeep = "screen" -- 调整分割时保持屏幕位置
+vim.o.winborder = "rounded" -- 浮动窗口圆角边框
+vim.opt.equalalways = false -- 不自动均分窗口
+
+-- ================ 状态栏、标签页与行号 ================
+vim.o.showmode = false -- 不在命令行显示模式
+vim.o.laststatus = 3 -- 全局状态栏
+vim.o.cmdheight = 0 -- 命令行高度；ui2 下为 0 可避免跳动
+vim.o.showtabline = 2 -- 始终显示标签页栏
+-- statuscolumn / signcolumn 由 luukvbaal/statuscol.nvim 接管（见 lua/plugins/statuscol.lua）：
+-- 下列两行是插件加载前的回退值。
+vim.o.statuscolumn = "%s%=%l%=%C "
+vim.o.signcolumn = "yes:3"
+vim.o.number = true -- 显示行号
+vim.o.relativenumber = true -- 相对行号
+vim.o.tabclose = "left,uselast" -- 关闭标签页后切到最近使用的标签页
+
+-- ================ 折叠 ================
+-- 折叠表达式由插件接管，这里只保留折叠列；statuscolumn 的 %C 依赖它。
+vim.o.foldcolumn = "1"
+
+-- ================ 系统集成与语法 ================
+vim.o.mousemoveevent = true -- 启用鼠标移动事件
+vim.g.vimsyn_embed = "alpPrj" -- 嵌入语法高亮
+vim.schedule(function()
+	vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- 同步系统剪贴板
+end)
