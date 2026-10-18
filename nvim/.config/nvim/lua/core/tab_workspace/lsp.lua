@@ -7,7 +7,7 @@ local ownership = require("core.tab_workspace.ownership")
 local config = {
 	lsp_stop_on_leave = true,
 	lsp_restart_on_enter = true,
-	lsp_stop_delay = 5000,
+	lsp_stop_delay = 50000,
 }
 
 --- 被本模块停掉、等待重新进入 tab 时恢复的 LSP 服务名
