@@ -34,5 +34,18 @@ return {
 				["^> "] = {},
 			},
 		})
+
+		-- 插件把每个终端的第一次 TextChanged 当成“终端自己的输出”而忽略
+		-- （M.buffers[buf].leaving_term 初始为 true），所以打开终端后第一次编辑
+		-- 会被吞掉。退出终端插入模式时把这个标记清掉即可。
+		vim.api.nvim_create_autocmd("ModeChanged", {
+			pattern = "t:nt",
+			callback = function()
+				local info = require("editable-term").buffers[vim.api.nvim_get_current_buf()]
+				if info then
+					info.leaving_term = false
+				end
+			end,
+		})
 	end,
 }
