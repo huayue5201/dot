@@ -105,6 +105,13 @@ fi'
 # ---------------------------------------
 ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
 
+# viins 里 C-a/C-e/C-f/C-u 默认是 self-insert，nvim 的 editable-term 需要它们
+# 分别是行首/行尾/右移/清行。zsh-vi-mode 初始化时会重置键位，所以用 after_init 再绑。
+zvm_after_init_commands+=('bindkey -M viins "^A" beginning-of-line')
+zvm_after_init_commands+=('bindkey -M viins "^E" end-of-line')
+zvm_after_init_commands+=('bindkey -M viins "^F" forward-char')
+zvm_after_init_commands+=('bindkey -M viins "^U" kill-whole-line')
+
 # ---------------------------------------
 # auto-notify 配置
 # ---------------------------------------
@@ -171,6 +178,15 @@ fe() {
 eval "$(zoxide init zsh)"
 # https://github.com/starship/starship
 eval "$(starship init zsh)"
+
+# OSC 133 语义提示符：editable-term.nvim 靠它精确知道命令行从哪一列开始。
+# A = 提示符开始，B = 提示符结束、用户输入开始。starship 每次 precmd 都会重设
+# PROMPT，所以要在它之后重新加上（add-zsh-hook 按注册顺序执行）。
+autoload -Uz add-zsh-hook
+_starship_osc133_prompt() {
+  PROMPT=$'\e]133;A\a'"${PROMPT}"$'\e]133;B\a'
+}
+add-zsh-hook precmd _starship_osc133_prompt
 
 # bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
