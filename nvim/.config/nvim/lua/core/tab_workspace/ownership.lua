@@ -136,13 +136,9 @@ function M.relist()
 		error(err)
 	end
 	-- 改完 buflisted 后主动重绘 tabline：会话恢复（post_load）时没有 TabEnter/BufAdd，
-	-- bufferline 会先画出别的 tab 的 buffer；这里保证隔离结果立即生效。
+	-- 而且 buflisted 变化没有对应事件，bufferline 不会自己刷新。
+	-- 等 relist 全部完成后再重绘，避免画到中间态。
 	vim.schedule(function()
-		-- redrawtabline 不一定能立刻刷新 bufferline 内部的 state.components；
-		-- g1..g9 走的是这份缓存。先主动渲染一次，保证序号立即只含本 tab 的 buffer。
-		if type(_G.nvim_bufferline) == "function" then
-			pcall(_G.nvim_bufferline)
-		end
 		pcall(vim.cmd, "redrawtabline")
 	end)
 end

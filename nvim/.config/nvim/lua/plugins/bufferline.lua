@@ -160,22 +160,10 @@ return {
 				-- 是否强制统一标签页大小
 				enforce_regular_tabs = true,
 
-				-- 自定义过滤器函数
-				custom_filter = function(buf_number, buf_numbers)
-					-- 过滤 help 缓冲区
-					if vim.bo[buf_number].filetype == "help" then
-						return false
-					end
-					-- 过滤 quickfix 缓冲区
-					if vim.bo[buf_number].filetype == "qf" then
-						return false
-					end
-					-- 终端 buffer 是全局的（tab_workspace 不接管 buftype ~= ""），
-					-- 不过滤会出现在每个 tab 的 bufferline 里。
-					if vim.bo[buf_number].buftype == "terminal" then
-						return false
-					end
-					return true
+				-- 是否受 tab_workspace 工作区管理（= 该在 bufferline 显示）；
+				-- 规则统一由 tab_workspace 维护，不在插件配置里重复。
+				custom_filter = function(buf_number)
+					return require("core.tab_workspace").is_workspace_buf(buf_number)
 				end,
 
 				-- 名称格式化函数
@@ -352,16 +340,5 @@ return {
 			"<Cmd>BufferLineSortByExtension<CR>",
 			vim.tbl_extend("force", opts, { desc = "按扩展名排序" })
 		)
-
-		-- tab_workspace 在 TabEnter 里改 buflisted，bufferline 没监听该事件；
-		-- 延迟重绘，等 relist 全部完成后再按最终状态刷新（避免画到中间态）。
-		vim.api.nvim_create_autocmd({ "TabEnter", "TabClosed", "BufAdd", "BufDelete" }, {
-			group = vim.api.nvim_create_augroup("BufferlineWorkspaceRedraw", { clear = true }),
-			callback = function()
-				vim.schedule(function()
-					vim.cmd("redrawtabline")
-				end)
-			end,
-		})
 	end,
 }

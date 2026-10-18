@@ -32,6 +32,7 @@ M.save_session = actions.save_session
 M.new_workspace = actions.new_workspace
 M.close_workspace = actions.close_workspace
 M.alternate = actions.alternate
+M.is_workspace_buf = util.is_workspace_buf
 
 --- 从会话恢复每 tab 的归属（由 resession post_load 插件回调调用）
 ---@param map? table<string, string[]>
