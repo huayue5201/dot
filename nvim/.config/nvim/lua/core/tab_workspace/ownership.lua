@@ -97,24 +97,47 @@ local function tab_buffers(tab)
 	return out
 end
 
+--- 渲染期判定：该 buffer 是否属于当前 tab（归属表里有，或正显示在当前 tab 的非浮窗里）。
+--- 给 bufferline 的 custom_filter 用：切 tab 时 buflisted 的更新发生在首次重绘之后
+--- （BufEnter/WinEnter 早于 TabEnter，状态栏等会先触发一次重绘），只按归属过滤，
+--- 第一帧就不会画出别的 tab 的 buffer。buflisted 仍是全局真值，由 relist 维护。
+---@param bufnr integer
+---@return boolean
+function M.is_current_tab_buf(bufnr)
+	if not util.is_workspace_buf(bufnr) then
+		return false
+	end
+	local cur = vim.api.nvim_get_current_tabpage()
+	if ownership[cur] and ownership[cur][bufnr] then
+		return true
+	end
+	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(cur)) do
+		if not util.is_float_win(win) and vim.api.nvim_win_get_buf(win) == bufnr then
+			return true
+		end
+	end
+	return false
+end
+
 --- 按「当前 tab 的归属」重设所有 buffer 的 buflisted
 function M.relist()
+	local cur = vim.api.nvim_get_current_tabpage()
 	prune_closed_tabs()
 	if util.resession_loading() then
 		return
 	end
-	local cur = vim.api.nvim_get_current_tabpage()
-	-- 先把当前 tab 窗口里实际显示的 buffer claim 回来，再按归属 unlist。
-	-- 否则 :tab split（或同一 buffer 开在多个 tab）会出现「窗口里看得见，
-	-- 但 buflisted=false」，bufferline 直接空白。
-	-- 浮窗（预览/hover 等）不算“显示在工作区里”，跳过；否则浮窗打开的真实
-	-- 文件 buffer 会被 claim 成 listed，凭空出现在 bufferline 上。
+	-- 不在这里按窗口改归属：切 tab 的 TabEnter 早于新窗口拿到目标 buffer，
+	-- 此时窗口里还是上一个 tab 的 buffer，claim 会把它抢过来（tab2 里凭空多一个）。
+	-- 但窗口里实际显示的 buffer 必须 listed，否则 :tab split / 同一 buffer 开在
+	-- 多个 tab 时会出现「窗口里看得见，bufferline 却空白」。所以只跟着 listed，
+	-- 归属仍由 BufWinEnter/BufEnter 的 claim 维护（渲染期再由 is_current_tab_buf 过滤）。
+	local owned = ownership[cur] or {}
+	local shown = {}
 	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(cur)) do
 		if not util.is_float_win(win) then
-			claim(cur, vim.api.nvim_win_get_buf(win))
+			shown[vim.api.nvim_win_get_buf(win)] = true
 		end
 	end
-	local owned = ownership[cur] or {}
 
 	-- 改 buflisted=false 会触发伪 BufDelete，其他插件会误以为 buffer 被删了
 	-- （例如 todo2 会因此取消待写入的防抖同步、清掉标签筛选）。
@@ -126,7 +149,7 @@ function M.relist()
 	local ok, err = pcall(function()
 		for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
 			if util.is_workspace_buf(bufnr) then
-				vim.bo[bufnr].buflisted = owned[bufnr] == true
+				vim.bo[bufnr].buflisted = owned[bufnr] == true or shown[bufnr] == true
 			end
 		end
 	end)
@@ -135,12 +158,17 @@ function M.relist()
 	if not ok then
 		error(err)
 	end
-	-- 改完 buflisted 后主动重绘 tabline：会话恢复（post_load）时没有 TabEnter/BufAdd，
-	-- 而且 buflisted 变化没有对应事件，bufferline 不会自己刷新。
-	-- 等 relist 全部完成后再重绘，避免画到中间态。
-	vim.schedule(function()
-		pcall(vim.cmd, "redrawtabline")
-	end)
+	-- 改完 buflisted 后请求重绘 tabline：会话恢复（post_load）时没有 TabEnter/BufAdd，
+	-- 而且 unlist 时 BufDelete 被压掉了，bufferline 收不到事件。
+	-- 走 bufferline 自己的去重调度，避免和它的 autocmd 在同一轮里重复渲染（闪烁）。
+	local bl = package.loaded["bufferline"]
+	if type(bl) == "table" and type(bl.redraw) == "function" then
+		bl.redraw()
+	else
+		vim.schedule(function()
+			pcall(vim.cmd, "redrawtabline")
+		end)
+	end
 end
 
 --- 导出每 tab 的归属（buffer 名），供 resession 扩展保存进会话文件

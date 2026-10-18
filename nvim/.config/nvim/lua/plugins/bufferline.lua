@@ -161,9 +161,10 @@ return {
 				enforce_regular_tabs = true,
 
 				-- 是否受 tab_workspace 工作区管理（= 该在 bufferline 显示）；
-				-- 规则统一由 tab_workspace 维护，不在插件配置里重复。
+				-- 按「当前 tab 的归属」在渲染期过滤，规则统一由 tab_workspace 维护，
+				-- 不在插件配置里重复。
 				custom_filter = function(buf_number)
-					return require("core.tab_workspace").is_workspace_buf(buf_number)
+					return require("core.tab_workspace").is_current_tab_buf(buf_number)
 				end,
 
 				-- 名称格式化函数

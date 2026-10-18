@@ -33,6 +33,7 @@ M.new_workspace = actions.new_workspace
 M.close_workspace = actions.close_workspace
 M.alternate = actions.alternate
 M.is_workspace_buf = util.is_workspace_buf
+M.is_current_tab_buf = ownership.is_current_tab_buf
 
 --- 从会话恢复每 tab 的归属（由 resession post_load 插件回调调用）
 ---@param map? table<string, string[]>
@@ -112,11 +113,12 @@ function M.setup()
 				return
 			end
 			local tab = vim.api.nvim_get_current_tabpage()
-			-- 让 resession 设好的 tcd、TabEnter 里刚开出来的窗口先落定，
-			-- 否则这里按窗口算 tab_buffers、opts.cwd 都会漏掉它们。
+			-- relist 必须同步：TabEnter 在首帧绘制之前触发，此时改好 buflisted，
+			-- 第一帧就是当前 tab 的正确集合；放到 schedule 里会先画一帧「所有 tab 的
+			-- buffer」再刷新，这就是切 tab 时的闪烁。
+			M.relist()
 			vim.schedule(function()
 				if vim.api.nvim_tabpage_is_valid(tab) and vim.api.nvim_get_current_tabpage() == tab then
-					M.relist()
 					lsp.sync(tab)
 				end
 			end)

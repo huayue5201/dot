@@ -318,6 +318,24 @@ local function should_update_statusline()
 	return true
 end
 
+--- 重绘合并：切 tab 时 BufEnter/WinEnter 早于 TabEnter 触发，而这里同步
+--- redrawstatus 会在 tab_workspace 改好 buflisted 之前强制画一帧，导致 tabline
+--- 先显示上一个 tab 的 buffer 再刷新（闪烁）。改为一轮事件循环里只重绘一次，
+--- 让 TabEnter 里的 relist 先跑完。
+local redraw_pending = false
+local function schedule_redrawstatus()
+	if redraw_pending then
+		return
+	end
+	redraw_pending = true
+	vim.schedule(function()
+		redraw_pending = false
+		if should_update_statusline() then
+			pcall(vim.cmd, "redrawstatus")
+		end
+	end)
+end
+
 local function apply()
 	if vim.o.laststatus == 0 then
 		return
@@ -327,7 +345,7 @@ local function apply()
 	end
 	if update() then
 		vim.o.statusline = compose()
-		vim.cmd("redrawstatus")
+		schedule_redrawstatus()
 	end
 end
 
