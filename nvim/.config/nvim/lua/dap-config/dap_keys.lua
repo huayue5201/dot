@@ -1,4 +1,79 @@
+-- lua/dap-config/dap_keys.lua
+-- DAP 键位 + 键位直接触发的一次性动作（条件断点面板、日志级别选择）
+--
+-- dap-config 目录分工：
+--   dap_keys.lua           键位与其直接触发的交互（本文件）
+--   breakpoint_state.lua   断点状态同步（原生断点 + dap-extensions 自定义断点）
+--   project.lua            项目类型判定 + <root>/.nvim/dap.lua 本地配置
+--   persist.lua            项目级「上次运行配置」记忆
+--   debug-file-picker.lua  无配置时的文件/函数选择器
+--   adapters/              各调试适配器的 dap.adapters / dap.configurations
 local M = {}
+
+-- 断点设置后同步扩展断点状态（原生断点的变更不会自动通知 dap-extensions）
+local function sync_after_set()
+	vim.defer_fn(function()
+		require("dap-config.breakpoint_state").sync_breakpoints()
+	end, 10)
+end
+
+--- 条件/命中次数/日志断点输入面板（dap-extensions popup）
+local function set_conditional_breakpoint()
+	local dap = require("dap")
+	local popup = require("dap-extensions.ui.popup")
+	popup.open({
+		fields = {
+			{ key = "condition", label = "条件(可选)" },
+			{ key = "hit", label = "命中次数(可选)" },
+			{ key = "log", label = "日志消息(可选)" },
+		},
+		on_submit = function(values)
+			local condition = values.condition ~= "" and values.condition or nil
+			local hit = values.hit ~= "" and tonumber(values.hit) or nil
+			local log = values.log ~= "" and values.log or nil
+
+			if values.hit ~= "" and not tonumber(values.hit) then
+				vim.notify("⚠️ 命中次数必须为数字！", vim.log.levels.ERROR)
+				return
+			end
+
+			dap.toggle_breakpoint(condition, hit, log)
+			print(
+				("✔️ 断点已设置：条件=%s 次数=%s 日志=%s"):format(
+					condition or "无",
+					hit or "无",
+					log or "无"
+				)
+			)
+			sync_after_set()
+		end,
+	})
+end
+
+--- 选择 DAP 日志级别
+local function set_debuglog()
+	local dap = require("dap")
+	local desc = {
+		TRACE = "追踪：最详细的日志信息",
+		DEBUG = "调试：调试信息",
+		INFO = "信息：一般信息，默认级别",
+		WARN = "警告：警告信息",
+		ERROR = "错误：错误信息",
+	}
+	vim.ui.select({ "TRACE", "DEBUG", "INFO", "WARN", "ERROR" }, {
+		prompt = "📊 选择 DAP 日志级别:",
+		format_item = function(item)
+			return string.format("📝 %-10s . %s", item, desc[item])
+		end,
+	}, function(choice)
+		if choice then
+			dap.set_log_level(choice)
+			print(string.format("✔️ DAP 日志级别设置为: %s", choice))
+		else
+			print("❌ 未选择日志级别，操作已取消")
+		end
+	end)
+end
 
 function M.setup()
 	local dap = require("dap")
@@ -101,7 +176,7 @@ function M.setup()
 	)
 
 	vim.keymap.set("n", "<leader>do", function()
-		require("dap-config.conditional_breakpoint").set_breakpoint()
+		set_conditional_breakpoint()
 		breakpoint_state.sync_breakpoints()
 	end, { desc = "[D]ap [C]onditional breakpoint" })
 
@@ -123,11 +198,6 @@ function M.setup()
 		dap_ext.commands.add_hardware_breakpoint,
 		{ desc = "[D]ap [H]ardware breakpoint" }
 	)
-
-	-- 异常断点
-	vim.keymap.set("n", "<leader>de", function()
-		require("dap-config.exception-breakpoints").toggle()
-	end, { desc = "[D]ap [E]xception breakpoint" })
 
 	-- 启用/禁用断点
 	vim.keymap.set("n", "<leader>dt", function()
@@ -208,12 +278,7 @@ function M.setup()
 
 	-- 日志相关
 	vim.keymap.set("n", "<leader>dvl", "<cmd>DapShowLog<cr>", { desc = "[D]ap [L]og show" })
-	vim.keymap.set(
-		"n",
-		"<leader>dvL",
-		require("dap-config.dap_log_keymap").set_debuglog,
-		{ desc = "[D]ap [L]og level set" }
-	)
+	vim.keymap.set("n", "<leader>dvL", set_debuglog, { desc = "[D]ap [L]og level set" })
 
 	-- 查看光标下变量 / 自动刷新表达式
 	vim.keymap.set("n", "<leader>dvE", function()

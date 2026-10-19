@@ -28,7 +28,18 @@ return {
 				--   herdr 面板内 → 自维护后端 vendor.smart-splits-backend-herdr
 				--   裸 Ghostty 面板 → 官方 backend-ghostty
 				-- 跨 pane resize 的「格数 → 比例」换算已收进 herdr 后端内部。
-				backend = { "vendor.smart-splits-backend-herdr", "smart-splits-backend-ghostty" },
+				--
+				-- 用函数而不用固定列表：backend-ghostty 的 detect 会跑
+				-- scripts/ghostty.js（osascript/JXA）找宿主进程，在 Ghostty 之外
+				-- 会往 stderr 吐 `No owning Ghostty or cmux process found (-2700)`。
+				backend = function()
+					local list = { "vendor.smart-splits-backend-herdr" }
+					local prog = (vim.env.TERM_PROGRAM or ""):lower()
+					if prog == "ghostty" or (vim.env.GHOSTTY_RESOURCES_DIR or "") ~= "" then
+						list[#list + 1] = "smart-splits-backend-ghostty"
+					end
+					return list
+				end,
 			},
 			log = { file = false }, -- v3 默认写日志文件，这里关掉
 		})

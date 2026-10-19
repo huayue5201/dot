@@ -10,11 +10,12 @@ vim.g.mapleader = vim.keycode("<space>")
 vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 
 -- 立即加载基础配置
+require("core.compat") -- 只吞掉上游插件的 `client.supports_method` 弃用提示
 require("core.settings") -- 基础 Neovim 选项
 require("core.dotenv").load() -- 环境变量（须早于 core.pack，见 ~/.env）
 require("core.pack") -- Neovim 自带 vim.pack + zpack 插件管理（懒加载由 zpack 负责）
 require("lsp-config").setup() --lsp
-require("fork-upstream").setup() -- 上游状态组件（状态栏 + :ForkUpstream），须早于状态栏以复用磁盘缓存
+require("git-config.fork-upstream").setup() -- 上游状态组件（状态栏 + :ForkUpstream），须早于状态栏以复用磁盘缓存
 require("core.statusline") -- 状态栏（加载即自动构建并设置，无需手动调用 active）
 require("core.tab_workspace").setup() -- 一个 tab 一个工作区（切 tab 隔离 buffer + 每 tab cwd + neo-tree 跟随）
 

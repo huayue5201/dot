@@ -61,8 +61,6 @@ return {
 
 		require("dap-config.dap_keys").setup()
 
-		require("dap-config.exception-breakpoints")
-
 		-- . 加载 dap-extensions（自定义断点扩展，独立插件）
 		require("dap-extensions").setup({
 			ui = {

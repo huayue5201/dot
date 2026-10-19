@@ -1,4 +1,4 @@
--- lua/lsp-config/features/runnables.lua
+-- lua/lsp-config/features/runnables/init.lua
 -- run/debug 代码透镜的通用分发层。
 --
 -- 语言后端在 lua/lsp-config/features/runnables/<lang>.lua 里声明：
@@ -51,5 +51,7 @@ function M.setup(client, bufnr)
 end
 
 M.register("rust-analyzer", require("lsp-config.features.runnables.rust"))
+M.register("clangd", require("lsp-config.features.runnables.cpp"))
+M.register("gopls", require("lsp-config.features.runnables.go"))
 
 return M

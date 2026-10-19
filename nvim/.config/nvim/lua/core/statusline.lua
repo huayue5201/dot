@@ -3,7 +3,7 @@
 local colors = require("core.colors").palette
 local lsp = require("lsp-config.statusline").lsp
 local todo_status = require("todo2.ui.statusline")
-local upstream = require("fork-upstream")
+local upstream = require("git-config.fork-upstream")
 
 local M = {} -- 使用 M 作为模块的局部变量
 

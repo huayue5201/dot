@@ -1,45 +1,39 @@
 -- lua/lsp-config/panel.lua
 -- LSP 服务器控制面板（浮窗）
 --
--- 交互参考 dap-config/exception-breakpoints.lua：
---   圆角浮窗、图标勾选、CR 切换、j/k 移动、数字跳转、R 重启、Tab/q/Esc 关闭
+-- 交互（浮窗/按键/刷新）由 core.float-list 提供；本文件只负责行内容与行内动作。
 --
 -- 面板内容（针对当前 buffer）：
---   1) 全局开关：诊断 / 内联提示
---   2) 当前文件类型「已配置」的 LSP 服务器（来自 lsp/*.lua）
---   3) 当前 buffer「已附加」但不在配置里的 LSP（插件托管的，如 rustowl）—— 标 (外部)
+--   1) 当前文件类型「已配置」的 LSP 服务器（来自 lsp/*.lua）
+--   2) 当前 buffer「已附加」但不在配置里的 LSP（插件托管的，如 rustowl）—— 标 (外部)
+--
+-- 诊断 / 内联提示的开关不再放进来（内建一行即可）：
+--   vim.diagnostic.enable(false, { bufnr = 0 })
+--   vim.lsp.inlay_hint.enable(false, { bufnr = 0 })
 
 local M = {}
 
 local registry = require("lsp-config.registry")
 local servers = require("lsp-config.servers")
-local state = require("lsp-config.state")
-local actions = require("lsp-config.actions")
+local float_list = require("core.float-list")
 
 local ICONS = { on = "✓ ", off = "○ " }
 
-local panel = { win = nil, buf = nil }
-
-local function win_valid()
-	return panel.win and vim.api.nvim_win_is_valid(panel.win)
-end
-
-local function close()
-	if win_valid() then
-		pcall(vim.api.nvim_win_close, panel.win, true)
-	end
-	panel.win, panel.buf = nil, nil
-	pcall(vim.api.nvim_del_augroup_by_name, "lsp_panel_refresh")
-end
+local HELP = {
+	{ "<CR>", "切换选中行（启用/停用）" },
+	{ "R", "重启选中的 LSP" },
+	{ "r", "刷新附加状态" },
+	{ "j / k", "上下移动" },
+	{ "1-9", "直接切换对应行" },
+	{ "?", "显示/隐藏本帮助" },
+	{ "q / <Esc> / <Tab> / <C-s>", "关闭面板" },
+}
 
 ---------------------------------------------------------------------
--- 行构造 / 渲染
+-- 行构造
 ---------------------------------------------------------------------
 local function build_rows(bufnr)
-	local rows = {
-		{ kind = "global", key = "lsp.diagnostics", label = "诊断 diagnostics" },
-		{ kind = "global", key = "lsp.inlay_hints", label = "内联提示 inlay hints" },
-	}
+	local rows = {}
 
 	-- 已配置（lsp/*.lua）的 server
 	local configured = {}
@@ -65,9 +59,6 @@ local function clients_for(name, bufnr)
 end
 
 local function row_enabled(row, bufnr)
-	if row.kind == "global" then
-		return state.get(row.key, bufnr) ~= false
-	end
 	if row.configured then
 		return servers.is_enabled(row.name, bufnr)
 	end
@@ -75,14 +66,9 @@ local function row_enabled(row, bufnr)
 	return #clients_for(row.name, bufnr) > 0
 end
 
----@return string text, boolean enabled
 local function row_text(row, bufnr)
 	local enabled = row_enabled(row, bufnr)
 	local icon = enabled and ICONS.on or ICONS.off
-
-	if row.kind == "global" then
-		return string.format("%s %s", icon, row.label), enabled
-	end
 
 	local clients = clients_for(row.name, bufnr)
 	local attached = #clients > 0
@@ -102,89 +88,7 @@ local function row_text(row, bufnr)
 		end
 	end
 
-	return string.format("%s %-24s %s%s", icon, row.name, status, root), enabled
-end
-
-local function render(buf, rows, bufnr)
-	local lines = {}
-	for i, row in ipairs(rows) do
-		lines[i] = (row_text(row, bufnr))
-	end
-
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-	vim.api.nvim_buf_clear_namespace(buf, -1, 0, -1)
-
-	local icon_bytes = math.max(#ICONS.on, #ICONS.off)
-	for i, row in ipairs(rows) do
-		local _, enabled = row_text(row, bufnr)
-		local hl = enabled and "DiagnosticOk" or "Comment"
-		vim.api.nvim_buf_add_highlight(buf, -1, hl, i - 1, 0, icon_bytes)
-	end
-end
-
----------------------------------------------------------------------
--- 帮助浮窗（按键映射）
----------------------------------------------------------------------
-local HELP = {
-	{ "<CR>", "切换选中行（启用/停用）" },
-	{ "R", "重启选中的 LSP" },
-	{ "r", "刷新附加状态" },
-	{ "j / k", "上下移动" },
-	{ "1-9", "直接切换对应行" },
-	{ "?", "显示/隐藏本帮助" },
-	{ "q / <Esc> / <Tab> / <C-s>", "关闭面板" },
-}
-
----@param parent_win integer|nil 关闭帮助后返回的窗口
-local function show_help(parent_win)
-	local hbuf = vim.api.nvim_create_buf(false, true)
-
-	local lines = {}
-	local width = 40
-	for _, kv in ipairs(HELP) do
-		local line = string.format("  %-30s %s", kv[1], kv[2])
-		table.insert(lines, line)
-		width = math.max(width, vim.fn.strdisplaywidth(line))
-	end
-	width = math.min(width + 4, 84)
-
-	local height = #lines + 2
-	-- 右下角（留 2 行/列边距）
-	local margin = 2
-	local col = math.max(0, vim.o.columns - width - margin)
-	local row = math.max(0, vim.o.lines - vim.o.cmdheight - height - margin)
-	local hwin = vim.api.nvim_open_win(hbuf, true, {
-		relative = "editor",
-		width = width,
-		height = height,
-		col = col,
-		row = row,
-		border = "rounded",
-		style = "minimal",
-		title = " LSP 面板 · 按键帮助 ",
-		title_pos = "center",
-		zindex = 200,
-	})
-
-	vim.api.nvim_buf_set_lines(hbuf, 0, -1, false, lines)
-	vim.bo[hbuf].modifiable = false
-	vim.bo[hbuf].bufhidden = "wipe"
-
-	-- 键位列用 Special，说明列用普通色
-	for i, kv in ipairs(HELP) do
-		vim.api.nvim_buf_add_highlight(hbuf, -1, "Special", i - 1, 2, 2 + #kv[1])
-	end
-
-	local function close_help()
-		pcall(vim.api.nvim_win_close, hwin, true)
-		if parent_win and vim.api.nvim_win_is_valid(parent_win) then
-			vim.api.nvim_set_current_win(parent_win)
-		end
-	end
-
-	for _, key in ipairs({ "q", "<Esc>", "?", "<CR>" }) do
-		vim.keymap.set("n", key, close_help, { buffer = hbuf, nowait = true })
-	end
+	return string.format("%s %-24s %s%s", icon, row.name, status, root)
 end
 
 ---------------------------------------------------------------------
@@ -203,15 +107,6 @@ local function stop_external(name, bufnr)
 end
 
 local function toggle_row(row, bufnr)
-	if row.kind == "global" then
-		if row.key == "lsp.diagnostics" then
-			actions.toggle_diagnostics(bufnr)
-		else
-			actions.toggle_inlay_hints(bufnr)
-		end
-		return
-	end
-
 	if row.configured then
 		servers.set_enabled(row.name, not servers.is_enabled(row.name, bufnr), bufnr)
 	else
@@ -219,131 +114,91 @@ local function toggle_row(row, bufnr)
 	end
 end
 
----------------------------------------------------------------------
--- 打开 / 关闭
----------------------------------------------------------------------
-function M.toggle()
-	if win_valid() then
-		close()
+local function restart_row(row, bufnr)
+	if not row then
 		return
 	end
-
-	local bufnr = vim.api.nvim_get_current_buf()
-	local rows = build_rows(bufnr)
-	if #rows <= 2 then
-		vim.notify("当前 buffer 没有可用的 LSP 服务器：" .. vim.bo[bufnr].filetype, vim.log.levels.WARN)
-		return
+	if row.configured then
+		servers.restart_server(row.name, bufnr)
+		vim.notify("重启 LSP: " .. row.name, vim.log.levels.INFO)
+	else
+		stop_external(row.name, bufnr)
 	end
+end
 
-	local buf = vim.api.nvim_create_buf(false, true)
-	local width = 64
-	local height = math.min(#rows + 2, 20)
+---------------------------------------------------------------------
+-- 面板
+---------------------------------------------------------------------
+local panel
 
-	local win = vim.api.nvim_open_win(buf, true, {
-		relative = "editor",
-		width = width,
-		height = height,
-		col = math.floor((vim.o.columns - width) / 2),
-		row = math.floor((vim.o.lines - height) / 2),
-		border = "rounded",
-		style = "minimal",
+local function ensure_panel(bufnr)
+	if panel then
+		return panel
+	end
+	local icon_bytes = math.max(#ICONS.on, #ICONS.off)
+	panel = float_list.new({
 		title = " LSP 控制面板 ",
-		title_pos = "center",
-	})
-
-	vim.bo[buf].modifiable = true
-	vim.bo[buf].bufhidden = "wipe"
-	panel.win, panel.buf = win, buf
-
-	local function cursor_line()
-		return vim.api.nvim_win_get_cursor(win)[1]
-	end
-
-	local function refresh()
-		if not win_valid() then
-			return
-		end
-		rows = build_rows(bufnr)
-		render(buf, rows, bufnr)
-	end
-
-	render(buf, rows, bufnr)
-
-	-- LSP 附加/断开是异步的：开关 server 后附加状态不会立刻变。
-	-- 面板开着时监听这两个事件，到了就重渲染。
-	local aug = vim.api.nvim_create_augroup("lsp_panel_refresh", { clear = true })
-	vim.api.nvim_create_autocmd({ "LspAttach", "LspDetach" }, {
-		group = aug,
-		callback = function(ev)
-			if ev.buf == bufnr then
-				vim.schedule(refresh)
+		width = 64,
+		height = function(n)
+			return n + 2
+		end,
+		max_height = 20,
+		close_when_empty = false,
+		rows = function()
+			return build_rows(bufnr)
+		end,
+		text = function(row)
+			return row_text(row, bufnr)
+		end,
+		highlights = function(row)
+			return { { row_enabled(row, bufnr) and "DiagnosticOk" or "Comment", 0, icon_bytes } }
+		end,
+		guard = function(rows)
+			if #rows == 0 then
+				return "当前 buffer 没有可用的 LSP 服务器：" .. vim.bo[bufnr].filetype
 			end
 		end,
-	})
-
-	local opts = { buffer = buf, nowait = true }
-
-	-- CR：切换选中行
-	vim.keymap.set("n", "<CR>", function()
-		local row = rows[cursor_line()]
-		if row then
+		enter = function(row, _, self)
 			toggle_row(row, bufnr)
-			render(buf, rows, bufnr)
+			self:refresh()
 			vim.schedule(vim.cmd.redrawstatus)
-		end
-	end, opts)
+		end,
+		on_number = function(row, _, self)
+			toggle_row(row, bufnr)
+			self:refresh()
+			vim.schedule(vim.cmd.redrawstatus)
+		end,
+		keymaps = {
+			{
+				"R",
+				function(self)
+					local idx = self:current()
+					if idx then
+						restart_row(self.items[idx], bufnr)
+					end
+				end,
+			},
+			{ "r", "refresh" },
+		},
+		help = HELP,
+		help_title = " LSP 面板 · 按键帮助 ",
+		close_keys = { q = "close", ["<Esc>"] = "close", ["<Tab>"] = "close", ["<C-s>"] = "close" },
+		-- LSP 附加/断开是异步的：开关 server 后附加状态不会立刻变。
+		refresh_events = { "LspAttach", "LspDetach" },
+		refresh_augroup = "lsp_panel_refresh",
+		refresh_filter = function(ev)
+			return ev.buf == bufnr
+		end,
+	})
+	return panel
+end
 
-	-- R：重启选中行
-	vim.keymap.set("n", "R", function()
-		local row = rows[cursor_line()]
-		if not row or row.kind ~= "server" then
-			return
-		end
-		if row.configured then
-			servers.restart_server(row.name, bufnr)
-			vim.notify("重启 LSP: " .. row.name, vim.log.levels.INFO)
-		else
-			stop_external(row.name, bufnr)
-		end
-	end, opts)
-
-	-- r：刷新（重算附加状态/根目录）
-	vim.keymap.set("n", "r", refresh, opts)
-
-	-- j/k：移动
-	vim.keymap.set("n", "j", function()
-		local c = cursor_line()
-		if c < #rows then
-			vim.api.nvim_win_set_cursor(win, { c + 1, 0 })
-		end
-	end, opts)
-	vim.keymap.set("n", "k", function()
-		local c = cursor_line()
-		if c > 1 then
-			vim.api.nvim_win_set_cursor(win, { c - 1, 0 })
-		end
-	end, opts)
-
-	-- 数字键：直接切换对应行
-	for i = 1, math.min(#rows, 9) do
-		vim.keymap.set("n", tostring(i), function()
-			local row = rows[i]
-			if row then
-				toggle_row(row, bufnr)
-				render(buf, rows, bufnr)
-			end
-		end, opts)
+function M.toggle()
+	-- 面板关闭后重建，避免跨 buffer 复用旧的 bufnr
+	if panel and not panel:is_open() then
+		panel = nil
 	end
-
-	-- ?：按键帮助
-	vim.keymap.set("n", "?", function()
-		show_help(win)
-	end, opts)
-
-	vim.keymap.set("n", "q", close, opts)
-	vim.keymap.set("n", "<Esc>", close, opts)
-	vim.keymap.set("n", "<Tab>", close, opts)
-	vim.keymap.set("n", "<C-s>", close, opts)
+	ensure_panel(vim.api.nvim_get_current_buf()):toggle()
 end
 
 ---注册用户命令

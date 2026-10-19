@@ -1,45 +1,129 @@
--- 导航模块聚合入口
--- 拆分为：settings（数据）、keymaps（数据）、errors（逻辑）、
--- smart_close（逻辑）、dispatch（分发器）
+-- 导航/窗口：buffer 快捷键 + buffer 设置 + 错误跳转 + 智能关闭 + 窗口尺寸守卫
+-- 对外接口：setup()、smart_close(win)、_repeat_jump_callback（operatorfunc 用）
 local M = {}
 
--- 数据
-M.settings = require("core.navigation.settings")
-M.buf_keymaps = require("core.navigation.keymaps")
-
--- 错误跳转
-local errors = require("core.navigation.errors")
-M.error_patterns = errors.error_patterns
-M.get_error_lines = errors.get_error_lines
-M.next_error = errors.next_error
-M.prev_error = errors.prev_error
-M.next_error_repeatable = errors.next_error_repeatable
-M.prev_error_repeatable = errors.prev_error_repeatable
-M._repeat_jump_callback = errors._repeat_jump_callback
-
--- 智能关闭
-M.smart_close = require("core.navigation.smart_close").smart_close
-
--- 命令分发
-M.dispatch_command = require("core.navigation.dispatch").dispatch_command
-
--- 窗口尺寸守卫：关窗时把被撑大的 winfix 窗口塞回原尺寸
-M.winfix_guard = require("core.navigation.winfix_guard")
-
 local api = vim.api
+local handlers = require("core.navigation.handlers")
 
---- 为当前 buffer 应用快捷键映射（数据来自 buf_keymaps）。
+--- 数据：filetype/buftype -> buffer 局部设置
+--- size 声明窗口期望尺寸，布局变化后由 winfix_guard 维持。
+M.settings = {
+	["dap-repl"] = {
+		setup = function()
+			vim.opt_local.confirm = false
+			vim.opt.buflisted = false
+		end,
+	},
+	["neotest-output"] = {
+		setup = function()
+			vim.opt_local.winfixbuf = true
+			vim.opt.buflisted = false
+		end,
+	},
+	["sqmeow-drawer"] = {
+		size = function()
+			local ok, width = pcall(function()
+				return require("sqmeow.config").get().ui.drawer.width
+			end)
+			return { width = ok and width or 42 }
+		end,
+	},
+	["sqmeow-result"] = {
+		size = function()
+			local ok, height = pcall(function()
+				return require("sqmeow.config").get().ui.result.height
+			end)
+			return { height = ok and height or 16 }
+		end,
+	},
+}
+
+--- 数据：按键 -> { filetype/buftype -> { cmd = 命令字符串|function, desc } }
+--- 特殊命令（由 dispatch_command 解析）：next_error / prev_error /
+--- next_error_repeatable / prev_error_repeatable / smart_close
+M.buf_keymaps = {
+	-- 关闭窗口（q 键）
+	["q"] = {
+		help = { cmd = "quit", desc = "关闭帮助窗口" },
+		man = { cmd = "quit", desc = "关闭 man 窗口" },
+		msgmore = { cmd = "quit", desc = "关闭消息窗口" },
+		FunctionReferences = { cmd = "quit", desc = "关闭引用窗口" },
+		checkhealth = { cmd = "close", desc = "关闭健康检查" },
+		better_term = { cmd = "close", desc = "关闭终端" },
+		["grug-far"] = { cmd = "bdelete", desc = "关闭搜索替换" },
+		git = { cmd = "bdelete", desc = "关闭 git 窗口" },
+		["dap-repl"] = { cmd = "close", desc = "关闭 DAP REPL" },
+		["dap-float"] = { cmd = "close", desc = "关闭 DAP 浮动窗" },
+		["dap-view-term"] = { cmd = "close", desc = "关闭 DAP 终端" },
+		["dap-view"] = { cmd = "DapViewClose", desc = "关闭 DAP 视图" },
+		["gitsigns-blame"] = { cmd = "bdelete!", desc = "关闭 blame" },
+		terminal = { cmd = "bdelete", desc = "关闭终端" },
+		["nvim-undotree"] = { cmd = "close", desc = "关闭 undotree" },
+		["vscode-diff-explorer"] = { cmd = "tabclose", desc = "关闭 diff" },
+		OverseerOutput = { cmd = "close", desc = "关闭任务输出" },
+		["neotest-summary"] = { cmd = "close", desc = "关闭测试摘要" },
+		["neotest-output"] = { cmd = "close", desc = "关闭测试输出" },
+		["neotest-output-panel"] = { cmd = "close", desc = "关闭测试输出面板" },
+	},
+
+	-- 错误跳转：下一个（]d），用 repeatable 版本支持 . 重复
+	["]d"] = {
+		["better_term"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+		["neotest-output"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+		["neotest-output-panel"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+	},
+
+	-- 错误跳转：上一个（[d）
+	["[d"] = {
+		["better_term"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
+		["neotest-output"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
+		["neotest-output-panel"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
+	},
+}
+
+-- 错误跳转 API（operatorfunc 里按模块名引用，所以要在本模块上保留）
+M.error_patterns = handlers.error_patterns
+M.get_error_lines = handlers.get_error_lines
+M.next_error = handlers.next_error
+M.prev_error = handlers.prev_error
+M.next_error_repeatable = handlers.next_error_repeatable
+M.prev_error_repeatable = handlers.prev_error_repeatable
+M._repeat_jump_callback = handlers._repeat_jump_callback
+
+function M.smart_close(target_win)
+	handlers.smart_close(target_win, M.buf_keymaps["q"])
+end
+
+--- 把 cmd 字符串/函数分发到对应逻辑
+local function dispatch_command(cmd)
+	if cmd == "next_error" then
+		handlers.next_error()
+	elseif cmd == "prev_error" then
+		handlers.prev_error()
+	elseif cmd == "next_error_repeatable" then
+		handlers.next_error_repeatable()
+	elseif cmd == "prev_error_repeatable" then
+		handlers.prev_error_repeatable()
+	elseif cmd == "smart_close" then
+		M.smart_close()
+	elseif type(cmd) == "function" then
+		cmd()
+	else
+		pcall(vim.cmd, cmd)
+	end
+end
+
+--- 为当前 buffer 应用快捷键映射（数据来自 buf_keymaps）
 local function apply_keymaps()
 	local ft = vim.bo.filetype
 	local bt = vim.bo.buftype
 	local bufname = vim.fn.bufname("%")
 	local applied = vim.b.keymaps_applied or {}
 
-	-- 确定当前窗口的类型标识（优先级：filetype > buftype）
+	-- 窗口类型标识：filetype 优先，其次 buftype
 	local buf_type = ft ~= "" and ft or bt
 
 	for key, type_configs in pairs(M.buf_keymaps) do
-		-- 跳过已映射的按键
 		if not applied[key] then
 			local config = type_configs[buf_type]
 
@@ -49,16 +133,14 @@ local function apply_keymaps()
 
 			if config and config.cmd then
 				local cmd = config.cmd
-				local desc = config.desc or ("映射: " .. key)
-
 				vim.keymap.set("n", key, function()
-					M.dispatch_command(cmd)
+					dispatch_command(cmd)
 				end, {
 					buffer = true,
 					silent = true,
 					noremap = true,
 					nowait = true,
-					desc = desc,
+					desc = config.desc or ("映射: " .. key),
 				})
 
 				applied[key] = true
@@ -69,7 +151,7 @@ local function apply_keymaps()
 	vim.b.keymaps_applied = applied
 end
 
---- 按 settings 表应用 buffer 局部设置。
+--- 按 settings 表应用 buffer 局部设置
 local function apply_settings(args)
 	local buf = args.buf
 	local ft = vim.bo[buf].filetype
@@ -81,7 +163,7 @@ local function apply_settings(args)
 	end
 end
 
---- 注册导航/窗口相关的 autocmd 与守卫。由 init.lua 调用。
+--- 注册 autocmd 与窗口尺寸守卫。由 init.lua 调用。
 function M.setup()
 	api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 		group = api.nvim_create_augroup("CustomKeyMappings", { clear = true }),
@@ -95,7 +177,7 @@ function M.setup()
 		callback = apply_settings,
 	})
 
-	M.winfix_guard.setup()
+	require("core.navigation.winfix_guard").setup(nil, M.settings)
 end
 
 return M

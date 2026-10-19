@@ -4,7 +4,9 @@
 --   没有对应预编译包时回退 `cargo build`（需本机有 Rust）。
 -- 键位统一收纳在 <leader>g 分组（数据库操作较常用，占用空格前缀；原 grug-far 让位到 <localleader>g）。
 return {
-	-- 本地 fork：修复 E95（scratch 同名 buffer 复用），上游合并后切回 "2giosangmitom/sqmeow.nvim"
+	"2giosangmitom/sqmeow.nvim",
+	-- 本地 fork：sticky header 样式改过（border=none + NormalFloat→Normal），
+	-- 用 dir 指向本地仓库，改完 commit 后 `:PackLocalSync` 同步到 pack 副本。
 	dir = "~/neovim-plugins/sqmeow.nvim",
 	dependencies = { "MunifTanjim/nui.nvim" },
 	cmd = "Sqmeow",
@@ -38,7 +40,13 @@ return {
 		require("sqmeow").setup({
 			ui = {
 				drawer = { position = "right", width = 42 },
-				result = { height = 16, page_size = 100, max_column_width = 48 },
+				result = {
+					height = 16,
+					page_size = 100,
+					max_column_width = 48,
+					-- 列名行一滚出屏幕就用 1 行浮窗钉住它（分隔线不管，会被盖住；代价是盖住 1 行数据）。
+					sticky_header = true,
+				},
 				persist_session = false,
 			},
 			query = {

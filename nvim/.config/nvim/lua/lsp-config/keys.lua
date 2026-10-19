@@ -10,7 +10,10 @@ local servers = require("lsp-config.servers")
 function M.attach(bufnr)
 	local keymaps = {
 		{ "gro", actions.open_docs, "LSP: open external docs" },
-		{ "gO", actions.run_code_lens, "LSP: run code lens (e.g. ▶ Run Test)" },
+		-- 不用 gO：Neovim 0.11+ 内建 gO = vim.lsp.buf.document_symbol()（符号大纲），
+		-- code lens 用内建约定的 grx（这里覆盖成我们自己的实现，以正确处理 above 布局的
+		-- 虚拟行偏移；内建 vim.lsp.codelens.run 在光标停在透镜那一屏行时取不到条目）。
+		{ "grx", actions.run_code_lens, "LSP: run code lens (e.g. ▶ Run Test)" },
 		{ "grd", actions.open_buffer_diagnostics, "LSP: buffer diagnostics" },
 		{ "grD", actions.open_all_diagnostics, "LSP: workspace diagnostics" },
 		{ "<leader>rtd", actions.toggle_diagnostics, "LSP: toggle diagnostics" },

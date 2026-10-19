@@ -81,7 +81,7 @@ end
 -- 文档 / 复制 / 日志 / code lens
 ---------------------------------------------------------
 function M.open_docs()
-	require("lsp-config.external_docs").open_docs()
+	require("lsp-config.features.external_docs").open_docs()
 end
 
 function M.copy_diagnostics()
@@ -92,18 +92,27 @@ function M.open_lsp_log()
 	vim.cmd("tabnew " .. vim.lsp.log.get_filename())
 end
 
----运行光标处 code lens（处理 lens 文字渲染在函数上方一行的偏移）
+---运行光标处 code lens（透镜由 features/code_lens.lua 自己渲染，直接执行它记录的那条命令）
 function M.run_code_lens()
-	local bufnr = vim.api.nvim_get_current_buf()
-	local row = vim.api.nvim_win_get_cursor(0)[1] -- 1-based
-	-- 本模块自己渲染透镜，不经过 vim.lsp.codelens 的 provider 缓存，故用它的状态判断
-	local cl = require("lsp-config.features.code_lens")
-
-	-- above：透镜渲染在函数上方一行；若光标“实际”停在文字所在行（下一行才是函数），下移再执行
-	if cl.placement() == "above" and not cl.lens_on_line(bufnr, row) and cl.lens_on_line(bufnr, row + 1) then
-		vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
+	if require("lsp-config.features.code_lens").run_at_cursor() then
+		return
 	end
-	vim.lsp.codelens.run()
+	-- 不退回 vim.lsp.codelens.run()：内置缓存会拿到 server 给的「空命令」透镜，
+	-- 送进 Client:exec_cmd 就报 `does not support command ``` 且什么也不做。
+	-- 服务器本来就不提供透镜（如 lua-language-server 的 codeLens 永远返回 null）时，
+	-- 只提示一句，不自作主张用 references 之类去补。
+	local bufnr = vim.api.nvim_get_current_buf()
+	local names = {}
+	for _, c in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+		names[#names + 1] = c.name
+	end
+	vim.notify(
+		string.format(
+			"No runnable code lens on this line (%s)",
+			#names > 0 and ("server: " .. table.concat(names, ", ")) or "no LSP client attached"
+		),
+		vim.log.levels.INFO
+	)
 end
 
 return M

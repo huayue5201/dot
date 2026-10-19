@@ -122,7 +122,7 @@ vim.keymap.set("n", "<leader>lwa", function()
 end, { silent = true, desc = "工作区: 切换到上一个 tab" })
 vim.keymap.set("n", "<leader>lta", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
--- 🌐 Upstream 状态（fork-upstream，属于 <leader>h git 分组）
+-- 🌐 Upstream 状态（git-config.fork-upstream，属于 <leader>h git 分组）
 vim.keymap.set("n", "<leader>hu", "<cmd>ForkUpstream<cr>", { silent = true, desc = "Upstream: 检查上游更新（fetch + 详情）" })
 vim.keymap.set("n", "<leader>hU", "<cmd>ForkUpstreamFix<cr>", { silent = true, desc = "Upstream: 自动补 upstream 远端" })
 

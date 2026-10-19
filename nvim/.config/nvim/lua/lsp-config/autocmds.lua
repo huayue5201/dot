@@ -202,6 +202,13 @@ local function setup_lsp_attach()
 			-- 应用当前缓冲区的持久化设置
 			apply_buffer_settings(bufnr)
 
+			-- 索引未完成时首次请求会回空，defer 兜底补取一次（不依赖 server 发 progress）
+			vim.defer_fn(function()
+				if M.refresh_after_ready then
+					M.refresh_after_ready(client.id)
+				end
+			end, 3000)
+
 			-- 文档颜色
 			if client:supports_method("textDocument/colorProvider") then
 				vim.lsp.document_color.enable(true, {
@@ -230,6 +237,81 @@ local function setup_lsp_attach()
 end
 
 ---------------------------------------------------------
+-- server 就绪后补取内联提示 / 代码透镜
+---------------------------------------------------------
+-- 问题：LspAttach 时 server 往往还没建完索引，首次 textDocument/inlayHint 与
+-- textDocument/codeLens 请求会拿到空结果，而 Neovim 不会自动重试。表现为：打开 rust
+-- 文件后内联提示、代码透镜是关闭状态，直到某次插入模式切换/写入触发新的请求。
+-- 这里监听 $/progress 的 end 事件（rust-analyzer 的 Indexing / Roots Scanned 等），
+-- 把空结果补取一次；再加一个 defer 兜底，防止 server 根本不发 progress。
+local function setup_ready_refresh()
+	local group = vim.api.nvim_create_augroup("UserLspReadyRefresh", { clear = true })
+	local timers = {}
+
+	--- 仅在“本该有内容却没有”时重取，避免反复请求
+	---@param bufnr integer
+	local function refresh_buffer(bufnr)
+		if not vim.api.nvim_buf_is_valid(bufnr) then
+			return
+		end
+
+		if vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }) then
+			local ok, hints = pcall(vim.lsp.inlay_hint.get, { bufnr = bufnr })
+			if not (ok and #hints > 0) then
+				-- 插入模式下不重新开启（由 inlay hint 的 InsertEnter/InsertLeave 管理）
+				local inserting = bufnr == vim.api.nvim_get_current_buf()
+					and vim.api.nvim_get_mode().mode:sub(1, 1) == "i"
+				vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
+				if not inserting then
+					vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+					buffer_states[bufnr] = buffer_states[bufnr] or {}
+					buffer_states[bufnr].inlay_hint_enabled = true
+				end
+			end
+		end
+
+		local ok, code_lens = pcall(require, "lsp-config.features.code_lens")
+		if ok then
+			code_lens.schedule_refresh(bufnr)
+		end
+	end
+
+	--- 对某个 client 的所有 buffer 做一次补取（同一 client 去抖）
+	---@param client_id integer
+	local function refresh_client(client_id)
+		if timers[client_id] then
+			return
+		end
+		timers[client_id] = true
+		vim.defer_fn(function()
+			timers[client_id] = nil
+			local client = vim.lsp.get_client_by_id(client_id)
+			if not client then
+				return
+			end
+			for bufnr in pairs(client.attached_buffers or {}) do
+				refresh_buffer(bufnr)
+			end
+		end, 200)
+	end
+
+	M.refresh_after_ready = refresh_client
+
+	vim.api.nvim_create_autocmd("LspProgress", {
+		group = group,
+		desc = "server 索引进度结束时补取内联提示/代码透镜",
+		callback = function(args)
+			local data = args.data or {}
+			local value = data.params and data.params.value
+			if not value or value.kind ~= "end" or not data.client_id then
+				return
+			end
+			refresh_client(data.client_id)
+		end,
+	})
+end
+
+---------------------------------------------------------
 -- 注册全部 autocmd
 ---------------------------------------------------------
 function M.setup()
@@ -241,6 +323,9 @@ function M.setup()
 
 	-- 设置变化监听器
 	setup_settings_watcher()
+
+	-- server 索引完成后补取内联提示 / 代码透镜
+	setup_ready_refresh()
 
 	-- 调试状态变化时重新应用所有已知 buffer 的设置
 	ctx.on_debug_change(function(active)

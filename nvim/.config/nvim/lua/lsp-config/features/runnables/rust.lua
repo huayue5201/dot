@@ -17,6 +17,9 @@
 
 local M = {}
 
+local location_util = require("lsp-config.features.runnables.locations")
+local lsp_request = require("core.lsp-request")
+
 local function notify(msg, level)
 	vim.notify(msg, level or vim.log.levels.INFO)
 end
@@ -234,12 +237,12 @@ end
 ---@param bufnr integer
 ---@param cb fun(runnables: table[])
 local function request_runnables(client, bufnr, cb)
-	client:request("experimental/runnables", {
+	-- 超时/失败由 lsp-request 统一提示（notify = true）
+	lsp_request.request(client, "experimental/runnables", {
 		textDocument = vim.lsp.util.make_text_document_params(bufnr),
 		position = nil, -- 取全部
-	}, function(err, result)
+	}, { bufnr = bufnr, what = "获取 runnables", notify = true }, function(result, err)
 		if err then
-			notify("获取 runnables 失败: " .. tostring(err), vim.log.levels.ERROR)
 			return
 		end
 		if not result or #result == 0 then
@@ -247,7 +250,7 @@ local function request_runnables(client, bufnr, cb)
 			return
 		end
 		cb(result)
-	end, bufnr)
+	end)
 end
 
 ---返回光标所在位置的 runnable（找不到则回退第一个）
@@ -316,6 +319,26 @@ function M.debuggables(client, bufnr)
 	end)
 end
 
+---处理 rust-analyzer.showReferences：把引用列表放进 quickfix（单个引用直接跳）
+---参数：arguments = { uri | {uri=...}, position, locations[] }
+---解析/展示统一交给 features/runnables/locations.lua（与 clangd 等共用同一套逻辑）
+---@param command table
+local function show_references(command)
+	local locations, target_uri = location_util.extract(command.arguments)
+	if #locations == 0 then
+		notify("没有引用", vim.log.levels.INFO)
+		return
+	end
+	local title = "References"
+	if target_uri then
+		local okf, fname = pcall(vim.uri_to_fname, target_uri)
+		if okf and fname then
+			title = ("References of %s"):format(vim.fs.basename(fname))
+		end
+	end
+	location_util.show(locations, title)
+end
+
 -- 由通用分发层 features/runnables.lua 注册：命令名 -> 处理器
 M.commands = {
 	["rust-analyzer.runSingle"] = function(command)
@@ -323,6 +346,9 @@ M.commands = {
 	end,
 	["rust-analyzer.debugSingle"] = function(command, bufnr)
 		M.debug_runnable((command.arguments or {})[1], bufnr)
+	end,
+	["rust-analyzer.showReferences"] = function(command)
+		show_references(command)
 	end,
 }
 
