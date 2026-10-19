@@ -68,11 +68,10 @@ function M.declare(key, size)
 	declared[key] = size
 end
 
---- 从 core.navigation.settings 读取所有带 size 的条目。
-local function load_declared()
+--- 从传入的 settings 表读取所有带 size 的条目（由 core.navigation.setup 传入）。
+local function load_declared(settings)
 	declared = {}
-	local ok, settings = pcall(require, "core.navigation.settings")
-	if not ok then
+	if type(settings) ~= "table" then
 		return
 	end
 	for key, cfg in pairs(settings) do
@@ -124,9 +123,20 @@ local function has_elastic(tab, dim)
 	return false
 end
 
+--- 同一个 buffer 同时开在多个窗口里（典型是冻结表头：同一 buffer 拆出两行辅助窗口）时，
+--- 声明尺寸该给哪个窗口没有答案，索性不碰：否则辅助窗口会被撑成主体尺寸，内容重复显示。
+---@param win integer
+---@return boolean
+local function shared(win)
+	return #vim.fn.win_findbuf(api.nvim_win_get_buf(win)) > 1
+end
+
 --- 某个窗口的期望尺寸：override 优先，其次声明值。
 ---@return integer|nil width, integer|nil height
 local function desired(win)
+	if shared(win) then
+		return nil
+	end
 	local ov = override[win] or {}
 	local size = declared[key_of(win)] and resolve(declared[key_of(win)]) or {}
 	return ov.w or size.width, ov.h or size.height
@@ -160,7 +170,7 @@ end
 local function learn()
 	for _, tab in ipairs(api.nvim_list_tabpages()) do
 		for _, win in ipairs(api.nvim_tabpage_list_wins(tab)) do
-			if real(win) and declared[key_of(win)] then
+			if real(win) and declared[key_of(win)] and not shared(win) then
 				local prev = last[win]
 				if prev then
 					local w, h = api.nvim_win_get_width(win), api.nvim_win_get_height(win)
@@ -205,13 +215,14 @@ local function enforce()
 end
 
 ---@param opts { settle_ms?: integer, hint_ms?: integer }|nil
-function M.setup(opts)
+---@param settings? table 带 size 的条目（core.navigation.settings）
+function M.setup(opts, settings)
 	for k, v in pairs(opts or {}) do
 		if config[k] ~= nil then
 			config[k] = v
 		end
 	end
-	load_declared()
+	load_declared(settings)
 
 	local group = api.nvim_create_augroup("WinfixGuard", { clear = true })
 
