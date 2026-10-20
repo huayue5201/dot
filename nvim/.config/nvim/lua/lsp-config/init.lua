@@ -10,9 +10,11 @@
 --   features/     单个 LSP 能力的客户端实现（每个 feature 保持自包含，由 autocmds 挂接）
 --     code_lens.lua          渲染 + 鼠标交互 + 执行
 --     rust_macro_preview.lua rust-analyzer 宏展开预览
+--     rust_ssr.lua           rust-analyzer 结构化搜索替换（experimental/ssr）
 --     runnables.lua          可运行目标执行（子目录 runnables/<lang>.lua 按语言分发）
 --     utf8_guard.lua         非法 UTF-8 广播守卫
 --     external_docs.lua      外部文档（gro）
+--     hover_scroll.lua       LSP hover 浮窗滚动（不进入浮窗）
 local M = {}
 
 function M.setup()
@@ -20,6 +22,7 @@ function M.setup()
 	require("lsp-config.diagnostics").setup() -- 诊断 UI
 	require("lsp-config.autocmds").setup() -- 所有 autocmd（含 FileType 启停 / LspAttach）
 	require("lsp-config.keys").global() -- 全局按键映射
+	require("lsp-config.features.hover_scroll").setup() -- hover 浮窗不进入也能滚
 	require("lsp-config.panel").setup() -- :LspPanel 控制面板命令
 end
 

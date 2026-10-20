@@ -23,7 +23,7 @@ return {
 				split_percent = 0.5,
 				---@type "adaptive"|number
 				--- adaptive: same width as tree window (default)
-				width = vim.o.columns * 1,
+				width = "adaptive",
 				--- integer >= 1: absolute width
 				--- Note that non-adaptive values create a float diff window anchored to a hidden
 				--- dummy split window. this is an implementation detail that may cause

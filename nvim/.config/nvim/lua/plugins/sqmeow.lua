@@ -5,9 +5,9 @@
 -- 键位统一收纳在 <leader>g 分组（数据库操作较常用，占用空格前缀；原 grug-far 让位到 <localleader>g）。
 return {
 	"2giosangmitom/sqmeow.nvim",
-	-- 本地 fork：sticky header 样式改过（border=none + NormalFloat→Normal），
-	-- 用 dir 指向本地仓库，改完 commit 后 `:PackLocalSync` 同步到 pack 副本。
-	dir = "~/neovim-plugins/sqmeow.nvim",
+	-- 上游已合并 sticky header（PR #94），日常直接用上游源。
+	-- 本地仓库 ~/neovim-plugins/sqmeow.nvim 只用于开发/提 PR；要临时试本地改动时，
+	-- 再加回 dir = "~/neovim-plugins/sqmeow.nvim" 并 :PackLocalSync，试完删掉。
 	dependencies = { "MunifTanjim/nui.nvim" },
 	cmd = "Sqmeow",
 	keys = {

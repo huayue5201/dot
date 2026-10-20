@@ -7,8 +7,6 @@ return {
 	config = function()
 		local flatten = require("flatten")
 
-		-- 保存 toggleterm 终端引用的变量
-		local saved_terminal = nil
 
 		flatten.setup({
 			-- ========== 窗口设置 ==========
@@ -48,24 +46,10 @@ return {
 					return vim.list_contains(argv, "-b")
 				end,
 
-				-- 打开文件前：保存当前 toggleterm 终端
-				pre_open = function()
-					local ok, term = pcall(require, "toggleterm.terminal")
-					if ok then
-						local termid = term.get_focused_id()
-						if termid then
-							saved_terminal = term.get(termid)
-						end
-					end
-				end,
-
-				-- 打开文件后：处理终端关闭和 git 文件自动删除
+				-- 打开文件后：git 文件自动删除
 				post_open = function(opts)
-					-- 如果是阻塞模式且有保存的终端，关闭它
-					if opts.is_blocking and saved_terminal then
-						saved_terminal:close()
-					else
-						-- 非阻塞模式，聚焦到文件窗口
+					-- 非阻塞模式，聚焦到文件窗口
+					if not opts.is_blocking then
 						vim.api.nvim_set_current_win(opts.winnr)
 					end
 
@@ -81,16 +65,6 @@ return {
 							end,
 						})
 					end
-				end,
-
-				-- 阻塞结束后：重新打开之前关闭的终端
-				block_end = function()
-					vim.schedule(function()
-						if saved_terminal then
-							saved_terminal:open()
-							saved_terminal = nil
-						end
-					end)
 				end,
 
 				-- 无文件时的行为

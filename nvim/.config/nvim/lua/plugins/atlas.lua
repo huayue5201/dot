@@ -5,7 +5,8 @@ return {
 	event = "VeryLazy",
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
-		"esmuellert/codediff.nvim",
+		-- 不需要 codediff：atlas 用自己的 AtlasDiff（见下面 pulls.diff.open_cmd），
+		-- codediff 另有独立 spec（lua/plugins/codediff.lua）
 	},
 	config = function()
 		require("atlas").setup({

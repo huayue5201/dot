@@ -100,8 +100,10 @@ return {
 				local buf = args.buf
 				local winid = vim.api.nvim_get_current_win()
 				vim.treesitter.start(buf)
-				vim.wo[winid].foldexpr = "v:lua.vim.treesitter.foldexpr()"
-				vim.wo[winid].foldmethod = "expr"
+				-- 折叠用 manual：不再每编辑重算 treesitter foldexpr（2720 行实测 1.08ms/edit
+				-- vs manual 0.21ms）。代价：不再自动按函数折叠，需要时用 zf/zF 手建，
+				-- zc/zo/za/zR/zM 仍可用。
+				vim.wo[winid].foldmethod = "manual"
 				vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
 			end,
 		})

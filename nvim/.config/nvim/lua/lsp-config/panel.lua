@@ -4,20 +4,44 @@
 -- 交互（浮窗/按键/刷新）由 core.float-list 提供；本文件只负责行内容与行内动作。
 --
 -- 面板内容（针对当前 buffer）：
---   1) 当前文件类型「已配置」的 LSP 服务器（来自 lsp/*.lua）
---   2) 当前 buffer「已附加」但不在配置里的 LSP（插件托管的，如 rustowl）—— 标 (外部)
+--   1) 功能开关（项目级持久化）：诊断 / 内联提示
+--   2) 当前文件类型「已配置」的 LSP 服务器（来自 lsp/*.lua）
+--   3) 当前 buffer「已附加」但不在配置里的 LSP（插件托管的，如 rustowl）—— 标 (外部)
 --
--- 诊断 / 内联提示的开关不再放进来（内建一行即可）：
---   vim.diagnostic.enable(false, { bufnr = 0 })
---   vim.lsp.inlay_hint.enable(false, { bufnr = 0 })
+-- 功能开关也保留了快捷键：<leader>rtd（诊断）/ <leader>rti（内联提示）。
 
 local M = {}
 
 local registry = require("lsp-config.registry")
 local servers = require("lsp-config.servers")
+local state = require("lsp-config.state")
 local float_list = require("core.float-list")
 
 local ICONS = { on = "✓ ", off = "○ " }
+
+-- 功能开关：项目级持久化在 nvim-store3，切完立即作用到当前 buffer
+local FEATURES = {
+	{
+		key = "lsp.diagnostics",
+		label = "诊断",
+		enabled = function(bufnr)
+			return vim.diagnostic.is_enabled({ bufnr = bufnr })
+		end,
+		apply = function(on, bufnr)
+			vim.diagnostic.enable(on, { bufnr = bufnr })
+		end,
+	},
+	{
+		key = "lsp.inlay_hints",
+		label = "内联提示",
+		enabled = function(bufnr)
+			return vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr })
+		end,
+		apply = function(on, bufnr)
+			vim.lsp.inlay_hint.enable(on, { bufnr = bufnr })
+		end,
+	},
+}
 
 local HELP = {
 	{ "<CR>", "切换选中行（启用/停用）" },
@@ -34,6 +58,11 @@ local HELP = {
 ---------------------------------------------------------------------
 local function build_rows(bufnr)
 	local rows = {}
+
+	-- 功能开关（诊断 / 内联提示）置顶，回车即切
+	for _, feature in ipairs(FEATURES) do
+		rows[#rows + 1] = { kind = "feature", feature = feature, name = feature.label }
+	end
 
 	-- 已配置（lsp/*.lua）的 server
 	local configured = {}
@@ -59,6 +88,9 @@ local function clients_for(name, bufnr)
 end
 
 local function row_enabled(row, bufnr)
+	if row.kind == "feature" then
+		return row.feature.enabled(bufnr)
+	end
 	if row.configured then
 		return servers.is_enabled(row.name, bufnr)
 	end
@@ -69,6 +101,10 @@ end
 local function row_text(row, bufnr)
 	local enabled = row_enabled(row, bufnr)
 	local icon = enabled and ICONS.on or ICONS.off
+
+	if row.kind == "feature" then
+		return string.format("%s %-24s %s", icon, row.feature.label, enabled and "已开启" or "已关闭")
+	end
 
 	local clients = clients_for(row.name, bufnr)
 	local attached = #clients > 0
@@ -107,6 +143,13 @@ local function stop_external(name, bufnr)
 end
 
 local function toggle_row(row, bufnr)
+	if row.kind == "feature" then
+		-- 写进项目 store（下次打开同项目保持），同时立即作用到当前 buffer
+		local new = state.toggle(row.feature.key, bufnr)
+		row.feature.apply(new, bufnr)
+		vim.notify(string.format("%s：%s", row.feature.label, new and "开" or "关"), vim.log.levels.INFO)
+		return
+	end
 	if row.configured then
 		servers.set_enabled(row.name, not servers.is_enabled(row.name, bufnr), bufnr)
 	else
@@ -115,7 +158,7 @@ local function toggle_row(row, bufnr)
 end
 
 local function restart_row(row, bufnr)
-	if not row then
+	if not row or row.kind == "feature" then
 		return
 	end
 	if row.configured then

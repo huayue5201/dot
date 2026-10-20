@@ -14,9 +14,11 @@ return {
 		},
 	},
 	config = function()
-		-- sql 预置为「慢 formatter」：sqlfluff 是 Python CLI，启动+解析通常 >200ms，
-		-- 直接走 format_after_save 异步，避免首次保存被 200ms 超时打断。
-		local slow_format_filetypes = { sql = true }
+		-- 慢 formatter 走 format_after_save 异步路径，避免保存被阻塞：
+		-- - sql：sqlfluff 是 Python CLI，启动+解析通常 >200ms
+		-- - rust：rustfmt 在大型 crate 上经常超过 200ms（实测保存总耗时 ~390ms）
+		-- 注意：异步格式化发生在写盘之后，格式化完 buffer 会重新变成 modified，需再存一次
+		local slow_format_filetypes = { sql = true, rust = true }
 		require("conform").setup({
 			-- Define your formatters
 			formatters_by_ft = {
@@ -36,6 +38,8 @@ return {
 				-- markdown = { "prettier" }, -- 若装了 prettier，可改为整体格式化 markdown（含表格/列表换行）
 				-- https://github.com/sqlfluff/sqlfluff
 				sql = { "sqlfluff" },
+				-- 通配：所有 filetype 保存时顺带清理行尾空格（替代原来的 BufWritePre %s 全量替换）
+				["*"] = { "trim_whitespace" },
 			},
 			-- Set up format-on-save
 			format_on_save = function(bufnr)

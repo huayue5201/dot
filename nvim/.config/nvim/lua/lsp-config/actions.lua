@@ -46,12 +46,59 @@ end
 ---------------------------------------------------------
 -- 诊断 Quickfix / Loclist
 ---------------------------------------------------------
-function M.open_all_diagnostics()
+local WORKSPACE_QF_TITLE = "Project Diagnostics"
+
+local function show_project_qflist(open)
 	vim.diagnostic.setqflist({
-		open = true,
-		title = "Project Diagnostics",
+		open = open,
+		title = WORKSPACE_QF_TITLE,
 		severity = { min = vim.diagnostic.severity.WARN },
 	})
+end
+
+--- 显式请求 workspace 级诊断（默认不再于 LspAttach 时扫描）
+--- rust-analyzer 的 workspace/diagnostic 会触发全项目检查，代价很高，
+--- 所以改成只由 `grD` 触发；结果分批返回，在 8 秒窗口内随诊断变化刷新 quickfix，
+--- 这样仍然是「一键看到项目诊断」，只是不再每次打开文件都扫一遍。
+function M.open_all_diagnostics()
+	local bufnr = vim.api.nvim_get_current_buf()
+	local clients = vim.lsp.get_clients({ bufnr = bufnr, method = "workspace/diagnostic" })
+
+	if #clients == 0 then
+		show_project_qflist(true)
+		return
+	end
+
+	for _, client in ipairs(clients) do
+		vim.lsp.buf.workspace_diagnostics({ client_id = client.id })
+	end
+
+	local group = vim.api.nvim_create_augroup("UserWorkspaceDiagnosticsQf", { clear = true })
+	local timer = vim.uv.new_timer()
+
+	local function stop()
+		if timer then
+			timer:stop()
+			if not timer:is_closing() then
+				timer:close()
+			end
+			timer = nil
+		end
+		pcall(vim.api.nvim_del_augroup_by_id, group)
+	end
+
+	vim.api.nvim_create_autocmd("DiagnosticChanged", {
+		group = group,
+		callback = function()
+			vim.schedule(function()
+				show_project_qflist(false)
+			end)
+		end,
+	})
+
+	timer:start(8000, 0, vim.schedule_wrap(stop))
+	show_project_qflist(true)
+	vim.notify("workspace diagnostics: scanning...", vim.log.levels.INFO)
 end
 
 function M.open_buffer_diagnostics()

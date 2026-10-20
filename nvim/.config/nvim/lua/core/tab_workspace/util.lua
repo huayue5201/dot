@@ -33,9 +33,14 @@ function M.is_float_win(win)
 	return vim.api.nvim_win_get_config(win).relative ~= ""
 end
 
---- resession 是否正在加载会话（加载期间不要 relist / 抢归属）。
+--- 是否正在加载会话（resession 或 mksession/`：restart` 的 SessionLoad）。
+--- 加载期间不要 relist / 抢归属 / 删 buffer。
 ---@return boolean
 function M.resession_loading()
+	-- `:restart` 用 mksession 生成临时会话后 source，脚本开头 `let SessionLoad = 1`
+	if vim.g.SessionLoad == 1 then
+		return true
+	end
 	local ok, resession = pcall(require, "resession")
 	return ok and resession.is_loading()
 end

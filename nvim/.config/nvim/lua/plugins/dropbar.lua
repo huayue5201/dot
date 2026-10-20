@@ -16,6 +16,34 @@ return {
 				win_configs = {
 					border = "rounded",
 				},
+				-- 上游默认的 <LeftMouse> 处理器（configs.lua:406-416）直接把 getmousepos()
+				-- 的行号丢给 menu:click_at() → nvim_win_set_cursor()（menu.lua:315），
+				-- 点到 float 边框/滚动条帧或菜单刚重绘后行号会超出 buffer 行数，报
+				-- E5108 "Invalid cursor line: out of range"。这里加行号边界检查。
+				keymaps = {
+					["<LeftMouse>"] = function()
+						local utils = require("dropbar.utils")
+						local current = utils.menu.get_current()
+						if not current then
+							return
+						end
+						local mouse = vim.fn.getmousepos()
+						local clicked = utils.menu.get({ win = mouse.winid })
+						if clicked and clicked.buf and vim.api.nvim_buf_is_valid(clicked.buf) then
+							local n_lines = vim.api.nvim_buf_line_count(clicked.buf)
+							if mouse.line >= 1 and mouse.line <= n_lines then
+								clicked:click_at({ mouse.line, math.max(0, mouse.column - 1) }, nil, 1, "l")
+								return
+							end
+						end
+						-- 没点在菜单内容行上：关掉菜单并把光标放到点击的窗口
+						utils.menu.exec("close")
+						utils.bar.exec("update_current_context_hl")
+						if vim.api.nvim_win_is_valid(mouse.winid) then
+							vim.api.nvim_set_current_win(mouse.winid)
+						end
+					end,
+				},
 			},
 			icons = {
 				ui = {

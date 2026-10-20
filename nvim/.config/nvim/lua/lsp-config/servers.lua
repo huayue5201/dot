@@ -30,6 +30,34 @@ function M.is_enabled(name, bufnr)
 	return state.get("lsp." .. name, bufnr, true) ~= false
 end
 
+---@param name string
+---@param bufnr integer|nil
+---@return integer started 实际启动了几个 buffer
+function M.reattach(name, bufnr)
+	local ok, cfg = pcall(function()
+		return vim.lsp.config[name]
+	end)
+	if not (ok and type(cfg) == "table") then
+		return 0
+	end
+	local started = 0
+	local buffers = bufnr and { bufnr } or vim.api.nvim_list_bufs()
+	for _, b in ipairs(buffers) do
+		if
+			vim.api.nvim_buf_is_valid(b)
+			and vim.api.nvim_buf_is_loaded(b)
+			and vim.bo[b].buftype == ""
+			and (not cfg.filetypes or vim.tbl_contains(cfg.filetypes, vim.bo[b].filetype))
+			and #vim.lsp.get_clients({ bufnr = b, name = name }) == 0
+		then
+			if pcall(vim.lsp.start, cfg, { bufnr = b }) then
+				started = started + 1
+			end
+		end
+	end
+	return started
+end
+
 ---启用/停用某个 server，并记录到当前项目
 ---@param name string
 ---@param enabled boolean
@@ -39,6 +67,12 @@ function M.set_enabled(name, enabled, bufnr)
 	if vim.lsp.is_enabled(name) ~= enabled then
 		vim.lsp.enable(name, enabled)
 	end
+	-- vim.lsp.enable(true) 内部只做 doautoall(FileType)，而 buf_attach_client 对
+	-- 「已经 attach 过的 buffer」直接 return，所以刚被 stop 掉的 client 不会重新贴上，
+	-- 结果 clients=0 一直挂到下一次 FileType。re-enable 后必须显式补一次 start。
+	if enabled then
+		M.reattach(name)
+	end
 end
 
 ---重启某个 server（先停其客户端，再重新启用）
@@ -47,6 +81,10 @@ end
 function M.restart_server(name, bufnr)
 	bufnr = bufnr or vim.api.nvim_get_current_buf()
 	for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr, name = name })) do
+		-- 先 detach（发 didClose）再 kill，否则 server 侧文档还开着，
+		-- 新 client 再 didOpen 同一个 URI 时 rust-analyzer 会报
+		-- "duplicate DidOpenTextDocument"。
+		pcall(vim.lsp.buf_detach_client, bufnr, client.id)
 		client:stop(true)
 	end
 	vim.defer_fn(function()
@@ -77,12 +115,20 @@ end
 ---重启当前 buffer 的 LSP
 function M.restart()
 	local bufnr = vim.api.nvim_get_current_buf()
+	local names = registry.get_lsp_by_filetype(vim.bo[bufnr].filetype)
 	for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+		pcall(vim.lsp.buf_detach_client, bufnr, client.id)
 		client:stop(true)
 	end
 
 	vim.defer_fn(function()
-		vim.lsp.enable(registry.get_lsp_name(), true)
+		if not (vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_buf_is_loaded(bufnr)) then
+			return
+		end
+		for _, name in ipairs(names) do
+			vim.lsp.enable(name, true)
+			M.reattach(name, bufnr)
+		end
 	end, 500)
 end
 

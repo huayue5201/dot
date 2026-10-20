@@ -96,7 +96,9 @@ return {
 				wo = {},
 
 				-- 如果文件路径包含以下名称，窗口将被忽略
-				file_path_contains = {},
+				-- BqfPreviewFloatWin / BqfPreviewTitle 是 nvim-bqf 的预览浮窗，
+				-- 它们是 focusable 的（mouse 含 'a' 时），必须按 buffer 名排除
+				file_path_contains = { "BqfPreviewFloatWin" },
 
 				-- 如果文件名包含以下名称，窗口将被忽略
 				file_name_contains = {},

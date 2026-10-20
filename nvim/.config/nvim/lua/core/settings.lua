@@ -47,7 +47,10 @@ vim.o.sidescrolloff = 5 -- 光标左右至少保留 5 列
 vim.o.sidescroll = 5 -- 水平滚动步长
 vim.o.smoothscroll = true -- 平滑滚动
 vim.o.cursorline = true -- 高亮当前行
-vim.o.cursorcolumn = true -- 高亮当前列
+-- cursorcolumn 关掉：实测每次移动+重绘从 0.45ms 涨到 1.14ms（2700 行，真 TTY），
+-- 它一个就占了全部显示类额外开销的 84%，而体验收益远不如 cursorline。
+-- 临时想看这一列，手动 :set cursorcolumn 即可。
+vim.o.cursorcolumn = false
 vim.opt.colorcolumn = "80" -- 第 80 列警示线
 vim.opt.guicursor:append({
 	"n-v-c-sm:block",

@@ -20,7 +20,7 @@ return {
 			{ "<leader>d", group = "调试 DAP", icon = { icon = "󰃤", color = "red" } },
 			{ "<leader>D", group = "Docker / DevContainer", icon = { icon = "󰡨", color = "blue" } },
 			{ "<leader>e", group = "资源管理器", icon = { icon = "󰙅", color = "azure" } },
-			{ "<leader>f", group = "查找文件", icon = { icon = "󰈞", color = "green" } },
+			{ "<leader>f", group = "查找 / 替换", icon = { icon = "󰈞", color = "green" } },
 			{ "<leader>g", group = "数据库 (sqmeow)", icon = { icon = "󰆼", color = "green" } },
 			{ "<leader>h", group = "Git / 历史", icon = { icon = "󰊢", color = "orange" } },
 			{ "<leader>j", group = "上下文 / 跳转", icon = { icon = "󰓩", color = "purple" } },

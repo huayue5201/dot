@@ -7,5 +7,6 @@
     "diagnostics.globals": [
         "vim",
         "M"
-    ]
+    ],
+    "workspace.maxPreload": 1000
 }

@@ -143,7 +143,7 @@ return {
 
 			sources = {
 				-- dap 必须列在这里（或 per_filetype）才会启用，否则 provider 是死配置
-				default = { "lsp", "path", "snippets", "buffer", "ripgrep", "dap", "sqmeow" },
+				default = { "lsp", "path", "snippets", "buffer", "ripgrep", "dap", "cargo", "sqmeow" },
 				-- lazydev 不会自动注册，必须显式列出（仅 lua 文件）
 				per_filetype = {
 					lua = { "lazydev", inherit_defaults = true },

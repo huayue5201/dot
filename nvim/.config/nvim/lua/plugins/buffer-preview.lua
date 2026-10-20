@@ -8,7 +8,6 @@ return {
 		"BufReadCmd *.pptx",
 		"BufReadCmd *.ppt",
 		"BufReadCmd *.odp",
-		"BufReadCmd *.png",
 		-- Data preview
 		"BufReadCmd *.db",
 		"BufReadCmd *.sqlite",

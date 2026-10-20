@@ -52,7 +52,45 @@ end, { silent = true, desc = "Save: list unsaved buffers (panel)" })
 
 require("core.save-panel").setup() -- :SavePanel 命令
 
-vim.keymap.set("n", "<c-esc>", ":bp | bd #<cr>", { silent = true, desc = "Basic: close buffer" })
+-- 关闭当前 buffer：有分屏时先收掉当前窗口（不动其它分屏），
+-- buffer 不再被任何窗口显示后再交给 tab_workspace 删除（含 ownership / 未保存确认）。
+-- 不能用 `:bd` / `:bp | bd #`：它们会把窗口换成别的文件（分屏看起来“没关掉”），
+-- 也不会维护 tab 工作区的 buffer 归属。
+local function smart_close()
+	local buf = vim.api.nvim_get_current_buf()
+	if not vim.api.nvim_buf_is_valid(buf) then
+		return
+	end
+
+	-- 特殊 buffer（终端 / 文件树 / 浮窗 / help 等）：只关窗口，不删 buffer
+	if vim.bo[buf].buftype ~= "" then
+		if #vim.api.nvim_tabpage_list_wins(0) > 1 then
+			pcall(vim.api.nvim_win_close, 0, false)
+		else
+			vim.cmd("close")
+		end
+		return
+	end
+
+	-- 当前 tab 有多个窗口：收掉当前分屏（其它窗口布局不动），
+	-- 若这个 buffer 还在别的窗口 / 别的 tab 里用着，就到此为止。
+	if #vim.api.nvim_tabpage_list_wins(0) > 1 then
+		pcall(vim.api.nvim_win_close, 0, false)
+		if #vim.fn.win_findbuf(buf) > 0 then
+			return
+		end
+	end
+
+	-- 无分屏（或刚收完最后一个显示它的窗口）：先把窗口切到上一个可用的 buffer，
+	-- 再删 buffer；没有可选的就留一个空 buffer，窗口本身不被销毁。
+	local alt = vim.fn.bufnr("#")
+	if alt ~= -1 and alt ~= buf and vim.api.nvim_buf_is_valid(alt) and vim.bo[alt].buflisted then
+		vim.cmd("buffer " .. alt)
+	end
+	require("core.tab_workspace").close_buffer(buf)
+end
+
+vim.keymap.set("n", "<c-esc>", smart_close, { silent = true, desc = "Basic: close buffer" })
 
 -- vim.keymap.set("n", "<leader>cab", function()
 -- 	local current = vim.api.nvim_get_current_buf()

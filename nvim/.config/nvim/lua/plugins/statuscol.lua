@@ -21,10 +21,12 @@ return {
 			-- 的行为（sign_text:gsub('%s','')），像 " " 这种带尾随空格的图标
 			-- 不会被撑成两格，列宽才稳定。
 			segments = {
-				-- 诊断（命名空间 nvim.vim.diagnostic.signs）
-				{ sign = { namespace = { "diagnostic" }, colwidth = 1, maxwidth = 1 }, click = "v:lua.ScSa" },
-				-- DAP 断点（原生 sign，名字 Dap*）
-				{ sign = { name = { "Dap" }, colwidth = 1, maxwidth = 1 }, click = "v:lua.ScSa" },
+				-- 诊断（命名空间 diagnostic）与 DAP 断点（原生 sign，名字 Dap*）合并成一列：
+				-- 同行有诊断时断点会被压掉（colwidth = 1, maxwidth = 1），换来每行少求一段。
+				{
+					sign = { namespace = { "diagnostic" }, name = { "Dap" }, colwidth = 1, maxwidth = 1 },
+					click = "v:lua.ScSa",
+				},
 				-- marks.nvim（原生 sign，名字 Marks_*）与 todo2 代码任务状态（extmark sign，
 				-- namespace = code_render）共用一列：原生 sign 只按 name 匹配、extmark sign
 				-- 只按 namespace 匹配，同一 segment 里两者可以并存；maxwidth = 1 所以同行

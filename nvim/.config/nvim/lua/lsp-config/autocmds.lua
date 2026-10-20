@@ -53,43 +53,6 @@ local function auto_diagnostic()
 end
 
 ---------------------------------------------------------
--- 插入模式禁用内联提示
----------------------------------------------------------
-local function auto_inlay_hint()
-	-- 这个自动命令会在 LspAttach 中根据客户端能力有条件地启用
-	local group = vim.api.nvim_create_augroup("UserLspInlayHint", { clear = true })
-
-	vim.api.nvim_create_autocmd({ "InsertEnter", "InsertLeave" }, {
-		group = group,
-		desc = "LSP inlay hints 自动切换",
-		callback = function(args)
-			local bufnr = args.buf
-
-			-- 该缓冲区未启用 inlay hint 自动切换
-			if not buffer_states[bufnr] or not buffer_states[bufnr].inlay_hint_autocmd_enabled then
-				return
-			end
-
-			-- 调试中不做任何操作
-			if debug_active then
-				return
-			end
-
-			local inlay_hint_enable = state.get("lsp.inlay_hints", bufnr)
-			local is_insert = args.event == "InsertEnter"
-
-			if inlay_hint_enable then
-				vim.lsp.inlay_hint.enable(not is_insert, { bufnr = bufnr })
-				buffer_states[bufnr] = buffer_states[bufnr] or {}
-				buffer_states[bufnr].inlay_hint_enabled = not is_insert
-			end
-		end,
-	})
-
-	return group
-end
-
----------------------------------------------------------
 -- 应用当前缓冲区的设置
 ---------------------------------------------------------
 local function apply_buffer_settings(bufnr)
@@ -177,18 +140,15 @@ local function setup_lsp_attach()
 			-- 按键映射
 			keys.attach(bufnr)
 
-			-- 根据客户端能力启用 inlay hint 自动切换
-			if client:supports_method("textDocument/inlayHint") then
-				buffer_states[bufnr] = buffer_states[bufnr] or {}
-				buffer_states[bufnr].inlay_hint_autocmd_enabled = true
-			end
-
 			-- 代码透镜（▶ Run / ▶ Debug 等）：0.13 起默认不渲染，交给本模块自行请求/渲染，
 			-- 以支持“悬停高亮 + 点击运行”（原生渲染的高亮组是硬编码的）。
 			require("lsp-config.features.code_lens").setup(client, bufnr)
 
 			-- Rust 宏展开预览（setup 内部自行守卫：仅 rust-analyzer + 支持 expandMacro）
 			require("lsp-config.features.rust_macro_preview").setup(client, bufnr)
+
+			-- Rust 结构化替换（setup 内部自行守卫：仅 rust-analyzer + 支持 experimental/ssr）
+			require("lsp-config.features.rust_ssr").setup(client, bufnr)
 
 			-- Rust runnable/debuggable：补齐 ▶ Run / ▶ Debug 代码透镜与运行/调试快捷键
 			require("lsp-config.features.runnables").setup(client, bufnr)
@@ -223,15 +183,9 @@ local function setup_lsp_attach()
 				vim.lsp.linked_editing_range.enable(true, { client_id = client.id, bufnr = bufnr })
 			end
 
-			-- workspace 级诊断（原生支持优先，否则用插件回退）
-			if client:supports_method("workspace/diagnostic", bufnr) then
-				vim.lsp.buf.workspace_diagnostics({ client_id = client.id })
-			elseif vim.tbl_get(client.config, "filetypes") then
-				local ok, wsdiag = pcall(require, "workspace-diagnostics")
-				if ok then
-					wsdiag.populate_workspace_diagnostics(client, bufnr)
-				end
-			end
+			-- workspace 级诊断改为按需：不再在 LspAttach 时自动扫描整个项目
+			-- （rust-analyzer 会因此触发全 workspace 检查/等待 flycheck，代价很大）。
+			-- 现在由 `grD` → lsp-config/actions.lua:open_all_diagnostics 显式触发。
 		end,
 	})
 end
@@ -258,15 +212,11 @@ local function setup_ready_refresh()
 		if vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }) then
 			local ok, hints = pcall(vim.lsp.inlay_hint.get, { bufnr = bufnr })
 			if not (ok and #hints > 0) then
-				-- 插入模式下不重新开启（由 inlay hint 的 InsertEnter/InsertLeave 管理）
-				local inserting = bufnr == vim.api.nvim_get_current_buf()
-					and vim.api.nvim_get_mode().mode:sub(1, 1) == "i"
+				-- 索引未完成时首次请求会回空：关掉再开一次，逼核心重新请求
 				vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
-				if not inserting then
-					vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-					buffer_states[bufnr] = buffer_states[bufnr] or {}
-					buffer_states[bufnr].inlay_hint_enabled = true
-				end
+				vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+				buffer_states[bufnr] = buffer_states[bufnr] or {}
+				buffer_states[bufnr].inlay_hint_enabled = true
 			end
 		end
 
@@ -317,9 +267,6 @@ end
 function M.setup()
 	-- 模式切换时临时开关诊断
 	auto_diagnostic()
-
-	-- inlay hint 自动切换组（默认不启用，LspAttach 里按能力开启）
-	auto_inlay_hint()
 
 	-- 设置变化监听器
 	setup_settings_watcher()

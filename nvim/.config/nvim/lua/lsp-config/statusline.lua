@@ -169,8 +169,6 @@ function M.lsp_clients()
 		["ruff"] = 30,
 		["ruff_lsp"] = 30,
 		["eslint"] = 40,
-		["copilot"] = 20,
-		["copilot_ls"] = 20,
 		["rustowl"] = 30,
 		["harper-ls"] = 50,
 	}

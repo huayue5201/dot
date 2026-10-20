@@ -113,6 +113,15 @@ return {
 		-- 约定：<leader>m<组> 是纯分组前缀（本身不映射，杜绝超时歧义），
 		--       具体动作一律 <leader>m<组><动作>，语义 = 组 + 动作。
 		------------------------------------------------------------------
+		------------------------------------------------------------------
+		-- 高频动作快捷别名（平铺一层）
+		-- 只取分组前缀以外的单字母：mf/mt/ma/mv/ml/mg 是分组，mp 已被 SmartPreview 用掉，
+		-- 所以这里只用 mn / mc / md，不抢分组前缀（否则 maa、mld 这类进不去）。
+		------------------------------------------------------------------
+		vim.keymap.set("n", "<leader>mn", "<cmd>TodoNew<cr>", { desc = "TODO: 新建文件" })
+		vim.keymap.set("n", "<leader>mc", "<cmd>TodoAdd<cr>", { desc = "TODO: 从代码建任务" })
+		vim.keymap.set("n", "<leader>md", "<cmd>TodoDrawer<cr>", { desc = "TODO: 打开任务抽屉" })
+
 		-- 文件（mf-）
 		vim.keymap.set("n", "<leader>mfn", "<cmd>TodoNew<cr>", { desc = "创建 TODO 文件" })
 		vim.keymap.set("n", "<leader>mfr", "<cmd>TodoRename<cr>", { desc = "重命名 TODO 文件" })

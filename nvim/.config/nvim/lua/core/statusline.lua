@@ -353,18 +353,40 @@ end
 enqueue()
 apply()
 
--- 被动兜底：每 1s 全量重建一次（捕获 gitsigns/todo/dap 等遗漏变化）
-local function passive_loop()
-	enqueue()
-	apply()
-	vim.defer_fn(passive_loop, 1000)
-end
-vim.defer_fn(passive_loop, 1000)
+-- 兜底刷新：不再每秒全量重建，改成「空闲时补一次」（CursorHold 默认 4s 无输入）。
+-- update() 只在值真正变化时才写 statusline，所以没变化时这里是纯比较，几乎零成本。
+-- 覆盖那些没有事件可听的模块（todo2 计数、dap 状态）。
+vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI", "FocusGained" }, {
+	group = vim.api.nvim_create_augroup("StatuslineIdle", { clear = true }),
+	callback = function()
+		enqueue()
+		apply()
+	end,
+})
 
 -- ================================
 -- 事件驱动刷新
 -- ================================
 local statusline_group = vim.api.nvim_create_augroup("Statusline", { clear = true })
+
+-- gitsigns 更新（status_dict 变了但 buffer 没动，如后台 fetch / index 完成）
+vim.api.nvim_create_autocmd("User", {
+	pattern = "GitSignsUpdate",
+	group = statusline_group,
+	callback = function()
+		enqueue("vcs")
+		apply()
+	end,
+})
+
+-- 滚动（鼠标/<C-e> 等没有移动光标的情况）
+vim.api.nvim_create_autocmd("WinScrolled", {
+	group = statusline_group,
+	callback = function()
+		enqueue("scroll")
+		apply()
+	end,
+})
 
 -- 光标移动：只更新滚动条（便宜）
 vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {

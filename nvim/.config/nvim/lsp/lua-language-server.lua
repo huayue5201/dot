@@ -32,8 +32,10 @@ return {
 					"venv",
 					"node_modules",
 				},
-				-- 最大文件数限制（避免内存溢出）
-				maxPreload = 1000,
+				-- 最大文件数限制。实测：1000 → 0 时 lua_ls 打开一个配置文件的 CPU
+				-- 从 4.74s/30s 降到 2.44s（-48%），1000 → 100 是 3.72s。
+				-- 预加载只是为了首次补全快，用 0 让它在需要时再读。
+				maxPreload = 0,
 				preloadFileSize = 100,
 			},
 			diagnostics = {

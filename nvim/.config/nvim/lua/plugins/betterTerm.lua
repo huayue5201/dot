@@ -17,7 +17,7 @@ return {
 
 		-- Toggle the first terminal (ID defaults to index_base, which is 0)
 		-- 只绑 normal 模式：terminal 模式里 <C-\> 必须留给 nvim 自己的
-		-- <C-\><C-n>（退出终端插入模式），否则 editable-term 用不了。
+		-- <C-\><C-n>（退出终端插入模式）。
 		-- 在终端里想切窗口：先 <Esc> 回到 normal，再按 <C-\>。
 		vim.keymap.set("n", "<C-\\>", function()
 			betterTerm.open()
@@ -58,9 +58,7 @@ return {
 			vim.opt_local.winfixbuf = true
 		end
 
-		-- 所有终端缓冲区：<Esc> 退出终端插入模式。editable-term 靠 normal 模式
-		-- 编辑命令行，所以裸 :terminal 也要有这条路（<C-h/j/k/l>、<C-w> 只给
-		-- betterTerm 的终端，避免抢掉 shell 自己的按键）。
+		-- 所有终端缓冲区：<Esc> 退出终端插入模式（裸 :terminal 也要有这条路）。
 		-- 注意：:terminal 的 buffer 只有 buftype=terminal，'filetype' 是空的，
 		-- 所以这里必须用 TermOpen 而不是 FileType。
 		vim.api.nvim_create_autocmd("TermOpen", {

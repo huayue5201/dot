@@ -106,14 +106,20 @@ local function key_of(win)
 	return ft ~= "" and ft or vim.bo[buf].buftype
 end
 
---- 该 tab 内该维度是否存在「弹性窗口」（非 winfix），没有的话空间无处可去，
+--- 该 tab 内该维度是否存在「可接收空间的窗口」（非 winfix），没有的话空间无处可去，
 --- 强行回滚只会被 Neovim 再次撑开，索性跳过。
+---
+--- 注意 skip：目标窗口自己不算「接收者」。把声明窗口拉回期望尺寸时，多出来的
+--- 空间必须落在这个窗口之外 —— 若兄弟窗口全是 winfixheight，frame_setheight 拿不到
+--- 空间就静默失败（外层 pcall 吞掉），声明窗口会卡在错误高度且再也回不去。
+--- 所以「弹性」要按「除自己外还有没有人能接空间」判断，不能把自己算进去。
 ---@param tab integer
 ---@param dim "w"|"h"
+---@param skip integer 目标窗口，不参与判断
 ---@return boolean
-local function has_elastic(tab, dim)
+local function has_donor(tab, dim, skip)
 	for _, win in ipairs(api.nvim_tabpage_list_wins(tab)) do
-		if real(win) then
+		if win ~= skip and real(win) then
 			local fixed = dim == "w" and vim.wo[win].winfixwidth or vim.wo[win].winfixheight
 			if not fixed then
 				return true
@@ -195,16 +201,16 @@ local function enforce()
 	applying = true
 
 	for _, tab in ipairs(api.nvim_list_tabpages()) do
-		local elastic_w = has_elastic(tab, "w")
-		local elastic_h = has_elastic(tab, "h")
 		for _, win in ipairs(api.nvim_tabpage_list_wins(tab)) do
 			if real(win) then
 				local want_w, want_h = desired(win)
 
-				if want_w and elastic_w and api.nvim_win_get_width(win) ~= want_w then
+				-- 每个窗口单独判断「谁能接空间」：目标窗口本身不算，否则在没有弹性
+				-- 兄弟时会发起注定失败（pcall 静默）的 resize。
+				if want_w and has_donor(tab, "w", win) and api.nvim_win_get_width(win) ~= want_w then
 					pcall(api.nvim_win_set_width, win, want_w)
 				end
-				if want_h and elastic_h and api.nvim_win_get_height(win) ~= want_h then
+				if want_h and has_donor(tab, "h", win) and api.nvim_win_get_height(win) ~= want_h then
 					pcall(api.nvim_win_set_height, win, want_h)
 				end
 			end

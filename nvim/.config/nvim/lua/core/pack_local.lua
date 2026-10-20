@@ -3,7 +3,8 @@
 -- vim.pack 把本地路径当作「安装源」，会 git clone 一份到 pack/core/opt/<name>，
 -- 并以 detached HEAD 钉在锁文件的 rev 上；nvim 实际加载的是那份副本。
 -- 所以在 ~/neovim-plugins 里提交后，需要走 `vim.pack.update` 才能让副本跟上
---（它会 fetch、检出最新 rev 并改写锁文件）。这里在启动后异步补上这一步。
+--（它会 fetch、检出最新 rev 并改写锁文件）。这里改为手动触发：<leader>zp
+--（工具分组），或执行 :PackLocalSync。
 
 local M = {}
 
@@ -79,22 +80,19 @@ function M.sync(opts)
 	end)
 end
 
----@param opts? { delay?: integer }
+---@param opts? { keymap?: string|false }
 function M.setup(opts)
 	opts = opts or {}
 	vim.api.nvim_create_user_command("PackLocalSync", function()
 		M.sync({ verbose = true })
 	end, { desc = "同步本地 dir 插件（vim.pack.update）" })
 
-	-- 不阻塞启动：VimEnter 后再等一小会儿，让首屏先画出来
-	vim.api.nvim_create_autocmd("VimEnter", {
-		once = true,
-		callback = function()
-			vim.defer_fn(function()
-				M.sync()
-			end, opts.delay or 1000)
-		end,
-	})
+	-- 不自动同步：只在需要时手动触发（工具分组 <leader>z + p(pack)）
+	if opts.keymap ~= false then
+		vim.keymap.set("n", opts.keymap or "<leader>zp", function()
+			M.sync({ verbose = true })
+		end, { silent = true, desc = "Pack: 同步本地 dir 插件（重启生效）" })
+	end
 end
 
 return M

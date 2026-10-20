@@ -111,10 +111,11 @@ return {
 			check = {
 				command = "clippy",
 				allTargets = false,
+				-- 只为本地 crate 跑 lint，不重复 lint 依赖（1.6G target 下省很多）
+				extraArgs = { "--no-deps" },
 			},
 			diagnostics = {
 				enable = true,
-				trigger = "save",
 			},
 			cargo = {
 				allFeatures = false,
@@ -168,5 +169,4 @@ return {
 			config.settings["rust-analyzer"].check.noDefaultFeatures = false
 		end
 	end,
-	-- Rust 宏展开预览已由 lsp-config/autocmds.lua 的 LspAttach 统一接入（模块自守卫）
 }

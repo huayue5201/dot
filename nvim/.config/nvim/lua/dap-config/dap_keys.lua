@@ -107,13 +107,9 @@ function M.setup()
 
 	vim.keymap.set("n", "<leader>dp", dap.pause, { desc = "[D]ap [P]ause" })
 
-	vim.keymap.set("n", "gji", dap.step_into, { desc = "[D]ap [S]tep [I]nto" })
-	vim.keymap.set("n", "gjo", dap.step_out, { desc = "[D]ap [S]tep [O]ut" })
-	vim.keymap.set("n", "gjv", dap.step_over, { desc = "[D]ap [S]tep [O]ver" }) -- v 表示越过
-	vim.keymap.set("n", "gjc", dap.run_to_cursor, { desc = "[D]ap [R]un to [C]ursor" })
-
-	-- 🎯 跳转
-	vim.keymap.set("n", "<leader>dg", function()
+	-- 运行到光标：会话内 <S-Right>，见下方 step_keys / arrows
+	-- 跳到指定行需要输入行号，不是“移动一步”，所以保留命令式 <leader>dg
+	local function goto_line()
 		vim.ui.input({ prompt = " 󰙎 输入行号: " }, function(input)
 			if input then
 				local line = tonumber(input)
@@ -124,7 +120,9 @@ function M.setup()
 				end
 			end
 		end)
-	end, { desc = "[D]ap [G]oto line" })
+	end
+
+	vim.keymap.set("n", "<leader>dg", goto_line, { desc = "[D]ap [G]oto line" })
 
 	-- 💡 断点管理
 	vim.keymap.set("n", "<leader>db", function()
@@ -329,12 +327,20 @@ function M.setup()
 
 	do
 		-- 处理 K（DAP hover）与 [d / ]d（frame up/down）的覆盖与恢复。
-		-- 用 override_count 保证多会话 / 重启场景下只保存一次原始映射、
+		-- active_sessions 记录仍在调试的会话 id：多会话 / restart 时只保存一次原始映射，
 		-- 只在最后一个会话结束时恢复，避免误删或把 DAP 映射当作原始映射。
+		-- 释放挂在 event_terminated 和 on_session 两处：terminate / disconnect / 进程被杀
+		-- 时适配器不一定发 terminated 事件，只靠 terminated 会残留 DAP 键位。
 		local override_keys = { "K", "[d", "]d" }
+		-- 单步用方向键表达语义：→ 进入、← 退出、↓ 步过、↑ 步回。
+		-- `Shift+←` 是“继续跑到光标处”（run to cursor），和单步同属“移动执行位置”。
+		-- 归一化模式下方向键是内建行为而不是映射，调试结束后删掉覆盖就自动还原默认功能。
+		local step_keys = { "<Right>", "<Left>", "<Down>", "<Up>", "<S-Right>" }
+		local hover_desc = "[D]ap [H]over"
 		local saved_globals = {} -- lhs -> map（全局映射）
 		local saved_buffers = {} -- 各 buffer 的局部映射
-		local override_count = 0
+		local active_sessions = {} -- session id -> true
+		local overridden = false
 
 		local function restore_map(map)
 			local opts = {
@@ -388,25 +394,10 @@ function M.setup()
 			saved_globals = {}
 		end
 
-		dap.listeners.after["event_initialized"]["me"] = function()
-			vim.g.dap_active = true
-			require("core.context").set_debug(true)
-			vim.lsp.inlay_hint.enable(false)
-			vim.diagnostic.enable(false)
-			require("dap-view").virtual_text_enable()
-
-			-- 只在第一次覆盖时保存原始映射，多会话时二次 initialize 不会把 DAP 自己的映射当原始
-			override_count = override_count + 1
-			if override_count == 1 then
-				for _, key in ipairs(override_keys) do
-					save_global_keymap(key)
-					save_buffer_keymaps(key)
-				end
-			end
-
+		local function set_dap_keys()
 			vim.keymap.set("n", "K", function()
 				require("dap.ui.widgets").hover()
-			end, { silent = true, desc = "[D]ap [H]over" })
+			end, { silent = true, desc = hover_desc })
 
 			vim.keymap.set("n", "[d", function()
 				require("dap").up()
@@ -415,26 +406,110 @@ function M.setup()
 			vim.keymap.set("n", "]d", function()
 				require("dap").down()
 			end, { silent = true, desc = "[D]ap [D]own frame" })
+
+			local arrows = {
+				{ "<Right>", "step_into", "[D]ap [I]nto →" },
+				{ "<Left>", "step_out", "[D]ap [O]ut ←" },
+				{ "<Down>", "step_over", "[D]ap [O]ver ↓" },
+				{ "<Up>", "step_back", "[D]ap [B]ack ↑" },
+				{ "<S-Right>", "run_to_cursor", "[D]ap [R]un to [C]ursor ⇧→" },
+			}
+			for _, item in ipairs(arrows) do
+				local key, action, desc = item[1], item[2], item[3]
+				vim.keymap.set("n", key, function()
+					require("dap")[action]()
+				end, { silent = true, desc = desc })
+			end
 		end
 
-		dap.listeners.after["event_terminated"]["me"] = function()
-			vim.g.dap_active = false
-			require("core.context").set_debug(false)
-			vim.lsp.inlay_hint.enable(true)
-			vim.diagnostic.enable(true)
-			require("dap-view").virtual_text_disable()
-
-			-- 无配对 initialize 时（适配器未初始化就退出）不删除任何映射
-			if override_count == 0 then
+		--- 会话开始：第一个会话负责切换编辑器状态并覆盖键位
+		local function activate(session)
+			local id = session and session.id or "unknown"
+			if active_sessions[id] then
+				return
+			end
+			local first = next(active_sessions) == nil
+			active_sessions[id] = true
+			if not first then
 				return
 			end
 
-			override_count = override_count - 1
-			if override_count == 0 then
-				for _, key in ipairs(override_keys) do
-					pcall(vim.keymap.del, "n", key)
+			vim.g.dap_active = true
+			require("core.context").set_debug(true)
+			pcall(vim.lsp.inlay_hint.enable, false)
+			pcall(vim.diagnostic.enable, false)
+			pcall(function()
+				require("dap-view").virtual_text_enable()
+			end)
+
+			if overridden then
+				return
+			end
+			overridden = true
+			for _, key in ipairs(override_keys) do
+				save_global_keymap(key)
+				save_buffer_keymaps(key)
+			end
+			-- 方向键只覆盖全局映射，不动各 buffer 的局部键位
+			for _, key in ipairs(step_keys) do
+				save_global_keymap(key)
+			end
+			set_dap_keys()
+		end
+
+		--- 会话结束：最后一个会话结束时恢复键位与编辑器状态
+		local function release(session_id)
+			if session_id then
+				active_sessions[session_id] = nil
+			end
+			if next(active_sessions) ~= nil then
+				return
+			end
+			-- 没配对过 activate（适配器未初始化就退出）时不删任何映射
+			if not overridden then
+				return
+			end
+			overridden = false
+
+			for _, key in ipairs(override_keys) do
+				pcall(vim.keymap.del, "n", key)
+			end
+			for _, key in ipairs(step_keys) do
+				pcall(vim.keymap.del, "n", key)
+			end
+			-- 兜底：会话期间新建 buffer 上设的 DAP hover 局部映射不在 saved_buffers 里，
+			-- 按 desc 精确清掉，避免残留 K
+			for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+				for _, map in ipairs(vim.api.nvim_buf_get_keymap(buf, "n")) do
+					if map.lhs == "K" and map.desc == hover_desc then
+						pcall(vim.api.nvim_buf_del_keymap, buf, "n", "K")
+					end
 				end
-				restore_all()
+			end
+			restore_all()
+
+			vim.g.dap_active = false
+			require("core.context").set_debug(false)
+			pcall(vim.lsp.inlay_hint.enable, true)
+			pcall(vim.diagnostic.enable, true)
+			pcall(function()
+				require("dap-view").virtual_text_disable()
+			end)
+		end
+
+		dap.listeners.after["event_initialized"]["me"] = function(session)
+			activate(session)
+		end
+
+		dap.listeners.after["event_terminated"]["me"] = function(session)
+			release(session and session.id)
+		end
+
+		-- 兜底：terminate / disconnect / 调试进程被杀时不一定会收到 terminated 事件，
+		-- 但会话关闭一定会走 set_session(nil)，借此释放键位
+		dap.listeners.on_session["me_keys"] = function(old, new)
+			if old and old.closed and (not new or new.id ~= old.id) then
+				release(old.id)
 			end
 		end
 	end

@@ -40,7 +40,7 @@ return {
 
 		--  nvim-dap配置
 		local dap_defaults = {
-			switchbuf = "usevisible,usetab,newtab",
+			switchbuf = "usevisible,usetab,split",
 			terminal_win_cmd = "belowright new",
 			focus_terminal = true,
 			autostart = "nluarepl",

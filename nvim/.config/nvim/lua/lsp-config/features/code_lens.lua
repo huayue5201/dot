@@ -592,7 +592,7 @@ function M.schedule_refresh(bufnr)
 			bufs[bufnr].timer = nil
 			M.refresh(bufnr)
 		end
-	end, 300)
+	end, 500)
 end
 
 ---鼠标处命中的透镜
@@ -910,7 +910,11 @@ function M.setup(client, bufnr)
 		bufs[bufnr] = { clients = {}, lenses = {}, rows = {}, marks = {}, gen = 0 }
 
 		local grp = vim.api.nvim_create_augroup("LspCodeLens" .. bufnr, { clear = true })
-		vim.api.nvim_create_autocmd({ "TextChanged", "InsertLeave", "BufWritePost" }, {
+		-- 只在「停下来」的时机刷新：InsertLeave / BufWritePost。
+		-- 不再监听 TextChanged：normal-mode 每次 x/p/dd/u 都会重新跑一轮
+		-- codeLens + codeLens/resolve（实测 ~12ms rust-analyzer CPU），而 references
+		-- 数字在两次停下之间几乎不变，视觉上看不出区别。
+		vim.api.nvim_create_autocmd({ "InsertLeave", "BufWritePost" }, {
 			group = grp,
 			buffer = bufnr,
 			callback = function()

@@ -19,5 +19,5 @@
     "npm:@narumitw/pi-usage",
     "npm:pi-declutter"
   ],
-  "hideThinkingBlock": true
+  "hideThinkingBlock": false
 }

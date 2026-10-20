@@ -25,7 +25,6 @@ return {
 					-- 例如：为测试设置特定的日志级别
 					env = {
 						RUST_LOG = "debug",
-						MY_TEST_ENV_VAR = "my_value",
 					},
 
 					-- （可选）指定用于调试的 DAP 适配器
@@ -35,32 +34,21 @@ return {
 
 				require("neotest-busted")({
 					-- Leave as nil to let neotest-busted automatically find busted
-					busted_command = "<path to a busted executable>",
+					busted_command = nil,
 					-- Do not use nvim to run busted, but run busted directly
 					no_nvim = false,
 					-- Extra arguments to busted
 					busted_args = { "--shuffle-files" },
-					-- List of paths to add to lua path lookups before running
-					-- busted, or a function returning a list of such paths
-					busted_paths = { "my/custom/path/?.lua" },
-					-- List of paths to add to lua cpath lookups before running
-					-- busted, or a function returning a list of such paths
-					busted_cpaths = { "my/custom/path/?.so" },
-					-- Custom config to load via -u to set up testing.
-					-- If nil, will look for a 'minimal_init.lua' file
-					minimal_init = "custom_init.lua",
-					-- Only use a luarocks installation in the project's directory. If
-					-- true, installations in $HOME and global installations will be
-					-- ignored. Useful for isolating the test environment
-					local_luarocks_only = true,
+					-- 自定义 -u 配置；nil 时自动查找 minimal_init.lua
+					minimal_init = nil,
+					-- 只用项目内的 luarocks 安装（true 会忽略 ~/.luarocks 与全局安装）
+					local_luarocks_only = false,
 					-- Find parametric tests
 					parametric_test_discovery = false,
 				}),
 			},
-			-- overseer任务插件集成.
-			consumers = {
-				overseer = require("neotest.consumers.overseer"),
-			},
+			-- 注意：neotest v6 已移除 overseer consumer（无 lua/neotest/consumers/overseer），
+			-- 之前 require 它会导致整个 setup 报错、所有键位都不生效。
 		})
 
 		vim.keymap.set("n", "<leader>tr", function()

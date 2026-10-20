@@ -132,12 +132,12 @@ function M.setup()
 		vim.api.nvim_win_set_config(win, {
 			relative = "editor",
 			anchor = "NE",
-			row = 1,
+			row = 2,
 			col = vim.o.columns,
 			width = cfg.width,
 			height = cfg.height,
 			hide = cfg.hide,
-			border = cfg.border,
+			border = "none",
 			mouse = cfg.mouse,
 			zindex = cfg.zindex,
 		})

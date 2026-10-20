@@ -1,13 +1,5 @@
 -- File: nvim/.config/nvim/lua/core/autocmds.lua
 
-vim.api.nvim_create_autocmd("BufWritePre", {
-	group = vim.api.nvim_create_augroup("RemoveTrailingWhitespace", { clear = true }),
-	desc = "保存前自动删除行尾空格",
-	callback = function()
-		vim.cmd([[%s/\s\+$//e]])
-	end,
-})
-
 -- 进入真实文件时，清理残留的空 [No Name] buffer（nvim 无参启动/旧 tab 留下的）
 local function is_empty_scratch(b)
 	return vim.api.nvim_buf_is_valid(b)
@@ -48,6 +40,11 @@ vim.api.nvim_create_autocmd("BufEnter", {
 	group = vim.api.nvim_create_augroup("DropEmptyBuffers", { clear = true }),
 	desc = "进入命名文件后删除残留的无名空 buffer",
 	callback = function(args)
+		-- 会话恢复中（mksession / `:restart`）：session 脚本自己在 prologue 末尾执行
+		-- `bwipe <启动空 buffer>`，这里抢先删掉它会让那句 bwipe 报 E517。
+		if vim.g.SessionLoad == 1 then
+			return
+		end
 		-- 只对「真实文件」触发：无名、特殊 buftype、白名单侧栏一律跳过
 		if
 			vim.api.nvim_buf_get_name(args.buf) == ""

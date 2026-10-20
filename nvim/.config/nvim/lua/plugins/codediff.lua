@@ -7,6 +7,19 @@ return {
 	cmd = "CodeDiff",
 	config = function()
 		require("codediff").setup({
+			diff = {
+				-- 单文件模式
+				layout = "inline",
+				-- 注意：gutter_signs 必须在 diff 下面（插件读 config.options.diff.gutter_signs，
+				-- 顶层同名键会被 tbl_deep_extend 当未知键吞掉，符号就不显示）。
+				gutter_signs = {
+					insert_text = "＋",
+					delete_text = "－",
+					highlight_numbers = true,
+					changed_priority = 100,
+					unchanged_priority = nil,
+				},
+			},
 			-- 资源管理器面板配置
 			explorer = {
 				position = "bottom", -- "left" 或 "bottom"

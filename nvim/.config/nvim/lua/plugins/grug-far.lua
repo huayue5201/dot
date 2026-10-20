@@ -1,169 +1,96 @@
 -- https://github.com/MagicDuck/grug-far.nvim
+--
+-- 键位分工（避免和全局分组互相遮蔽）：
+--   <leader>f*       打开 grug-far，和 fff 的 ff/fg 同一组：查找 + 替换
+--   <localleader>*   窗口内的操作，全部沿用插件默认（<localleader> = \）：
+--                    \r 替换   \q 进快速修复   \s 同步全部   \l 同步当前行
+--                    \c 关闭   \e 换引擎       \i 预览位置   \b 中止
+--                    \t 历史   \j/\k 逐个应用  \w 显示完整命令  \x 换替换解释器
+--   不再用 <leader>* 覆盖窗口内键位——那会把 <leader>r / <leader>c / <leader>s /
+--   <leader>h / <leader>a 这些全局分组在该窗口里改掉（历史上 <leader>sa 就顶掉了
+--   「保存全部」、<leader>ha 顶掉了 atlas）。
 
 return {
 	"MagicDuck/grug-far.nvim",
 	event = "VeryLazy",
 	config = function()
-		----------------------------------------------------------------------
-		-- 基础配置
-		----------------------------------------------------------------------
 		require("grug-far").setup({
 			helpLine = { enabled = false },
 			showInputsTopPadding = false,
 			showInputsBottomPadding = false,
 		})
 
-		----------------------------------------------------------------------
-		-- 快捷键：打开 grug-far（不同模式）
-		----------------------------------------------------------------------
+		local function open(opts)
+			return function()
+				require("grug-far").open(opts)
+			end
+		end
 
-		-- 使用光标下的单词作为搜索内容
-		vim.keymap.set("n", "<localleader>gw", function()
-			require("grug-far").open({
+		-- 主入口：光标下单词预填，并直接跳到替换框（批量改名 / 替换的第一步）
+		vim.keymap.set("n", "<leader>fr", function()
+			local inst = require("grug-far").open({
 				prefills = { search = vim.fn.expand("<cword>") },
 			})
-		end, { desc = "grug-far：使用光标下的单词进行搜索" })
+			inst:when_ready(function()
+				inst:goto_input("replacement")
+			end)
+		end, { desc = "grug-far：替换光标下单词（全项目）" })
 
-		-- 使用 AST 引擎
-		vim.keymap.set("n", "<localleader>ga", function()
-			require("grug-far").open({ engine = "astgrep" })
-		end, { desc = "grug-far：使用 AST 引擎进行搜索" })
+		-- 仅当前文件
+		vim.keymap.set("n", "<leader>fR", function()
+			require("grug-far").open({ prefills = { paths = vim.fn.expand("%") } })
+		end, { desc = "grug-far：只替换当前文件" })
 
-		-- 以临时缓冲区打开（关闭后删除）
-		vim.keymap.set("n", "<localleader>gt", function()
-			require("grug-far").open({ transient = true })
-		end, { desc = "grug-far：以临时缓冲区打开（关闭后删除）" })
+		-- AST 引擎（结构化替换）
+		vim.keymap.set("n", "<leader>fa", open({ engine = "astgrep" }), { desc = "grug-far：AST 引擎搜索替换" })
 
-		-- 切换 grug-far 实例可见性
-		vim.keymap.set("n", "<localleader>gf", function()
+		-- 可视选区范围
+		vim.keymap.set({ "n", "x" }, "<leader>fi", open({ visualSelectionUsage = "auto-detect" }), {
+			desc = "grug-far：在选区内搜索替换",
+		})
+
+		-- 切换已有实例（最省事的「呼出 / 收起」）
+		vim.keymap.set("n", "<leader>fo", function()
 			require("grug-far").toggle_instance({
 				instanceName = "far",
 				staticTitle = "Find and Replace",
 			})
-		end, { desc = "grug-far：切换实例可见性" })
+		end, { desc = "grug-far：呼出 / 收起实例" })
 
-		-- 限制搜索范围为当前文件
-		vim.keymap.set("n", "<localleader>gr", function()
-			require("grug-far").open({
-				prefills = { paths = vim.fn.expand("%") },
-			})
-		end, { desc = "grug-far：仅搜索当前文件" })
+		-- 临时 buffer（关闭即删）
+		vim.keymap.set("n", "<leader>ft", open({ transient = true }), { desc = "grug-far：临时窗口" })
 
-		-- 范围内搜索（自动检测可视选择类型）
-		vim.keymap.set({ "n", "x" }, "<localleader>gi", function()
-			require("grug-far").open({ visualSelectionUsage = "auto-detect" })
-		end, { desc = "grug-far: Search within range" })
-
-		-- 使用上次搜索寄存器（@/）的值，或可视选择内容
-		vim.keymap.set({ "n", "x" }, "<localleader>gs", function()
+		-- 用上一次搜索（@/）预填；配合 fr 形成「改一次 → 再改同类」的循环
+		vim.keymap.set({ "n", "x" }, "<leader>f/", function()
 			local search = vim.fn.getreg("/")
-			-- 如果是单词搜索（如按 * 键），用 \b 包围
 			if search and vim.startswith(search, "\\<") and vim.endswith(search, "\\>") then
 				search = "\\b" .. search:sub(3, -3) .. "\\b"
 			elseif search and vim.startswith(search, "\\V") then
 				search = search:sub(3)
 			end
-			local inst = require("grug-far").open({
-				prefills = {
-					search = search,
-				},
-			})
+			local inst = require("grug-far").open({ prefills = { search = search } })
 			inst:when_ready(function()
 				inst:goto_input("replacement")
 			end)
-		end, { desc = "grug-far: Search using @/ register value or visual selection" })
+		end, { desc = "grug-far：用上次搜索（@/）替换" })
 
 		----------------------------------------------------------------------
-		-- FileType = grug-far 时的 buffer 内键位
+		-- 窗口内只补插件没有的两个键位，其余全用插件默认（<localleader> 前缀）
 		----------------------------------------------------------------------
 		vim.api.nvim_create_autocmd("FileType", {
 			group = vim.api.nvim_create_augroup("grug-far-keymap", { clear = true }),
 			pattern = "grug-far",
-			callback = function()
-				-- 跳回搜索输入框（按左箭头）
+			callback = function(args)
+				-- 跳回搜索输入框
 				vim.keymap.set("n", "<left>", function()
-					require("grug-far").get_instance(0):goto_first_input()
-				end, { buffer = true, desc = "grug-far：跳回搜索输入框" })
+					require("grug-far").get_instance(args.buf):goto_first_input()
+				end, { buffer = args.buf, desc = "grug-far：回到搜索框" })
 
-				-- 切换 --fixed-strings 标志
-				vim.keymap.set("n", "<localleader>s", function()
-					local state = unpack(require("grug-far").get_instance(0):toggle_flags({ "--fixed-strings" }))
-					vim.notify("grug-far: toggled --fixed-strings " .. (state and "ON" or "OFF"))
-				end, { buffer = true, desc = "grug-far：切换固定字符串模式" })
-
-				----------------------------------------------------------------------
-				-- 核心操作键位（补全，使用 <leader> 前缀保持风格统一）
-				----------------------------------------------------------------------
-
-				-- 执行替换
-				vim.keymap.set("n", "<leader>r", function()
-					require("grug-far").get_instance(0):replace()
-				end, { buffer = true, desc = "grug-far：执行替换" })
-
-				-- 同步当前行
-				vim.keymap.set("n", "<leader>sl", function()
-					require("grug-far").get_instance(0):sync_line()
-				end, { buffer = true, desc = "grug-far：同步当前行" })
-
-				-- 同步全部
-				vim.keymap.set("n", "<leader>sa", function()
-					require("grug-far").get_instance(0):sync_all()
-				end, { buffer = true, desc = "grug-far：同步全部" })
-
-				-- 应用下一个（同步当前行并从结果中删除）
-				vim.keymap.set("n", "<leader>an", function()
-					require("grug-far").get_instance(0):apply_next()
-				end, { buffer = true, desc = "grug-far：应用下一个" })
-
-				-- 应用上一个
-				vim.keymap.set("n", "<leader>ap", function()
-					require("grug-far").get_instance(0):apply_prev()
-				end, { buffer = true, desc = "grug-far：应用上一个" })
-
-				-- 打开历史
-				vim.keymap.set("n", "<leader>ho", function()
-					require("grug-far").get_instance(0):history_open()
-				end, { buffer = true, desc = "grug-far：打开历史" })
-
-				-- 添加到历史
-				vim.keymap.set("n", "<leader>ha", function()
-					require("grug-far").get_instance(0):history_add()
-				end, { buffer = true, desc = "grug-far：添加到历史" })
-
-				-- 切换搜索引擎
-				vim.keymap.set("n", "<leader>e", function()
-					require("grug-far").get_instance(0):swap_engine()
-				end, { buffer = true, desc = "grug-far：切换搜索引擎" })
-
-				-- 中止操作
-				vim.keymap.set("n", "<leader>x", function()
-					require("grug-far").get_instance(0):abort()
-				end, { buffer = true, desc = "grug-far：中止操作" })
-
-				-- 关闭缓冲区（会提示进行中的操作）
-				vim.keymap.set("n", "<leader>c", function()
-					require("grug-far").get_instance(0):close()
-				end, { buffer = true, desc = "grug-far：关闭" })
-
-				-- 在快速修复列表中打开结果
-				vim.keymap.set("n", "<leader>qf", function()
-					require("grug-far").get_instance(0):open_quickfix()
-				end, { buffer = true, desc = "grug-far：打开快速修复列表" })
-
-				-- 预览当前结果位置
-				vim.keymap.set("n", "<leader>p", function()
-					require("grug-far").get_instance(0):preview_location()
-				end, { buffer = true, desc = "grug-far：预览结果位置" })
-
-				-- 显示/隐藏完整 CLI 命令
-				vim.keymap.set("n", "<leader>sc", function()
-					require("grug-far").get_instance(0):toggle_show_command()
-				end, { buffer = true, desc = "grug-far：显示/隐藏命令" })
-
-				-- 切换替换解释器（Lua/Vimscript）
-				vim.keymap.set("n", "<leader>si", function()
-					require("grug-far").get_instance(0):swap_replacement_interpreter()
-				end, { buffer = true, desc = "grug-far：切换替换解释器" })
+				-- 切换字面匹配（默认的 \s 是 syncLocations，别占用）
+				vim.keymap.set("n", "<localleader>F", function()
+					local state = unpack(require("grug-far").get_instance(args.buf):toggle_flags({ "--fixed-strings" }))
+					vim.notify("grug-far: --fixed-strings " .. (state and "ON" or "OFF"))
+				end, { buffer = args.buf, desc = "grug-far：切换字面匹配" })
 			end,
 		})
 	end,
