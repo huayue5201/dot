@@ -90,11 +90,8 @@ local function ensure_panel()
 			return n + 1
 		end,
 		guard = function(rows)
-			if #rows == 0 then
-				return "没有未保存的 buffer"
-			end
+			return #rows == 0
 		end,
-		empty_message = "所有 buffer 已保存",
 		rows = list_unsaved,
 		text = function(r)
 			local nm = short_name(r.name)

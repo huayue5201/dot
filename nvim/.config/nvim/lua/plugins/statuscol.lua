@@ -21,6 +21,10 @@ return {
 			-- 的行为（sign_text:gsub('%s','')），像 " " 这种带尾随空格的图标
 			-- 不会被撑成两格，列宽才稳定。
 			segments = {
+				-- quicker.nvim 在 quickfix 里给每条类型（E/W/I/N/H）画的是 extmark sign，
+				-- namespace = quicker_highlights。statuscol 只渲染这里显式列出的 sign，
+				-- 没匹配到任何 segment 的 sign 直接被丢掉 —— 所以不单独列这段，qf 里就没有图标。
+				{ sign = { namespace = { "quicker_highlights" }, colwidth = 1, maxwidth = 1 }, click = "v:lua.ScSa" },
 				-- 诊断（命名空间 diagnostic）与 DAP 断点（原生 sign，名字 Dap*）合并成一列：
 				-- 同行有诊断时断点会被压掉（colwidth = 1, maxwidth = 1），换来每行少求一段。
 				{

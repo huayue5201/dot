@@ -59,6 +59,26 @@ return {
 		opts = {
 			language = "Chinese",
 		},
+		-- MCP 服务（stdio）。todo2 走 bridge 模式：子进程继承 $NVIM，
+		-- 把工具调用转发回当前这个活着的 nvim 上的 todo2.ai
+		mcp = {
+			servers = {
+				todo2 = {
+					cmd = {
+						"nvim",
+						"--headless",
+						"-u",
+						"NONE",
+						"-l",
+						vim.fn.expand("~/neovim-plugins/todo2/mcp/todo2-mcp.lua"),
+					},
+				},
+			},
+			opts = {
+				-- 打开 chat 时自动启动并把工具挂上（否则用 /mcp 手动起）
+				default_servers = { "todo2" },
+			},
+		},
 		adapters = {
 			-- 直连 DeepSeek API（模型：deepseek-flash / deepseek-v4-pro）
 			http = {

@@ -185,6 +185,25 @@ return {
 						separator = true,
 						highlight = "Directory",
 					},
+					{
+						-- sqmeow 抽屉是真正的右侧 vsplit（filetype=sqmeow-drawer）。
+						-- 宽度由 bufferline 从窗口实际宽度读取，这里只声明 filetype；
+						-- 抽屉关掉后 offset 自动消失，不用手写 42。
+						filetype = "sqmeow-drawer",
+						text = "Database",
+						text_align = "center",
+						separator = true,
+						highlight = "SqmeowHeader",
+					},
+					{
+						-- todo2 抽屉同样是右侧 vsplit（filetype=todo2drawer），
+						-- 宽度同样由 bufferline 读取窗口实际宽度；关掉抽屉后 offset 自动消失。
+						filetype = "todo2drawer",
+						text = "Tasks",
+						text_align = "center",
+						separator = true,
+						highlight = "TodoDrawerFileHeader",
+					},
 				},
 
 				-- ========== 选择模式设置 ==========

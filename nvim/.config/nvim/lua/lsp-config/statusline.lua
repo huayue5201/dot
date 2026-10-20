@@ -29,7 +29,6 @@ vim.api.nvim_set_hl(0, "LspHighlight", { fg = "#fffff0", bold = true })
 -- =========================================================
 local spinner_index = 1
 local spinner_active = false
-local active_tasks = 0 -- 活动任务计数器
 local spinner_timer = nil
 local last_spinner = ""
 local spinner_update_scheduled = false
@@ -72,13 +71,20 @@ local function schedule_spinner_update()
 	end
 end
 
-local function spinner_start()
-	active_tasks = active_tasks + 1
+---spinner 是否该转，完全由 active_progress 是否为空决定（幂等开关）。
+---早期版本用 active_tasks 计数器：begin 就 +1，但只有「token 集合清空」时才 -1，
+---于是两个进度任务重叠（begin A、begin B、end A、end B）后计数器停在 1，
+---spinner 永远转不停 —— 表现为“LSP 一直处于启动中”。
+---@param active boolean
+local function spinner_set_active(active)
+	if active == spinner_active then
+		return
+	end
+	spinner_active = active
 
-	if active_tasks == 1 and not spinner_active then
-		spinner_active = true
+	if active then
 		spinner_index = 1
-
+		last_spinner = "" -- 避免与上轮最后一帧相同而不重绘
 		-- 创建并启动定时器
 		spinner_timer = vim.uv.new_timer()
 		spinner_timer:start(0, M.config.spinner_interval, function()
@@ -87,15 +93,7 @@ local function spinner_start()
 				schedule_spinner_update()
 			end)
 		end)
-	end
-end
-
-local function spinner_stop()
-	active_tasks = math.max(0, active_tasks - 1)
-
-	if active_tasks == 0 and spinner_active then
-		spinner_active = false
-
+	else
 		if spinner_timer then
 			spinner_timer:stop()
 			spinner_timer:close()
@@ -120,34 +118,48 @@ end
 -- =========================================================
 -- 自动监听 LSP 任务（LspProgress）
 -- =========================================================
-local active_progress_tokens = {} -- 使用 token 跟踪多个任务
+-- 活动进度：["<client_id>:<token>"] = true
+-- 必须带 client_id：不同 server 的 token 都从 1 开始，会互相覆盖。
+-- token 也只能取 ev.data.params.token —— WorkDoneProgressBegin 里没有 token 字段，
+-- 早期版本退化成用 title 当 key，同名任务会互相吞掉 begin/end。
+local active_progress = {}
+
+---清掉已退出 client 的残留 token（server 异常退出不会补发 end）
+local function prune_dead_clients()
+	for key in pairs(active_progress) do
+		local client_id = tonumber(tostring(key):match("^(%d+):"))
+		if client_id and not vim.lsp.get_client_by_id(client_id) then
+			active_progress[key] = nil
+		end
+	end
+end
 
 vim.api.nvim_create_autocmd("LspProgress", {
 	callback = function(ev)
-		local val = ev.data.params.value
+		local data = ev.data or {}
+		local val = data.params and data.params.value
+		if not val or not data.client_id or not val.kind then
+			return
+		end
 
-		-- 使用 token 来唯一标识任务
-		local token = val.token or tostring(val.workDoneToken or val.title)
+		local key = string.format("%d:%s", data.client_id, tostring(data.params.token))
 
 		if val.kind == "begin" then
-			-- 记录这个 token 的任务开始了
-			active_progress_tokens[token] = true
-			spinner_start()
+			active_progress[key] = true
 		elseif val.kind == "end" then
-			-- 标记这个 token 的任务结束
-			active_progress_tokens[token] = nil
-
-			-- 检查是否还有活动的任务
-			local has_active = false
-			for _, _ in pairs(active_progress_tokens) do
-				has_active = true
-				break
-			end
-
-			if not has_active then
-				spinner_stop()
-			end
+			active_progress[key] = nil
+		else
+			return -- "report"：状态不变
 		end
+
+		prune_dead_clients()
+
+		local running = false
+		for _ in pairs(active_progress) do
+			running = true
+			break
+		end
+		spinner_set_active(running)
 	end,
 })
 
@@ -294,8 +306,7 @@ end
 -- =========================================================
 function M.cleanup()
 	-- 清理所有活动任务
-	active_progress_tokens = {}
-	active_tasks = 0
+	active_progress = {}
 
 	-- 停止并关闭定时器
 	if spinner_timer then

@@ -52,6 +52,22 @@ end, { silent = true, desc = "Save: list unsaved buffers (panel)" })
 
 require("core.save-panel").setup() -- :SavePanel 命令
 
+-- 📌 执行流锚点（core/exec-flow.lua）：分析代码时按执行顺序打编号，按顺序跳
+-- quicker 的 quickfix/loclist 切换已挪到 <localleader>xq / <localleader>xl，leader x 归执行流
+local exec_flow = require("core.exec-flow")
+exec_flow.setup() -- :ExecFlowAdd / List / Clear / Qf
+vim.keymap.set("n", "<leader>xa", exec_flow.add, { silent = true, desc = "ExecFlow: 标记执行顺序" })
+vim.keymap.set("n", "<leader>xl", exec_flow.panel, { silent = true, desc = "ExecFlow: 列表" })
+vim.keymap.set("n", "<leader>xd", exec_flow.delete, { silent = true, desc = "ExecFlow: 删除当前行锚点" })
+vim.keymap.set("n", "<leader>xc", exec_flow.clear, { silent = true, desc = "ExecFlow: 清空" })
+vim.keymap.set("n", "<leader>xq", exec_flow.qf, { silent = true, desc = "ExecFlow: 导出 quickfix" })
+vim.keymap.set("n", "]x", function()
+	exec_flow.jump(1)
+end, { silent = true, desc = "ExecFlow: 下一个锚点" })
+vim.keymap.set("n", "[x", function()
+	exec_flow.jump(-1)
+end, { silent = true, desc = "ExecFlow: 上一个锚点" })
+
 -- 关闭当前 buffer：有分屏时先收掉当前窗口（不动其它分屏），
 -- buffer 不再被任何窗口显示后再交给 tab_workspace 删除（含 ownership / 未保存确认）。
 -- 不能用 `:bd` / `:bp | bd #`：它们会把窗口换成别的文件（分屏看起来“没关掉”），

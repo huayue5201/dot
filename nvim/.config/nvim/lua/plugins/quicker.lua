@@ -22,14 +22,17 @@ return {
 			follow = {
 				enabled = false,
 			},
-			-- 图标类型
-			type_icons = {
-				E = "󰅚 ",
-				W = "󰀪 ",
-				I = " ",
-				N = " ",
-				H = " ",
-			},
+			-- 图标类型（与 lsp-config/icons.lua 共用一套）
+			type_icons = (function()
+				local icons = require("lsp-config.icons")
+				return {
+					E = icons.ERROR,
+					W = icons.WARN,
+					I = icons.INFO,
+					N = icons.INFO,
+					H = icons.HINT,
+				}
+			end)(),
 			-- 边框字符
 			borders = {
 				vert = "┃",
@@ -67,13 +70,13 @@ return {
 		})
 
 		-- 切换 quickfix 窗口
-		vim.keymap.set("n", "<leader>xq", function()
+		vim.keymap.set("n", "<localleader>q", function()
 			require("quicker").toggle()
-		end, { desc = "列表: 切换 quickfix" })
+		end, { desc = "列表: 切换 quickfix (localfix)" })
 
 		-- 切换 loclist 窗口
-		vim.keymap.set("n", "<leader>xl", function()
+		vim.keymap.set("n", "<localleader>l", function()
 			require("quicker").toggle({ loclist = true })
-		end, { desc = "列表: 切换 loclist" })
+		end, { desc = "列表: 切换 loclist (local)" })
 	end,
 }

@@ -4,7 +4,10 @@
 --   没有对应预编译包时回退 `cargo build`（需本机有 Rust）。
 -- 键位统一收纳在 <leader>g 分组（数据库操作较常用，占用空格前缀；原 grug-far 让位到 <localleader>g）。
 return {
-	"2giosangmitom/sqmeow.nvim",
+	-- 改成用本地仓库（zpack 的本地目录模式）：改 ~/neovim-plugins/sqmeow.nvim 里的代码后
+	-- `:PackLocalSync`（<leader>zp）同步到 pack/core/opt 下的副本，重启生效。
+	-- 要回到上游源：注释掉 dir 那行再 :PackLocalSync + :PackUpdate。
+	dir = "~/neovim-plugins/sqmeow.nvim",
 	-- 上游已合并 sticky header（PR #94），日常直接用上游源。
 	-- 本地仓库 ~/neovim-plugins/sqmeow.nvim 只用于开发/提 PR；要临时试本地改动时，
 	-- 再加回 dir = "~/neovim-plugins/sqmeow.nvim" 并 :PackLocalSync，试完删掉。

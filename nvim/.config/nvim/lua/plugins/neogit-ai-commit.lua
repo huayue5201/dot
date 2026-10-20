@@ -1,10 +1,11 @@
--- https://github.com/lululau/neogit-ai-commit.nvim
+-- 本地 fork：https://github.com/huayue5201/neogit-ai-commit.nvim
+-- 上游：https://github.com/lululau/neogit-ai-commit.nvim（只读，改动都提交在 fork）
 -- 生成动作只发生在 neogit 的 commit 窗口（filetype=gitcommit）里：
 --   <C-c><CR> 生成英文、<C-c><C-m> 生成中文、<C-c>m 中文
 -- 它直接调用 neogit 内部 API 取 `git diff --cached`，所以没有独立的 git 层。
 
 return {
-	"lululau/neogit-ai-commit.nvim",
+	"huayue5201/neogit-ai-commit.nvim",
 	event = "VeryLazy",
 	dependencies = { "nvim-lua/plenary.nvim" },
 	config = function()

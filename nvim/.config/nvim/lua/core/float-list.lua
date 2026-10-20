@@ -321,15 +321,11 @@ end
 function List:open()
 	local opts = self.opts
 	local items, lines = self:_build()
-	if opts.guard then
-		local msg = opts.guard(items)
-		if msg then
-			vim.notify(msg, vim.log.levels.INFO)
-			return
-		end
+	-- 静默约定：数据为空时直接不打开，不弹任何提示
+	if opts.guard and opts.guard(items) then
+		return
 	end
-	if #lines == 0 and opts.empty_message then
-		vim.notify(opts.empty_message, vim.log.levels.INFO)
+	if #lines == 0 then
 		return
 	end
 
@@ -394,9 +390,6 @@ function List:refresh()
 	local items = opts.rows and opts.rows() or {}
 	if #items == 0 and opts.close_when_empty ~= false then
 		self:close("empty")
-		if opts.empty_message then
-			vim.notify(opts.empty_message, vim.log.levels.INFO)
-		end
 		return false
 	end
 	self:_draw()

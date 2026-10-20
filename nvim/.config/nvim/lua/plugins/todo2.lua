@@ -116,19 +116,18 @@ return {
 		------------------------------------------------------------------
 		-- 高频动作快捷别名（平铺一层）
 		-- 只取分组前缀以外的单字母：mf/mt/ma/mv/ml/mg 是分组，mp 已被 SmartPreview 用掉，
-		-- 所以这里只用 mn / mc / md，不抢分组前缀（否则 maa、mld 这类进不去）。
+		-- 所以这里只用 mn / mc / md，不抢分组前缀（否则 maa、mvv 这类进不去）。
+		-- 同一命令只在单键别名处保留一份，分组里不再重复定义。
 		------------------------------------------------------------------
 		vim.keymap.set("n", "<leader>mn", "<cmd>TodoNew<cr>", { desc = "TODO: 新建文件" })
 		vim.keymap.set("n", "<leader>mc", "<cmd>TodoAdd<cr>", { desc = "TODO: 从代码建任务" })
 		vim.keymap.set("n", "<leader>md", "<cmd>TodoDrawer<cr>", { desc = "TODO: 打开任务抽屉" })
 
 		-- 文件（mf-）
-		vim.keymap.set("n", "<leader>mfn", "<cmd>TodoNew<cr>", { desc = "创建 TODO 文件" })
 		vim.keymap.set("n", "<leader>mfr", "<cmd>TodoRename<cr>", { desc = "重命名 TODO 文件" })
 		vim.keymap.set("n", "<leader>mfd", "<cmd>TodoDelete<cr>", { desc = "删除 TODO 文件" })
 
 		-- 任务（mt-）
-		vim.keymap.set("n", "<leader>mta", "<cmd>TodoAdd<cr>", { desc = "从代码创建任务" })
 		vim.keymap.set("n", "<leader>mte", "<cmd>TodoEditTask<cr>", { desc = "从代码编辑关联任务" })
 		vim.keymap.set("n", "<leader>mts", "<cmd>TodoStatus<cr>", { desc = "选择任务状态" })
 		vim.keymap.set("n", "<leader>mtd", "<cmd>TodoDesc<cr>", { desc = "编辑任务正文" })
@@ -154,7 +153,6 @@ return {
 		vim.keymap.set("n", "<leader>maq", "<cmd>TodoArchiveQF<cr>", { desc = "归档任务平铺 (QF)" })
 
 		-- 视图 / 打开方式（mv-）
-		vim.keymap.set("n", "<leader>mld", "<cmd>TodoDrawer<cr>", { desc = "打开任务抽屉" })
 		vim.keymap.set("n", "<leader>mvf", "<cmd>TodoFloat<cr>", { desc = "浮窗打开" })
 		vim.keymap.set("n", "<leader>mvs", "<cmd>TodoSplit<cr>", { desc = "水平分割打开" })
 		vim.keymap.set("n", "<leader>mvv", "<cmd>TodoVSplit<cr>", { desc = "垂直分割打开" })

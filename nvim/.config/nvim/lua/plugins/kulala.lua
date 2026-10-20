@@ -1,17 +1,46 @@
--- https://github.com/huayue5201/kulala.nvim
+-- https://github.com/dont-be-evil-company/kulala.nvim
 
 return {
 	"dont-be-evil-company/kulala.nvim",
 	-- Load when a session is restored so the SessionLoadPost hook can run.
 	event = { "SessionLoadPost" },
+	-- 每个 key 都必须带 rhs：zpack 对只有 lhs 的条目只装一个加载代理，
+	-- 触发后即删除且不 re-feed，最终不留任何映射。
 	keys = {
-		{ "<leader>Rs", desc = "Send request" },
-		{ "<leader>Ra", desc = "Send all requests" },
-		{ "<leader>Rb", desc = "Open scratchpad" },
+		{
+			"<leader>Rs",
+			function()
+				require("kulala").run()
+			end,
+			mode = { "n", "v" },
+			desc = "Send request",
+		},
+		{
+			"<leader>Ra",
+			function()
+				require("kulala").run_all()
+			end,
+			mode = { "n", "v" },
+			desc = "Send all requests",
+		},
+		{
+			"<leader>Rb",
+			function()
+				require("kulala").scratchpad()
+			end,
+			desc = "Open scratchpad",
+		},
+		{
+			"<leader>Rr",
+			function()
+				require("kulala").replay()
+			end,
+			desc = "Replay the last request",
+		},
 	},
 	-- See opts.lsp.enforce_external_script_naming_convention
 	-- to restrict LSP capabilities to *.http, *.http.js, *.http.ts and *.http.lua files.
-	ft = { "http", "rest", "javascript", "lua" },
+	ft = { "http", "rest", "javascript", "typescript", "lua" },
 	opts = {
 		kulala_core = {
 			-- Optional path to the kulala-core executable
@@ -116,6 +145,21 @@ return {
 				errorHighlight = "ErrorMsg",
 			},
 
+			-- highlight groups for http syntax highlighting
+			---@type table<string, string|vim.api.keyset.highlight>
+			syntax_hl = {
+				["@punctuation.bracket.kulala_http"] = "Number",
+				["@character.special.kulala_http"] = "Special",
+				["@operator.kulala_http"] = "Special",
+				["@variable.kulala_http"] = "String",
+				["@redirect_path.kulala_http"] = "Number",
+				["@external_body_path.kulala_http"] = "String",
+				["@query_param.name.kulala_http"] = "Number",
+				["@query_param.value.kulala_http"] = "String",
+				["@form_param_name.kulala_http"] = "Number",
+				["@form_param_value.kulala_http"] = "String",
+			},
+
 			-- enable/disable request summary in the output window
 			show_request_summary = true,
 
@@ -124,6 +168,9 @@ return {
 
 			-- used by `Copy as Curl` command to determine whether to inline request body
 			max_request_size = 2048,
+
+			-- Display image response bodies inline via Kitty graphics / iTerm2 protocols
+			show_images = true,
 
 			report = {
 				-- possible values: true | false | "on_error"

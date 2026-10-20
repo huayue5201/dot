@@ -179,6 +179,8 @@ function M.setup()
 	})
 
 	require("core.navigation.winfix_guard").setup(nil, M.settings)
+	-- 焦点在插件状态窗口时，让打开文件/LSP 跳转落到编辑区而不是把它顶掉。
+	require("core.navigation.redirect").setup()
 end
 
 return M
