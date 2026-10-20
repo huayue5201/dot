@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "todo2": {
+      "command": "nvim",
+      "args": ["--headless", "-u", "NONE", "-l", "~/neovim-plugins/todo2/mcp/todo2-mcp.lua"],
+      "env": {
+        "TODO2_MCP_STANDALONE": "1",
+        "TODO2_PROJECT_DIR": "/Users/lijia/dotfiles/nvim/.config/nvim"
+      },
+      "description": "todo2 tasks for the nvim config itself (~/.todo-files/nvim)"
+    }
+  }
+}
