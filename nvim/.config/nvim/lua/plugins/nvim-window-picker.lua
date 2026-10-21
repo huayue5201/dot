@@ -152,12 +152,13 @@ return {
 			-- respect_zoom 仅 scope="tab" 生效：tab 被 zoom 时
 			--   只列出可见 pane；若被 zoom 的是别的 pane（nvim 被藏）则不弹选择器
 			-- ghostty scope: "tab" | "window" | "all"（默认 all）；nvim 自身终端
-			--   会自动排除，tab/window 识别不到自身时退回 all
+			--   会自动排除；tab/window 靠 Ghostty 前台窗口的选中 tab 定位自身，
+			--   定不到位时宁可不列，也不会把别的 tab 混进来
 			local target, abort_info = picker.pick_target({
 				sources = {
 					nvim = true,
 					herdr = { scope = "tab", respect_zoom = true },
-					ghostty = { scope = "all" },
+					ghostty = { scope = "tab" },
 				},
 			})
 			if not target then
