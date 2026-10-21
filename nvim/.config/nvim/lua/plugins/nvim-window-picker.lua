@@ -1,7 +1,12 @@
 -- https://github.com/huayue5201/nvim-window-picker
-
+--
+-- zpack 本地目录模式：vim.pack 把下面的绝对路径当作安装源，clone 一份副本到
+-- stdpath("data")/site/pack/core/opt/nvim-window-picker，nvim 实际加载的是副本。
+-- 所以改完 ~/neovim-plugins/nvim-window-picker 并 push 后，要执行
+-- :PackLocalSync（<leader>zp）让副本跟上新 rev，再重启生效。
+-- 必须写绝对路径：lua/core/pack_local.lua 靠本地插件的 src 以 "/" 开头来识别它。
 return {
-	dir = "/Users/lijia/neovim-plugins/nvim-window-picker", -- for open_with_window_picker keymaps
+	dir = "/Users/lijia/neovim-plugins/nvim-window-picker",
 	event = "WinNew",
 	config = function()
 		require("window-picker").setup({
@@ -141,14 +146,18 @@ return {
 				print("You'll need to install window-picker to use this command.")
 				return
 			end
-			-- 跨工具选择：nvim 窗口 + herdr 外部 pane
-			-- scope: "tab" | "workspace" | "all"; 不在 herdr 环境自动跳过
+			-- 跨工具选择：nvim 窗口 + herdr 外部 pane + ghostty 终端
+			-- 各源在对应环境不可用时会自动跳过（herdr 看 HERDR_ENV，ghostty 仅 macOS）
+			-- herdr scope: "tab" | "workspace" | "all"
 			-- respect_zoom 仅 scope="tab" 生效：tab 被 zoom 时
 			--   只列出可见 pane；若被 zoom 的是别的 pane（nvim 被藏）则不弹选择器
+			-- ghostty scope: "tab" | "window" | "all"（默认 all）；nvim 自身终端
+			--   会自动排除，tab/window 识别不到自身时退回 all
 			local target, abort_info = picker.pick_target({
 				sources = {
 					nvim = true,
 					herdr = { scope = "tab", respect_zoom = true },
+					ghostty = { scope = "all" },
 				},
 			})
 			if not target then
@@ -163,7 +172,7 @@ return {
 				end
 				return
 			end
-			-- herdr pane 在 pick_target 内部已 focus，无需再切换
+			-- herdr pane / ghostty terminal 在 pick_target 内部已 focus，无需再切换
 			if target.kind == "nvim" then
 				vim.api.nvim_set_current_win(target.window)
 			end
