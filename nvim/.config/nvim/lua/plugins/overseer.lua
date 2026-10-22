@@ -2,7 +2,6 @@
 
 return {
 	"stevearc/overseer.nvim",
-	event = "VeryLazy",
 	config = function()
 		require("overseer").setup({
 			task_list = {

@@ -2,17 +2,6 @@
 
 return {
 	"propilideno/buffer-preview.nvim",
-	event = {
-		-- Image preview
-		"BufReadCmd *.pdf",
-		"BufReadCmd *.pptx",
-		"BufReadCmd *.ppt",
-		"BufReadCmd *.odp",
-		-- Data preview
-		"BufReadCmd *.db",
-		"BufReadCmd *.sqlite",
-		"BufReadCmd *.sqlite3",
-	},
 	dependencies = {
 		"3rd/image.nvim", -- only needed for image preview (PDF / presentation)
 	},

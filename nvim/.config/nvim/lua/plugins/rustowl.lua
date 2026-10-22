@@ -5,10 +5,8 @@ return {
 	"cordx56/rustowl",
 	sem_version = "*", -- Latest stable version
 	-- build = "cargo install rustowl",
-	-- 懒加载：只在按下下面三个键时才加载插件 + 起 rustowl 客户端。
-	-- 之前 lazy=false 会让它随 nvim 启动就初始化，并容易意外拉起 cargo check --all-targets。
-	lazy = true,
-	keys = { "<leader>rtR", "<localleader>re", "<localleader>rd" },
+	-- 插件本身启动即加载，但不主动起客户端（auto_attach=false）：客户端由下面
+	-- config 里注册的三个键按需 lsp.start()，避免意外拉起 cargo check --all-targets。
 	config = function()
 		local rustowl = require("rustowl")
 		rustowl.setup({
@@ -39,20 +37,42 @@ return {
 			-- },
 		})
 
+		-- 加载器是 eager 的：插件 rtp 在任何 rust buffer 触发 FileType 之前就已就位，
+		-- ftplugin/rust.lua 会被 nvim 正常 source，不需要手动补。
+
 		-- 全局入口：首次按下会自己 lsp.start() 并把客户端 attach 到当前 buffer。
 		-- 传显式 bufnr（不传 buf 会导致 enable 的 autocmd 变成“所有 buffer”）。
-		local function rustowl_action(method, desc)
+		local function rustowl_action(method)
 			return function()
 				if vim.bo.filetype ~= "rust" then
 					vim.notify("RustOwl: 只在 rust buffer 里生效", vim.log.levels.WARN)
+					return
+				end
+				if vim.fn.executable("rustowl") == 0 then
+					vim.notify("RustOwl: 找不到 rustowl 可执行文件（cargo install rustowl）", vim.log.levels.ERROR)
 					return
 				end
 				require("rustowl")[method](vim.api.nvim_get_current_buf())
 			end
 		end
 
-		vim.keymap.set("n", "<leader>rtR", rustowl_action("toggle", "RustOwl: 开关"), { desc = "RustOwl: toggle" })
-		vim.keymap.set("n", "<localleader>re", rustowl_action("enable", "RustOwl: 启用"), { desc = "RustOwl: enable" })
-		vim.keymap.set("n", "<localleader>rd", rustowl_action("disable", "RustOwl: 禁用"), { desc = "RustOwl: disable" })
+		vim.keymap.set(
+			"n",
+			"<localleader>rt",
+			rustowl_action("toggle"),
+			{ desc = "RustOwl: toggle" }
+		)
+		vim.keymap.set(
+			"n",
+			"<localleader>re",
+			rustowl_action("enable"),
+			{ desc = "RustOwl: enable" }
+		)
+		vim.keymap.set(
+			"n",
+			"<localleader>rd",
+			rustowl_action("disable"),
+			{ desc = "RustOwl: disable" }
+		)
 	end,
 }

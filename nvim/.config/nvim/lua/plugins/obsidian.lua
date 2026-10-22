@@ -6,7 +6,6 @@ return {
 	"obsidian-nvim/obsidian.nvim",
 	sem_version = "*",
 	-- 只在 markdown 上按需加载；非 vault 的 .md 会被插件静默忽略（无映射、无 LSP）
-	event = { "BufReadPre *.md", "BufNewFile *.md" },
 	opts = {
 		-- 清理旧的 ObsidianXxx 命令，统一用 `:Obsidian <sub>`（4.0 起 legacy 将被移除）
 		legacy_commands = false,

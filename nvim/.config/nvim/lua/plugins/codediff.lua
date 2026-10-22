@@ -3,8 +3,6 @@
 
 return {
 	"esmuellert/codediff.nvim",
-	event = "VeryLazy",
-	cmd = "CodeDiff",
 	config = function()
 		require("codediff").setup({
 			diff = {

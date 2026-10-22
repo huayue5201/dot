@@ -2,7 +2,6 @@
 
 return {
 	"stevearc/resession.nvim",
-	event = "VeryLazy",
 	config = function()
 		require("resession").setup({
 			-- 自动保存配置

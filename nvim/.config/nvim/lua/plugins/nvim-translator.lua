@@ -1,7 +1,6 @@
 -- https://github.com/huayue5201/nvim-translator
 
 return {
-	"huayue5201/nvim-translator",
 	dir = "~/neovim-plugins/nvim-translator",
 	build = "make build", -- 确保后端二进制是最新构建
 	opts = {

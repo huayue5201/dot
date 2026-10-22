@@ -2,7 +2,6 @@
 
 return {
 	"celeste3z/celeste_comment.nvim",
-	lazy = false,
 	config = function()
 		require("celeste_comment").setup(
 			---@type Celeste.Comment.PartialOpts

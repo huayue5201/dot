@@ -2,7 +2,6 @@
 
 return {
 	"huayue5201/nvim-lastplace",
-	event = { "BufReadPre", "BufNewFile" },
 	config = function()
 		require("nvim-lastplace").setup({
 			lastplace_ignore_buftype = { "quickfix", "nofile", "help" },

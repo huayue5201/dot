@@ -10,7 +10,6 @@
 return {
 	"nvim-treesitter/nvim-treesitter-textobjects",
 	branch = "main",
-	event = "VeryLazy",
 	init = function()
 		-- 关闭内置 ftplugin 的 mappings（Python/Rust/Go 等自带 [[ ]] 等映射），
 		-- 避免和下面的 treesitter 映射互相覆盖。

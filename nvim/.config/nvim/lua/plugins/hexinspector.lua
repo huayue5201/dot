@@ -3,8 +3,6 @@
 
 return {
 	"Punity122333/hexinspector.nvim",
-	cmd = { "HexEdit", "HexInspect" },
-	event = "VeryLazy",
 	config = function()
 		require("hexinspector").setup({
 			vertex_templates = {

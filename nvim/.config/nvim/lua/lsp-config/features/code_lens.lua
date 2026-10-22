@@ -246,7 +246,7 @@ end
 ---图标（Nerd Font）：kind → 字形。想换图标改这里即可
 local LENS_ICONS = {
 	run = "\u{f04b}", --  (play)
-	debug = "", --  (bug)
+	debug = " ", --  (bug)
 	references = " ", --  (link)
 	implementation = " ", --  (sitemap)
 	test = "󰙨", --  (flask)
@@ -348,7 +348,7 @@ local function build_chunks(bufnr, entries, hover_idx, placement)
 	end
 	for i, e in ipairs(entries) do
 		if i > 1 then
-			chunks[#chunks + 1] = { " | ", "CodeLensSep" }
+			chunks[#chunks + 1] = { "  ", "CodeLensSep" }
 		end
 		local glyph, glyph_hl = lens_icon(e)
 		if glyph ~= "" then

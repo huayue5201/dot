@@ -3,31 +3,13 @@
 --   1) DeepSeek（HTTP API）：普通聊天 / 内联改写，直连 api.deepseek.com
 --   2) pi（ACP Agent）：通过 `pi-acp` 驱动 pi coding agent（pi 自身用 deepseek 模型）
 
----从 ~/.env 读取某个 KEY（该文件未自动 export 到环境，这里手动注入）
----@param name string
----@return string|nil
-local function env_from_file(name)
-  local ok, value = pcall(function()
-    local file = io.open(vim.fn.expand("~/.env"), "r")
-    if not file then
-      return nil
-    end
-    local content = file:read("*a")
-    file:close()
-    -- 匹配： export NAME=... / NAME=...（可带引号）
-    return content:match("^%s*export%s+" .. name .. "%s*=%s*\"?([^\"\r\n]+)\"?")
-      or content:match("^%s*" .. name .. "%s*=%s*\"?([^\"\r\n]+)\"?")
-  end)
-  return ok and value or nil
-end
-
--- DeepSeek key 补进 nvim 环境（codecompanion 的 deepseek adapter 读 $DEEPSEEK_API_KEY）
-vim.env.DEEPSEEK_API_KEY = vim.env.DEEPSEEK_API_KEY or env_from_file("DEEPSEEK_API_KEY")
+-- 注意：DEEPSEEK_API_KEY 等已由 core.dotenv（init.lua 启动早期）从 ~/.env 载入 vim.env，
+-- codecompanion 的 deepseek adapter 直接读 $DEEPSEEK_API_KEY，此处无需重复解析。
 
 -- pi-acp 启动时会去调用 `pi`，确保 pi 的 bin 目录在 PATH 上
 local pi_bin = vim.fn.expand("~/.pi/agent/bin")
 if vim.env.PATH and not vim.env.PATH:find(pi_bin, 1, true) then
-  vim.env.PATH = pi_bin .. ":" .. vim.env.PATH
+	vim.env.PATH = pi_bin .. ":" .. vim.env.PATH
 end
 
 return {
@@ -37,14 +19,6 @@ return {
 		"nvim-lua/plenary.nvim",
 		"nvim-treesitter/nvim-treesitter",
 		"MeanderingProgrammer/render-markdown.nvim",
-	},
-	cmd = {
-		"CodeCompanion",
-		"CodeCompanionChat",
-		"CodeCompanionActions",
-		"CodeCompanionCmd",
-		"CodeCompanionCLI",
-		"CodeCompanionCodeReview",
 	},
 	keys = {
 		{ "<leader>aa", "<cmd>CodeCompanionActions<cr>", mode = { "n", "v" }, desc = "AI: 操作面板" },
@@ -123,7 +97,11 @@ return {
 								return true
 							end,
 							form_messages = function(self, messages, capabilities)
-								return require("codecompanion.adapters.acp.helpers").form_messages(self, messages, capabilities)
+								return require("codecompanion.adapters.acp.helpers").form_messages(
+									self,
+									messages,
+									capabilities
+								)
 							end,
 							on_exit = function() end,
 						},

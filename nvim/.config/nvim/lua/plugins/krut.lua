@@ -2,7 +2,6 @@
 
 return {
 	"alexpasmantier/krust.nvim",
-	ft = "rust",
 	config = function()
 		require("krust").setup({
 			keymap = "grk", -- Set a keymap for Rust buffers (default: false)

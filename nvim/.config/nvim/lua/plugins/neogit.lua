@@ -2,12 +2,10 @@
 
 return {
 	"NeogitOrg/neogit",
-	lazy = true,
 	dependencies = {
 		"esmuellert/codediff.nvim",
 		"m00qek/baleia.nvim",
 	},
-	cmd = { "Neogit", "NeogitCommit" },
 	keys = {
 		{ "<leader>hg", "<cmd>Neogit<cr>", desc = "neogit: Open Neogit" },
 		{

@@ -8,7 +8,7 @@
 
 ```
 .
-├── nvim/          # Neovim 配置（lazy.nvim + LSP + DAP + 大量插件）
+├── nvim/          # Neovim 配置（原生 vim.pack + LSP + DAP + 大量插件）
 ├── bin/           # 自制命令行脚本（部署到 ~/.local/bin）
 ├── zsh/           # zsh 配置（.zshrc、.zshenv、脚本）
 ├── tmux/          # tmux 配置
@@ -25,7 +25,7 @@
 
 ## 特性
 
-- **Neovim**：基于 [lazy.nvim](https://github.com/folke/lazy.nvim) 管理 120+ 插件，重度懒加载，模块化拆分（`lua/plugins/*.lua`），内置 LSP / DAP / 格式化 / 补全等完整配置。
+- **Neovim**：基于 Neovim 原生 `vim.pack` + 自写 eager 加载器（`lua/core/pack.lua`）管理 120+ 插件，模块化拆分（`lua/plugins/*.lua`），内置 LSP / DAP / 格式化 / 补全等完整配置。
 - **跨平台路径**：所有机器相关的绝对路径已替换为 `~` / `$HOME` / `vim.fn.expand()` 等可移植写法。
 - **无敏感信息**：API Key 一律通过环境变量注入（如 `DEEPSEEK_API_KEY`），不落盘到仓库。
 

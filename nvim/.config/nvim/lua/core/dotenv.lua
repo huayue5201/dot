@@ -4,6 +4,15 @@
 -- ============================================================================
 local M = {}
 
+-- 写入环境变量：shell 里已 export 的优先（不覆盖）；PATH 例外，前缀拼接
+local function set_env(key, val)
+	if key == "PATH" then
+		vim.env.PATH = val .. ":" .. (vim.env.PATH or "")
+	elseif vim.env[key] == nil then
+		vim.env[key] = val
+	end
+end
+
 -- 读取 KEY=VAL 格式的 .env 文件，支持 export、引号、注释
 local function load_env_file(file)
 	local f = io.open(file, "r")
@@ -19,7 +28,7 @@ local function load_env_file(file)
 			end
 			if key and val then
 				val = val:gsub("^[\"'](.-)[\"']$", "%1")
-				vim.env[key] = val
+				set_env(key, val)
 			end
 		end
 	end
@@ -44,11 +53,7 @@ local function load_env_lua(file)
 	if type(result) == "table" then
 		for k, v in pairs(result) do
 			if type(k) == "string" and type(v) == "string" then
-				if k == "PATH" then
-					vim.env.PATH = v .. ":" .. vim.env.PATH
-				else
-					vim.env[k] = v
-				end
+				set_env(k, v)
 			end
 		end
 	end

@@ -2,10 +2,8 @@
 
 return {
 	"dont-be-evil-company/kulala.nvim",
-	-- Load when a session is restored so the SessionLoadPost hook can run.
-	event = { "SessionLoadPost" },
-	-- 每个 key 都必须带 rhs：zpack 对只有 lhs 的条目只装一个加载代理，
-	-- 触发后即删除且不 re-feed，最终不留任何映射。
+	-- 每条 key 都写显式 rhs：加载器只把 keys 注册成普通映射（不会在触发时加载插件），
+	-- 纯 lhs 条目会退化成 lhs→lhs 的空映射。
 	keys = {
 		{
 			"<leader>Rs",
@@ -40,7 +38,6 @@ return {
 	},
 	-- See opts.lsp.enforce_external_script_naming_convention
 	-- to restrict LSP capabilities to *.http, *.http.js, *.http.ts and *.http.lua files.
-	ft = { "http", "rest", "javascript", "typescript", "lua" },
 	opts = {
 		kulala_core = {
 			-- Optional path to the kulala-core executable

@@ -4,7 +4,6 @@
 --       否则会与插件重复显示。此处只负责样式与行为；优先级 1000 保证在主题/其他插件前加载。
 return {
 	"rachartier/tiny-inline-diagnostic.nvim",
-	event = "VeryLazy",
 	priority = 1000,
 	opts = {
 		preset = "modern", -- modern | classic | minimal | powerline | ghost | simple | nonerdfont | amongus

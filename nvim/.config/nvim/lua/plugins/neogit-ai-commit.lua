@@ -6,7 +6,6 @@
 
 return {
 	"huayue5201/neogit-ai-commit.nvim",
-	event = "VeryLazy",
 	dependencies = { "nvim-lua/plenary.nvim" },
 	config = function()
 		require("neogit-ai-commit").setup({

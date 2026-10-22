@@ -2,7 +2,6 @@
 
 return {
 	"kosayoda/nvim-lightbulb",
-	event = "LspAttach",
 	config = function()
 		-- vim.api.nvim_set_hl(0, "LightBulbFloatWin", {
 		-- 	bg = "#FFD700",

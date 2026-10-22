@@ -3,7 +3,6 @@
 -- 只启用了 sqlfluff，并且只保留解析错误（PRS），不刷风格类规则。
 return {
 	"mfussenegger/nvim-lint",
-	event = { "BufReadPost", "BufNewFile" },
 	config = function()
 		local lint = require("lint")
 

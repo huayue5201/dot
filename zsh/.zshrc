@@ -26,11 +26,23 @@ source "${HOME}/.zinit/bin/zinit.zsh"
 # 历史记录
 # ---------------------------------------
 HISTFILE=~/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
+# 不启用 hist_ignore_all_dups / hist_save_no_dups：会把频率信息抹掉，
+# 而 histdb 的“常用命令”排序依赖完整记录。
+HISTSIZE=50000
+SAVEHIST=50000
 setopt appendhistory inc_append_history share_history
-setopt hist_ignore_all_dups hist_save_no_dups hist_ignore_space
+setopt hist_ignore_space
 setopt autocd notify correct
+
+# ---------------------------------------
+# zsh-histdb（SQLite 历史库）
+# ---------------------------------------
+# 每条命令额外记录 工作目录 / 退出码 / 耗时 / 会话 / 主机。
+# macOS 上 sqlite3 的行分隔符处理需要这个（见 upstream README）。
+HISTDB_TABULATE_CMD=(sed -e $'s/\x1f/\t/g')
+# 等价于 hist_ignore_space：以空格开头的命令不入库（histdb 用 HISTORY_IGNORE）。
+HISTORY_IGNORE=' *'
+source "$HOME/.zhistdb/sqlite-history.zsh"
 
 # ---------------------------------------
 # 插件（安全 lazy-loading）
@@ -43,6 +55,19 @@ zinit light zdharma-continuum/fast-syntax-highlighting
 # autosuggestions（延迟加载）
 zinit ice depth"1" wait"0" lucid
 zinit light zsh-users/zsh-autosuggestions
+
+# autosuggestions 用 histdb 的建议策略（本目录优先、按使用频率），
+# 没有命中时回落到原来的 history 策略。
+_zsh_autosuggest_strategy_histdb_top_here() {
+    local query="select commands.argv from
+history left join commands on history.command_id = commands.rowid
+left join places on history.place_id = places.rowid
+where places.dir LIKE '$(sql_escape $PWD)%'
+and commands.argv LIKE '$(sql_escape $1)%'
+group by commands.argv order by count(*) desc limit 1"
+    suggestion=$(_histdb_query "$query")
+}
+ZSH_AUTOSUGGEST_STRATEGY=(histdb_top_here history)
 
 # fzf-tab（必须在 zsh-vi-mode 之前）
 zinit ice depth"1" wait"1" lucid
@@ -78,6 +103,16 @@ if [[ -r "$_fzf_key_bindings" ]]; then
   zvm_after_init_commands+=("source '$_fzf_key_bindings'")
 fi
 unset _fzf_key_bindings
+
+# ---------------------------------------
+# histdb 的 ^R 选择器（必须在 fzf key-bindings 之后绑定）
+# ---------------------------------------
+# Enter 只放进编辑缓冲区不执行；Alt-h 只看本机，Alt-d 只看当前目录及子目录，
+# Alt-j 跳到该条目执行时所在的目录。
+source "$HOME/.zhistdb/histdb-fzf.zsh"
+bindkey '^R' _fzf_histdb_widget
+# zsh-vi-mode 初始化会重置键位，再绑一次。
+zvm_after_init_commands+=("bindkey '^R' _fzf_histdb_widget")
 
 # ---------------------------------------
 # fzf-tab 配置
@@ -163,7 +198,11 @@ reload() {
 }
 
 fh() {
-    print -z $(history | fzf --height=40% --reverse | sed 's/ *[0-9]* *//')
+    local q=${1//\'/\'\'}
+    local cmd
+    cmd=$(_histdb_query "select argv from commands where argv like '%${q}%' group by argv order by max(id) desc limit 1000" |
+        fzf --height=40% --reverse --query="$1")
+    [[ -n $cmd ]] && print -z -- "$cmd"
 }
 
 fe() {

@@ -9,7 +9,6 @@ return {
 		"nvim-tree/nvim-web-devicons", -- optional, but recommended
 		"saifulapm/neotree-file-nesting-config", -- 文件嵌套规则插件
 	},
-	lazy = false, -- neo-tree will lazily load itself
 	config = function()
 		local function open_grug_far(prefills)
 			local grug_far = require("grug-far")

@@ -8,7 +8,6 @@
 
 return {
 	dir = "~/neovim-plugins/nvim-jump",
-	event = "VeryLazy",
 	config = function()
 		require("jump").setup({
 			-- 默认标签序列（按偏好排序），保持默认即可

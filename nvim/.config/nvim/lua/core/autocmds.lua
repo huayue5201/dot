@@ -18,7 +18,6 @@ local cleanup_skip_filetypes = {
 	"dashboard",
 	"grug-far",
 	"help",
-	"lazy",
 	"neo-tree",
 	"NvimTree",
 	"sqmeow-drawer",

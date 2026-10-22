@@ -4,10 +4,10 @@
 local M = {}
 
 -- 1) mason 的 bin 目录提早进入 PATH
--- 问题：mason.nvim 用 `event = "VeryLazy"` 加载，它的 bin 目录要到那时才被 prepend 到
--- PATH；而 LSP 在 FileType 时就启动。于是「启动即打开文件」（nvim foo.lua / foo.rs）
--- 时 lua-language-server、rust-analyzer 都找不到，clients=0，要等下次开文件才正常。
--- 这里在 init 阶段就把 mason bin 放到 PATH 最前面，保证 LSP 一定能启动；
+-- 现在 mason 在 core.pack 阶段就 setup（早于 LSP setup），理论上已自行 prepend PATH；
+-- 这里仍在 init 阶段兜底一次：只要有人把 mason 改回按需加载、或插件没配 PATH，
+-- 「启动即打开文件」（nvim foo.lua / foo.rs）时 LSP 依然能找到 lua-language-server /
+-- rust-analyzer。于是这里把 mason bin 放到 PATH 最前面，保证 LSP 一定能启动；
 -- 也顺带绕开 rustup shim（~/.cargo/bin/rust-analyzer 在 nightly toolchain 下会报
 -- `Unknown binary 'rust-analyzer'`）。
 function M.setup_mason_path()

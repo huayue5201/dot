@@ -2,10 +2,9 @@
 
 return {
 	dir = "~/neovim-plugins/todo2",
-	"huayue5201/todo2",
 	dependencies = { { dir = "~/neovim-plugins/nvim-store3" } },
 	name = "todo2",
-	-- 懒加载已由插件端处理（plugin/todo2.lua 惰性触发 setup），无需 lazy 配置
+	-- setup 由插件端 plugin/todo2.lua 惰性触发；加载器没有 lazy 字段，无需配置
 	init = function()
 		-- 可选：自定义配置（以下均为顶层键，均有默认值，按需覆盖）
 		vim.g.todo2_config = {

@@ -6,8 +6,8 @@ return {
 			if project.kind(bufnr) ~= "embedded" then
 				return {}
 			end
-			-- 延迟到真正构建嵌入式调试配置时再加载：dap-cortex-debug 依赖 nvim-dap，
-			-- 若在 nvim-dap 的 config 期间 require，会触发 zpack 的循环依赖告警。
+			-- 延迟到真正构建嵌入式调试配置时再 require：避免在 nvim-dap 的 config
+			-- 期间连锁加载 dap-cortex-debug（它反向依赖 nvim-dap）。
 			local dap_cortex_debug = require("dap-cortex-debug")
 			local env = project.env_config(bufnr) or {}
 			return {

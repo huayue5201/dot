@@ -2,7 +2,6 @@
 
 return {
 	"stevearc/quicker.nvim",
-	event = "VeryLazy", -- 延迟加载，保证启动速度
 	config = function()
 		require("quicker").setup({
 			-- 是否使用默认 quickfix buffer 的选项

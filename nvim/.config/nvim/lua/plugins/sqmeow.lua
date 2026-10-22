@@ -4,19 +4,18 @@
 --   没有对应预编译包时回退 `cargo build`（需本机有 Rust）。
 -- 键位统一收纳在 <leader>g 分组（数据库操作较常用，占用空格前缀；原 grug-far 让位到 <localleader>g）。
 return {
-	-- 改成用本地仓库（zpack 的本地目录模式）：改 ~/neovim-plugins/sqmeow.nvim 里的代码后
-	-- `:PackLocalSync`（<leader>zp）同步到 pack/core/opt 下的副本，重启生效。
-	-- 要回到上游源：注释掉 dir 那行再 :PackLocalSync + :PackUpdate。
+	-- 本地目录模式：vim.pack 把绝对路径当作安装源，clone 一份副本到
+	-- stdpath("data")/site/pack/core/opt 下，nvim 实际加载的是副本。改完源码后
+	-- `:PackLocalSync`（<leader>zp）同步副本，重启生效。
 	-- dir = "~/neovim-plugins/sqmeow.nvim",
 	-- 本地仓库 ~/neovim-plugins/sqmeow.nvim 只用于开发/提 PR；要临时试本地改动时，
 	-- 再加回 dir = "~/neovim-plugins/sqmeow.nvim" 并 :PackLocalSync，试完删掉。
 	"2giosangmitom/sqmeow.nvim",
 	dependencies = { "MunifTanjim/nui.nvim" },
-	cmd = "Sqmeow",
 	keys = {
-		-- 注意：不要再写 { "<leader>g", desc = ... } 当分组标签。zpack 会给它
-		-- 建一个 lazy-load 映射，第一次按 <leader>g 只触发加载、看不到效果，第二次才弹出分组。
-		-- 分组标签统一在 lua/plugins/which-key.lua 的 wk.add 里声明。
+		-- 只写带实际 rhs 的按键：加载器把 keys 注册成普通映射，纯 lhs 条目会
+		-- 退化成 lhs→lhs 的空映射（还会覆盖 config 里定义的真实映射）。
+		-- 分组标签统一写在 lua/plugins/which-key.lua 的 wk.add 里。
 		{ "<leader>go", "<cmd>Sqmeow<cr>", desc = "打开工作区" },
 		{ "<leader>gt", "<cmd>Sqmeow toggle<cr>", desc = "显示/隐藏窗口" },
 		{ "<leader>gc", "<cmd>Sqmeow add<cr>", desc = "添加连接" },

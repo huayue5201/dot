@@ -1,13 +1,12 @@
 -- https://github.com/smart-splits-nvim/smart-splits.nvim
 --
 -- v3 把复用器后端拆成独立插件。herdr 没有官方后端，用本仓库自维护的
--- lua/vendor/smart-splits-backend-herdr/init.lua（实现 v3 协议）。
+-- lua/vendor/smart-splits-backend-herdr.lua（实现 v3 协议）。
 
 return {
 	"smart-splits-nvim/smart-splits.nvim",
 	tag = "v3.0.0", -- 锁定 v3 大版本，避免再次被动跨大版本升级
-	event = "VeryLazy",
-	-- backend-ghostty 必须在 smart-splits 激活前 setup（lazy 会先加载依赖）。
+	-- backend-ghostty 必须在 smart-splits 激活前 setup（加载器会先加载 dependencies）。
 	-- key_table 默认 'nvim'，与 ~/.config/ghostty/config 里的 `nvim/` 前缀一致。
 	-- https://github.com/smart-splits-nvim/backend-ghostty
 	dependencies = { { "smart-splits-nvim/backend-ghostty", main = "smart-splits-backend-ghostty", opts = {} } },
@@ -68,5 +67,33 @@ return {
 		map("n", "<leader><leader>j", ss.swap_buf_down, { desc = "Smart-splits: 与下窗口换 buffer" })
 		map("n", "<leader><leader>k", ss.swap_buf_up, { desc = "Smart-splits: 与上窗口换 buffer" })
 		map("n", "<leader><leader>l", ss.swap_buf_right, { desc = "Smart-splits: 与右窗口换 buffer" })
+
+		-- backend-ghostty 只在第一次 attach 时抓一次「Ghostty 当前焦点 terminal」当目标：
+		-- Ghostty 的 AppleScript 模型里 terminal 只有 id/name/index/selected，没有 pid/tty，
+		-- 无法反查「哪个 surface 拥有本进程」。于是 nvim 在非焦点分屏/后台标签里启动时，
+		-- 抓到的是别人的 id，而且之后永不重抓 → 那个 nvim 整个生命周期都跳不动。
+		-- FocusGained 恰好是本 surface 拿到焦点的时刻（focus 转义序列由它自己发出），
+		-- 在这里清掉可能抓错的 id 和 claim 状态，让后端重新 attach + claim。
+		local refresh_group = vim.api.nvim_create_augroup("smart_splits_ghostty_refocus", { clear = true })
+		vim.api.nvim_create_autocmd("FocusGained", {
+			group = refresh_group,
+			desc = "Smart-splits: 重新绑定 Ghostty terminal_id",
+			callback = function()
+				local ok, backend = pcall(function()
+					return require("smart-splits.backend").resolve()
+				end)
+				if not ok or backend == nil or backend.name ~= "smart-splits-backend-ghostty" then
+					return
+				end
+				local ok_ghostty, ghostty = pcall(require, "smart-splits-backend-ghostty.ghostty")
+				local ok_lifecycle, lifecycle = pcall(require, "smart-splits-backend-ghostty.lifecycle")
+				if not (ok_ghostty and ok_lifecycle) then
+					return
+				end
+				lifecycle.reset() -- 清 claimed/active 和旧 autocmd（activate 会重建）
+				ghostty.reset() -- 清可能抓错的 terminal_id，下次 attach 重抓
+				pcall(backend.activate)
+			end,
+		})
 	end,
 }

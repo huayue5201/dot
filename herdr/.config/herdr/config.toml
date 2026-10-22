@@ -1,30 +1,6 @@
 onboarding = false
 
 [[keys.command]]
-key = "prefix+e"
-type = "plugin_action"
-command = "chmarax.herdr-nvim.toggle"
-description = "nvim sidebar"
-
-[[keys.command]]
-key = "prefix+o"
-type = "plugin_action"
-command = "chmarax.herdr-nvim.pick-file"
-description = "open file from agent output"
-
-[[keys.command]]
-key = "cmd+shift+g"
-type = "plugin_action"
-command = "chmarax.gitview.toggle" # sidebar in the current tab
-description = "git view sidebar"
-
-[[keys.command]]
-key = "cmd+g"
-type = "plugin_action"
-command = "chmarax.gitview.toggle-tab" # dedicated gitview tab
-description = "git view tab"
-
-[[keys.command]]
 key = "ctrl+h"
 type = "plugin_action"
 command = "smart-splits.nvim.left"

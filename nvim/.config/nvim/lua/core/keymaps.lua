@@ -72,6 +72,19 @@ end, { silent = true, desc = "ExecFlow: 上一个锚点" })
 -- buffer 不再被任何窗口显示后再交给 tab_workspace 删除（含 ownership / 未保存确认）。
 -- 不能用 `:bd` / `:bp | bd #`：它们会把窗口换成别的文件（分屏看起来“没关掉”），
 -- 也不会维护 tab 工作区的 buffer 归属。
+-- noice.nvim 等插件会常驻隐藏浮窗（[Cmd]/[Msg]/[Dialog]/[Pager]），
+-- nvim_tabpage_list_wins 会把浮窗也算进去，导致“多窗口”误判、win_close 关不动。
+-- 因此这里只统计当前 tab 里真正参与布局的（非浮动）窗口。
+local function real_wins()
+	local wins = {}
+	for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+		if vim.api.nvim_win_get_config(w).relative == "" then
+			wins[#wins + 1] = w
+		end
+	end
+	return wins
+end
+
 local function smart_close()
 	local buf = vim.api.nvim_get_current_buf()
 	if not vim.api.nvim_buf_is_valid(buf) then
@@ -80,7 +93,7 @@ local function smart_close()
 
 	-- 特殊 buffer（终端 / 文件树 / 浮窗 / help 等）：只关窗口，不删 buffer
 	if vim.bo[buf].buftype ~= "" then
-		if #vim.api.nvim_tabpage_list_wins(0) > 1 then
+		if #real_wins() > 1 then
 			pcall(vim.api.nvim_win_close, 0, false)
 		else
 			vim.cmd("close")
@@ -88,11 +101,18 @@ local function smart_close()
 		return
 	end
 
-	-- 当前 tab 有多个窗口：收掉当前分屏（其它窗口布局不动），
+	-- 当前 tab 有多个真实分屏：收掉当前分屏（其它窗口布局不动），
 	-- 若这个 buffer 还在别的窗口 / 别的 tab 里用着，就到此为止。
-	if #vim.api.nvim_tabpage_list_wins(0) > 1 then
+	if #real_wins() > 1 then
 		pcall(vim.api.nvim_win_close, 0, false)
-		if #vim.fn.win_findbuf(buf) > 0 then
+		local still = false
+		for _, w in ipairs(vim.fn.win_findbuf(buf)) do
+			if vim.api.nvim_win_get_config(w).relative == "" then
+				still = true
+				break
+			end
+		end
+		if still then
 			return
 		end
 	end
@@ -106,7 +126,11 @@ local function smart_close()
 	require("core.tab_workspace").close_buffer(buf)
 end
 
-vim.keymap.set("n", "<c-esc>", smart_close, { silent = true, desc = "Basic: close buffer" })
+-- 说明：终端对 <c-esc> 通常只发裸 ESC（nvim 无法区分），实际生效靠 <leader>bq / <D-w>。
+-- <D-w> 需要终端用 CSI-u 回送（ghostty: keybind = nvim/cmd+w=csi:119;9u）。
+for _, lhs in ipairs({ "<leader>bq", "<D-w>", "<c-esc>" }) do
+	vim.keymap.set("n", lhs, smart_close, { silent = true, desc = "Basic: close buffer" })
+end
 
 -- vim.keymap.set("n", "<leader>cab", function()
 -- 	local current = vim.api.nvim_get_current_buf()

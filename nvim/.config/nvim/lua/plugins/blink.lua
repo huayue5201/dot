@@ -6,7 +6,6 @@ return {
 	sem_version = "1.*",
 	-- TermEnter 必须显式列出：blink 只在普通 buffer 进插入/命令行时才加载，
 	-- 新会话直接 :terminal 不会加载，term 补全与 t 模式键位都不生效。
-	event = { "InsertEnter", "CmdlineEnter", "TermEnter" },
 	dependencies = {
 		"saghen/blink.lib",
 		"xzbdmw/colorful-menu.nvim",
@@ -130,6 +129,18 @@ return {
 						cmp.accept({ index = 10 })
 					end,
 				},
+				-- minuet（AI 行内补全）手动拉取：provider 已注册但不在 default sources，
+				-- 只有按 <A-y> 才请求，避免每次输入都打 LLM。
+				["<A-y>"] = {
+					function(cmp)
+						local ok, minuet = pcall(require, "minuet")
+						if not ok then
+							return false
+						end
+						return minuet.make_blink_map()(cmp)
+					end,
+					"fallback",
+				},
 			},
 			appearance = {
 				-- use_nvim_cmp_as_default 已废弃（tokyonight 原生支持 blink，无需回退）
@@ -177,11 +188,20 @@ return {
 						-- 如果需要配置项可以在这里添加
 						-- opts = {},
 					},
-					-- sqmeow 数据库补全：模块懒加载时会自动把 sqmeow 插件拉起来；
+					-- sqmeow 数据库补全：sqmeow 已 eager 加载，require 即可用；
 					-- 无活动连接时其 enabled() 返回 false，不会干扰普通补全。
 					sqmeow = {
 						name = "Sqmeow",
 						module = "sqmeow.completion.blink",
+					},
+					-- AI 行内补全（minuet → DeepSeek FIM）。未列入 default sources，
+					-- 只由 <A-y> 手动触发；timeout_ms 需 >= minuet.request_timeout*1000。
+					minuet = {
+						name = "Minuet",
+						module = "minuet.blink",
+						async = true,
+						timeout_ms = 3000,
+						score_offset = 50,
 					},
 				},
 				transform_items = function(ctx, items)

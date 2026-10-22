@@ -2,9 +2,7 @@
 
 return {
 	dir = "~/neovim-plugins/bufferline.nvim",
-	"akinsho/bufferline.nvim",
-	-- 必须在首帧渲染前加载,否则会先画出内置 tabline 再被 bufferline 替换(启动闪烁)
-	lazy = false,
+	-- eager 加载发生在首帧渲染前,否则会先画出内置 tabline 再被 bufferline 替换(启动闪烁)
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
 		-- "Mirsmog/real-icons.nvim",
@@ -203,6 +201,15 @@ return {
 						text_align = "center",
 						separator = true,
 						highlight = "TodoDrawerFileHeader",
+					},
+					{
+						-- CodeCompanion 聊天窗口（默认 vertical 布局，filetype=codecompanion）。
+						-- 窗口在右侧 vsplit 时 bufferline 自动读取实际宽度；聊天关掉后 offset 消失。
+						filetype = "codecompanion",
+						text = "AI Chat",
+						text_align = "center",
+						separator = true,
+						highlight = "CodeCompanionChatHeader",
 					},
 				},
 

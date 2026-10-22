@@ -2,7 +2,6 @@
 
 return {
 	"bassamsdata/namu.nvim",
-	event = "VeryLazy",
 	config = function()
 		require("namu").setup({})
 		-- === Suggested Keymaps: ===

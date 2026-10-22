@@ -2,7 +2,6 @@
 
 return {
 	"stevearc/conform.nvim",
-	event = "BufReadPost",
 	keys = {
 		{
 			"<leader>of",

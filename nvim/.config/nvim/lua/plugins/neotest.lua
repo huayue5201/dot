@@ -2,7 +2,6 @@
 
 return {
 	"nvim-neotest/neotest",
-	event = "VeryLazy",
 	dependencies = {
 		"nvim-neotest/nvim-nio",
 		"antoinemadec/FixCursorHold.nvim",

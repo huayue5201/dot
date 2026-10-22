@@ -3,7 +3,6 @@
 
 return {
 	"CRAG666/betterTerm.nvim",
-	event = "VeryLazy",
 	config = function()
 		local betterTerm = require("betterTerm")
 
@@ -16,13 +15,6 @@ return {
 		})
 
 		-- Toggle the first terminal (ID defaults to index_base, which is 0)
-		-- 只绑 normal 模式：terminal 模式里 <C-\> 必须留给 nvim 自己的
-		-- <C-\><C-n>（退出终端插入模式）。
-		-- 在终端里想切窗口：先 <Esc> 回到 normal，再按 <C-\>。
-		vim.keymap.set("n", "<C-\\>", function()
-			betterTerm.open()
-		end, { desc = "Toggle terminal" })
-
 		-- Open a specific terminal
 		vim.keymap.set({ "n", "t" }, "<C-;>", function()
 			betterTerm.open(1)

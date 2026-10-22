@@ -2,7 +2,6 @@
 
 return {
 	"chrisgrieser/nvim-origami",
-	event = "VeryLazy",
 	config = function()
 		-- default settings
 		-- 默认配置

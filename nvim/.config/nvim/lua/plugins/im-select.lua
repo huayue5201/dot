@@ -4,7 +4,6 @@
 
 return {
 	"hughfenghen/fenghen-im-select.nvim",
-	event = "VeryLazy",
 	config = function()
 		local im_select = require("im_select.init")
 

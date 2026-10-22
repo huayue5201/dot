@@ -162,3 +162,5 @@ keybind = nvim/ctrl+alt+h=csi:104;7u
 keybind = nvim/ctrl+alt+j=csi:106;7u
 keybind = nvim/ctrl+alt+k=csi:107;7u
 keybind = nvim/ctrl+alt+l=csi:108;7u
+# cmd+w = <D-w> (super+W)，交给 nvim 关 buffer（默认 cmd+w 会关整个 surface）
+keybind = nvim/cmd+w=csi:119;9u

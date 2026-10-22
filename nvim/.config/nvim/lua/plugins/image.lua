@@ -2,7 +2,6 @@
 
 return {
 	"3rd/image.nvim",
-	event = "VeryLazy",
 	config = function()
 		require("image").setup({
 			-- 后端渲染引擎：kitty（推荐）、ueberzug 或 sixel

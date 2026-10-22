@@ -9,7 +9,6 @@
 
 return {
 	"chrisgrieser/nvim-chainsaw",
-	event = "VeryLazy",
 	opts = {}, -- 必填，即使为空
 
 	keys = {

@@ -5,12 +5,11 @@ return {
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter",
 	},
-	ft = "qf",
 	config = function()
 		-- nvim-bqf 的 `zf` 模式不只调用 fzf 二进制，还依赖 fzf 仓库里的
 		-- Vim 插件（fzf#run / fzf#wrap / fzf#exec）。
-		-- Homebrew 的 fzf 已经自带 plugin/fzf.vim，直接复用，避免 zpack
-		-- 再下载一份 junegunn/fzf 并额外编译 fzf 二进制。
+		-- Homebrew 的 fzf 已经自带 plugin/fzf.vim，直接复用，避免为了 Vim 插件
+		-- 再装一份 junegunn/fzf（并额外编译 fzf 二进制）。
 		local candidates = {
 			"/opt/homebrew/opt/fzf",
 			"/usr/local/opt/fzf",

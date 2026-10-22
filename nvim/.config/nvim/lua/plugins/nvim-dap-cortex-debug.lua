@@ -3,7 +3,6 @@
 return {
 	"jedrzejboczar/nvim-dap-cortex-debug",
 	-- ft = { "rust", "c" },
-	lazy = true,
 	dependencies = "mfussenegger/nvim-dap",
 	config = function()
 		require("dap-cortex-debug").setup({

@@ -2,7 +2,6 @@
 
 return {
 	"folke/lazydev.nvim",
-	ft = "lua", -- 仅在打开 Lua 文件时加载
 	config = function()
 		require("lazydev").setup({
 			-- ============================================================

@@ -1,13 +1,15 @@
 -- https://github.com/huayue5201/nvim-window-picker
 --
--- zpack 本地目录模式：vim.pack 把下面的绝对路径当作安装源，clone 一份副本到
+-- 本地目录模式：vim.pack 把下面的绝对路径当作安装源，clone 一份副本到
 -- stdpath("data")/site/pack/core/opt/nvim-window-picker，nvim 实际加载的是副本。
 -- 所以改完 ~/neovim-plugins/nvim-window-picker 并 push 后，要执行
 -- :PackLocalSync（<leader>zp）让副本跟上新 rev，再重启生效。
 -- 必须写绝对路径：lua/core/pack_local.lua 靠本地插件的 src 以 "/" 开头来识别它。
 return {
 	dir = "/Users/lijia/neovim-plugins/nvim-window-picker",
-	event = "WinNew",
+	-- VeryLazy 提前加载：setup() 里会给 ghostty/herdr 源挂后台预取 autocmd，
+	-- 这样 <leader>ww 首次触发时缓存已经热了（osascript 单次往返 ~250-600ms，
+	-- 放在按键路径上就是肉眼可见的卡顿）。
 	config = function()
 		require("window-picker").setup({
 			-- 你想要获得的提示类型

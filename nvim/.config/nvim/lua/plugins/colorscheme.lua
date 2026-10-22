@@ -7,7 +7,6 @@ return {
 	"folke/tokyonight.nvim",
 	-- "EdenEast/nightfox.nvim",
 	-- "ShiraiEd/Wolf359_nvim_rust_theme",
-	lazy = false,
 	priority = 1000,
 	config = function()
 		-- require("night-owl").setup()

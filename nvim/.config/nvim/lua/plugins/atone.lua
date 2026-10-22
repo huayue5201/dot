@@ -2,8 +2,6 @@
 
 return {
 	"XXiaoA/atone.nvim",
-	event = "VeryLazy",
-	cmd = "Atone",
 	config = function()
 		require("atone").setup({
 			layout = {

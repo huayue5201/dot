@@ -2,7 +2,6 @@
 
 return {
 	"folke/which-key.nvim",
-	event = "VeryLazy",
 	config = function()
 		require("which-key").setup({
 			preset = "helix",
@@ -33,13 +32,13 @@ return {
 			{ "<leader>S", group = "代码片段", icon = { icon = "󰅩 ", color = "orange" } },
 			{ "<leader>t", group = "测试 / 覆盖率", icon = { icon = "󰙨", color = "green" } },
 			{ "<leader>w", group = "窗口", icon = { icon = "󰖲 ", color = "blue" } },
-			{ "<leader>T", group = "终端 (betterTerm)" },
+			{ "<leader>T", group = "终端 (betterTerm)", icon = { icon = " ", color = "red" } },
 			{ "<leader>x", group = "线索标记", icon = { icon = "󱉷 ", color = "yellow" } },
 			{ "<leader>y", group = "复制", icon = { icon = "󰆏 ", color = "azure" } },
 			{ "<leader>z", group = "工具", icon = { icon = "󱁤 ", color = "grey" } },
-			{ "<leader>b", group = "缓冲区" },
-			{ "<leader>l", group = "标签页 / 工作区" },
-			{ "<leader>u", group = "撤销 / 历史" },
+			{ "<leader>b", group = "缓冲区", icon = { icon = " ", color = "yellow" } },
+			{ "<leader>l", group = "标签页 / 工作区", icon = { icon = "󱦞 ", color = "green" } },
+			{ "<leader>u", group = "撤销 / 历史", icon = { icon = "󰣜 ", color = "cyan" } },
 
 			-- 非 leader 前缀分组：调试打印 (nvim-chainsaw)
 			{ "g?", group = "调试打印 (chainsaw)", icon = { icon = "󰹈 ", color = "orange" } },

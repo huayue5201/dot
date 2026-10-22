@@ -6,17 +6,7 @@
 return {
 	"esensar/nvim-dev-container",
 	dependencies = { "nvim-treesitter/nvim-treesitter" },
-	-- 懒加载：setup 时才生成这些命令，故用 cmd / keys 触发。
-	cmd = {
-		"DevcontainerStart",
-		"DevcontainerAttach",
-		"DevcontainerExec",
-		"DevcontainerStop",
-		"DevcontainerStopAll",
-		"DevcontainerRemoveAll",
-		"DevcontainerLogs",
-		"DevcontainerEditNearestConfig",
-	},
+	-- 命令由 setup() 生成；插件 eager 加载，这里的 keys 只是把常用命令挂到键上。
 	keys = {
 		{ "<leader>Ds", "<cmd>DevcontainerStart<cr>", desc = "Docker/DevContainer: 启动容器" },
 		{ "<leader>Da", "<cmd>DevcontainerAttach<cr>", desc = "Docker/DevContainer: 附加到容器 (nvim client/server)" },

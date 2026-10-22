@@ -2,7 +2,6 @@
 
 return {
 	"kkew3/jieba.vim",
-	event = "InsertEnter",
 	dependencies = { "tpope/vim-repeat" },
 	branch = "release",
 	build = ":call jieba_vim#install()",

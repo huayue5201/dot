@@ -8,8 +8,6 @@
 --   mux = { backend = { "vendor.smart-splits-backend-herdr", ... } }
 -- 按模块名加载。
 
-local DIRS = { left = "left", right = "right", up = "up", down = "down" }
-
 local function herdr_bin()
 	local bin = vim.env.HERDR_BIN_PATH
 	return (bin ~= nil and bin ~= "") and bin or "herdr"
@@ -36,25 +34,32 @@ local function exec_json(args)
 	return decoded
 end
 
----@type SmartSplitsBackend
+--- herdr 后端的 v3 协议实现（core 侧的接口定义见 smart-splits.nvim 的 PROTOCOL.md）。
+--- 这里用 @class 而不是 @type：@type 指向外部类只是「引用」，下面 M.move / M.resize /
+--- M.health 的赋值会被 lua-ls 判成 inject-field 警告。
+---@class HerdrBackend
 local M = {
 	name = "herdr",
 	protocol_version = "3.0.0",
 }
 
+-- herdr 调子进程时把 HERDR_ENV 置为 "1"（herdr 自己的探测就是
+-- `test "${HERDR_ENV:-}" = 1`），并顺带注入 HERDR_SOCKET_PATH / HERDR_PANE_ID 等。
+-- 注意「变量存在」不能当判据：外部遗留的 HERDR_ENV="" 也会被继承下来，
+-- 而 Neovim 的 vim.env 连空串都读成 nil，所以只认具体的值。
 -- 协议要求：便宜、无副作用、不 shell out。
 function M.detect()
-	return vim.env.HERDR_ENV ~= nil and vim.env.HERDR_ENV ~= ""
+	return vim.env.HERDR_ENV == "1" and vim.fn.executable(herdr_bin()) == 1
 end
 
 ---@param direction "left"|"right"|"up"|"down"
 ---@param opts? { at_edge?: "stop"|"wrap"|"split" }
 function M.move(direction, opts)
-	if not M.detect() or DIRS[direction] == nil then
+	if not M.detect() then
 		return false
 	end
 
-	local data = exec_json({ "pane", "focus", "--direction", DIRS[direction], "--current" })
+	local data = exec_json({ "pane", "focus", "--direction", direction, "--current" })
 	local focus = data and data.result and data.result.focus
 	-- herdr 不会 wrap：到边界时返回 changed=false / reason="no_neighbor"。
 	-- 返回 false 即把 at_edge（stop/wrap/split）交给核心处理。
@@ -64,7 +69,7 @@ end
 ---@param direction "left"|"right"|"up"|"down"
 ---@param opts? { amount?: number }
 function M.resize(direction, opts)
-	if not M.detect() or DIRS[direction] == nil then
+	if not M.detect() then
 		return false
 	end
 
@@ -79,7 +84,7 @@ function M.resize(direction, opts)
 		"pane",
 		"resize",
 		"--direction",
-		DIRS[direction],
+		direction,
 		"--amount",
 		tostring(ratio),
 		"--current",
@@ -89,13 +94,17 @@ function M.resize(direction, opts)
 end
 
 function M.health()
-	if M.detect() then
-		vim.health.ok("HERDR_ENV is set; running inside herdr")
+	local env = vim.env.HERDR_ENV
+	local bin = herdr_bin()
+
+	if env == "1" then
+		vim.health.ok("herdr env markers present; running inside herdr")
+	elseif env ~= nil then
+		vim.health.warn(('HERDR_ENV=%q is not "1" (stale/herdr-less env)'):format(env))
 	else
 		vim.health.info("HERDR_ENV is not set; not running inside herdr")
 	end
 
-	local bin = herdr_bin()
 	if vim.fn.executable(bin) == 1 then
 		vim.health.ok(("herdr executable found: %s"):format(bin))
 	else

@@ -2,7 +2,6 @@
 
 return {
 	"antosha417/nvim-lsp-file-operations",
-	event = "VeryLazy",
 	dependencies = {
 		-- Uncomment whichever supported plugin(s) you use
 		-- "nvim-tree/nvim-tree.lua",

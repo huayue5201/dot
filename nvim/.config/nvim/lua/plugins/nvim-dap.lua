@@ -2,7 +2,6 @@
 
 return {
 	"mfussenegger/nvim-dap",
-	event = "VeryLazy",
 	dependencies = {
 		"Jorenar/nvim-dap-disasm",
 		-- https://github.com/jbyuki/one-small-step-for-vimkind

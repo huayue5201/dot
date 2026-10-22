@@ -3,12 +3,13 @@
 
 return {
 	"selimacerbas/mdkite.nvim",
-	-- a kitehost.nvim checkout under another dir name needs its spec to
-	-- say name = "kitehost.nvim", or lazy.nvim clones upstream beside it
+	-- 如果 kitehost.nvim 的 checkout 放在别的目录名下，这份 spec 必须显式写
+	-- name = "kitehost.nvim"，否则 vim.pack 会在旁边再装一份上游副本
 	dependencies = { "selimacerbas/kitehost.nvim" },
 	-- kitehost.nvim v2.0.0 or newer, the first release with its Host check
+	-- 注意：key 级 ft 字段不生效（加载器只读 lhs/rhs/mode/desc 等），此键全局可用
 	keys = {
-		{ "<leader>zm", "<cmd>MdKite toggle<cr>", ft = "markdown", desc = "Markdown preview" },
+		{ "<leader>zm", "<cmd>MdKite toggle<cr>", desc = "Markdown preview" },
 	},
 	config = function()
 		require("mdkite").setup({

@@ -17,7 +17,7 @@ vim.o.exrc = true
 -- 不设置 shadafile：使用 Neovim 默认的全局 shada（~/.local/state/nvim/shada/main.shada）
 -- 多项目 tab / resession 场景下无法按项目隔离 shada，统一使用全局文件最稳定。
 -- 不包含 options/localoptions：避免把 tabline/statusline/winbar 等含 v:lua 动态表达式的
--- 选项存进会话文件，否则重启时插件懒加载前恢复会触发 nil 调用（如 nvim_bufferline/dropbar）。
+-- 选项存进会话文件，否则重启恢复会话时选项引用的插件还没加载，会触发 nil 调用（如 nvim_bufferline/dropbar）。
 vim.o.sessionoptions = "blank,buffers,curdir,folds,help,globals,tabpages,winsize,winpos"
 
 -- ================ 编辑行为 ================

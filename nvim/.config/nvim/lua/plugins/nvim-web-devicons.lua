@@ -2,7 +2,6 @@
 
 return {
 	"nvim-tree/nvim-web-devicons",
-	lazy = true,
 	config = function()
 		require("nvim-web-devicons").setup({
 			-- your personal icons can go here (to override)

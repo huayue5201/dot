@@ -4,7 +4,6 @@ return {
 	"Jorenar/nvim-dap-disasm",
 	-- dependencies = { "mfussenegger/nvim-dap", "rcarriga/nvim-dap-ui" },
 	dependencies = { dir = "~/neovim-plugins/nvim-dap-view" },
-	event = "VeryLazy",
 	config = function()
 		local disasm = require("dap-disasm")
 

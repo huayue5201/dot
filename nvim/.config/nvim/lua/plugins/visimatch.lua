@@ -2,7 +2,6 @@
 
 return {
 	"wurli/visimatch.nvim",
-	event = "VeryLazy",
 	config = function()
 		require("visimatch").setup({
 			-- The highlight group to apply to matched text

@@ -9,14 +9,13 @@
 -- extmark；gitsigns / 诊断 走 namespace 匹配，DAP / marks 是原生 sign 走 name 匹配。
 return {
 	"luukvbaal/statuscol.nvim",
-	lazy = false, -- statuscolumn 需要尽早生效
 	config = function()
 		local builtin = require("statuscol.builtin")
 		require("statuscol").setup({
 			setopt = true, -- 由插件设置 'statuscolumn'
 			-- 不为这些 filetype 注入 statuscolumn（否则 neotree 等侧栏会继承
 			-- setopt 写入的全局默认值，多出整块行号/符号列把内容右推）。
-			ft_ignore = { "sqmeow-drawer", "neo-tree", "todo2drawer", "NvimTree", "help", "alpha", "lazy" },
+			ft_ignore = { "sqmeow-drawer", "neo-tree", "todo2drawer", "NvimTree", "help", "alpha" },
 			-- 每行同类 sign 只显示 1 个；colwidth = 1，配合插件「去掉图标内空白」
 			-- 的行为（sign_text:gsub('%s','')），像 " " 这种带尾随空格的图标
 			-- 不会被撑成两格，列宽才稳定。

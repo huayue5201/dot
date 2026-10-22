@@ -2,7 +2,6 @@
 
 return {
 	"emrearmagan/atlas.nvim",
-	event = "VeryLazy",
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
 		-- 不需要 codediff：atlas 用自己的 AtlasDiff（见下面 pulls.diff.open_cmd），

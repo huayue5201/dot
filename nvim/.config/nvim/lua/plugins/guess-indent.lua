@@ -7,7 +7,6 @@ return {
 	"NMAC427/guess-indent.nvim",
 
 	-- 触发时机：在读取文件之前加载（确保打开文件时就能检测）
-	event = "BufReadPre",
 
 	config = function()
 		require("guess-indent").setup({
@@ -32,7 +31,6 @@ return {
 				"help", -- 帮助文档
 				"dashboard", -- 启动仪表板（如 dashboard-nvim）
 				"NvimTree", -- 文件树插件
-				"lazy", -- lazy.nvim 插件管理器窗口
 				"mason", -- mason.nvim LSP 安装器
 				"toggleterm", -- 浮动终端
 				"TelescopePrompt", -- Telescope 搜索窗口

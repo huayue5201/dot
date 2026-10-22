@@ -3,7 +3,6 @@
 return {
 	"bennypowers/nvim-regexplainer",
 	dependencies = "edluffy/hologram.nvim",
-	event = "VeryLazy",
 	config = function()
 		-- 默认配置
 		require("regexplainer").setup({
