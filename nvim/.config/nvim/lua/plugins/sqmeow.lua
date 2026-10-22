@@ -7,10 +7,10 @@ return {
 	-- 改成用本地仓库（zpack 的本地目录模式）：改 ~/neovim-plugins/sqmeow.nvim 里的代码后
 	-- `:PackLocalSync`（<leader>zp）同步到 pack/core/opt 下的副本，重启生效。
 	-- 要回到上游源：注释掉 dir 那行再 :PackLocalSync + :PackUpdate。
-	dir = "~/neovim-plugins/sqmeow.nvim",
-	-- 上游已合并 sticky header（PR #94），日常直接用上游源。
+	-- dir = "~/neovim-plugins/sqmeow.nvim",
 	-- 本地仓库 ~/neovim-plugins/sqmeow.nvim 只用于开发/提 PR；要临时试本地改动时，
 	-- 再加回 dir = "~/neovim-plugins/sqmeow.nvim" 并 :PackLocalSync，试完删掉。
+	"2giosangmitom/sqmeow.nvim",
 	dependencies = { "MunifTanjim/nui.nvim" },
 	cmd = "Sqmeow",
 	keys = {

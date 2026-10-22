@@ -23,7 +23,7 @@ vim.defer_fn(function()
 	pcall(preflight.clean_stale_owl, 200)
 end, 3000)
 
-require("core.pack") -- Neovim 自带 vim.pack + zpack 插件管理（懒加载由 zpack 负责）
+require("core.pack") -- 原生 vim.pack 安装 + 自带 eager 加载器（见 lua/core/pack.lua 顶部说明）
 require("lsp-config").setup() --lsp
 require("git-config.fork-upstream").setup() -- 上游状态组件（状态栏 + :ForkUpstream），须早于状态栏以复用磁盘缓存
 require("core.statusline") -- 状态栏（加载即自动构建并设置，无需手动调用 active）
