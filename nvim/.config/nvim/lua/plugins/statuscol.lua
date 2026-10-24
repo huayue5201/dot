@@ -30,6 +30,10 @@ return {
 					sign = { namespace = { "diagnostic" }, name = { "Dap" }, colwidth = 1, maxwidth = 1 },
 					click = "v:lua.ScSa",
 				},
+				-- neotest 测试状态：sign_place 在 0.13 里也是 extmark sign，但 sign_name 仍保留
+				-- （如 neotest_passed），所以这里按 name 匹配。必须单独一列：neotest 的
+				-- priority 是 1000，和诊断/断点共列会把它们压掉。
+				{ sign = { name = { "neotest_" }, colwidth = 1, maxwidth = 1 }, click = "v:lua.ScSa" },
 				-- marks.nvim（原生 sign，名字 Marks_*）与 todo2 代码任务状态（extmark sign，
 				-- namespace = code_render）共用一列：原生 sign 只按 name 匹配、extmark sign
 				-- 只按 namespace 匹配，同一 segment 里两者可以并存；maxwidth = 1 所以同行

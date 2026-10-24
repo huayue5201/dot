@@ -13,6 +13,31 @@ return {
 	config = function()
 		local ss = require("smart-splits")
 
+		-- 幂等化 backend-ghostty 的键表接管。Ghostty 的键表是有状态的手动 push/pop：
+		-- activate_key_table 对「已是最内层」的表是 no-op（performable=false），
+		-- deactivate_key_table 只弹一层。上游 lifecycle 用模块内 `claimed` 布尔当门，
+		-- 一旦它和 Ghostty 的真实状态漂移（reset() 只清标志不 pop、重复 activate、
+		-- nvim 被 kill/崩溃导致 VimLeavePre 不跑），release 就被跳过，surface 永久
+		-- 留在 nvim 键表里 —— ctrl+hjkl 变成 text:\x08，裸 Ghostty 分屏按键全“失效”。
+		-- 改写后：claim 总是「deactivate_all + activate」（不可能因 no-op 失败，重复
+		-- claim/时序错乱全部自愈，且下次 nvim 启动会顺手清掉上次崩溃的残留），
+		-- release 总是 deactivate_all（不看 claimed，状态不可能再漂移）。
+		do
+			local ok, ghostty = pcall(require, "smart-splits-backend-ghostty.ghostty")
+			if ok then
+				local raw = ghostty.perform
+				ghostty.perform = function(action)
+					if action == "deactivate_key_table" then
+						action = "deactivate_all_key_tables"
+					elseif action:match("^activate_key_table:") then
+						-- 清空才能保证下面的 activate 一定不是 no-op（同名表已是最内层时会被忽略）
+						raw("deactivate_all_key_tables")
+					end
+					return raw(action)
+				end
+			end
+		end
+
 		ss.setup({
 			move = {
 				-- 到达整个终端最外层边缘（无相邻 herdr/Ghostty pane）时原地不动，
@@ -90,6 +115,9 @@ return {
 				if not (ok_ghostty and ok_lifecycle) then
 					return
 				end
+				-- reset() 只把 claimed 置 false、不碰 Ghostty，但 claim 现在是幂等的
+				-- （先 deactivate_all 再 activate），所以这里不需要手动 release：
+				-- 重新 claim 会自己把键表拉回一致状态。
 				lifecycle.reset() -- 清 claimed/active 和旧 autocmd（activate 会重建）
 				ghostty.reset() -- 清可能抓错的 terminal_id，下次 attach 重抓
 				pcall(backend.activate)

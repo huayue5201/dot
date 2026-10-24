@@ -4,7 +4,7 @@
 -- 与 blink.cmp 的关系：主用 virtualtext 前端做行内建议；
 -- blink 侧只注册一个 minuet 源，用 <A-y> 手动拉取（见 blink.lua），
 -- 不放进 default sources，避免每次输入都打一次 LLM 请求造成费用/延迟。
--- api_key 由 core.dotenv 从 ~/.env 载入的 DEEPSEEK_API_KEY 提供。
+-- api_key 由 boot.dotenv 从 ~/.env 载入的 DEEPSEEK_API_KEY 提供。
 
 return {
 	"milanglacier/minuet-ai.nvim",

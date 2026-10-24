@@ -1,6 +1,6 @@
 -- https://github.com/rachartier/tiny-inline-diagnostic.nvim
 -- 内联诊断显示（替代 Neovim 内置 virtual_text / virtual_lines）
--- NOTE: 必须在 LSP 侧（lua/lsp-config/diagnostics.lua）关闭内置 virtual_text/virtual_lines，
+-- NOTE: 必须在 LSP 侧（lua/lsp_ext/diagnostics.lua）关闭内置 virtual_text/virtual_lines，
 --       否则会与插件重复显示。此处只负责样式与行为；优先级 1000 保证在主题/其他插件前加载。
 return {
 	"rachartier/tiny-inline-diagnostic.nvim",
@@ -56,7 +56,7 @@ return {
 	},
 	config = function(_, opts)
 		require("tiny-inline-diagnostic").setup(opts)
-		-- 双保险：确保内置的内联诊断已关闭（真正的设置在 lsp-config.diagnostics）
+		-- 双保险：确保内置的内联诊断已关闭（真正的设置在 lsp_ext.diagnostics）
 		vim.diagnostic.config({ virtual_text = false, virtual_lines = false })
 	end,
 }

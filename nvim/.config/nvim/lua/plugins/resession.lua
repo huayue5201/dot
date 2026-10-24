@@ -65,7 +65,7 @@ return {
 		vim.keymap.set("n", "<leader>osd", resession.delete, { desc = "删除会话" })
 
 		-- tab_workspace 的 post_load 钩子必须在 resession 加载后才能挂（init 阶段 require 不到）
-		require("core.tab_workspace").attach_resession()
+		require("feat.tab_workspace").attach_resession()
 
 		-- 会话恢复后：确保 todo2 已 setup，并补渲染当前 tab 的 buffer。
 		-- resession 加载期间 eventignore=all 会吞掉 BufRead；tcd 又在 buffer 载入之后才生效，

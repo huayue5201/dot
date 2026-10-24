@@ -4,7 +4,7 @@
 return {
 	dir = "~/neovim-plugins/nvim-dap-view",
 	name = "nvim-dap-view",
-	dependencies = { { dir = "~/neovim-plugins/nvim-dap-extensions" } },
+	dependencies = { "mfussenegger/nvim-dap", { dir = "~/neovim-plugins/nvim-dap-extensions" } },
 	-- event = "VeryLazy",
 	config = function()
 		require("dap-view").setup({

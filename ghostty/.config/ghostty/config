@@ -164,3 +164,8 @@ keybind = nvim/ctrl+alt+k=csi:107;7u
 keybind = nvim/ctrl+alt+l=csi:108;7u
 # cmd+w = <D-w> (super+W)，交给 nvim 关 buffer（默认 cmd+w 会关整个 surface）
 keybind = nvim/cmd+w=csi:119;9u
+
+# 保险丝：nvim 若被 kill/崩溃（VimLeavePre 没跑），nvim 键表会滞留在 surface 上，
+# 此后 ctrl+hjkl 只会发出 text:\x08，看起来就是「Ghostty 的分屏键全失效」。
+# global: 保证在任何键表里都生效，按 ctrl+shift+esc 强制清空所有激活的键表。
+keybind = global:ctrl+shift+escape=deactivate_all_key_tables

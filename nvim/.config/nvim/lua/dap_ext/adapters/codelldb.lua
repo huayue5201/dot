@@ -1,0 +1,262 @@
+-- ~/.config/nvim/lua/dap_ext/adapters/codelldb.lua
+--[[
+Rust / C / C++ 的统一 LLDB 调试配置模块
+------------------------------------------------------------
+设计目标：
+1. 统一管理 codelldb adapter 与多语言调试配置
+2. 自动解析 cargo JSON 输出，智能选择可执行文件
+3. 提供现代化的 UI 交互（vim.ui.select）
+4. 保持可维护性：所有语言共享 cfg 基础配置
+5. 可扩展：未来可加入 test name 自动检测、pretty-printer 自动切换等
+
+此模块由外部通过 require("dap_ext.adapters.codelldb").setup(dap) 调用。
+--]]
+
+local project = require("dap_ext.project")
+
+return {
+	setup = function(dap)
+		----------------------------------------------------------------------
+		-- 1. 注册 codelldb Adapter
+		--    注意：adapter 名称必须是 "codelldb"，否则 dap.configurations.* 找不到
+		----------------------------------------------------------------------
+		dap.adapters.codelldb = {
+			type = "server",
+			port = "${port}",
+			executable = {
+				command = "codelldb", -- 可替换为绝对路径
+				args = { "--port", "${port}" },
+				detached = vim.uv.os_uname().sysname ~= "Windows",
+			},
+		}
+
+		----------------------------------------------------------------------
+		-- 2. 基础调试配置（Rust / C / C++ 共用）
+		--    cfg 是一个模板，后续通过 vim.tbl_extend("force") 生成语言专属配置
+		----------------------------------------------------------------------
+		local cfg = {
+			name = "Debug",
+			type = "codelldb",
+			request = "launch",
+			-- 可执行文件由各 config 的 `program` 决定，此处不预置任何参数；
+			-- 切勿再放示例占位值（如 `args = { "--test=test1" }`），它会被追加到被调试程序的 argv。
+			cwd = "${workspaceFolder}",
+			-- 启动后是否停止调试器.
+			stopOnEntry = false,
+
+			-- Rust pretty-printers（可选）
+			-- 说明：此处加载的是 rustup 自带的 lldb_lookup.py，而非 codelldb 内置版本
+			initCommands = function()
+				local rustc_sysroot = vim.fn.trim(vim.fn.system("rustc --print sysroot"))
+
+				-- 导入 pretty-printer Python 模块
+				local script_import = 'command script import "' .. rustc_sysroot .. '/lib/rustlib/etc/lldb_lookup.py"'
+
+				-- 加载额外的 LLDB 命令
+				local commands_file = rustc_sysroot .. "/lib/rustlib/etc/lldb_commands"
+				local commands = {}
+
+				local file = io.open(commands_file, "r")
+				if file then
+					for line in file:lines() do
+						table.insert(commands, line)
+					end
+					file:close()
+				end
+
+				-- 将 import 插入到命令列表最前面
+				table.insert(commands, 1, script_import)
+				return commands
+			end,
+			--  启用特定于语言的调试器功能.
+			sourceLanguages = { "rust" },
+			-- 开启反向调试,需要后端支持.
+			reverseDebugging = true,
+		}
+
+		----------------------------------------------------------------------
+		-- 3. 工具函数：解析 cargo JSON 输出，提取可执行文件路径
+		--    用于自动选择 bin/test 目标
+		----------------------------------------------------------------------
+		--- Parse cargo --message-format=json output and extract executables
+		---@param cmd table command list, e.g. { "cargo", "build", "--message-format=json" }
+		---@return table list of executable paths
+		local function get_targets(cmd)
+			-- 交给 lib.cargo：只返回结构化数据，失败提示只有计数（原始输出 :ToolLog）
+			return require("lib.cargo").get(cmd)
+		end
+
+		----------------------------------------------------------------------
+		-- 4. 工具函数：智能选择可执行文件
+		--    单目标 → 自动选
+		--    多目标 → vim.ui.select
+		--    无目标 → fallback 到手动输入
+		----------------------------------------------------------------------
+		--- Select executable target from cargo output
+		---@param cmd table cargo command
+		---@return string path
+		local function select_target(cmd)
+			local targets = get_targets(cmd)
+
+			if #targets == 0 then
+				-- 无可执行文件，手动输入
+				return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+			elseif #targets == 1 then
+				-- 单一目标，自动选择
+				return targets[1]
+			else
+				-- 多目标，使用现代 UI 选择
+				local choice = nil
+				local choice_made = false
+
+				local items = {}
+				for _, target in ipairs(targets) do
+					local parts = vim.split(target, package.config:sub(1, 1), { trimempty = true })
+					table.insert(items, {
+						display = parts[#parts], -- 仅显示文件名
+						value = target,
+					})
+				end
+
+				vim.ui.select(items, {
+					prompt = "Select a target:",
+					format_item = function(item)
+						return item.display
+					end,
+				}, function(selected)
+					if selected then
+						choice = selected.value
+					end
+					choice_made = true
+				end)
+
+				-- 等待用户选择完成（阻塞式）
+				while not choice_made do
+					vim.wait(50)
+				end
+
+				---@diagnostic disable-next-line: return-type-mismatch
+				return choice
+			end
+		end
+
+		----------------------------------------------------------------------
+		-- 5. 工具函数：读取命令行参数
+		----------------------------------------------------------------------
+		local function read_args()
+			local input = vim.fn.input("Enter args: ")
+			return vim.split(input, " ", { trimempty = true })
+		end
+
+		----------------------------------------------------------------------
+		-- 6. C / C++ 调试配置（桌面/host）
+		--    通过 vim.tbl_extend("force") 复用 cfg
+		----------------------------------------------------------------------
+		local c_configs = {
+			vim.tbl_extend("force", cfg, {
+				program = function()
+					return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+				end,
+			}),
+			vim.tbl_extend("force", cfg, {
+				name = "Debug (+args)",
+				program = function()
+					return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+				end,
+				args = read_args,
+			}),
+			vim.tbl_extend("force", cfg, {
+				name = "Attach debugger",
+				request = "attach",
+			}),
+		}
+
+		----------------------------------------------------------------------
+		-- 7. Rust 调试配置（桌面/host）
+		--    使用 cargo JSON 自动选择 bin/test
+		----------------------------------------------------------------------
+		-- Rust 专用基表：只影响 Rust，C/C++ 仍用 native 求值器
+		-- expressions = "simple"：让 x.field / v[i] / *ptr 这类简单读取走 codelldb 预处理器，
+		-- 减少直接丢给 LLDB（macOS 上会退回 ObjC++）的噪音；不改变 LLDB 无 Rust 求值的事实。
+		local rust_cfg = vim.tbl_extend("force", cfg, { expressions = "simple" })
+
+		local rust_configs = {
+			-- Debug 二进制
+			vim.tbl_extend("force", rust_cfg, {
+				program = function()
+					return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
+				end,
+			}),
+
+			-- Debug (+args)
+			vim.tbl_extend("force", rust_cfg, {
+				name = "Debug (+args)",
+				program = function()
+					return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
+				end,
+				args = read_args,
+			}),
+
+			-- Debug tests
+			vim.tbl_extend("force", rust_cfg, {
+				name = "Debug tests",
+				program = function()
+					return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
+				end,
+				args = { "--test-threads=1" },
+			}),
+
+			-- Debug tests (+args)
+			vim.tbl_extend("force", rust_cfg, {
+				name = "Debug tests (+args)",
+				program = function()
+					return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
+				end,
+				args = function()
+					return vim.list_extend(read_args(), { "--test-threads=1" })
+				end,
+			}),
+
+			-- Debug 光标所在测试（未来可加入 Treesitter 自动检测）
+			vim.tbl_extend("force", rust_cfg, {
+				name = "Debug test (cursor)",
+				program = function()
+					return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
+				end,
+				args = function()
+					local test_name = nil -- TODO: Treesitter 获取当前测试函数名
+					return test_name and { "--exact", test_name, "--test-threads=1" } or { "--test-threads=1" }
+				end,
+			}),
+
+			-- Attach
+			vim.tbl_extend("force", rust_cfg, {
+				name = "Attach debugger",
+				request = "attach",
+				program = function()
+					return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
+				end,
+			}),
+		}
+
+		----------------------------------------------------------------------
+		-- 8. 按项目类型过滤（provider）
+		--    codelldb 属于桌面/host 调试；嵌入式项目改走 OpenOCD/probe-rs/PyOCD。
+		--    用 provider 而非 dap.configurations.*，才能按 buffer 所属项目动态过滤。
+		----------------------------------------------------------------------
+		local function desktop_provider(filetypes, configs)
+			return function(bufnr)
+				if not vim.tbl_contains(filetypes, vim.bo[bufnr].filetype) then
+					return {}
+				end
+				if project.kind(bufnr) ~= "desktop" then
+					return {}
+				end
+				return configs
+			end
+		end
+
+		dap.providers.configs["c.desktop"] = desktop_provider({ "c", "cpp" }, c_configs)
+		dap.providers.configs["rust.desktop"] = desktop_provider({ "rust" }, rust_configs)
+	end,
+}

@@ -184,7 +184,7 @@ return {
 					-- ✅ 添加 cargo 源到 providers
 					cargo = {
 						name = "Cargo",
-						module = "custom.blink.sources.cargo",
+						module = "local.blink.sources.cargo",
 						-- 如果需要配置项可以在这里添加
 						-- opts = {},
 					},

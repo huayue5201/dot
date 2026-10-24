@@ -3,7 +3,7 @@
 --   1) DeepSeek（HTTP API）：普通聊天 / 内联改写，直连 api.deepseek.com
 --   2) pi（ACP Agent）：通过 `pi-acp` 驱动 pi coding agent（pi 自身用 deepseek 模型）
 
--- 注意：DEEPSEEK_API_KEY 等已由 core.dotenv（init.lua 启动早期）从 ~/.env 载入 vim.env，
+-- 注意：DEEPSEEK_API_KEY 等已由 boot.dotenv（init.lua 启动早期）从 ~/.env 载入 vim.env，
 -- codecompanion 的 deepseek adapter 直接读 $DEEPSEEK_API_KEY，此处无需重复解析。
 
 -- pi-acp 启动时会去调用 `pi`，确保 pi 的 bin 目录在 PATH 上

@@ -82,7 +82,7 @@ return {
 	root_markers = { "Cargo.toml", ".git" },
 	-- 告知 rust-analyzer 本客户端支持这些命令，否则不会生成 ▶ Run / ▶ Debug 代码透镜
 	-- （rust-analyzer lsp/to_proto.rs 里按 client_commands 门控）。
-	-- 实际执行见 lsp-config/features/runnables/rust.lua。
+	-- 实际执行见 lsp_ext/features/runnables/rust.lua。
 	capabilities = {
 		experimental = {
 			commands = {

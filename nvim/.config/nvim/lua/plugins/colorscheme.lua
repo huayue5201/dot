@@ -1,27 +1,35 @@
+-- https://github.com/bytebeast/kissaten.nvim
 -- https://github.com/oxfist/night-owl.nvim
 -- https://github.com/EdenEast/nightfox.nvim
 -- https://github.com/folke/tokyonight.nvim
 
 return {
-	-- "oxfist/night-owl.nvim",
-	"folke/tokyonight.nvim",
+	"bytebeast/kissaten.nvim",
+	-- "folke/tokyonight.nvim",
 	-- "EdenEast/nightfox.nvim",
 	-- "ShiraiEd/Wolf359_nvim_rust_theme",
 	priority = 1000,
-	config = function()
-		-- require("night-owl").setup()
-		-- vim.cmd.colorscheme("night-owl")
+	opts = {
+		-- morning(浅) | afternoon | evening | midnight
+		style = "midnight",
+		light_style = "morning",
+		transparent = false,
+		terminal_colors = true,
+		dim_inactive = false,
+		contrast = "normal",
+		subtle_comments = false,
+		styles = {
+			comments = { italic = true },
+			keywords = { italic = true },
+			sidebars = "dark",
+			floats = "dark",
+		},
+	},
+	config = function(_, opts)
+		require("kissaten").setup(opts)
+		-- "kissaten" 跟随 vim.o.background；也可钉死某个风格，如 kissaten-midnight
+		vim.cmd.colorscheme("kissaten")
 
-		vim.cmd([[colorscheme tokyonight]])
-
-		-- require("nightfox").setup({
-		-- 	options = {
-		-- 		-- 是否使非焦点窗口使用不同的背景颜色，增强视觉分隔
-		-- 		dim_inactive = true,
-		-- 	},
-		-- })
-		-- vim.cmd("colorscheme Carbonfox")
-
-		-- vim.cmd("colorscheme wolf359")
+		-- vim.cmd([[colorscheme tokyonight]])
 	end,
 }

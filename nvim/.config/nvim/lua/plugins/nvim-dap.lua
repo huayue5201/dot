@@ -58,7 +58,7 @@ return {
 			args = { "-e" },
 		}
 
-		require("dap-config.dap_keys").setup()
+		require("dap_ext.dap_keys").setup()
 
 		-- . 加载 dap-extensions（自定义断点扩展，独立插件）
 		require("dap-extensions").setup({
@@ -68,7 +68,7 @@ return {
 			},
 		})
 
-		require("dap-config.breakpoint_state").setup()
+		require("dap_ext.breakpoint_state").setup()
 
 		-- 🔥 在这里放监听器（最佳位置）
 		dap.listeners.after.event_stopped["debug_reason"] = function(session, body)
@@ -103,16 +103,16 @@ return {
 
 		-- 适配器统一在此注册一次（每个 adapter 只 setup 一次，避免重复/覆盖）
 		-- gdb 在 macOS 上有 bug，rust-gdb 暂不启用
-		require("dap-config.adapters.codelldb").setup(dap)
-		require("dap-config.adapters.probe_rs").setup(dap)
-		require("dap-config.adapters.vscode-js-debug").setup(dap)
-		require("dap-config.adapters.openocd").setup(dap)
-		require("dap-config.adapters.pyocd").setup(dap)
-		require("dap-config.adapters.nlua").setup(dap)
-		require("dap-config.adapters.emmylua").setup(dap)
+		require("dap_ext.adapters.codelldb").setup(dap)
+		require("dap_ext.adapters.probe_rs").setup(dap)
+		require("dap_ext.adapters.vscode-js-debug").setup(dap)
+		require("dap_ext.adapters.openocd").setup(dap)
+		require("dap_ext.adapters.pyocd").setup(dap)
+		require("dap_ext.adapters.nlua").setup(dap)
+		require("dap_ext.adapters.emmylua").setup(dap)
 
 		-- 调试配置项目级记忆（记住上次配置 + 项目模板）
-		require("dap-config.persist").setup()
+		require("dap_ext.persist").setup()
 
 		vim.api.nvim_create_autocmd({ "VimLeave" }, {
 			callback = function()

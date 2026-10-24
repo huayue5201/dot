@@ -10,7 +10,7 @@ return {
 	config = function()
 		require("neogit-ai-commit").setup({
 			-- DeepSeek：OpenAI 兼容端点。插件只认 openai_api_key 这个字段名，
-			-- 所以显式把 DEEPSEEK_API_KEY 传进去（~/.env 由 core.dotenv 读取）。
+			-- 所以显式把 DEEPSEEK_API_KEY 传进去（~/.env 由 boot.dotenv 读取）。
 			openai_api_key = vim.env.DEEPSEEK_API_KEY,
 			api_url = "https://api.deepseek.com/v1/chat/completions",
 			-- deepseek-flash 是推理模型，短 max_tokens 时输出会被 reasoning 吃光；

@@ -21,9 +21,9 @@ return {
 			follow = {
 				enabled = false,
 			},
-			-- 图标类型（与 lsp-config/icons.lua 共用一套）
+			-- 图标类型（与 lsp_ext/icons.lua 共用一套）
 			type_icons = (function()
-				local icons = require("lsp-config.icons")
+				local icons = require("lsp_ext.icons")
 				return {
 					E = icons.ERROR,
 					W = icons.WARN,

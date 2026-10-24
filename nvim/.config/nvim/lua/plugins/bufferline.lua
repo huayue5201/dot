@@ -25,7 +25,7 @@ return {
 
 		-- 关闭按钮/右键：先判断是否被其他 tab 共享，共享则只移除不删除
 		local function close_buffer(bufnr)
-			require("core.tab_workspace").close_buffer(bufnr)
+			require("feat.tab_workspace").close_buffer(bufnr)
 		end
 
 		-- bufferline.setup(require("real-icons.integrations.bufferline").opts({
@@ -162,7 +162,7 @@ return {
 				-- 按「当前 tab 的归属」在渲染期过滤，规则统一由 tab_workspace 维护，
 				-- 不在插件配置里重复。
 				custom_filter = function(buf_number)
-					return require("core.tab_workspace").is_current_tab_buf(buf_number)
+					return require("feat.tab_workspace").is_current_tab_buf(buf_number)
 				end,
 
 				-- 名称格式化函数

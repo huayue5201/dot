@@ -4,7 +4,7 @@
 -- stdpath("data")/site/pack/core/opt/nvim-window-picker，nvim 实际加载的是副本。
 -- 所以改完 ~/neovim-plugins/nvim-window-picker 并 push 后，要执行
 -- :PackLocalSync（<leader>zp）让副本跟上新 rev，再重启生效。
--- 必须写绝对路径：lua/core/pack_local.lua 靠本地插件的 src 以 "/" 开头来识别它。
+-- 必须写绝对路径：lua/boot/pack_local.lua 靠本地插件的 src 以 "/" 开头来识别它。
 return {
 	dir = "/Users/lijia/neovim-plugins/nvim-window-picker",
 	-- VeryLazy 提前加载：setup() 里会给 ghostty/herdr 源挂后台预取 autocmd，
@@ -135,7 +135,7 @@ return {
 			-- 切换到目标窗口
 			vim.api.nvim_set_current_win(picked_window_id)
 			-- ⭐ 使用统一关闭逻辑
-			require("core.navigation").smart_close(picked_window_id)
+			require("feat.navigation").smart_close(picked_window_id)
 			-- 恢复原窗口
 			if vim.api.nvim_win_is_valid(current_win) then
 				vim.api.nvim_set_current_win(current_win)

@@ -59,7 +59,7 @@ Rules:
 			},
 		},
 		-- 百度翻译开放平台：配置后 baidu 引擎支持整句翻译；不配置则回退到
-		-- 免费的 /sug 词典接口（仅单词，整句返回空）。凭据由 core.dotenv 从
+		-- 免费的 /sug 词典接口（仅单词，整句返回空）。凭据由 boot.dotenv 从
 		-- ~/.env 读入 vim.env（BAIDU_APPID / BAIDU_KEY），这里只引用变量名。
 		baidu = {
 			appid_name = "BAIDU_APPID",
