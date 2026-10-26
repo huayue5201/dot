@@ -39,7 +39,9 @@ local function resume_tab_clients(tab)
 					and #vim.lsp.get_clients({ bufnr = bufnr, name = name }) == 0
 					and (not cfg.filetypes or vim.tbl_contains(cfg.filetypes, vim.bo[bufnr].filetype))
 				then
-					if pcall(vim.lsp.start, cfg, { bufnr = bufnr }) then
+					-- 必须带 _root_markers，否则 root_dir 为 nil，Neovim 无法与
+					-- vim.lsp.enable 启动的同类 client 复用，会在同一 buffer 起两个。
+					if pcall(vim.lsp.start, cfg, { bufnr = bufnr, _root_markers = cfg.root_markers }) then
 						started = true
 					end
 				end

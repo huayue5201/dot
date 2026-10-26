@@ -19,7 +19,10 @@ return {
 		-- 原生 vim.ui.select。装了其中任意一个后重启即可自动启用。
 		-- picker = { name = "mini.pick" },
 
-		-- 笔记内 buffer 局部映射（统一 <leader>n 前缀）
+		-- 新建笔记默认开在 vsplit，避免从代码里建笔记时顶掉代码窗口
+		open_notes_in = "vsplit",
+
+		-- 笔记内 buffer 局部映射（依赖当前笔记 / 光标，统一 <leader>n 前缀）
 		callbacks = {
 			enter_note = function()
 				-- Obsidian 的附加 UI（链接 conceal、复选框渲染等）需要 conceallevel 为 1 或 2，
@@ -28,16 +31,6 @@ return {
 				local function map(lhs, cmd, desc)
 					vim.keymap.set("n", lhs, "<cmd>Obsidian " .. cmd .. "<cr>", { buffer = true, desc = "Obsidian: " .. desc })
 				end
-				-- 常用（全局命令）
-				map("<leader>nn", "new", "新笔记")
-				map("<leader>nt", "new_from_template", "从模板新建")
-				map("<leader>no", "quick_switch", "快速切换/打开")
-				map("<leader>ns", "search", "搜索")
-				map("<leader>ng", "tags", "标签")
-				map("<leader>nd", "today", "今日日记")
-				map("<leader>nD", "dailies", "日记列表")
-				map("<leader>nw", "workspace", "切换 workspace")
-				map("<leader>nh", "help", "帮助")
 				-- 当前笔记动作（note_action）
 				map("<leader>nb", "backlinks", "反向链接")
 				map("<leader>nl", "links", "列出链接")
@@ -52,4 +45,20 @@ return {
 			end,
 		},
 	},
+	-- 创建 / 导航类命令不依赖当前笔记，设为全局，代码里也能随时写笔记
+	config = function(_, opts)
+		require("obsidian").setup(opts)
+		local function map(lhs, cmd, desc)
+			vim.keymap.set("n", lhs, "<cmd>Obsidian " .. cmd .. "<cr>", { desc = "Obsidian: " .. desc })
+		end
+		map("<leader>nn", "new", "新笔记")
+		map("<leader>nt", "new_from_template", "从模板新建")
+		map("<leader>no", "quick_switch", "快速切换/打开")
+		map("<leader>ns", "search", "搜索")
+		map("<leader>ng", "tags", "标签")
+		map("<leader>nd", "today", "今日日记")
+		map("<leader>nD", "dailies", "日记列表")
+		map("<leader>nw", "workspace", "切换 workspace")
+		map("<leader>nh", "help", "帮助")
+	end,
 }

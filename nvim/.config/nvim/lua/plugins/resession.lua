@@ -58,11 +58,14 @@ return {
 			},
 		})
 
-		-- 快捷键配置：按标签页（tab）保存会话（<leader>o 组 = 格式 / 会话）
+		-- 快捷键配置：会话属于 tab / 工作区域，统一放在 <leader>ls
 		local resession = require("resession")
-		vim.keymap.set("n", "<leader>oss", resession.save_tab, { desc = "保存标签会话 (save_tab)" })
-		vim.keymap.set("n", "<leader>osl", resession.load, { desc = "加载会话" })
-		vim.keymap.set("n", "<leader>osd", resession.delete, { desc = "删除会话" })
+		vim.keymap.set("n", "<leader>lss", resession.save_tab, { desc = "会话: 保存当前标签" })
+		vim.keymap.set("n", "<leader>lst", function()
+			require("feat.tab_workspace").save_session()
+		end, { desc = "会话: 保存当前会话" })
+		vim.keymap.set("n", "<leader>lsl", resession.load, { desc = "会话: 加载" })
+		vim.keymap.set("n", "<leader>lsd", resession.delete, { desc = "会话: 删除" })
 
 		-- tab_workspace 的 post_load 钩子必须在 resession 加载后才能挂（init 阶段 require 不到）
 		require("feat.tab_workspace").attach_resession()

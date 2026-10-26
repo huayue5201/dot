@@ -50,7 +50,9 @@ function M.reattach(name, bufnr)
 			and (not cfg.filetypes or vim.tbl_contains(cfg.filetypes, vim.bo[b].filetype))
 			and #vim.lsp.get_clients({ bufnr = b, name = name }) == 0
 		then
-			if pcall(vim.lsp.start, cfg, { bufnr = b }) then
+			-- 必须带 _root_markers：不带时 root_dir 解析为 nil，reuse_client
+			-- 无法匹配已由 vim.lsp.enable 启动的同类 client，会产生双 client。
+			if pcall(vim.lsp.start, cfg, { bufnr = b, _root_markers = cfg.root_markers }) then
 				started = started + 1
 			end
 		end
