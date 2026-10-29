@@ -173,6 +173,7 @@ return {
 		vim.keymap.set("n", "<leader>mvs", "<cmd>TodoSplit<cr>", { desc = "水平分割打开" })
 		vim.keymap.set("n", "<leader>mvv", "<cmd>TodoVSplit<cr>", { desc = "垂直分割打开" })
 		vim.keymap.set("n", "<leader>mve", "<cmd>TodoEdit<cr>", { desc = "编辑模式打开" })
+		vim.keymap.set("n", "<leader>mvc", "<cmd>TodoCalendar<cr>", { desc = "项目月历（时间维度查看任务）" })
 		vim.keymap.set("n", "<leader>mp", "<cmd>SmartPreview<cr>", { desc = "todo2: todo预览" })
 
 		-- 链接（ml-）
