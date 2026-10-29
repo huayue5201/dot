@@ -30,7 +30,6 @@ return {
 				chars = {
 					filled = "▰",
 					empty = "▱",
-					separator = " ",
 				},
 				length = { min = 5, max = 20 },
 				highlights = {
@@ -64,7 +63,7 @@ return {
 			-- 任务树抽屉（:TodoDrawer）
 			drawer = {
 				position = "right", -- "right" | "bottom"（bottom 上下拆分可展示更多）
-				width = 45, -- position = "right" 时的宽度
+				width = 60, -- position = "right" 时的宽度
 				height = 12, -- position = "bottom" 时的高度
 				focus_on_jump = false, -- true 时 <CR> 跳转后焦点跟随到代码窗口
 			},
@@ -131,7 +130,25 @@ return {
 		vim.keymap.set("n", "<leader>mts", "<cmd>TodoStatus<cr>", { desc = "选择任务状态" })
 		vim.keymap.set("n", "<leader>mtd", "<cmd>TodoDesc<cr>", { desc = "编辑任务正文" })
 		vim.keymap.set("n", "<leader>mtt", "<cmd>TodoTag<cr>", { desc = "给任务加/删/设置标签" })
-		vim.keymap.set("n", "<leader>mtf", "<cmd>TodoFilter<cr>", { desc = "按标签筛选 TODO（! 清除）" })
+		vim.keymap.set("n", "<leader>mtD", "<cmd>TodoDue<cr>", { desc = "设置/清除到期日（@YYYY-MM-DD）" })
+		vim.keymap.set(
+			"n",
+			"<leader>mtf",
+			"<cmd>TodoFilter<cr>",
+			{ desc = "按标签/状态/路径/到期日筛选 TODO（! 清除）" }
+		)
+		vim.keymap.set(
+			"n",
+			"<leader>mtw",
+			"<cmd>TodoFilter due:week<cr>",
+			{ desc = "只看本周到期（due:week）" }
+		)
+		vim.keymap.set(
+			"n",
+			"<leader>mto",
+			"<cmd>TodoFilter due:overdue<cr>",
+			{ desc = "只看已过期（due:overdue）" }
+		)
 		vim.keymap.set(
 			"n",
 			"<leader>mtc",
