@@ -7,9 +7,13 @@ return {
 	-- setup 由插件端 plugin/todo2.lua 惰性触发；加载器没有 lazy 字段，无需配置
 	init = function()
 		-- 可选：自定义配置（以下均为顶层键，均有默认值，按需覆盖）
+		-- 唯一完整参考：:h todo2（:Todo help 打开）
 		vim.g.todo2_config = {
 			-- 核心开关
-			conceal_enable = true, -- TODO 文件 conceal 渲染（复选框图标等）
+			conceal_enable = true, -- TODO 文件 conceal 渲染（todo:id、复选框图标等）
+			conceal_due = true, -- 行内 @YYYY-MM-DD 隐藏，改在行尾元数据带显示（光标压上去才显原日期）
+
+			-- 统一入口：:Todo（无参 = 抽屉，`:Todo <sub>` = :Todo<Sub>，`:Todo help` = :h todo2）
 
 			-- 解析器行为
 			parser = {
@@ -18,20 +22,27 @@ return {
 				context_split = false, -- 上下文拆分
 			},
 
+			-- 启动时对项目内全部 TODO 文件做一次全量对账（自愈漏事件造成的漂移）
+			sync = {
+				reconcile_on_start = true,
+			},
+
 			-- 代码文件里的任务渲染（above/below 虚拟行）
 			code_render = {
 				-- "trunc"（默认，不随横滚）| "scroll"（nowrap 时随代码横滚）| "auto" | "wrap"
 				virt_lines_overflow = "trunc",
+				position = "inline", -- "inline" | "above" | "below"
+				max_lines = 3, -- 同一代码行最多显示几条任务（其余折叠为 +N）
 			},
 
-			-- 进度条样式
+			-- 进度条样式（TODO 行 / 抽屉 / 代码端 / 统计摘要共用这一套）
 			progress_bar = {
 				style = "full",
 				chars = {
 					filled = "▰",
 					empty = "▱",
 				},
-				length = { min = 5, max = 20 },
+				length = { min = 5, max = 20 }, -- 5~20 自适应（不再是固定长度）
 				highlights = {
 					done = "Todo2ProgressDone",
 					todo = "Todo2ProgressTodo",
@@ -60,12 +71,23 @@ return {
 			viewer_show_child_count = true, -- 是否显示子任务计数
 			viewer_file_header_style = "─ %s ──[ %d tasks ]", -- 文件 header 格式
 
-			-- 任务树抽屉（:TodoDrawer）
+			-- 任务树抽屉（:TodoDrawer / :Todo）
 			drawer = {
 				position = "right", -- "right" | "bottom"（bottom 上下拆分可展示更多）
 				width = 60, -- position = "right" 时的宽度
 				height = 12, -- position = "bottom" 时的高度
 				focus_on_jump = false, -- true 时 <CR> 跳转后焦点跟随到代码窗口
+				expand_lines = 1, -- 抽屉里每个任务默认展开的行数（0 = 折叠）
+			},
+
+			-- 项目月历（:TodoCalendar / 抽屉里按 C 直接跳到该任务到期日）
+			-- 只收录带 @YYYY-MM-DD 的任务；行内日期平时隐藏，行尾元数据带显示 `11-02 · ↻10-30`
+			calendar = {
+				first_day_of_week = "monday", -- "monday" | "sunday"
+				show_completed = true, -- false 时已完成任务不计入格子也不进当日列表
+				mark_icon = "●",
+				done_icon = "○",
+				winblend = 0,
 			},
 
 			-- Git 集成（提交消息关单 / 锚点历史 / 提交前自查）
@@ -91,6 +113,12 @@ return {
 				auto_after_days = 0, -- 自动归档阈值（天，0=关闭）
 			},
 
+			-- 孤儿任务回收（任务行被手删后，store 里的记录先隔离再清理）
+			orphan = {
+				enabled = true,
+				retention_days = 30, -- 隔离超过该天数仍无文件恢复即清除（0 = 永不清除）
+			},
+
 			-- TODO 文件识别（可扩展任意格式）
 			todo_files = {
 				extensions = { ".todo.md", ".todo", ".todo.txt" }, -- 后缀匹配
@@ -103,6 +131,17 @@ return {
 			file_template = {
 				default_content = { "## Active" },
 			},
+
+			-- 任务上下文（供 AI / MCP）
+			-- enabled = true 时 setup 阶段就发布本实例的 RPC 地址给 MCP 桥；
+			-- :TodoContext（复制上下文给大模型）不受此开关影响，随时可用。
+			ai = {
+				enabled = true,
+				include_code = true, -- 是否附带代码块正文
+				include_ancestors = true, -- 是否附带祖先链
+				include_children = 1, -- 子树层数：true=全部，数字=层数
+				max_code_lines = 200, -- 代码正文最多取多少行（0 表示不限）
+			},
 		}
 	end,
 	config = function()
@@ -114,12 +153,14 @@ return {
 		------------------------------------------------------------------
 		-- 高频动作快捷别名（平铺一层）
 		-- 只取分组前缀以外的单字母：mf/mt/ma/mv/ml/mg 是分组，mp 已被 SmartPreview 用掉，
-		-- 所以这里只用 mn / mc / md，不抢分组前缀（否则 maa、mvv 这类进不去）。
+		-- 所以这里只用 mn / mc / md / mh，不抢分组前缀（否则 maa、mvv 这类进不去）。
 		-- 同一命令只在单键别名处保留一份，分组里不再重复定义。
 		------------------------------------------------------------------
 		vim.keymap.set("n", "<leader>mn", "<cmd>TodoNew<cr>", { desc = "TODO: 新建文件" })
 		vim.keymap.set("n", "<leader>mc", "<cmd>TodoAdd<cr>", { desc = "TODO: 从代码建任务" })
-		vim.keymap.set("n", "<leader>md", "<cmd>TodoDrawer<cr>", { desc = "TODO: 打开任务抽屉" })
+		-- 统一入口：无参开抽屉，:Todo <sub> 等价于 :Todo<Sub>，:Todo help 看完整文档
+		vim.keymap.set("n", "<leader>md", "<cmd>Todo<cr>", { desc = "TODO: 入口（任务抽屉）" })
+		vim.keymap.set("n", "<leader>mh", "<cmd>Todo help<cr>", { desc = "TODO: 打开完整帮助 :h todo2" })
 
 		-- 文件（mf-）
 		vim.keymap.set("n", "<leader>mfr", "<cmd>TodoRename<cr>", { desc = "重命名 TODO 文件" })
@@ -156,6 +197,8 @@ return {
 			{ desc = "复制任务上下文（Markdown，供 AI）" }
 		)
 		vim.keymap.set("n", "<leader>mtl", "<cmd>TodoLink<cr>", { desc = "代码关联任务" })
+		-- 删除父任务但保留子任务（子任务提升为顶层；:TodoDel! 则是连子树一起删）
+		vim.keymap.set("n", "<leader>mtP", "<cmd>TodoPromote<cr>", { desc = "删除当前任务、子任务提升为顶层" })
 
 		-- 归档（ma-）
 		vim.keymap.set(
