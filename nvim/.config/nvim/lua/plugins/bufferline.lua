@@ -5,7 +5,6 @@ return {
 	-- eager 加载发生在首帧渲染前,否则会先画出内置 tabline 再被 bufferline 替换(启动闪烁)
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
-		-- "Mirsmog/real-icons.nvim",
 	},
 	config = function()
 		local bufferline = require("bufferline")
@@ -294,13 +293,53 @@ return {
 		)
 
 		-- 跳转到指定序号的缓冲区（当前 tab 内可见序号；工作区隔离后只显示本 tab 的 buffer）
-		for i = 1, 9 do
-			map(
-				"n",
-				"g" .. i,
-				"<Cmd>BufferLineGoToBuffer " .. i .. "<CR>",
-				vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 " .. i })
-			)
+		--
+		-- 只挂在「真实文件 buffer」上，且是 buffer-local 映射。
+		-- 原因：全局 g1..g9 会污染 codecompanion chat / picker / 侧栏等特殊 buffer，
+		-- 在那些 buffer 里按 g1 就会把「当前 window 的 buffer」换成文件，看起来是
+		-- 聊天窗口被顶掉（BufferLineGoToBuffer 的语义是把 N 号 buffer 换到当前窗口，
+		-- 不是跳到 N 号 buffer 所在的窗口）。
+		-- buftype 非空（nofile/help/terminal/qf…）一律跳过；少数插件用 buftype 为空的
+		-- 普通 buffer 承载 UI，按 filetype 兜底排除，遇到新情况往这里加即可。
+		local skip_ft = {
+			codecompanion = true,
+			codecompanion_input = true,
+			snacks_picker = true,
+			snacks_picker_input = true,
+			snacks_picker_list = true,
+			snacks_picker_preview = true,
+			noice = true,
+			prompt = true,
+		}
+		local attached = {}
+		local function attach_goto_maps(bufnr)
+			if attached[bufnr] or not vim.api.nvim_buf_is_valid(bufnr) then
+				return
+			end
+			if vim.bo[bufnr].buftype ~= "" or skip_ft[vim.bo[bufnr].filetype] then
+				return
+			end
+			attached[bufnr] = true
+			for i = 1, 9 do
+				map(
+					"n",
+					"g" .. i,
+					"<Cmd>BufferLineGoToBuffer " .. i .. "<CR>",
+					vim.tbl_extend("force", opts, { desc = "跳转到缓冲区 " .. i, buffer = bufnr })
+				)
+			end
+		end
+		vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter" }, {
+			group = vim.api.nvim_create_augroup("BufferlineGotoBuffer", { clear = true }),
+			callback = function(ev)
+				attach_goto_maps(ev.buf)
+			end,
+		})
+		-- 已经打开/已加载的 buffer 补挂一次
+		for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+			if vim.api.nvim_buf_is_loaded(bufnr) then
+				attach_goto_maps(bufnr)
+			end
 		end
 
 		-- 固定/取消固定

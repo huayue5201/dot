@@ -28,43 +28,41 @@ return {
 	-- 钉在 1.x：v2 若改 picker/请求表接口不被动跟着坏
 	sem_version = "1.*",
 
-	-- init 在所有插件 config 之前跑，保证 preload 注入早于 nurl 首次用 picker
-	init = function()
-		-- nurl 的 picker 只认 snacks.nvim / telescope.nvim / mini.pick，本机一个都没装。
-		-- 用 package.preload 顶替 mini.pick 的探测（返回空表让它"存在"）和它的适配器，
-		-- 底层走 vim.ui.select —— dropbar 已把 vim.ui.select 换成自己的可筛选菜单。
-		-- 代价：没有 preview 面板；上游若改 picker 接口，这里要跟着改。
-		package.preload["mini.pick"] = function()
-			return {}
-		end
+	-- nurl 的 picker 只认 snacks.nvim / telescope.nvim / mini.pick，本机一个都没装。
+	-- nurl 内部所有选择都收敛到 nurl.pickers.pick（commands.lua:66,125 与
+	-- app/targets.lua:58），这里直接整体替换掉，用自带的 ui.picker：
+	--   真输入行 + matchfuzzy 实时过滤 + 右侧请求预览（http_message.render）。
+	-- 这样也不必给 nurl 配 picker 选项，更不用伪造 mini.pick 模块。
+	config = function(_, opts)
+		local picker = require("ui.picker")
 
-		package.preload["nurl.pickers.mini"] = function()
-			return {
-				---@param title string
-				---@param items nurl.PickerItem[]
-				---@param on_pick? fun(item: nurl.RequestItem) 省略时跳转到请求定义处
-				pick = function(title, items, on_pick)
-					vim.ui.select(items, {
-						prompt = title,
-						kind = "nurl_request",
-						format_item = function(item)
-							return item.text
-						end,
-					}, function(choice)
-						if not choice then
-							return
-						end
-						if on_pick then
-							-- 先让菜单关掉再发请求，和上游 mini 适配器保持一致
-							vim.schedule(function()
-								on_pick(choice.item)
-							end)
-						else
-							require("nurl.projects").jump_to(choice.item)
-						end
-					end)
+		-- 写了 config 就不会再走 pack.lua 的自动 setup(opts)，这里手动叫一次
+		require("nurl").setup(opts)
+
+		require("nurl.pickers").pick = function(title, items, on_pick)
+			picker.pick({
+				title = title,
+				items = items,
+				text = function(item)
+					return item.text
 				end,
-			}
+				preview = function(item)
+					if not item.preview then
+						return nil
+					end
+					local ok, lines = pcall(require("nurl.ui.http_message").render, item.preview)
+					return ok and lines or nil
+				end,
+				-- 预览按 http 语法高亮（方法是 Keyword、header 是 Type 之类）
+				filetype = "http",
+				on_choose = function(item)
+					if on_pick then
+						on_pick(item.item)
+					else
+						require("nurl.projects").jump_to(item.item)
+					end
+				end,
+			})
 		end
 	end,
 
@@ -121,9 +119,6 @@ return {
 	opts = {
 		-- 请求文件目录（项目根下）
 		dir = ".nurl",
-
-		-- 走 init 里注入的 vim.ui.select 适配层
-		picker = "mini",
 
 		-- 请求历史（SQLite）。本机 ffi.load("sqlite3") 可用；不想用就设 enabled = false
 		history = {

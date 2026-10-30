@@ -6,7 +6,8 @@
 --   * <leader>p / <leader>P 走 yanky 的 put：进入环并把粘贴目标高亮出来
 --   * ]y / [y 在「刚用 yanky 粘贴过」之后循环更旧/更新的一条
 -- 不用 <C-n>/<C-p>（insert 里是补全），也不占 ]p / [p（Vim 内建「粘贴并按 indent 调整」）。
--- 不启用 picker（YankyRingHistory 需要 telescope/snacks），选历史用现有 fff/quicker。
+-- 不启用 yanky 自带的 picker（它走 vim.ui.select，本机被 dropbar 的编号菜单接走，很难用）：
+-- :YankyRingHistory 改成用自带的 lua/ui/picker.lua —— 底部整宽列表 + 模糊过滤 + 右侧预览。
 
 return {
 	"gbprod/yanky.nvim",
@@ -92,5 +93,83 @@ return {
 				pcall(vim.cmd, "normal! " .. prefix .. operator)
 			end
 		end, { desc = "环粘贴范围 textobj" })
+
+		-- :YankyRingHistory 用 ui.picker 重做
+		-- yanky 自带的是 vim.ui.select（本机被 dropbar 的编号菜单接管，无输入行无预览），
+		-- 这里 override 掉：列表 + matchfuzzy 过滤 + 右侧多行内容预览。
+		-- yanky 里 regcontents 正常是字符串（getreg 的返回值）；保险起见兼容行数组
+		local function reg_lines(v)
+			if type(v) == "table" then
+				return v
+			end
+			return vim.split(v or "", "\n", { plain = true })
+		end
+
+		local function ring_history(is_visual)
+			local picker = require("ui.picker")
+			-- 先退出 visual（顺便把 ' <  '> 标记落实）；yanky 的 P 靠 gv 恢复选区来替换
+			if is_visual then
+				pcall(vim.api.nvim_feedkeys, vim.keycode("<Esc>"), "nx", false)
+			end
+			local history = require("yanky.history").all()
+			if #history == 0 then
+				vim.notify("环里还没有内容", vim.log.levels.INFO)
+				return
+			end
+
+			-- visual 进来就用 P(替换选区)：yanky 内部靠 gv 恢复选区，即使本次选完时已经
+			-- 退出了 visual 模式也能正确替换（我们开的只是窗口，'< '> 标记不变）。
+			-- yanky 的 picker 允许自定义 action；没配就用默认的 put。
+			local action = (require("yanky.config").options.picker.select or {}).action
+				or require("yanky.picker").actions.put(is_visual and "P" or "p", is_visual)
+
+			local items = {}
+			for index, value in pairs(history) do
+				value.history_index = index
+				items[#items + 1] = { entry = value, index = index }
+			end
+			table.sort(items, function(a, b)
+				return a.index < b.index
+			end)
+
+			picker.pick({
+				title = "yank ring",
+				items = items,
+				-- 单行摘要：换行压成 \n，否则多行内容会把列表撑乱
+				text = function(item)
+					local content = table.concat(reg_lines(item.entry.regcontents), "\\n")
+					return ("%2d  %s"):format(item.index, content)
+				end,
+				-- 右侧预览：完整内容 + 寄存器类型
+				preview = function(item)
+					local e = item.entry
+					local lines = reg_lines(e.regcontents)
+					local head = { ("#%d  regtype=%s  共 %d 行"):format(item.index, e.regtype or "?", #lines) }
+					for _, l in ipairs(lines) do
+						head[#head + 1] = l
+					end
+					return head
+				end,
+				-- 预览用条目自带的 filetype（yanky 会记住 yank 时的 buffer 类型），于是有语法高亮
+				filetype = function(item)
+					return item.entry.filetype
+				end,
+				on_choose = function(item)
+					action(item.entry)
+				end,
+			})
+		end
+
+		vim.api.nvim_create_user_command("YankyRingHistory", function()
+			ring_history(false)
+		end, { force = true })
+
+		-- 顺手给个好按的键：visual 下选中内容会被环里那一项替换
+		vim.keymap.set("n", "<leader>yr", function()
+			ring_history(false)
+		end, { desc = "环历史 (picker)" })
+		vim.keymap.set("x", "<leader>yr", function()
+			ring_history(true)
+		end, { desc = "环历史 (picker): 替换选区" })
 	end,
 }

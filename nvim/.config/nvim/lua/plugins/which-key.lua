@@ -27,7 +27,7 @@ return {
 			{ "<leader>n", group = "笔记 (Obsidian)", icon = { icon = "󰠮 ", color = "purple" } },
 			{ "<leader>o", group = "格式 / 对齐", icon = { icon = "󰉢 ", color = "cyan" } },
 			{ "<leader>r", group = "运行 / 切换", icon = { icon = "󰐊", color = "green" } },
-			{ "<leader>R", group = "REST 请求 (kulala)", icon = { icon = "󰖟 ", color = "cyan" } },
+			{ "<leader>R", group = "REST 请求 (nurl)", icon = { icon = "󰖟 ", color = "cyan" } },
 			{ "<leader>s", group = "符号 / 查询", icon = { icon = "󰅴 ", color = "yellow" } },
 			{ "<leader>S", group = "代码片段", icon = { icon = "󰅩 ", color = "orange" } },
 			{ "<leader>t", group = "测试 / 覆盖率", icon = { icon = "󰙨", color = "green" } },
@@ -51,7 +51,6 @@ return {
 			{ "<leader>lt", group = "标签页" },
 			{ "<leader>lw", group = "工作区" },
 			{ "<leader>ls", group = "会话 (session)" },
-			{ "<leader>ms", group = "存储 (store)" },
 			{ "<leader>ma", group = "归档任务" },
 			{ "<leader>mf", group = "TODO 文件" },
 			{ "<leader>mg", group = "锚点 / Git" },
@@ -64,13 +63,17 @@ return {
 			{ "<leader>sc", group = "LSP 调用 / ctags" },
 			{ "<leader>ss", group = "跳转符号" },
 
-			-- localleader 分组
-			{ "<localleader>g", group = "grug-far 搜索替换", icon = { icon = "󰛔", color = "blue" } },
-			{ "<localleader>s", group = "保存 (save)", icon = { icon = "󰆓", color = "green" } },
-			{ "<localleader>t", group = "翻译 (translator)" },
-			{ "<localleader>x", group = "quickfix / loclist" },
-			{ "<localleader>c", group = "依赖 (crates)" },
-			{ "<localleader>r", group = "RustOwl" },
+			-- localleader 分组（<localleader> 没设过，就是默认的 \）
+			-- 注意：which-key 会删掉「没有任何子映射」的分组节点，所以这里只登记
+			-- 当前全局确实有按键的分组。以下这些不能写在这里：
+			--   \c*  crates    —— 只在 toml buffer 里（map_filetype），全局树里没有
+			--   \g*  grug-far —— 窗口内是插件自己注册的 buffer 键，且入口已挪到 <leader>f*
+			--   \x*  quickfix —— 已不存在，quickfix/loclist 现在是单独的 \q / \l
+			-- 同理 \q、\l、\Q 都是单键叶子，不构成分组。
+			{ "<localleader>m", group = "Markmap 思维导图", icon = { icon = "󰈈 ", color = "green" } },
+			{ "<localleader>r", group = "RustOwl", icon = { icon = "󱘗 ", color = "orange" } },
+			{ "<localleader>s", group = "保存 (save)", icon = { icon = "󰆓 ", color = "green" } },
+			{ "<localleader>t", group = "翻译 (translator)", icon = { icon = "󰗊 ", color = "cyan" } },
 		})
 
 		vim.keymap.set("n", "<leader>?", function()

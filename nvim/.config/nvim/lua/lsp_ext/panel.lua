@@ -19,6 +19,23 @@ local float_list = require("ui.float_list")
 
 local ICONS = { on = "✓ ", off = "○ " }
 
+-- 列宽（显示宽度，不是字节数）：中文 label 是 2 字符 / 4 列宽，用 %-24s 会按字节补
+-- 空格（"诊断"=6 字节、"内联提示"=12 字节），列就歪了。统一按 strdisplaywidth 补。
+local NAME_WIDTH = 20
+local STATUS_WIDTH = 14
+
+---按显示宽度右补空格（超过则不截断）
+---@param s string
+---@param width integer
+---@return string
+local function pad(s, width)
+	local w = vim.fn.strdisplaywidth(s)
+	if w >= width then
+		return s
+	end
+	return s .. string.rep(" ", width - w)
+end
+
 -- 功能开关：项目级持久化在 nvim-store3，切完立即作用到当前 buffer
 local FEATURES = {
 	{
@@ -103,7 +120,7 @@ local function row_text(row, bufnr)
 	local icon = enabled and ICONS.on or ICONS.off
 
 	if row.kind == "feature" then
-		return string.format("%s %-24s %s", icon, row.feature.label, enabled and "已开启" or "已关闭")
+		return string.format("%s %s%s", icon, pad(row.feature.label, NAME_WIDTH), enabled and "已开启" or "已关闭")
 	end
 
 	local clients = clients_for(row.name, bufnr)
@@ -124,7 +141,7 @@ local function row_text(row, bufnr)
 		end
 	end
 
-	return string.format("%s %-24s %s%s", icon, row.name, status, root)
+	return string.format("%s %s%s%s", icon, pad(row.name, NAME_WIDTH), pad(status, STATUS_WIDTH), root)
 end
 
 ---------------------------------------------------------------------
@@ -173,6 +190,37 @@ end
 -- 面板
 ---------------------------------------------------------------------
 local panel
+---面板要展示哪个 buffer 的 LSP：不能直接拿 current buffer
+---当浮窗/菜单（dropbar_menu、nofile、dashboard…）抢占焦点时，current buffer 不是文件 buffer，
+---面板会退化成只有「诊断/内联提示」两行，看不到任何 server（重启 nvim 后从菜单里打开面板就是这样）。
+---@return integer
+local function target_buf()
+	local function is_file(b)
+		return vim.api.nvim_buf_is_valid(b)
+			and vim.api.nvim_buf_is_loaded(b)
+			and vim.bo[b].buftype == ""
+			and vim.api.nvim_buf_get_name(b) ~= ""
+	end
+
+	local cur = vim.api.nvim_get_current_buf()
+	if is_file(cur) then
+		return cur
+	end
+
+	-- 退回最近用过的文件 buffer（lastused 升序 = 越晚越靠后）
+	local infos = vim.tbl_filter(function(info)
+		return is_file(info.bufnr)
+	end, vim.fn.getbufinfo({ buflisted = 1 }))
+	table.sort(infos, function(a, b)
+		return a.lastused < b.lastused
+	end)
+	local last = infos[#infos]
+	if last then
+		return last.bufnr
+	end
+
+	return cur
+end
 
 local function ensure_panel(bufnr)
 	if panel then
@@ -241,7 +289,7 @@ function M.toggle()
 	if panel and not panel:is_open() then
 		panel = nil
 	end
-	ensure_panel(vim.api.nvim_get_current_buf()):toggle()
+	ensure_panel(target_buf()):toggle()
 end
 
 ---注册用户命令

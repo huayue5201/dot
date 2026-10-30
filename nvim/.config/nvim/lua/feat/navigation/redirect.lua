@@ -15,6 +15,7 @@
 local M = {}
 
 local api = vim.api
+local tw_util = require("feat.tab_workspace.util")
 
 --- 由本模块识别的、需要保护的窗口（插件状态窗口）。
 ---@param ft string
@@ -50,7 +51,7 @@ local function is_editor(win)
 	if not api.nvim_win_is_valid(win) then
 		return false
 	end
-	if api.nvim_win_get_config(win).relative ~= "" then
+	if tw_util.is_float_win(win) then
 		return false
 	end
 	if M.is_state_window(win) then

@@ -76,7 +76,7 @@ return {
 			"html",
 			"css",
 			"json",
-			"http", -- rest.nvim 需要（.http 文件解析）
+			"http", -- 手写 .http 文件时的高亮（nurl 用 Lua 请求文件，不依赖它）
 			"markdown",
 			"markdown_inline",
 			"dap_repl",

@@ -8,7 +8,7 @@
 -- 不 source plugin/ 于是命令根本不存在）。eager 之后这些问题从根上不存在。
 --
 -- spec 写在 lua/plugins/*.lua，沿用 lazy.nvim 的写法（旧的懒加载字段已清理干净）：
---   * 生效的字段：src(第 1 位) / dir / name / main / version / branch / tag / commit
+--   * 生效的字段：src(第 1 位) / dir / url / name / main / version / branch / tag
 --                / sem_version / dependencies / init / config / opts / build / priority / enabled
 --   * keys：注册成普通映射（不要写纯 lhs 的分组标签，那会变成空映射）
 --   * 不识别（写了也无效）：event / ft / cmd / module / lazy
@@ -75,17 +75,16 @@ local function is_local_path(source)
 	return source:match("^/") ~= nil or source:match("^~") ~= nil or source:match("^%.") ~= nil
 end
 
+--- spec 里的版本约束统一成 vim.pack 的 version 字段（branch / tag 单独放着也行，
+--- 取第一个有值的；三者互斥，语义见 lua/plugins/*.lua 的注释）
 local function normalize_version(spec)
-	if spec.version == false then
-		return nil
-	end
 	if spec.version ~= nil then
 		return spec.version
 	end
 	if spec.sem_version then
 		return vim.version.range(spec.sem_version)
 	end
-	return spec.branch or spec.tag or spec.commit
+	return spec.branch or spec.tag
 end
 
 ---@param raw string|table
@@ -168,7 +167,6 @@ local SPEC_FIELDS = {
 	"version",
 	"branch",
 	"tag",
-	"commit",
 	"sem_version",
 	"priority",
 	"enabled",
@@ -255,9 +253,8 @@ local deferred = {
 	["neogit"] = true,
 	["atlas.nvim"] = true,
 	["cash.nvim"] = true,
-	["kulala.nvim"] = true,
+	["nurl.nvim"] = true,
 	["crates.nvim"] = true,
-	["render-markdown.nvim"] = true,
 	-- 调试链路：不开始调试就完全用不到（statusline 的 dap 段自己会判断
 	-- package.loaded["dap"]，见 lua/ui/statusline.lua 的 dap()）
 	["nvim-dap"] = true,
@@ -311,11 +308,16 @@ local function priority_of(spec)
 	return type(spec.priority) == "number" and spec.priority or 50
 end
 
+--- priority 降序；同 priority 按声明的 spec 文件顺序，保证加载次序稳定可复现
+local function by_priority(a, b)
+	if priority_of(a) ~= priority_of(b) then
+		return priority_of(a) > priority_of(b)
+	end
+	return (a._order or 0) < (b._order or 0)
+end
+
 local function is_enabled(spec)
 	local v = spec.enabled
-	if v == nil then
-		v = spec.cond
-	end
 	if v == nil then
 		return true
 	end
@@ -400,39 +402,18 @@ local function enter_rtp(paths)
 	return true
 end
 
-local function source_plugin_dir(path)
-	if not vim.uv.fs_stat(path .. "/plugin") then
+--- source 一个 plugin/ 或 after/plugin 目录下的全部文件（先 .vim 后 .lua，与 :packadd 顺序一致）。
+--- 目录不存在就直接返回：绝大多数插件没有 after/plugin，省掉两次 glob。
+local function source_dir(dir)
+	if not vim.uv.fs_stat(dir) then
 		return
 	end
-	for _, file in ipairs(vim.fn.glob(path .. "/plugin/**/*.vim", false, true)) do
-		local ok, err = pcall(vim.cmd.source, file)
-		if not ok then
-			fail("source %s 失败: %s", file, err)
-		end
-	end
-	for _, file in ipairs(vim.fn.glob(path .. "/plugin/**/*.lua", false, true)) do
-		local ok, err = pcall(vim.cmd.source, file)
-		if not ok then
-			fail("source %s 失败: %s", file, err)
-		end
-	end
-end
-
-local function source_after_plugin(path)
-	-- 绝大多数插件没有 after/plugin，先 stat 一下省掉两次 glob
-	if not vim.uv.fs_stat(path .. "/after/plugin") then
-		return
-	end
-	for _, file in ipairs(vim.fn.glob(path .. "/after/plugin/**/*.vim", false, true)) do
-		local ok, err = pcall(vim.cmd.source, file)
-		if not ok then
-			fail("source %s 失败: %s", file, err)
-		end
-	end
-	for _, file in ipairs(vim.fn.glob(path .. "/after/plugin/**/*.lua", false, true)) do
-		local ok, err = pcall(vim.cmd.source, file)
-		if not ok then
-			fail("source %s 失败: %s", file, err)
+	for _, ext in ipairs({ "vim", "lua" }) do
+		for _, file in ipairs(vim.fn.glob(dir .. "/**/*." .. ext, false, true)) do
+			local ok, err = pcall(vim.cmd.source, file)
+			if not ok then
+				fail("source %s 失败: %s", file, err)
+			end
 		end
 	end
 end
@@ -472,16 +453,10 @@ local function resolve_main(spec, path)
 	return name -- 兜底：直接按目录名 require
 end
 
+--- 传给 init / build / config / opts 的 plugin 对象。只给 spec 文件真正用得上的两个字段
+--- （lazy.nvim 那套 path / spec / dependencies 没有任何 spec 用，不复制）
 local function plugin_object(spec)
-	return {
-		name = spec.name,
-		dir = pack_path(spec.name),
-		path = pack_path(spec.name),
-		spec = spec,
-		dependencies = vim.tbl_map(function(d)
-			return d.name
-		end, spec._deps or {}),
-	}
+	return { name = spec.name, dir = pack_path(spec.name) }
 end
 
 ----------------------------------------------------------------------
@@ -513,29 +488,15 @@ local function run_init(spec)
 	end
 end
 
-local function resolve_opts(spec, plugin)
-	local opts = spec.opts
-	if type(opts) == "function" then
-		local ok, res = pcall(opts, plugin, {})
-		if not ok then
-			fail("opts %s 失败: %s", spec.name, res)
-			return {}
-		end
-		opts = res
-	end
-	return type(opts) == "table" and opts or {}
-end
-
 local function run_config(spec, plugin)
-	local has_opts = spec.opts ~= nil
-	local opts = resolve_opts(spec, plugin)
+	local opts = type(spec.opts) == "table" and spec.opts or {}
 
 	if type(spec.config) == "function" then
 		local ok, err = pcall(spec.config, plugin, opts)
 		if not ok then
 			fail("config %s 失败: %s", spec.name, err)
 		end
-	elseif spec.config == true or has_opts then
+	elseif spec.config == true or spec.opts ~= nil then
 		local main = resolve_main(spec, plugin.dir)
 		if not main then
 			fail("无法推断 %s 的主模块，请显式设置 main 或直接写 config 函数", spec.name)
@@ -555,68 +516,34 @@ local function run_config(spec, plugin)
 	end
 end
 
+--- keys 既可以写成列表，也可以写成单个 { lhs, rhs, ... }
 local function apply_keys(spec)
 	local keys = spec.keys
 	if not keys then
 		return
 	end
 
-	local list
-	if type(keys) ~= "table" then
-		list = { keys }
-	elseif type(keys[1]) == "string" or keys.lhs ~= nil then
-		list = { keys }
-	else
-		list = keys
-	end
-
-	for _, k in ipairs(list) do
-		local lhs, rhs, mode
-		if type(k) == "string" then
-			lhs = k
-		else
-			lhs = k[1] or k.lhs
-			rhs = k[2] or k.rhs
-			mode = k.mode
-			if rhs == nil then
-				-- 纯 lhs 条目在 lazy.nvim 里是"分组标签"，在这里只会变成 lhs→lhs 的空映射，
-				-- 还会覆盖 config 里定义的真实映射（rustowl 就这么坏过）。分组请写进
-				-- lua/plugins/which-key.lua 的 wk.add。
-				fail("keys %s: 缺少 rhs，已跳过（分组标签请写进 which-key.lua）", lhs)
-				rhs = false
-			end
-		end
-		if lhs and rhs then
-			local map_opts = {
-				desc = type(k) == "table" and k.desc or nil,
-				silent = type(k) == "table" and k.silent or nil,
-				expr = type(k) == "table" and k.expr or nil,
-				nowait = type(k) == "table" and k.nowait or nil,
-				remap = type(k) == "table" and k.remap or nil,
-			}
-			if not key_owner[lhs] then
-				key_owner[lhs] = spec.name
-				local ok, err = pcall(vim.keymap.set, mode or "n", lhs, rhs, map_opts)
-				if not ok then
-					fail("keymap %s (%s) 失败: %s", lhs, spec.name, err)
-				end
+	for _, k in ipairs(type(keys[1]) == "table" and keys or { keys }) do
+		local lhs, rhs = k[1], k[2]
+		if type(lhs) ~= "string" or rhs == nil then
+			-- 纯 lhs 条目在 lazy.nvim 里是"分组标签"，在这里只会变成 lhs→lhs 的空映射，
+			-- 还会覆盖 config 里定义的真实映射（rustowl 就这么坏过）。分组请写进
+			-- lua/plugins/which-key.lua 的 wk.add。
+			fail("keys %s: 缺少 lhs/rhs，已跳过（分组标签请写进 which-key.lua）", tostring(lhs))
+		elseif not key_owner[lhs] then
+			key_owner[lhs] = spec.name
+			local ok, err = pcall(vim.keymap.set, k.mode or "n", lhs, rhs, {
+				desc = k.desc,
+				silent = k.silent,
+				expr = k.expr,
+				nowait = k.nowait,
+				remap = k.remap,
+			})
+			if not ok then
+				fail("keymap %s (%s) 失败: %s", lhs, spec.name, err)
 			end
 		end
 	end
-end
-
--- 加载分三步：① 整批进 rtp + source plugin/（源与 :packadd 等价，但一次赋值搞定），
--- ② 新装的插件跑 build，③ 按依赖顺序跑 config。这样即使 spec 之间的 dependencies
--- 成环（nvim-dap ⇄ nvim-dap-disasm 就是），config 里 require 别的插件也不会踩空。
-local function activate_spec(spec)
-	local path = pack_path(spec.name)
-	source_plugin_dir(path)
-	-- 新装的插件先跑 build（此时 plugin/ 已 source，:TSUpdate 之类的命令才存在）
-	if fresh[spec.src] then
-		run_build(spec)
-	end
-	source_after_plugin(path)
-	return true
 end
 
 local function configure_spec(spec)
@@ -635,28 +562,29 @@ local function activate_batch(batch)
 	for i, spec in ipairs(batch) do
 		paths[i] = pack_path(spec.name)
 	end
-	if not enter_rtp(paths) then
-		-- 兜底：rtp 里找不到 packpath 的 site 项（非常规环境），老实 :packadd
-		for _, spec in ipairs(batch) do
+	-- enter_rtp 失败 = rtp 里找不到 packpath 的 site 项（非常规环境），退回逐个 :packadd。
+	-- :packadd 自己会 source plugin/，所以这条分支不再调 source_dir。
+	local via_packadd = not enter_rtp(paths)
+	for i, spec in ipairs(batch) do
+		if via_packadd then
 			local ok, err = pcall(vim.cmd.packadd, { spec.name })
 			if not ok then
 				fail("packadd %s 失败: %s", spec.name, err)
 			end
+		else
+			source_dir(paths[i] .. "/plugin")
 		end
-		for _, spec in ipairs(batch) do
-			if fresh[spec.src] then
-				run_build(spec)
-			end
-			source_after_plugin(pack_path(spec.name))
+		-- 新装的插件先跑 build（此时 plugin/ 已 source，:TSUpdate 之类的命令才存在）
+		if fresh[spec.src] then
+			run_build(spec)
 		end
-		return
-	end
-	for _, spec in ipairs(batch) do
-		activate_spec(spec)
+		source_dir(paths[i] .. "/after/plugin")
 	end
 end
 
---- 加载一批插件（先全部进 rtp + source plugin/，再按给定顺序跑 config）
+--- 加载一批插件，分三步：① 整批进 rtp + source plugin/（源与 :packadd 等价，但一次赋值
+--- 搞定），② 新装的插件跑 build，③ 按给定顺序跑 config。这样即使 spec 之间的 dependencies
+--- 成环（nvim-dap ⇄ nvim-dap-disasm 就是），config 里 require 别的插件也不会踩空。
 local function load_batch(batch)
 	if #batch == 0 then
 		return
@@ -709,12 +637,7 @@ local function main()
 		end
 		visiting[spec.src] = true
 		local deps = vim.deepcopy(spec._deps or {})
-		table.sort(deps, function(a, b)
-			if priority_of(a) ~= priority_of(b) then
-				return priority_of(a) > priority_of(b)
-			end
-			return (a._order or 0) < (b._order or 0)
-		end)
+		table.sort(deps, by_priority)
 		for _, dep in ipairs(deps) do
 			visit(dep)
 		end
@@ -724,12 +647,7 @@ local function main()
 	end
 
 	local roots = vim.deepcopy(order)
-	table.sort(roots, function(a, b)
-		if priority_of(a) ~= priority_of(b) then
-			return priority_of(a) > priority_of(b)
-		end
-		return (a._order or 0) < (b._order or 0)
-	end)
+	table.sort(roots, by_priority)
 	for _, spec in ipairs(roots) do
 		visit(spec)
 	end
@@ -844,26 +762,87 @@ end
 main()
 
 ----------------------------------------------------------------------
--- 用户命令：原生 :packupdate / :packdel 之外的薄封装
+-- 清理：spec 里删掉的插件，vim.pack 不会自动删目录，这里手动回收
 ----------------------------------------------------------------------
 
-vim.api.nvim_create_user_command("PackUpdate", function(cmd)
-	vim.cmd("packupdate" .. (cmd.bang and "!" or ""))
-end, { desc = "更新所有插件（原生 vim.pack）", bang = true })
+--- lockfile 里存在、但本次 spec 已不再声明的插件名
+--- @return string[]
+local function stale_names()
+	local declared = {}
+	for _, spec in ipairs(order) do
+		declared[spec.name] = true
+	end
+	local names = {}
+	-- 必须 info=false：默认 info=true 会对每个插件跑 git（branches/tags/manifest/revision），
+	-- 117 个插件实测 2810ms，全部卡在启动主线程上。info=false 只读锁文件，0ms。
+	for _, p in ipairs(vim.pack.get(nil, { info = false })) do
+		-- p.active = 本次启动 add 过的；declared 里的（含 enabled=false 被停用的）都保留目录
+		if not p.active and not declared[p.spec.name] then
+			names[#names + 1] = p.spec.name
+		end
+	end
+	table.sort(names)
+	return names
+end
 
+--- 删除 spec 里已移除的插件目录
+--- @param opts? { dry_run?: boolean, force?: boolean, quiet?: boolean }
+--- @return string[] names 命中的插件名（dry_run 时未删除）
+function M.prune(opts)
+	opts = opts or {}
+	local names = stale_names()
+	if #names == 0 then
+		if not opts.quiet then
+			vim.notify("没有需要清理的插件", vim.log.levels.INFO)
+		end
+		return names
+	end
+	if opts.dry_run then
+		return names
+	end
+	local ok, err = pcall(vim.pack.del, names, { force = opts.force })
+	if not opts.quiet then
+		if ok then
+			vim.notify(("已删除 %d 个未使用插件:\n%s"):format(#names, table.concat(names, ", ")), vim.log.levels.INFO)
+		else
+			vim.notify("清理插件失败: " .. tostring(err), vim.log.levels.ERROR)
+		end
+	end
+	return names
+end
+
+-- 启动时自动清理；NVIM_PACK_NO_PRUNE=1 可关闭
+if vim.env.NVIM_PACK_NO_PRUNE ~= "1" then
+	pcall(M.prune, { quiet = true })
+end
+
+----------------------------------------------------------------------
+-- 原生 :packupdate / :packdel 已经够用，这里只补原生没有的两件事：
+--   :PackStatus 看已注册数量；:PackPrune 回收 spec 里已移除的目录。
 vim.api.nvim_create_user_command("PackStatus", function()
-	local packs = vim.pack.get()
-	vim.notify(("已注册 %d 个插件"):format(#packs), vim.log.levels.INFO)
+	vim.notify(("已注册 %d 个插件"):format(#vim.pack.get(nil, { info = false })), vim.log.levels.INFO)
 end, { desc = "查看插件数量" })
+
+-- :PackPrune 只列出将要删除的；:PackPrune! 真的删（--force）。
+-- 删除结果的通知在 M.prune 里，这里只负责 dry_run 的预览，不重复拼一遍消息。
+vim.api.nvim_create_user_command("PackPrune", function(cmd)
+	if cmd.bang then
+		M.prune({ force = true })
+		return
+	end
+	local names = M.prune({ dry_run = true, quiet = true })
+	if #names == 0 then
+		vim.notify("没有需要清理的插件", vim.log.levels.INFO)
+	else
+		vim.notify(
+			("将删除 %d 个未使用插件（:PackPrune! 执行）:\n%s"):format(#names, table.concat(names, "\n")),
+			vim.log.levels.WARN
+		)
+	end
+end, { desc = "清理 spec 里已移除的插件目录", bang = true })
 
 -- dir = "~/neovim-plugins/*" 的本地插件：vim.pack 会 clone 一份副本，
 -- 改为手动触发同步（<leader>zp 或 :PackLocalSync），不阻塞启动。
 require("boot.pack_local").setup()
-
----当前加载器收集到的 spec（调试用）
----@return table<string, table>
-function M.specs()
-	return by_src
-end
 
 return M

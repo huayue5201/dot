@@ -8,7 +8,7 @@ return {
 	config = function()
 		require("nvim-store3.plugins.project_query").setup()
 		require("nvim-store3.plugins.project_delete").setup()
-		vim.keymap.set("n", "<leader>mss", "<cmd>Store<CR>", { desc = "存储: 查看项目数据" })
-		vim.keymap.set("n", "<leader>msd", "<cmd>StoreDelete<CR>", { desc = "存储: 删除项目数据" })
+		vim.keymap.set("n", "<leader>zs", "<cmd>Store<CR>", { desc = "存储: 查看项目数据" })
+		vim.keymap.set("n", "<leader>zd", "<cmd>StoreDelete<CR>", { desc = "存储: 删除项目数据" })
 	end,
 }

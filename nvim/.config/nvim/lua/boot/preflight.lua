@@ -3,28 +3,7 @@
 
 local M = {}
 
--- 1) mason 的 bin 目录提早进入 PATH
--- 现在 mason 在 boot.pack 阶段就 setup（早于 LSP setup），理论上已自行 prepend PATH；
--- 这里仍在 init 阶段兜底一次：只要有人把 mason 改回按需加载、或插件没配 PATH，
--- 「启动即打开文件」（nvim foo.lua / foo.rs）时 LSP 依然能找到 lua-language-server /
--- rust-analyzer。于是这里把 mason bin 放到 PATH 最前面，保证 LSP 一定能启动；
--- 也顺带绕开 rustup shim（~/.cargo/bin/rust-analyzer 在 nightly toolchain 下会报
--- `Unknown binary 'rust-analyzer'`）。
-function M.setup_mason_path()
-	local mason_bin = vim.fs.joinpath(vim.fn.stdpath("data"), "mason", "bin")
-	if not vim.uv.fs_stat(mason_bin) then
-		return
-	end
-	local sep = vim.fs.pathsep or ":"
-	local paths = vim.split(vim.env.PATH or "", sep, { plain = true })
-	if paths[1] == mason_bin then
-		return
-	end
-	table.insert(paths, 1, mason_bin)
-	vim.env.PATH = table.concat(paths, sep)
-end
-
--- 2) LSP 日志轮转
+-- LSP 日志轮转
 -- Neovim 不轮转 lsp.log。实测已累积 95MB（含大量 "Cannot find request with id"、
 -- "duplicate DidOpenTextDocument"），每次写日志都是一次磁盘写入。超过上限就删掉，
 -- Neovim 下次写日志会重新创建文件。级别仍保持 ERROR（见 lsp_ext/diagnostics.lua）。

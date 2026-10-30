@@ -14,9 +14,8 @@ require("boot.compat") -- 只吞掉上游插件的 `client.supports_method` 弃�
 require("boot.settings") -- 基础 Neovim 选项
 require("boot.dotenv").load() -- 环境变量（须早于 boot.pack，见 ~/.env）
 
--- 启动前修补：mason bin 进 PATH（否则启动即开文件时 LSP 找不到二进制）、LSP 日志轮转
+-- 启动前修补：LSP 日志轮转（mason bin 进 PATH 由 mason.setup() 自己 prepend，见 mason/settings.lua:17）
 local preflight = require("boot.preflight")
-preflight.setup_mason_path()
 preflight.rotate_lsp_log()
 -- rustowl 的 target/owl 产物清理：延迟到启动完成后再跑（du 统计要几百毫秒）
 vim.defer_fn(function()
@@ -33,5 +32,7 @@ require("feat.tab_workspace").setup() -- 一个 tab 一个工作区（切 tab �
 require("feat.navigation").setup() -- 导航/窗口：buffer 快捷键、buffer 设置、窗口尺寸守卫
 require("boot.autocmds") -- 加载自动命令
 require("boot.keymaps") -- 加载按键映射
+require("local.ai").setup() -- <leader>aq：浮窗写问题，连同锚点发给外部 AI（默认 pi，见 lua/local/ai/init.lua）
+require("local.ai.pi_bridge").attach() -- 给 pi 的上下文桥：外部可经 RPC 拉取活着的 buffer/选区/诊断（见文件头）
 require("local.textdiff").setup() -- 本地小模块：选区文本对比（:Diff / 可视模式 D、gD，见 lua/local/textdiff.lua）
 require("local.lightbulb").setup() -- 本地小模块：code action 行末灯泡浮窗（替代 nvim-lightbulb，见 lua/local/lightbulb.lua）

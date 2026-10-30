@@ -17,7 +17,8 @@
     "npm:@ff-labs/pi-fff",
     "npm:billion-context",
     "npm:@narumitw/pi-usage",
-    "npm:pi-declutter"
+    "npm:pi-declutter",
+    "npm:@juicesharp/rpiv-ask-user-question"
   ],
-  "hideThinkingBlock": false
+  "hideThinkingBlock": true
 }

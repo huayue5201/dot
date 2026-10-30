@@ -41,6 +41,24 @@ return {
 			})
 		end
 
+		-- which-key：\c 分组只在 toml buffer 里有键，所以分组名也得按 buffer 注册
+		-- （全局注册的话 which-key 找不到子映射会把这个空组删掉，见 plugin/which-key.lua）
+		vim.api.nvim_create_autocmd("FileType", {
+			pattern = "toml",
+			callback = function(args)
+				pcall(function()
+					require("which-key").add({
+						{
+							"<localleader>c",
+							group = "依赖 (crates)",
+							icon = { icon = "󰏗 ", color = "green" },
+							buffer = args.buf,
+						},
+					})
+				end)
+			end,
+		})
+
 		-- Crates 按键映射
 		map_filetype("toml", "n", "<localleader>ct", crates.toggle, { desc = "依赖: 切换" })
 		map_filetype("toml", "n", "<localleader>cr", crates.reload, { desc = "依赖: 重载" })

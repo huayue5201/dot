@@ -13,8 +13,9 @@ return {
 		if not vim.g.mason_auto_installed then
 			vim.defer_fn(function()
 				-- Names must be Mason package names
+				-- 只留 mason 真正不可替代的：DAP 适配器（压缩包发布，brew 没有）
+				-- lua-language-server / marksman / shfmt / bash-language-server / taplo 已迁到 brew
 				local ensure_installed = {
-					"lua-language-server",
 					"codelldb",
 					"cortex-debug",
 					-- "copilot-language-server",
@@ -22,17 +23,15 @@ return {
 					-- "gofumpt",
 					-- "gopls",
 					"js-debug-adapter",
-					"rust-analyzer",
-					"shfmt",
-					"ty",
+					-- rust-analyzer 交给 rustup component（见 zsh/update-all.sh 的 rustup update），
+					-- mason 版会通过 mason bin 遮蔽 ~/.cargo/bin/rust-analyzer 的 shim。
+					-- ty 由 uv 管理（~/dotfiles/install_dev_tools.sh:82-83 `uv tool install ty`），
+					-- 这里再装一份只会让 mason bin（PATH 最前）遮蔽 uv 的版本。
 					"stylua",
 					"ruff",
-					"taplo",
 					"dprint",
 					-- "harper-ls",
 					-- "copilot-language-server",
-					"bash-language-server",
-					"marksman",
 				}
 
 				local to_install = {}

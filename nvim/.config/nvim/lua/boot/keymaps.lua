@@ -25,7 +25,9 @@ vim.keymap.set("x", "i", function()
 	end
 end, { expr = true })
 
-vim.keymap.set("n", "p", "p`[v`]=")
+-- p / P / gp / gP / ]p / [p 由 smart-paste.nvim 接管（更聪明的缩进对齐，见 lua/plugins/smart-paste.lua）。
+-- 这里不要再映射 p：boot.keymaps 在 boot.pack 之后执行，会覆盖插件的映射。
+-- vim.keymap.set("n", "p", "p`[v`]=")
 
 vim.keymap.set("x", "y", function()
 	local save = vim.fn.getpos(".")
@@ -52,6 +54,10 @@ end, { silent = true, desc = "Save: list unsaved buffers (panel)" })
 
 require("feat.save_panel").setup() -- :SavePanel 命令
 
+-- quickfix / loclist 的栈管理（:QfStack / :QfStackLoc，<localleader>Q），
+-- 和 quicker.nvim（<localleader>q / l）互补：那边看全貌，这边按标题挑一层
+require("ui.qf").setup()
+
 -- 📌 执行流锚点（core/exec-flow.lua）：分析代码时按执行顺序打编号，按顺序跳
 -- quicker 的 quickfix/loclist 切换已挪到 <localleader>xq / <localleader>xl，leader x 归执行流
 local exec_flow = require("feat.exec_flow")
@@ -75,17 +81,21 @@ end, { silent = true, desc = "ExecFlow: 上一个锚点" })
 -- noice.nvim 等插件会常驻隐藏浮窗（[Cmd]/[Msg]/[Dialog]/[Pager]），
 -- nvim_tabpage_list_wins 会把浮窗也算进去，导致“多窗口”误判、win_close 关不动。
 -- 因此这里只统计当前 tab 里真正参与布局的（非浮动）窗口。
+local tw_util = require("feat.tab_workspace.util")
+
 local function real_wins()
 	local wins = {}
 	for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-		if vim.api.nvim_win_get_config(w).relative == "" then
+		if not tw_util.is_float_win(w) then
 			wins[#wins + 1] = w
 		end
 	end
 	return wins
 end
 
-local function smart_close()
+-- 说明：这里叫 close_buffer 而不是 smart_close，避免和 feat.navigation.handlers.smart_close
+-- （关窗口语义，面板 q 用）混淆：本函数是删 buffer 语义。
+local function close_buffer()
 	local buf = vim.api.nvim_get_current_buf()
 	if not vim.api.nvim_buf_is_valid(buf) then
 		return
@@ -129,7 +139,7 @@ end
 -- 说明：终端对 <c-esc> 通常只发裸 ESC（nvim 无法区分），实际生效靠 <leader>bq / <D-w>。
 -- <D-w> 需要终端用 CSI-u 回送（ghostty: keybind = nvim/cmd+w=csi:119;9u）。
 for _, lhs in ipairs({ "<leader>bq", "<D-w>", "<c-esc>" }) do
-	vim.keymap.set("n", lhs, smart_close, { silent = true, desc = "Basic: close buffer" })
+	vim.keymap.set("n", lhs, close_buffer, { silent = true, desc = "Basic: close buffer" })
 end
 
 -- vim.keymap.set("n", "<leader>cab", function()
@@ -201,8 +211,18 @@ end, { silent = true, desc = "工作区: 切换到上一个 tab" })
 vim.keymap.set("n", "<leader>lta", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
 -- 🌐 Upstream 状态（feat.fork_upstream，属于 <leader>h git 分组）
-vim.keymap.set("n", "<leader>hu", "<cmd>ForkUpstream<cr>", { silent = true, desc = "Upstream: 检查上游更新（fetch + 详情）" })
-vim.keymap.set("n", "<leader>hU", "<cmd>ForkUpstreamFix<cr>", { silent = true, desc = "Upstream: 自动补 upstream 远端" })
+vim.keymap.set(
+	"n",
+	"<leader>hu",
+	"<cmd>ForkUpstream<cr>",
+	{ silent = true, desc = "Upstream: 检查上游更新（fetch + 详情）" }
+)
+vim.keymap.set(
+	"n",
+	"<leader>hU",
+	"<cmd>ForkUpstreamFix<cr>",
+	{ silent = true, desc = "Upstream: 自动补 upstream 远端" }
+)
 
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>rte", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })

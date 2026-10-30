@@ -32,6 +32,13 @@ local highlight_defs = {
 	GitIconChanged = { fg = colors.yellow, bold = true },
 	GitIconRemoved = { fg = colors.red, bold = true },
 	GitIconAdded = { fg = colors.green, bold = true },
+
+	-- 段间分隔符（低对比，只做视觉分界）
+	StlSep = { fg = colors.darkgray },
+
+	-- 数据库工作台（sqmeow）窗口角色
+	DbIcon = { fg = colors.cyan, bold = true },
+	DbLocked = { fg = colors.gray, italic = true },
 }
 
 for group, opts in pairs(highlight_defs) do
@@ -232,6 +239,66 @@ local function todo_markers()
 end
 
 -- ================================
+-- 数据库工作台窗口角色（sqmeow）
+-- ================================
+-- 插件的 drawer / 结果 grid 窗口被 'winfixbuf' 锁在自己的 buffer 上（ui/layout.lua 的
+-- M.fixbuf），跳转或 :edit 会被 Neovim 拒绝。锁是窗口级不变量，用户平时看不见，
+-- 只有被拒绝时才暴露，所以状态栏只负责说清「这个窗口是什么」，锁状态作为后缀。
+-- 注意：vim.o.statusline 是全局字符串，普通缓存段无法按窗口区分高低，这里必须用
+-- %{%...%} 表达式段，由 Neovim 在绘制时按 g:statusline_winid 逐窗口求值。
+local DB_ROLES = {
+	["sqmeow-drawer"] = "DRAWER",
+	["sqmeow-result"] = "GRID",
+	["sqmeow-row"] = "ROW",
+	["sqmeow-filter"] = "FILTER",
+	["sqmeow-form"] = "FORM",
+	["sqmeow-relationships"] = "RELATIONS",
+	["sqmeow-structure"] = "STRUCTURE",
+}
+
+-- P2 扩展点：调用方按需设置某窗口的附加信息（如 "rows 100/24,310"）
+local db_extra = {}
+
+--- 设置某个窗口在数据库段后追加的文本（传 nil 清除）
+---@param win integer
+---@param text string|nil
+function M.set_db_extra(win, text)
+	db_extra[win] = text
+end
+
+--- 当前窗口的数据库角色段（空字符串表示不是插件窗口）
+---@return string
+function M.db()
+	local ok, out = pcall(function()
+		-- 必须用 g:statusline_winid：惰性重绘 / drawer 聚焦时它与当前窗口会分叉
+		local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()
+		if not vim.api.nvim_win_is_valid(win) then
+			return ""
+		end
+		local filetype = vim.bo[vim.api.nvim_win_get_buf(win)].filetype
+		local role = DB_ROLES[filetype]
+		if not role then
+			return ""
+		end
+
+		local parts = { "%#DbIcon#" .. role .. "%*" }
+
+		-- winfixbuf 只有 0.11+ 才有，裸读会报错；普通编辑窗口允许一次跳走
+		if vim.fn.exists("&winfixbuf") == 1 and vim.wo[win].winfixbuf then
+			table.insert(parts, "%#DbLocked#·locked%*")
+		end
+
+		local extra = db_extra[win]
+		if extra and extra ~= "" then
+			table.insert(parts, " " .. extra)
+		end
+
+		return " " .. table.concat(parts, "") .. " "
+	end)
+	return ok and out or ""
+end
+
+-- ================================
 -- 状态栏组装（高性能版：缓存 + 事件驱动）
 -- ================================
 
@@ -280,22 +347,39 @@ local function update()
 end
 
 --- 拼接最终状态栏（%l/%c/%p 由 Neovim 在绘制时展开，无需 Lua 计算）
+--- 分隔策略：builder 只负责内容，不负责空格；段间的空格统一在这里加。
+--- 左侧（mode/save/lsp）用两个空格，右侧分组之间用 dim 的 │，尾部
+--- 行列/滚动条/百分比视为一块，内部仍用空格。
+local SEP = " %#StlSep#│%* "
+
+--- 去掉段内容首尾的空白（builder 历史上各自带不同数量的尾随空格）
+---@param value string
+---@return string
+local function trimmed(value)
+	return (value:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+--- 拼一组段，空段直接跳过，不留多余分隔符
+---@param pieces string[]
+---@param sep string
+---@return string
+local function join(pieces, sep)
+	local kept = {}
+	for _, piece in ipairs(pieces) do
+		local text = trimmed(piece)
+		if text ~= "" then
+			table.insert(kept, text)
+		end
+	end
+	return table.concat(kept, sep)
+end
+
 local function compose()
-	return table.concat({
-		"%#Normal#",
-		state.mode .. "  ",
-		state.save,
-		"   ",
-		state.lsp,
-		"%=", -- 分隔符
-		state.todo,
-		state.dap .. " ",
-		state.vcs .. "",
-		state.upstream == "" and "" or (state.upstream .. " "),
-		" %l:%c   ",
-		state.scroll,
-		"%p ",
-	})
+	local left = join({ state.mode, state.save, state.lsp, "%#Normal#" }, "  ")
+	local tail = "%l:%c  " .. state.scroll .. " " .. "%p"
+	local right = join({ state.todo, state.dap, "%{%v:lua.Statusline.db()%}", state.vcs, state.upstream, tail }, SEP)
+
+	return "%#Normal#" .. left .. "%=" .. right .. " "
 end
 
 --- 应用：重建脏模块 -> 更新 statusline -> 重绘
@@ -452,6 +536,14 @@ vim.api.nvim_create_autocmd("DiagnosticChanged", {
 			enqueue("lsp")
 			apply()
 		end, 200)
+	end,
+})
+
+-- 窗口关掉时清掉它的数据库附加信息，避免 winid 被复用时串台
+vim.api.nvim_create_autocmd("WinClosed", {
+	group = statusline_group,
+	callback = function(ev)
+		db_extra[tonumber(ev.match)] = nil
 	end,
 })
 

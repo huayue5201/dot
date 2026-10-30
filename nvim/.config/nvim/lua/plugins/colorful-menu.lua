@@ -35,7 +35,7 @@ return {
 					-- see https://github.com/xzbdmw/colorful-menu.nvim/issues/42
 					extra_info_hl = "@comment",
 				},
-				vtsls = {
+				tsgo = {
 					-- false means do not include any extra info,
 					-- see https://github.com/xzbdmw/colorful-menu.nvim/issues/42
 					extra_info_hl = "@comment",

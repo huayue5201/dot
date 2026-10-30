@@ -114,15 +114,20 @@ local function dispatch_command(cmd)
 	end
 end
 
+--- buffer 的窗口类型标识：filetype 优先，其次 buftype（与 winfix_guard.key_of 一致）
+---@param buf integer
+---@return string
+local function key_of_buf(buf)
+	local ft = vim.bo[buf].filetype
+	return ft ~= "" and ft or vim.bo[buf].buftype
+end
+
 --- 为当前 buffer 应用快捷键映射（数据来自 buf_keymaps）
 local function apply_keymaps()
-	local ft = vim.bo.filetype
-	local bt = vim.bo.buftype
 	local bufname = vim.fn.bufname("%")
 	local applied = vim.b.keymaps_applied or {}
 
-	-- 窗口类型标识：filetype 优先，其次 buftype
-	local buf_type = ft ~= "" and ft or bt
+	local buf_type = key_of_buf(0)
 
 	for key, type_configs in pairs(M.buf_keymaps) do
 		if not applied[key] then
@@ -155,9 +160,7 @@ end
 --- 按 settings 表应用 buffer 局部设置
 local function apply_settings(args)
 	local buf = args.buf
-	local ft = vim.bo[buf].filetype
-	local bt = vim.bo[buf].buftype
-	local kind = (ft ~= "" and ft) or bt
+	local kind = key_of_buf(buf)
 
 	if M.settings[kind] and M.settings[kind].setup then
 		M.settings[kind].setup()

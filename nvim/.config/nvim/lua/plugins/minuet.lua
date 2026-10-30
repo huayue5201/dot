@@ -17,8 +17,8 @@ return {
 			n_completions = 1,
 			-- 流式请求：超时后返回已生成的部分，响应更快
 			request_timeout = 2.5,
-			throttle = 1000, -- 两次请求最小间隔（ms）
-			debounce = 400, -- 停止输入多少 ms 后请求
+			throttle = 400, -- 两次请求最小间隔（ms）：1000 时打代码要等满 1s 才见到 ghost
+			debounce = 250, -- 停止输入多少 ms 后请求
 			notify = "warn",
 			provider_options = {
 				openai_fim_compatible = {

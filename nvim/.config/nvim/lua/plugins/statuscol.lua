@@ -15,7 +15,20 @@ return {
 			setopt = true, -- 由插件设置 'statuscolumn'
 			-- 不为这些 filetype 注入 statuscolumn（否则 neotree 等侧栏会继承
 			-- setopt 写入的全局默认值，多出整块行号/符号列把内容右推）。
-			ft_ignore = { "sqmeow-drawer", "neo-tree", "todo2drawer", "NvimTree", "help", "alpha" },
+			ft_ignore = {
+				"sqmeow-drawer",
+				"neo-tree",
+				"todo2drawer",
+				"NvimTree",
+				"help",
+				"qf", -- 只是不让它拿全局布局；qf 自己的 statuscolumn 见 setup() 之后的 special_stc
+				"codecompanion", -- chat 只要行号：自己的 statuscolumn 见下面的 special_stc
+				"alpha",
+				-- ui.picker 的列表/预览/输入行：列表每行前面不能有行号/符号列
+				"ui_picker_list",
+				"ui_picker_preview",
+				"ui_picker_prompt",
+			},
 			-- 每行同类 sign 只显示 1 个；colwidth = 1，配合插件「去掉图标内空白」
 			-- 的行为（sign_text:gsub('%s','')），像 " " 这种带尾随空格的图标
 			-- 不会被撑成两格，列宽才稳定。
@@ -57,6 +70,57 @@ return {
 			--   gitsigns   左键预览 hunk
 			--   diagnostic 左键打开浮窗
 			--   Dap*       左键切换断点
+		})
+
+		-- 少数 filetype 需要一套完全独立的极简 statuscolumn（不继承上面那套固定槽位布局）：
+		-- statuscol.nvim 的 segments 是全局配置，没法按 filetype 裁剪，所以这些
+		-- filetype 仍留在 ft_ignore 里（否则会继承那 5 个固定宽度的 sign 列），
+		-- 改由下面的 autocmd 给对应窗口装本地版本：
+		--   qf            类型图标（quicker 的 extmark sign）+ 绝对行号
+		--   codecompanion 只要绝对行号，不要 sign / git / 折叠列
+		--   %s         原生 sign 列，受本窗口 'signcolumn' 控制，所以设成 "auto"
+		--   %{v:lnum}  不读 number/relativenumber，始终显示真实行号
+		-- 必须注册在 setup() 之后：statuscol 的 ft_ignore 走 FileType `setlocal stc=`，
+		-- 只有后注册的 autocmd 才覆盖得到；BufWinEnter 再补一次，防止被 statuscol
+		-- 自己的 BufWinEnter 处理器清空。设置要落到「显示该 buffer 的所有窗口」上，
+		-- 因为事件触发时当前窗口未必就是目标窗口。
+		local special_stc = {
+			qf = "%@v:lua.ScSa@%s%T%=%@v:lua.ScLa@%{v:lnum} %T",
+			codecompanion = "%{v:lnum} %T",
+		}
+		-- statuscol 写进的是 window-local 选项的「全局值」，setup() 之后读到的就是它的表达式；
+		-- 'statuscolumn'/'signcolumn' 都是 local to window，所以 vim.o.* 在别的窗口里读到的
+		-- 不是全局值，要显式取 scope = "global"。
+		local main_stc = vim.api.nvim_get_option_value("statuscolumn", { scope = "global" })
+		local main_scl = vim.api.nvim_get_option_value("signcolumn", { scope = "global" })
+		local function is_special_stc(value)
+			for _, v in pairs(special_stc) do
+				if value == v then
+					return true
+				end
+			end
+			return false
+		end
+		local function set_special_stc()
+			local buf = vim.api.nvim_get_current_buf()
+			local stc = special_stc[vim.bo[buf].filetype]
+			for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+				if stc then
+					vim.wo[win].signcolumn = "auto"
+					vim.wo[win].statuscolumn = stc
+				elseif is_special_stc(vim.wo[win].statuscolumn) then
+					-- 同一个窗口从特殊 buffer（qf / chat）换成了普通 buffer：恢复全局值
+					-- （也就是 statuscol 的表达式），否则会一直用着那套没有折叠列/
+					-- 固定槽位的布局。
+					vim.wo[win].statuscolumn = main_stc
+					vim.wo[win].signcolumn = main_scl
+				end
+			end
+		end
+		vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter" }, {
+			group = vim.api.nvim_create_augroup("SpecialStatuscol", {}),
+			pattern = "*",
+			callback = set_special_stc,
 		})
 	end,
 }

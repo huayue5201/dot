@@ -1,6 +1,8 @@
 -- 导航逻辑：错误行跳转（支持 . 重复）+ 智能关窗（按 filetype/buftype 选策略）
 local M = {}
 
+local tw_util = require("feat.tab_workspace.util")
+
 -- ============================
 -- 错误行跳转
 -- ============================
@@ -131,10 +133,41 @@ local function safe_win_close(win, opts)
 	end
 end
 
-local function safe_buf_delete(buf, opts)
-	if vim.api.nvim_buf_is_valid(buf) then
-		pcall(vim.api.nvim_buf_delete, buf, opts or { force = false })
+--- 当前 tab 里参与布局的（非浮动）窗口数。
+--- 不能用 winnr("$")：它把浮窗也算进去，noice 等常驻浮窗会让「只剩一个窗口」误判成多窗口。
+local function real_win_count()
+	local n = 0
+	for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+		if not tw_util.is_float_win(w) then
+			n = n + 1
+		end
 	end
+	return n
+end
+
+--- fallback 用的替换 buffer：只取 buflisted，普通文件（buftype 为空）优先，再按 MRU 排序
+---@param exclude integer 要排除的 buffer（通常是即将被删的那个）
+---@return integer?
+local function pick_fallback_buf(exclude)
+	local candidates = {}
+	for _, info in ipairs(vim.fn.getbufinfo({ buflisted = 1 })) do
+		local b = info.bufnr
+		if b ~= exclude and info.loaded and vim.api.nvim_buf_is_valid(b) then
+			candidates[#candidates + 1] = {
+				buf = b,
+				-- 普通文件 > 其它 listed buffer（terminal/help/qf 等 buftype 非空）
+				normal = vim.bo[b].buftype == "" and 1 or 0,
+				lastused = info.lastused or 0,
+			}
+		end
+	end
+	table.sort(candidates, function(a, b)
+		if a.normal ~= b.normal then
+			return a.normal > b.normal
+		end
+		return a.lastused > b.lastused
+	end)
+	return candidates[1] and candidates[1].buf or nil
 end
 
 --- 智能关闭窗口：先按 close_map 匹配策略，匹配不到走 fallback
@@ -160,40 +193,75 @@ function M.smart_close(target_win, close_map)
 	end
 	strategy = strategy or close_map[ft] or close_map[bt]
 
-	closed_windows[win] = true
-
 	if strategy then
+		local ok, errmsg
 		if type(strategy.cmd) == "function" then
-			strategy.cmd()
+			ok, errmsg = pcall(strategy.cmd)
 		else
-			pcall(vim.cmd, strategy.cmd)
+			ok, errmsg = pcall(vim.cmd, strategy.cmd)
 		end
+		if not ok then
+			vim.notify(string.format("关闭失败：%s", tostring(errmsg)), vim.log.levels.ERROR)
+			return -- 不记账，允许再次尝试
+		end
+		closed_windows[win] = true
 		return
 	end
 
 	-- fallback
-	if vim.api.nvim_win_get_config(win).relative ~= "" then
+	if tw_util.is_float_win(win) then
 		safe_win_close(win, { force = false, noautocmd = true })
+		if not vim.api.nvim_win_is_valid(win) then
+			closed_windows[win] = true
+		end
 		return
 	end
 
-	if vim.fn.winnr("$") > 1 then
+	if real_win_count() > 1 then
 		safe_win_close(win)
+		if not vim.api.nvim_win_is_valid(win) then
+			closed_windows[win] = true
+		end
 		return
 	end
 
 	-- 只剩一个窗口：切到别的 buffer 再删当前
-	for _, other_buf in ipairs(vim.api.nvim_list_bufs()) do
-		if other_buf ~= buf and vim.api.nvim_buf_is_loaded(other_buf) then
-			vim.api.nvim_win_set_buf(win, other_buf)
-			safe_buf_delete(buf)
-			return
+	local other_buf = pick_fallback_buf(buf)
+	if not other_buf then
+		if vim.fn.confirm("这是最后一个窗口，确认退出 Neovim？", "&是\n&否", 2) == 1 then
+			vim.cmd("qa")
 		end
+		return
 	end
 
-	if vim.fn.confirm("这是最后一个窗口，确认退出 Neovim？", "&是\n&否", 2) == 1 then
-		vim.cmd("qa")
+	-- 有未保存修改时不静默丢弃（'hidden' 开启时 buf_delete 会直接丢弃改动）
+	if vim.bo[buf].modified then
+		vim.notify(
+			string.format("缓冲区 %s 有未保存修改，已取消关闭", name ~= "" and name or "[No Name]"),
+			vim.log.levels.WARN
+		)
+		return
 	end
+
+	vim.api.nvim_win_set_buf(win, other_buf)
+	local ok, errmsg = pcall(vim.api.nvim_buf_delete, buf, { force = false })
+	if not ok or vim.api.nvim_buf_is_valid(buf) then
+		-- 删除失败（多为未保存修改）：恢复窗口内容，避免误以为已关闭
+		if vim.api.nvim_win_is_valid(win) then
+			vim.api.nvim_win_set_buf(win, buf)
+		end
+		vim.notify(
+			string.format(
+				"无法关闭 %s：%s",
+				vim.fn.bufname(buf),
+				ok and "缓冲区仍存在（可能有未保存修改）" or tostring(errmsg)
+			),
+			vim.log.levels.WARN
+		)
+		return
+	end
+
+	closed_windows[win] = true
 end
 
 return M

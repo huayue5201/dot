@@ -26,6 +26,7 @@
 local M = {}
 
 local api = vim.api
+local tw_util = require("feat.tab_workspace.util")
 
 --- 声明式尺寸：key(filetype 或 buftype) -> { width?, height? }，值也可为函数。
 ---@type table<string, fun():table|table>
@@ -91,12 +92,9 @@ local function resolve(size)
 	return size
 end
 
---- 真正的普通窗口（排除浮窗）。
+--- 真正的普通窗口（排除浮窗）。浮窗判定复用 tab_workspace 的共享实现。
 local function real(win)
-	if not api.nvim_win_is_valid(win) then
-		return false
-	end
-	return api.nvim_win_get_config(win).relative == ""
+	return api.nvim_win_is_valid(win) and not tw_util.is_float_win(win)
 end
 
 --- 窗口的匹配键：filetype 优先，否则 buftype。

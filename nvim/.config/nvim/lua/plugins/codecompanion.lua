@@ -18,7 +18,6 @@ return {
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"nvim-treesitter/nvim-treesitter",
-		"MeanderingProgrammer/render-markdown.nvim",
 	},
 	keys = {
 		{ "<leader>aa", "<cmd>CodeCompanionActions<cr>", mode = { "n", "v" }, desc = "AI: 操作面板" },

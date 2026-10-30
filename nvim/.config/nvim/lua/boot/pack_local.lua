@@ -11,36 +11,23 @@ local M = {}
 ---收集 src 是本地目录的已安装插件
 ---@return string[] names
 local function local_plugin_names()
-	local ok, packs = pcall(vim.pack.get, nil, { info = false })
-	if not ok or type(packs) ~= "table" then
-		return {}
-	end
 	local names = {}
-	for _, p in ipairs(packs) do
-		local src = p.spec and p.spec.src
+	for _, p in ipairs(vim.pack.get(nil, { info = false })) do
+		local src = p.spec.src
 		if type(src) == "string" and src:sub(1, 1) == "/" and vim.uv.fs_stat(src) then
-			names[#names + 1] = p.name or vim.fs.basename(p.path)
+			names[#names + 1] = p.spec.name
 		end
 	end
 	return names
 end
 
----读取锁文件里各插件的 rev
+---当前锁文件里每个插件钉住的 rev
+---（info=false 时 vim.pack.get 返回的 rev 就是锁文件的值，不必自己解析 json）
 ---@return table<string, string>
 local function lock_revs()
-	local ok, lines = pcall(vim.fn.readfile, vim.o.packlockfile)
-	if not ok then
-		return {}
-	end
-	local decoded_ok, data = pcall(vim.json.decode, table.concat(lines, "\n"))
-	if not decoded_ok or type(data) ~= "table" or type(data.plugins) ~= "table" then
-		return {}
-	end
 	local revs = {}
-	for name, entry in pairs(data.plugins) do
-		if type(entry) == "table" and type(entry.rev) == "string" then
-			revs[name] = entry.rev
-		end
+	for _, p in ipairs(vim.pack.get(nil, { info = false })) do
+		revs[p.spec.name] = p.rev
 	end
 	return revs
 end

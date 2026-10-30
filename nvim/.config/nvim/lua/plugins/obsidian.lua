@@ -22,6 +22,27 @@ return {
 		-- 新建笔记默认开在 vsplit，避免从代码里建笔记时顶掉代码窗口
 		open_notes_in = "vsplit",
 
+		-- 与 Obsidian 本体保持一致（见各 vault 的 .obsidian/*.json）：
+		-- 日记落 daily/YYYY-MM-DD.md，模板 templates/daily.md，附件落 attachments/。
+		-- 格式串用 moment.js 风格，和 Obsidian 的 Daily notes 设置同源，两边互通。
+		daily_notes = {
+			folder = "daily",
+			date_format = "YYYY-MM-DD",
+			template = "templates/daily",
+			default_tags = { "daily" },
+		},
+		-- 粘贴图片默认落 attachments/（v3 默认值，显式写出以防上游变更后两边错位）
+		attachments = {
+			folder = "attachments",
+		},
+		-- 新笔记按标题命名（与你现有 md 文件风格一致，也便于 [[链接]] 可读）
+		note_id_func = function(title)
+			if title ~= nil then
+				return title:gsub(" ", "-"):gsub("[/\\:#?\"|*<>]", "")
+			end
+			return tostring(os.time())
+		end,
+
 		-- 笔记内 buffer 局部映射（依赖当前笔记 / 光标，统一 <leader>n 前缀）
 		callbacks = {
 			enter_note = function()

@@ -1,33 +1,15 @@
--- https://github.com/EmmyLuaLs/emmylua-analyzer-rust?tab=readme-ov-file#-installation
+-- https://github.com/EmmyLuaLs/emmylua-analyzer-rust
+--
+-- 注意 1：emmylua_ls 只读工作区根目录的 .emmyrc.json / .emmyrc.lua / .luarc.json，
+--         完全不认 lua_ls 的 settings.Lua，配置见同目录层级的 `.emmyrc.json`。
+-- 注意 2：启用本文件时请同时移除 lsp/lua-language-server.lua，否则两个 lua
+--         server 会同时 attach，诊断重复。
+-- 注意 3：lazydev 只给 lua_ls 注入 vim API 类型，emmylua 下 vim.api.* 的补全
+--         / 悬浮会退化（仅剩 globals 白名单），需要自己补 meta 库。
 
 return {
 	cmd = { "emmylua_ls" },
-	root_markers = {
-		".git/",
-		".luarc.json",
-		".emmyrc.json",
-	},
 	filetypes = { "lua" },
+	root_markers = { ".emmyrc.json", ".emmyrc.lua", ".luarc.json", ".luarc.jsonc", ".git" },
 	single_file_support = true,
-	settings = {
-		Lua = {
-			runtime = {
-				version = "LuaJIT",
-			},
-			workspace = {
-				checkThirdParty = false, -- 避免不必要的检查
-				library = {
-					-- Neovim 运行时文件
-					vim.env.VIMRUNTIME,
-					-- 你的 Neovim 配置目录
-					vim.fn.stdpath("config"),
-					-- 可选：特定插件的路径
-					-- vim.fn.expand("~/.local/share/nvim/site/pack/packer/start/一些插件名"),
-				},
-			},
-			telemetry = {
-				enable = false,
-			},
-		},
-	},
 }

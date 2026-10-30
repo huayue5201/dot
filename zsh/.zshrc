@@ -224,7 +224,19 @@ eval "$(starship init zsh)"
 # 按注册顺序执行）。
 autoload -Uz add-zsh-hook
 _starship_osc133_prompt() {
-  PROMPT=$'\e]133;A\a'"${PROMPT}"$'\e]133;B\a'
+  local p=$PROMPT
+  local a=$'\e]133;A\a' b=$'\e]133;B\a'
+  # 先清掉上一次加的标记（裸的 / %{...%} 包裹的都算），否则每执行一条命令
+  # PROMPT 就变长 16 字节，zle 按可见宽度算列，输入行会越来越歪。
+  repeat 10; do
+    [[ $p == *$a* || $p == *$b* ]] || break
+    p=${p//"%{"$a"%}"/}
+    p=${p//"%{"$b"%}"/}
+    p=${p//$a/}
+    p=${p//$b/}
+  done
+  # 裸控制序列会被 zle 当成可见字符计入宽度，必须用 %{...%} 包起来。
+  PROMPT=$'%{'$a'%}'"$p"$'%{'$b'%}'
 }
 add-zsh-hook precmd _starship_osc133_prompt
 

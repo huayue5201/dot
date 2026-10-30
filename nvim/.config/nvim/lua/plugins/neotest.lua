@@ -9,6 +9,9 @@ return {
 		"huayue5201/neotest-rust",
 		-- https://github.com/MisanthropicBit/neotest-busted
 		"MisanthropicBit/neotest-busted",
+		-- https://github.com/fredrikaverpil/neotest-golang
+		-- 注意：仓库不在 nvim-neotest 组织下，写 nvim-neotest/neotest-golang 会 404
+		"fredrikaverpil/neotest-golang",
 	},
 	config = function()
 		local neotest = require("neotest")
@@ -44,6 +47,22 @@ return {
 					local_luarocks_only = false,
 					-- Find parametric tests
 					parametric_test_discovery = false,
+				}),
+
+				require("neotest-golang")({
+					-- 直接调 go test（可换成 "gotestsum"，需自行安装）
+					runner = "go",
+					-- -count=1 关缓存，-race 抓数据竞争，-v 输出测试日志
+					go_test_args = { "-v", "-race", "-count=1" },
+					-- 调试测试走 nvim-dap-go（已配置 delve）
+					dap_mode = "dap-go",
+					-- Go 项目普遍用 testify suite，默认关闭会导致套件里的用例识别不到
+					testify_enabled = true,
+					-- 跳过 vendor 等非测试目录（默认列表 + vendor）
+					filter_dirs = { ".git", "node_modules", ".venv", "venv", "vendor" },
+					-- 非 UTF-8 输出清洗需额外依赖 uga-rosa/utf8，本仓不引入，保持默认关闭
+					sanitize_output = false,
+					log_level = vim.log.levels.ERROR,
 				}),
 			},
 			-- 注意：neotest v6 已移除 overseer consumer（无 lua/neotest/consumers/overseer），

@@ -135,14 +135,39 @@ return {
 			},
 			bar = {
 				enable = function(buf, win, _)
+					-- 没有任何内置黑名单选项，只用 enable 谓词自己做黑名单
+					local ft_blacklist = {
+						["gitsigns-blame"] = true, -- git blame 的 nofile buffer
+						["help"] = true,
+						["todo2drawer"] = true, -- todo2 抽屉（ui buffer，不显示 winbar）
+						["NvimTree"] = true,
+						["neo-tree"] = true,
+						["oil"] = false, -- 显式豁免，oil 是 nofile buffer
+						["fugitive"] = false, -- 同上
+						["snacks_picker_list"] = true,
+						["snacks_picker_input"] = true,
+						["TelescopePrompt"] = true,
+						["Trouble"] = true,
+						["lazy"] = true,
+						["mason"] = true,
+						["dap-repl"] = true,
+					}
+
 					if
 						not vim.api.nvim_buf_is_valid(buf)
 						or not vim.api.nvim_win_is_valid(win)
 						or vim.fn.win_gettype(win) ~= ""
 						or vim.wo[win].winbar ~= ""
-						or vim.bo[buf].ft == "help"
-						or vim.bo[buf].ft == "todo2drawer" -- todo2 抽屉（ui buffer，不显示 winbar）
 					then
+						return false
+					end
+
+					local ft = vim.bo[buf].ft
+					if ft_blacklist[ft] or vim.startswith(ft, "dapui_") then
+						return false
+					end
+					-- nofile/prompt/quickfix/terminal 等特殊 buffer 一律不显示（oil/fugitive 上面已豁免）
+					if vim.bo[buf].buftype ~= "" and ft ~= "oil" and ft ~= "fugitive" then
 						return false
 					end
 
