@@ -27,12 +27,11 @@ return {
 				reconcile_on_start = true,
 			},
 
-			-- 代码文件里的任务渲染（above/below 虚拟行）
+			-- 代码文件里的任务渲染（默认：任务标签绘制在代码行**上方**的虚拟行）
+			-- 需要改成行内/行末时在插件默认值基础上覆盖：position = "inline" | "below"
 			code_render = {
 				-- "trunc"（默认，不随横滚）| "scroll"（nowrap 时随代码横滚）| "auto" | "wrap"
 				virt_lines_overflow = "trunc",
-				position = "inline", -- "inline" | "above" | "below"
-				max_lines = 3, -- 同一代码行最多显示几条任务（其余折叠为 +N）
 			},
 
 			-- 进度条样式（TODO 行 / 抽屉 / 代码端 / 统计摘要共用这一套）
@@ -77,7 +76,7 @@ return {
 				width = 60, -- position = "right" 时的宽度
 				height = 12, -- position = "bottom" 时的高度
 				focus_on_jump = false, -- true 时 <CR> 跳转后焦点跟随到代码窗口
-				expand_lines = 1, -- 抽屉里每个任务默认展开的行数（0 = 折叠）
+				expand_lines = true, -- 光标行超出抽屉宽度时用浮窗补全显示完整内容
 			},
 
 			-- 项目月历（:TodoCalendar / 抽屉里按 C 直接跳到该任务到期日）
