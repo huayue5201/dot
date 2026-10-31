@@ -171,8 +171,9 @@ return {
 		vim.keymap.set("n", "<leader>mtd", "<cmd>TodoTask desc<cr>", { desc = "编辑任务正文" })
 		vim.keymap.set("n", "<leader>mtt", "<cmd>TodoTag<cr>", { desc = "给任务加/删/设置标签" })
 		vim.keymap.set("n", "<leader>mtD", "<cmd>TodoDue<cr>", { desc = "设置/清除到期日（@YYYY-MM-DD）" })
+		vim.keymap.set("n", "<leader>mtS", "<cmd>TodoStart<cr>", { desc = "设置/清除开始日（~YYYY-MM-DD）" })
 		-- 一站式：状态 + 标签 + 到期日一个面板改（抽屉里按 i 也可）
-		vim.keymap.set("n", "<leader>mtA", "<cmd>TodoSet<cr>", { desc = "属性面板：状态/标签/到期日" })
+		vim.keymap.set("n", "<leader>mtA", "<cmd>TodoSet<cr>", { desc = "属性面板：状态/标签/开始日/到期日" })
 		vim.keymap.set(
 			"n",
 			"<leader>mtf",
