@@ -179,12 +179,10 @@ return {
 		vim.keymap.set("n", "<leader>mtO", "<cmd>TodoSort<cr>", { desc = "同级按状态排序（抽屉 O）" })
 		vim.keymap.set("n", "<leader>mtw", "<cmd>TodoFilter due:week<cr>", { desc = "预设筛选：本周到期" })
 		vim.keymap.set("n", "<leader>mto", "<cmd>TodoFilter due:overdue<cr>", { desc = "预设筛选：已过期" })
-		vim.keymap.set("n", "<leader>mtp", "<cmd>TodoPin<cr>", { desc = "搁置/取消搁置（抽屉 i 面板里的 p）" })
 
 		-- ── 视图组 mv-（末位 == 抽屉键）────────────────────────────
 		vim.keymap.set("n", "<leader>mvo", "<cmd>TodoView float<cr>", { desc = "浮窗预览 TODO 文件（抽屉 o）" })
 		vim.keymap.set("n", "<leader>mvP", "<cmd>TodoView preview<cr>", { desc = "智能预览 TODO/代码（抽屉 P 预览关联代码）" })
-		vim.keymap.set("n", "<leader>mvt", "<cmd>TodoTimeline<cr>", { desc = "时间线视图（区间条 + 活动点）" })
 		vim.keymap.set("n", "<leader>mvs", "<cmd>TodoView split<cr>", { desc = "水平分割打开" })
 		vim.keymap.set("n", "<leader>mvv", "<cmd>TodoView vsplit<cr>", { desc = "垂直分割打开" })
 		vim.keymap.set("n", "<leader>mve", "<cmd>TodoView edit<cr>", { desc = "编辑模式打开" })

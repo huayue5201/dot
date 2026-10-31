@@ -1,1 +1,3 @@
 .DS_Store
+# 拼写检查生成的二进制词典（en.utf-8.add 是要提交的，别 ignore）
+spell/*.spl
