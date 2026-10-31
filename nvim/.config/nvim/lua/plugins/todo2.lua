@@ -79,7 +79,7 @@ return {
 				expand_lines = true, -- 光标行超出抽屉宽度时用浮窗补全显示完整内容
 			},
 
-			-- 项目月历（:TodoCalendar / 抽屉里按 C 直接跳到该任务到期日）
+			-- 项目月历（:TodoCalendar；抽屉里按 C 是在月历浮窗里点日期写截止日）
 			-- 只收录带 @YYYY-MM-DD 的任务；行内日期平时隐藏，行尾元数据带显示 `11-02 · ↻10-30`
 			calendar = {
 				first_day_of_week = "monday", -- "monday" | "sunday"
