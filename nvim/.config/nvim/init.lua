@@ -36,3 +36,4 @@ require("local.ai").setup() -- <leader>aq：浮窗写问题，连同锚点发给
 require("local.ai.pi_bridge").attach() -- 给 pi 的上下文桥：外部可经 RPC 拉取活着的 buffer/选区/诊断（见文件头）
 require("local.textdiff").setup() -- 本地小模块：选区文本对比（:Diff / 可视模式 D、gD，见 lua/local/textdiff.lua）
 require("local.lightbulb").setup() -- 本地小模块：code action 行末灯泡浮窗（替代 nvim-lightbulb，见 lua/local/lightbulb.lua）
+require("local.project").setup() -- 本地小模块：项目概览（:Project / <leader>pP，见 lua/local/project.lua）

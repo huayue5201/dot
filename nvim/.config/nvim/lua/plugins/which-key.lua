@@ -26,6 +26,7 @@ return {
 			{ "<leader>m", group = "TODO / Markdown", icon = { icon = "󰍔 ", color = "blue" } },
 			{ "<leader>n", group = "笔记 (Obsidian)", icon = { icon = "󰠮 ", color = "purple" } },
 			{ "<leader>o", group = "格式 / 对齐", icon = { icon = "󰉢 ", color = "cyan" } },
+			{ "<leader>i", group = "项目信息", icon = { icon = "󰋜 ", color = "azure" } },
 			{ "<leader>r", group = "重构 / 运行 / 切换", icon = { icon = "󰐊", color = "green" } },
 			{ "<leader>R", group = "REST 请求 (nurl)", icon = { icon = "󰖟 ", color = "cyan" } },
 			{ "<leader>s", group = "符号 / 查询", icon = { icon = "󰅴 ", color = "yellow" } },

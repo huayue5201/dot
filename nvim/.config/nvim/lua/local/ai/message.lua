@@ -28,6 +28,15 @@ function M.render(anchor, prompt)
 	end
 
 	table.insert(out, "")
+	-- 项目概览摘要（可选）：放在锚点之前，让模型先看到「这是什么项目」再看「这个问题在哪一行」
+	if a.digest and a.digest ~= "" then
+		table.insert(out, "<project-overview>")
+		for line in (a.digest .. "\n"):gmatch("(.-)\n") do
+			table.insert(out, line)
+		end
+		table.insert(out, "</project-overview>")
+		table.insert(out, "")
+	end
 	table.insert(out, ("<nvim-context %s>"):format(table.concat(bits, " · ")))
 	if a.cwd then
 		table.insert(out, "cwd: " .. a.cwd)

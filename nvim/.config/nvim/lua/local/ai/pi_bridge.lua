@@ -10,6 +10,7 @@
 --     'v:lua.require("local.ai.pi_bridge").handle("<base64(json)>")'
 -- 请求 {"action": "state"} | {"action":"buffer","path":...,"from":..,"to":..}
 --      | {"action":"diagnostics"} | {"action":"quickfix"} | {"action":"list"}
+--      | {"action":"project","root":..,"full":..,"wait_ms":..}   项目概览紧凑摘要（走 local.project）
 -- 返回 JSON 字符串（失败时 {"ok":false,"error":...}，不抛异常）。
 --
 -- 代码内容永远取内存 buffer（含未保存修改），找不到该文件时才回退磁盘。
@@ -292,6 +293,14 @@ local handlers = {
 	end,
 	list = function()
 		return M.list()
+	end,
+	-- 项目概览摘要：让 agent 在探路前先拿到「这是什么项目」，而不是 find/grep 全库
+	project = function(req)
+		local ok, project = pcall(require, "local.project")
+		if not ok then
+			return { ok = false, error = "local.project 没加载（require 失败）：" .. tostring(project) }
+		end
+		return project.bridge(req)
 	end,
 }
 

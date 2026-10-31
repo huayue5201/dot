@@ -145,7 +145,9 @@ function M.send(text, opts)
 end
 
 --- 打开浮窗提问。opts.visual=true 时带上当前选区
----@param opts { visual?: boolean, backend?: string }|nil
+--- opts.extension：额外塞进锚点的字段（如 project 模块的 digest），由 message.render 决定怎么排版
+--- opts.note：附在浮窗标题尾部的补充说明（如「概览 ~350 tok」）
+---@param opts { visual?: boolean, backend?: string, extension?: table, note?: string }|nil
 function M.ask(opts)
 	opts = opts or {}
 	local mod = backends.get(opts.backend or current)
@@ -155,12 +157,22 @@ function M.ask(opts)
 	end
 	-- 锚点必须在任何 UI 之前取：选择器/浮窗都会改变当前窗口
 	local anchor = context.capture(opts.visual)
+	if opts.extension then
+		for k, v in pairs(opts.extension) do
+			anchor[k] = v
+		end
+	end
 	choose_target(mod, function(target)
 		if not target then
 			return
 		end
 		ui.input({
-			title = ("问 %s（%s）· %s"):format(mod.label, target.label or "?", context.describe(anchor)),
+			title = ("问 %s（%s）· %s%s"):format(
+				mod.label,
+				target.label or "?",
+				context.describe(anchor),
+				opts.note and (" · " .. opts.note) or ""
+			),
 			on_submit = function(prompt)
 				local ok, send_err = mod.send(target, message.render(anchor, prompt))
 				if not ok then

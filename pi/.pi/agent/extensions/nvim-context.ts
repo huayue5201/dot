@@ -102,14 +102,14 @@ async function instances(): Promise<Instance[]> {
 }
 
 /** 调 nvim 侧 local.ai.pi_bridge.handle(base64(json))；socket 死了就抛错 */
-function rpc<T = any>(sock: string, request: Record<string, unknown>): Promise<T> {
+function rpc<T = any>(sock: string, request: Record<string, unknown>, timeoutMs = 8000): Promise<T> {
 	const b64 = Buffer.from(JSON.stringify(request), "utf8").toString("base64");
 	const expr = `v:lua.require("local.ai.pi_bridge").handle("${b64}")`;
 	return new Promise<T>((resolve, reject) => {
 		execFile(
 			"nvim",
 			["--server", sock, "--remote-expr", expr],
-			{ timeout: 8000, maxBuffer: 32 * 1024 * 1024 },
+			{ timeout: timeoutMs, maxBuffer: 32 * 1024 * 1024 },
 			(err, stdout, stderr) => {
 				if (err) {
 					const msg = String(stderr || err.message || "").trim();
@@ -293,22 +293,29 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 				Type.Literal("diagnostics"),
 				Type.Literal("quickfix"),
 				Type.Literal("list"),
+				Type.Literal("project"),
 			],
-			{ description: "state=光标/选区/最近文件, buffer=代码内容, diagnostics=LSP, quickfix=列表, list=所有 nvim 实例" },
+			{
+				description:
+					"state=光标/选区/最近文件, buffer=代码内容, diagnostics=LSP, quickfix=列表, list=所有 nvim 实例, project=项目概览摘要（规模/目录/热点/构建，~400 token）",
+			},
 		),
 		path: Type.Optional(Type.String({ description: "buffer 动作的文件路径（相对 nvim cwd 或绝对）；省略=当前 buffer" })),
 		from: Type.Optional(Type.Number({ description: "buffer 动作起始行（1-based）" })),
 		to: Type.Optional(Type.Number({ description: "buffer 动作结束行（含）" })),
+		root: Type.Optional(Type.String({ description: "project 动作的根目录；省略=当前 buffer 所在项目（或 nvim cwd）" })),
+		full: Type.Optional(Type.Boolean({ description: "project 动作：完整采集（多跑 git grep TODO）" })),
 	});
 
 	pi.registerTool({
 		name: "nvim",
 		label: "Neovim Context",
 		description:
-			"Read context from the user's live Neovim instance: current cursor/visual selection, buffer contents (including unsaved changes), LSP diagnostics, and the quickfix list. Prefer this over read/bash when the user refers to what they are looking at in their editor.",
+			"Read context from the user's live Neovim instance: current cursor/visual selection, buffer contents (including unsaved changes), LSP diagnostics, quickfix list, and a compact project overview (size/dirs/hot files/build). Prefer this over read/bash when the user refers to what they are looking at in their editor, and over find/grep for repo-level orientation.",
 		promptSnippet: "Read the live Neovim editor state (unsaved buffers, cursor, visual selection, diagnostics, quickfix)",
 		promptGuidelines: [
 			"Call nvim with action=state first when the user says things like \"this function\", \"my selection\", \"what I'm looking at\" — it reveals the file, cursor line, and visual selection.",
+			"Call nvim with action=project BEFORE any find/glob/grep sweep when asked about a repo's structure, size, entry points, where a feature lives, or how a project is organized — it returns a ~400 token overview (dirs/sizes/hot files/build) that replaces most exploration rounds.",
 		],
 		parameters: params,
 		async execute(_toolCallId, p) {
@@ -337,10 +344,13 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 			if (p.path) req.path = p.path;
 			if (p.from) req.from = p.from;
 			if (p.to) req.to = p.to;
+			if (p.root) req.root = p.root;
+			if (p.full) req.full = p.full;
 
 			let res: any;
 			try {
-				res = await rpc(instance.sock, req);
+				// project 动作首次可能真跑 tokei（大仓库几秒），给它更长的窗口
+				res = await rpc(instance.sock, req, p.action === "project" ? 60000 : 8000);
 			} catch (e) {
 				const msg = e instanceof Error ? e.message : String(e);
 				if (pinned?.pid === instance.pid) pinned = undefined;
@@ -361,7 +371,15 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 			}
 
 			let text: string;
-			if (p.action === "buffer") {
+			if (p.action === "project") {
+				text = [
+					`# 项目概览（来源 nvim · ${res.root} · ~${res.tokens} token · ${res.origin === "fresh" ? "刚采集" : "复用缓存"}）`,
+					"",
+					res.digest,
+					"",
+					"（这是索引，不是源码。结构/规模/归属类问题可以据此直接回答；需要细节时用 read 定点读，带行范围；不要用 find/grep 全库探查。）",
+				].join("\n");
+			} else if (p.action === "buffer") {
 				const head = `${res.path}${res.modified ? " [未保存修改]" : ""} 行 ${res.from}-${res.to}/${res.total_lines ?? "?"}${
 					res.truncated ? " (已截断)" : ""
 				}`;

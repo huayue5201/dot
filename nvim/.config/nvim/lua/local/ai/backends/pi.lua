@@ -40,7 +40,7 @@ function M.targets()
 						sock = entry.sock,
 						ts = entry.ts or 0,
 						embedded = embedded,
-						avoid = embedded and "嵌入式 pi（codecompanion/ACP 驱动，回复不回到 nvim）" or nil,
+						avoid = embedded and "嵌入式 pi（codecompanion/ACP 驱动）：回复只会出现在那个 chat 窗口里" or nil,
 					})
 				end
 			end
