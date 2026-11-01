@@ -10,7 +10,6 @@ return {
 		-- https://github.com/MisanthropicBit/neotest-busted
 		"MisanthropicBit/neotest-busted",
 		-- https://github.com/fredrikaverpil/neotest-golang
-		-- 注意：仓库不在 nvim-neotest 组织下，写 nvim-neotest/neotest-golang 会 404
 		"fredrikaverpil/neotest-golang",
 	},
 	config = function()
@@ -69,6 +68,10 @@ return {
 			-- 之前 require 它会导致整个 setup 报错、所有键位都不生效。
 		})
 
+		-- FIX(neotest-golang#599): 表驱动测试发现是 O(N²)（1000 行 = 41s，堵死 neotest
+		-- 的 discovery 子进程）。上游修好后删掉下面这一行 + lua/fix/ 里对应文件。
+		require("fix.neotest_golang_table_tests").install()
+
 		vim.keymap.set("n", "<leader>tr", function()
 			neotest.run.run()
 		end, { desc = "运行当前文件测试" })
@@ -108,6 +111,10 @@ return {
 		vim.keymap.set("n", "<leader>tt", function()
 			neotest.summary.toggle()
 		end, { desc = "切换测试摘要" })
+
+		vim.keymap.set("n", "<leader>tS", function()
+			require("feat.test_picker").pick()
+		end, { desc = "模糊查找测试方法（全项目）" })
 
 		vim.keymap.set("n", "<leader>tw", function()
 			neotest.watch.toggle(vim.fn.expand("%"))
