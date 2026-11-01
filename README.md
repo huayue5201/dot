@@ -15,7 +15,7 @@
 ├── git/           # git 全局配置（.gitconfig、.gitignore_global）
 ├── ghostty/       # Ghostty 终端配置
 ├── kitty/         # Kitty 终端配置
-├── rex/           # Rex 终端（init.lua 键位 + 外观 settings.sh）
+├── rex/           # Rex 终端（init.lua 键位/action）
 ├── aria2/         # aria2 下载器配置
 ├── herdr/         # herdr 会话管理配置
 ├── jiq/           # jiq 工具配置
@@ -43,14 +43,15 @@ stow -t ~ nvim
 stow -t ~ zsh
 stow -t ~ git
 stow -t ~ tmux
-stow -t ~ rex        # 之后执行 ~/.config/rex/settings.sh 应用外观
+stow -t ~ rex        # 只含 ~/.config/rex/init.lua
 stow -t ~/.local bin   # 自制脚本 → ~/.local/bin
 stow --no-folding -t ~ pi
 ```
 
 > 注意：部分配置（如 xray、nvim 的 DAP 路径）为占位符或示例值，部署后需按本机实际情况修改。
 >
-> `rex/` 的字体/窗口设置无法写进 `~/.config/rex`（Rex 只从那里读 init.lua，外观存在 `com.superlogical.rex` 的 UserDefaults 里），因此由 `~/.config/rex/settings.sh` 用 `defaults write` 写入，`show` / `reset` 可查/清；写入后需重启 Rex.app。
+> `rex/` 只纳入官方文件式配置 `~/.config/rex/init.lua`。外观（字体/行高/窗口）没有配置文件，一律在 Rex 的 Settings 里手动设置，不用 `defaults write` 绕过；当前机器使用的值：
+> 字体 `Iosevka` 16pt、行高 **+12.5%**（= Ghostty 的 `adjust-cell-height = 5`，cell 16x45px）、窗口 **120x37**、连字开启。
 >
 > `pi/` 必须用 `--no-folding`：`~/.pi` 同时混有受管配置与运行时数据（`auth.json` / `sessions/` / `npm/`），默认折叠会把整个 `~/.pi` 软链进仓库，导致密钥和会话日志写回仓库工作区。
 
