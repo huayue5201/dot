@@ -131,11 +131,13 @@ return {
 				default_content = { "## Active" },
 			},
 
-			-- 任务上下文（供 AI / MCP）
-			-- enabled = true 时 setup 阶段就发布本实例的 RPC 地址给 MCP 桥；
-			-- :TodoContext（复制上下文给大模型）不受此开关影响，随时可用。
+			-- MCP 接入点：publish = true 时 setup 阶段就发布本实例的 RPC 地址给 MCP 桥
+			mcp = {
+				publish = true,
+			},
+
+			-- 任务上下文（供 AI / MCP；:TodoContext 随时可用，不受 mcp.publish 影响）
 			ai = {
-				enabled = true,
 				include_code = true, -- 是否附带代码块正文
 				include_ancestors = true, -- 是否附带祖先链
 				include_children = 1, -- 子树层数：true=全部，数字=层数
