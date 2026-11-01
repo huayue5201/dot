@@ -1,0 +1,11 @@
+-- Rex 配置入口：Rex 只读这一个 Lua 文件（用 rex.bind / rex.action 定义键位与动作）。
+-- 外观（字体、行高、窗口尺寸）不在这里，见同目录 settings.sh。
+-- 路径可被 REX_CONFIG 覆盖；改完执行 `rex config reload`。
+-- 校验：`rex config check`；可用 action 列表：`rex actions`。
+
+-- 示例：
+-- rex.action({
+--   name = "hello",
+--   schema = { type = "object", additionalProperties = false },
+--   run = function() return "hello" end,
+-- })
