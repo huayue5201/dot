@@ -11,6 +11,10 @@
 
 local M = { id = "pi", label = "pi" }
 
+-- 选择器/通知里的后端图标：nf-md-robot（U+F06A9）。用 nr2char 而不是字面量，
+-- 避免源码或同步过程把私有区字形弄坏（与 lsp_ext/icons.lua 同一约定）。
+M.icon = vim.fn.nr2char(0xF06A9)
+
 local function ask_dir()
 	local cache = os.getenv("XDG_CACHE_HOME") or (os.getenv("HOME") .. "/.cache")
 	return cache .. "/pi-agent/ask"
@@ -40,6 +44,9 @@ function M.targets()
 						sock = entry.sock,
 						ts = entry.ts or 0,
 						embedded = embedded,
+						-- 跑在 rex 里时带上 {session, block}：地图选择器据此把这个实例
+						-- 画到终端分屏的对应格子里（老版本 pi 没写这个字段，就只能是 nil）
+						rex = type(entry.rex) == "table" and entry.rex or nil,
 						avoid = embedded and "嵌入式 pi（codecompanion/ACP 驱动）：回复只会出现在那个 chat 窗口里" or nil,
 					})
 				end

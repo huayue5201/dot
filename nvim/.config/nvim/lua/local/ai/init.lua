@@ -6,6 +6,8 @@
 --   message.lua   渲染成最终文本 —— 所有后端共用同一种格式
 --   ui.lua        浮窗输入 —— 不认识 agent
 --   backends/*    只负责「把文本送出去」：pi 是 unix socket，generic 是 tmux/命令
+--   rex.lua       读 `rex session inspect` 的分屏几何（可选，纯加速）
+--   map.lua       把分屏几何画成浮窗地图来选目标（:AiPicker map|list）
 --
 -- 加一个新 agent：写 lua/local/ai/backends/<name>.lua 实现 { id, label, targets(), send() }，
 -- 或者直接用 backends/generic.lua 的 tmux() 工厂在 setup 里声明（限定：投递给已存在的进程）。
@@ -25,6 +27,19 @@ local current = "pi"
 local matching = "exact"
 --- 手动 pin 的目标（:AiTarget），比 cwd 匹配优先
 local pinned = nil
+--- 多候选时的选择器："map"（rex 分屏地图，默认）/ "list"（vim.ui.select 列表）
+local picker = "map"
+
+--- 后端图标（可缺省）。选择器里统一「图标 名字」的排法，一眼看清是哪个 agent
+---@param mod table|nil
+---@return string prefix 带尾空格，没有图标时是空串
+local function icon_prefix(mod)
+	local icon = mod and mod.icon
+	if type(icon) ~= "string" or icon == "" then
+		return ""
+	end
+	return icon .. " "
+end
 
 local function pick_opts()
 	return {
@@ -80,6 +95,66 @@ end
 --- 同一个 cwd 下同时有终端 pi 和 codecompanion 里的 pi 时就是靠这里区分。
 ---@param mod table
 ---@param cb fun(target: table|nil)
+--- 把候选映射到 rex 的格子并弹地图；返回 false 表示「用不了地图」，调用方回落列表
+---@return boolean opened
+local function map_select(mod, cands, note_avoid, cb)
+	local rex = require("local.ai.rex")
+	if not rex.available() then
+		return false
+	end
+	local window, data, err = rex.current_window()
+	if not window then
+		return false
+	end
+	local panes = rex.panes(window)
+	if #panes == 0 then
+		return false
+	end
+
+	local in_window = {}
+	for _, pane in ipairs(panes) do
+		in_window[pane.block_id] = true
+	end
+
+	local items, located = {}, 0
+	for i, c in ipairs(cands) do
+		local t = c.target
+		local block = t.rex and t.rex.block or nil
+		if block and in_window[block] then
+			located = located + 1
+		end
+		table.insert(items, {
+			index = i,
+			block_id = block,
+			target = t,
+			label = t.label,
+			name = vim.fn.fnamemodify(t.cwd or "?", ":t"),
+			icon = icon_prefix(mod):gsub("%s+$", ""),
+			tier = c.tier,
+		})
+	end
+	-- 只有 1 个能定位时地图没有意义（用户看不出别的在哪），退回列表
+	if located < 2 then
+		return false
+	end
+
+	require("local.ai.map").select({
+		panes = panes,
+		labels = rex.labels(data),
+		items = items,
+		cursor_block = rex.block(),
+		title = ("发到哪个 %s？（鼠标点格子 / 数字键直达）"):format(mod.label or mod.id or err),
+		on_choose = function(item)
+			if not item then
+				return -- 取消：什么都不做
+			end
+			note_avoid(item.target)
+			cb(item.target)
+		end,
+	})
+	return true
+end
+
 local function choose_target(mod, cb)
 	local function note_avoid(t)
 		if t and t.avoid then
@@ -106,11 +181,28 @@ local function choose_target(mod, cb)
 		return cb(cands[1].target)
 	end
 
+	-- 编号 + rex 里的位置：编号在列表、地图、发送通知里保持一致
+	for i, c in ipairs(cands) do
+		c.target.index = i
+	end
+
+	if picker == "map" then
+		local ok, opened = pcall(map_select, mod, cands, note_avoid, cb)
+		if ok and opened then
+			return
+		end
+		-- 不在 rex 里 / 候选没登记位置 / 出错 → 安静回落到列表
+	end
+
 	vim.ui.select(cands, {
-		prompt = ("发到哪个 %s？（:AiTarget 可记住选择）"):format(mod.label or mod.id),
+		prompt = ("发到哪个 %s%s？（:AiTarget 可记住选择）"):format(icon_prefix(mod), mod.label or mod.id),
 		format_item = function(c)
 			local t = c.target
-			local parts = { t.label or t.id, vim.fn.fnamemodify(t.cwd or "?", ":~") }
+			local parts = {
+				("#%d"):format(t.index or 0),
+				icon_prefix(mod) .. (t.label or t.id),
+				vim.fn.fnamemodify(t.cwd or "?", ":~"),
+			}
 			if c.tier > 1 then
 				table.insert(parts, "(不在当前项目)")
 			end
@@ -181,7 +273,12 @@ function M.ask(opts)
 				end
 				local where = target.cwd and vim.fn.fnamemodify(target.cwd, ":~") or "?"
 				vim.notify(
-					("[%s] 已发送 → %s (%s)"):format(mod.label, target.label or "?", where),
+					("[%s] 已发送 → #%d %s (%s)"):format(
+						mod.label,
+						target.index or 0,
+						target.label or "?",
+						where
+					),
 					vim.log.levels.INFO
 				)
 			end,
@@ -243,6 +340,12 @@ function M.pinned()
 	return pinned
 end
 
+--- 当前的选择方式（"map"|"list"）
+---@return string
+function M.picker()
+	return picker
+end
+
 --- 现成的后端工厂（tmux），方便在 setup 里几行声明新 agent
 M.generic = generic
 
@@ -251,6 +354,7 @@ M.generic = generic
 function M.setup(opts)
 	opts = opts or {}
 	matching = opts.matching or "exact"
+	picker = opts.picker or "map"
 	backends.register(require("local.ai.backends.pi"))
 	for _, mod in ipairs(opts.extra or {}) do
 		backends.register(mod)
@@ -281,7 +385,11 @@ function M.setup(opts)
 		vim.ui.select(items, {
 			prompt = "AI 后端（当前：" .. current .. "）",
 			format_item = function(item)
-				return ("%s%s"):format(item.label, item.available and "" or "（不可用）")
+				return ("%s%s%s"):format(
+					icon_prefix(item),
+					item.label,
+					item.available and "" or "（不可用）"
+				)
 			end,
 		}, function(item)
 			if item then
@@ -298,6 +406,22 @@ function M.setup(opts)
 			return out
 		end,
 		desc = "AI: 选择/切换默认后端",
+	})
+
+	vim.api.nvim_create_user_command("AiPicker", function(args)
+		local want = args.args ~= "" and args.args or (picker == "map" and "list" or "map")
+		if want ~= "map" and want ~= "list" then
+			vim.notify(("[ai] picker 只能是 map 或 list（当前 %s）"):format(picker), vim.log.levels.WARN)
+			return
+		end
+		picker = want
+		vim.notify(("[ai] 多候选时的选择器 → %s"):format(picker), vim.log.levels.INFO)
+	end, {
+		nargs = "?",
+		complete = function()
+			return { "map", "list" }
+		end,
+		desc = "AI: 多候选时的选择方式（map=分屏地图，list=列表）",
 	})
 
 	vim.api.nvim_create_user_command("AiTarget", function(args)
@@ -320,10 +444,18 @@ function M.setup(opts)
 			vim.notify("[ai] 当前后端没有可用目标", vim.log.levels.WARN)
 			return
 		end
+		for i, it in ipairs(items) do
+			it.index = i
+		end
 		vim.ui.select(items, {
 			prompt = "固定发往哪个目标（:AiTarget! 取消）",
 			format_item = function(item)
-				return ("%s  %s"):format(item.label or item.id, item.cwd or "?")
+				return ("#%d %s%s  %s"):format(
+					item.index or 0,
+					icon_prefix(backends.get(current)),
+					item.label or item.id,
+					item.cwd or "?"
+				)
 			end,
 		}, function(item)
 			if item then

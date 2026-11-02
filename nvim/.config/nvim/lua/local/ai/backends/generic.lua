@@ -20,7 +20,7 @@ local M = {}
 --- 通用后端：把文本 + 回车打进 tmux pane。
 -- 用 load-buffer/paste-buffer 而不是 send-keys 打字，避免多行文本被当成多个 Enter、
 -- 也避免 shell/引号转义问题。
----@param opts { id: string, label: string, panes: fun(): table[], keys_after?: string }
+---@param opts { id: string, label: string, panes: fun(): table[], keys_after?: string, icon?: string }
 ---@return table backend
 function M.tmux(opts)
 	local id, label = opts.id, opts.label
@@ -42,6 +42,8 @@ function M.tmux(opts)
 	local backend = {
 		id = id,
 		label = label,
+		-- 默认 nf-fa-terminal（U+F120）
+		icon = opts.icon or vim.fn.nr2char(0xF120),
 		targets = function()
 			local ok, list = pcall(opts.panes)
 			return ok and list or {}

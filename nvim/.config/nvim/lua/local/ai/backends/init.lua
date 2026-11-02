@@ -63,6 +63,7 @@ function M.list()
 		out[#out + 1] = {
 			id = id,
 			label = mod.label or id,
+			icon = mod.icon,
 			available = available,
 			reason = reason,
 		}
