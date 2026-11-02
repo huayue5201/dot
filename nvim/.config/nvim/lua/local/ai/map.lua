@@ -263,9 +263,9 @@ function M.select(opts)
 		end
 	end
 
-	-- 只需要放一个字母，所以做成小块提示图：屏幕三分之一左右，再多也是空的
-	local W = math.min(math.max(math.floor(vim.o.columns * 0.32 + 0.5), 16), 40)
-	local H = math.min(math.max(math.floor(vim.o.lines * 0.26 + 0.5), 4), 12)
+	-- 只需要放一个字母，所以做成小块提示图：大约四分之一屏，再多也是空的
+	local W = math.min(math.max(math.floor(vim.o.columns * 0.25 + 0.5), 12), 32)
+	local H = math.min(math.max(math.floor(vim.o.lines * 0.20 + 0.5), 3), 9)
 
 	-- 消息区（cmdheight 上方那块）的 zindex 比浮窗高，残留的消息会盖在浮窗上，
 	-- 表现为中间多出一条竖线或几个乱码字。开窗之前先把消息区清干净。
