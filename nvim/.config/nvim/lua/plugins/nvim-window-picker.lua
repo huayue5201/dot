@@ -7,7 +7,7 @@
 -- 必须写绝对路径：lua/boot/pack_local.lua 靠本地插件的 src 以 "/" 开头来识别它。
 return {
 	dir = "/Users/lijia/neovim-plugins/nvim-window-picker",
-	-- VeryLazy 提前加载：setup() 里会给 ghostty/herdr 源挂后台预取 autocmd，
+	-- VeryLazy 提前加载：setup() 里会给 herdr/rex 源挂后台预取 autocmd，
 	-- 这样 <leader>ww 首次触发时缓存已经热了（osascript 单次往返 ~250-600ms，
 	-- 放在按键路径上就是肉眼可见的卡顿）。
 	config = function()
@@ -148,34 +148,36 @@ return {
 				print("You'll need to install window-picker to use this command.")
 				return
 			end
-			-- 跨工具选择：nvim 窗口 + herdr 外部 pane + ghostty 终端
-			-- 各源在对应环境不可用时会自动跳过（herdr 看 HERDR_ENV，ghostty 仅 macOS）
+			-- 跨工具选择：nvim 窗口 + herdr 外部 pane + rex block
+			-- 各源在对应环境不可用时会自动跳过（herdr 看 HERDR_ENV，
+			-- rex 看 REX_SESSION/REX_BLOCK）；Ghostty 源已移除（适配已弃用，
+			-- 且它分不出 nvim 在哪个 terminal 里）
 			-- herdr scope: "tab" | "workspace" | "all"
 			-- respect_zoom 仅 scope="tab" 生效：tab 被 zoom 时
 			--   只列出可见 pane；若被 zoom 的是别的 pane（nvim 被藏）则不弹选择器
-			-- ghostty scope: "tab" | "window" | "all"（默认 all）；nvim 自身终端
-			--   会自动排除；tab/window 靠 Ghostty 前台窗口的选中 tab 定位自身，
-			--   定不到位时宁可不列，也不会把别的 tab 混进来
+			-- rex scope: "window"（默认，仅当前 Rex 窗口的其他 pane）|
+			--   "session"（跨 Rex 窗口，标题里会标出所属窗口）；当前 block 自动排除
+			-- rex respect_zoom 仅 scope="window" 生效：窗口被 zoom 时只列可见 block；
+			--   若被 zoom 的是别的 block（nvim 被藏）则不弹选择器
 			local target, abort_info = picker.pick_target({
 				sources = {
 					nvim = true,
 					herdr = { scope = "tab", respect_zoom = true },
-					ghostty = { scope = "tab" },
+					rex = { scope = "window", respect_zoom = true },
 				},
 			})
 			if not target then
 				if abort_info and abort_info.aborted then
 					print(
-						"herdr tab 被 zoom 到其他 pane，选择器已跳过（source: "
-							.. abort_info.source
-							.. "）"
+						abort_info.source
+							.. " 的当前窗口被 zoom 到其他 pane，选择器已跳过"
 					)
 				else
 					print("No window picked!")
 				end
 				return
 			end
-			-- herdr pane / ghostty terminal 在 pick_target 内部已 focus，无需再切换
+			-- herdr pane / rex block 在 pick_target 内部已 focus，无需再切换
 			if target.kind == "nvim" then
 				vim.api.nvim_set_current_win(target.window)
 			end

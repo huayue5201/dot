@@ -30,19 +30,11 @@ return {
 				"winfixwidth",
 			},
 
-			-- 缓冲区过滤：排除 help、quickfix、终端及无文件名缓冲区
+			-- 缓冲区过滤：与 tab_workspace 的「工作区 buffer」口径保持一致
+			-- （排除 help/quickfix/终端/面板/无名 buffer），否则会出现
+			-- 「会话里存了、恢复后却没人认领」的 buffer。
 			buf_filter = function(bufnr)
-				local buftype = vim.bo[bufnr].buftype
-				-- 排除特殊类型缓冲区：nofile / help / quickfix / terminal / prompt 等
-				if buftype ~= "" and buftype ~= "acwrite" then
-					return false
-				end
-				-- 排除无文件名（no name）缓冲区
-				local name = vim.api.nvim_buf_get_name(bufnr)
-				if name == "" then
-					return false
-				end
-				return true
+				return require("feat.tab_workspace.util").is_saved_buf(bufnr)
 			end,
 
 			-- 加载会话时显示详细信息
@@ -55,6 +47,7 @@ return {
 			extensions = {
 				quickfix = {}, -- 保存和恢复 quickfix 列表
 				tab_workspace = {}, -- 保存/恢复「一 tab 一工作区」的 buffer 归属（lua/resession/extensions/tab_workspace.lua）
+				tw_terminal = {}, -- 保存/恢复终端面板与终端侧栏窗口（lua/resession/extensions/tw_terminal.lua）
 			},
 		})
 
@@ -67,8 +60,24 @@ return {
 		vim.keymap.set("n", "<leader>lsl", resession.load, { desc = "会话: 加载" })
 		vim.keymap.set("n", "<leader>lsd", resession.delete, { desc = "会话: 删除" })
 
+		-- 载入侧的清洗：resession 没有 load 侧的 buffer filter，而它对每个存下的 buffer
+		-- 会做 bufadd + bufload，bufload 一个 term:// 名字会把 shell 真拉起来
+		-- （症状：<leader>lsl 加载旧会话时凭空打开一个终端）。
+		-- files.load_json_file 是 load 的唯一读入口，在这里洗一遍。
+		local files = require("resession.files")
+		local load_json_file = files.load_json_file
+		files.load_json_file = function(path)
+			local data = load_json_file(path)
+			if type(data) == "table" then
+				pcall(require("feat.tab_workspace.session").strip_terminal_bufs, data)
+			end
+			return data
+		end
+
 		-- tab_workspace 的 post_load 钩子必须在 resession 加载后才能挂（init 阶段 require 不到）
-		require("feat.tab_workspace").attach_resession()
+		if not require("feat.tab_workspace").attach_resession() then
+			vim.notify("tab_workspace: resession 钩子挂接失败，工作区恢复不可用", vim.log.levels.WARN)
+		end
 
 		-- 会话恢复后：确保 todo2 已 setup，并补渲染当前 tab 的 buffer。
 		-- resession 加载期间 eventignore=all 会吞掉 BufRead；tcd 又在 buffer 载入之后才生效，
@@ -90,6 +99,18 @@ return {
 					local buf = vim.api.nvim_win_get_buf(win)
 					if not vim.b[buf].todo2_rendered and vim.bo[buf].buftype == "" then
 						pcall(autocmds.render_buffer, buf)
+					end
+				end
+			end)
+		end)
+
+		-- 加载完把仍有残留的僵尸 term:// buffer 清掉（旧版本写入 / bufadd 造出的空壳）
+		resession.add_hook("post_load", function()
+			vim.schedule(function()
+				for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+					local name = vim.api.nvim_buf_get_name(bufnr)
+					if name:find("^term://") and vim.bo[bufnr].buftype == "" and not vim.b[bufnr].terminal_job_id then
+						pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
 					end
 				end
 			end)

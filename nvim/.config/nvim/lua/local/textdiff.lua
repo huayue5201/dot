@@ -13,7 +13,7 @@
 --   * diff 全部交给 vim.diff（histogram + linematch + indent_heuristic），本地不写算法。
 --   * 行内字符级高亮：linematch 切出的 hunk 里成对的行用「公共前缀/后缀」求出差异区间，
 --     用 extmark 贴 TextDiffSpan。时间戳这类「整行只差几位」的场景一眼可见。
---   * 浮窗天然被 tab_workspace 排除在归属之外（core/tab_workspace/util.lua:is_float_win），
+--   * 浮窗天然被 tab_workspace 排除在归属之外（lua/feat/tab_workspace/util.lua 的 is_float_win），
 --     双栏模式用 nofile scratch buffer（buflisted=false / bufhidden=wipe），不会漏进 bufferline。
 --   * 差异行数超过上限时跳过行内高亮，只保留整行底色，避免大段差异卡顿。
 

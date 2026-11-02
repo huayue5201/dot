@@ -1,4 +1,3 @@
--- vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 local mc_ns = vim.api.nvim_create_namespace("nvim.multicursor")
 vim.keymap.set("n", "<Esc>", function()
 	-- 1. 清除 multicursor 的视觉标记
@@ -75,7 +74,7 @@ vim.keymap.set("n", "[x", function()
 end, { silent = true, desc = "ExecFlow: 上一个锚点" })
 
 -- 关闭当前 buffer：有分屏时先收掉当前窗口（不动其它分屏），
--- buffer 不再被任何窗口显示后再交给 tab_workspace 删除（含 ownership / 未保存确认）。
+-- buffer 不再被任何窗口显示后再交给 tab_workspace 删除（含共享归属 / 未保存确认）。
 -- 不能用 `:bd` / `:bp | bd #`：它们会把窗口换成别的文件（分屏看起来“没关掉”），
 -- 也不会维护 tab 工作区的 buffer 归属。
 -- noice.nvim 等插件会常驻隐藏浮窗（[Cmd]/[Msg]/[Dialog]/[Pager]），
@@ -105,8 +104,26 @@ local function close_buffer()
 	if vim.bo[buf].buftype ~= "" then
 		if #real_wins() > 1 then
 			pcall(vim.api.nvim_win_close, 0, false)
+			return
+		end
+
+		-- 最后一个窗口不能 :close（E444），改成换到别的 buffer（没有就开空 buffer），
+		-- 再把当前这个特殊 buffer 删掉。
+		local alt = vim.fn.bufnr("#")
+		if alt ~= -1 and alt ~= buf and vim.api.nvim_buf_is_valid(alt) and vim.bo[alt].buflisted then
+			vim.cmd("buffer " .. alt)
 		else
-			vim.cmd("close")
+			vim.cmd("enew")
+		end
+		local shown = false
+		for _, w in ipairs(vim.fn.win_findbuf(buf)) do
+			if vim.api.nvim_win_get_config(w).relative == "" then
+				shown = true
+				break
+			end
+		end
+		if not shown and vim.api.nvim_buf_is_valid(buf) then
+			pcall(vim.api.nvim_buf_delete, buf, { force = true })
 		end
 		return
 	end
@@ -136,11 +153,8 @@ local function close_buffer()
 	require("feat.tab_workspace").close_buffer(buf)
 end
 
--- 说明：终端对 <c-esc> 通常只发裸 ESC（nvim 无法区分），实际生效靠 <leader>bq / <D-w>。
--- <D-w> 需要终端用 CSI-u 回送（ghostty: keybind = nvim/cmd+w=csi:119;9u）。
-for _, lhs in ipairs({ "<leader>bq", "<D-w>", "<c-esc>" }) do
-	vim.keymap.set("n", lhs, close_buffer, { silent = true, desc = "Basic: close buffer" })
-end
+-- 只用 <leader>bq：<D-w> 是终端关闭 tab 的默认键，<c-esc> 终端只发裸 ESC（分不出来）。
+vim.keymap.set("n", "<leader>bq", close_buffer, { silent = true, desc = "Basic: close buffer" })
 
 -- vim.keymap.set("n", "<leader>cab", function()
 -- 	local current = vim.api.nvim_get_current_buf()

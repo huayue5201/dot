@@ -62,7 +62,7 @@ vim.opt.guicursor:append({
 -- ================ 换行与不可见字符 ================
 vim.o.wrap = false -- 不自动换行
 vim.o.linebreak = true -- 按单词边界换行
-vim.o.showbreak = "↪ " -- 换行提示符
+vim.o.showbreak = "⤸" -- 换行提示符
 vim.o.list = true -- 显示不可见字符
 vim.opt.listchars = {
 	tab = "╎ ",
@@ -83,8 +83,8 @@ vim.opt.fillchars = {
 	vertright = "", -- 向右的垂直分隔符
 	verthoriz = "", -- 垂直/水平重叠分隔符
 	fold = " ", -- 折叠文本填充
-	foldopen = "⊞", -- 折叠展开标记
-	foldclose = "⊟", -- 折叠关闭标记
+	foldopen = "◌", -- 折叠展开标记
+	foldclose = "⦿", -- 折叠关闭标记
 	foldsep = "│", -- 折叠中间分隔符
 	foldinner = " ", -- 折叠层级填充
 	diff = "╱", -- 差异删除行

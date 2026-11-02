@@ -157,11 +157,12 @@ return {
 				-- 是否强制统一标签页大小
 				enforce_regular_tabs = true,
 
-				-- 是否受 tab_workspace 工作区管理（= 该在 bufferline 显示）；
-				-- 按「当前 tab 的归属」在渲染期过滤，规则统一由 tab_workspace 维护，
-				-- 不在插件配置里重复。
-				custom_filter = function(buf_number)
-					return require("feat.tab_workspace").is_current_tab_buf(buf_number)
+				-- buffer 来源：当前 tab 该显示哪些 buffer 完全由 tab_workspace 决定
+				-- （渲染口径只有一处：归属表 ∪ 当前 tab 窗口里显示的 buffer）。
+				-- 用 buffer_source 而不是 custom_filter：后者对每个 buffer 调一次，
+				-- 这里每次渲染只调一次。
+				buffer_source = function()
+					return require("feat.tab_workspace").visible_buffers()
 				end,
 
 				-- 名称格式化函数
@@ -209,6 +210,16 @@ return {
 						text_align = "center",
 						separator = true,
 						highlight = "CodeCompanionChatHeader",
+					},
+					{
+						-- neotest 测试摘要（config.summary.open = "botright vsplit | vertical resize 50"，
+						-- filetype=neotest-summary）。bufferline 自动按窗口实际宽度画 offset，
+						-- 摘要关掉后 offset 自动消失。
+						filetype = "neotest-summary",
+						text = "Tests",
+						text_align = "center",
+						separator = true,
+						highlight = "NeotestAdapterName",
 					},
 				},
 

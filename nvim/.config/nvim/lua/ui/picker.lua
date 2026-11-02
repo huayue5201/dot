@@ -34,6 +34,12 @@ local PREFIX = "> "
 -- 列表分屏占编辑区高度的比例，以及最低高度
 local HEIGHT_RATIO = 0.45
 local MIN_ROWS = 10
+-- 最多展示/渲染多少条命中（opts.max_results 可改）。
+--
+-- 这是性能关键：过滤后的条目数决定「排序 + 逐行截断 + 逐字符命中高亮」的开销，
+-- 而屏幕上最多只看得见列表高度那么多行。原来把全部命中（大项目里几万条）都写进
+-- buffer 并且给每个命中字符都设一个 extmark，单次按键能烧掉 100ms 以上。
+local MAX_RESULTS = 200
 
 ---@param s string
 ---@param max integer 允许的最大显示宽度
@@ -45,16 +51,19 @@ local function truncate(s, max)
 	if vim.fn.strdisplaywidth(s) <= max then
 		return s
 	end
-	local out, w = {}, 0
-	for _, ch in ipairs(vim.fn.split(s, "\\zs")) do
-		local cw = vim.fn.strdisplaywidth(ch)
-		if w + cw > max - 1 then
-			break
+	-- 二分找「放得下」的字符数：按显示宽度算，宽字符（CJK/emoji）不会被切半个。
+	-- 老实现是 split(s, "\\zs") 逐字符 strdisplaywidth，一个长行就要 0.05ms，
+	-- 几百行加起来很可观。
+	local lo, hi = 0, vim.fn.strchars(s)
+	while lo < hi do
+		local mid = math.floor((lo + hi + 1) / 2)
+		if vim.fn.strdisplaywidth(vim.fn.strcharpart(s, 0, mid)) <= max - 1 then
+			lo = mid
+		else
+			hi = mid - 1
 		end
-		out[#out + 1] = ch
-		w = w + cw
 	end
-	return table.concat(out) .. "…"
+	return vim.fn.strcharpart(s, 0, lo) .. "…"
 end
 
 ---@param v string|string[]|nil
@@ -85,6 +94,8 @@ end
 ---@field preview? fun(item): string|string[]|nil
 ---@field filetype? string|fun(item): string 预览窗口的 filetype（决定语法高亮）
 ---@field rows? integer 列表分屏高度（默认取编辑区高度的 45%，最少 10 行）
+---@field max_results? integer 最多展示多少条命中（默认 200）；排序仍然精确，只是截断尾部
+---@field preview_cache? boolean 缓存 preview 结果（默认 true）
 ---@field on_choose fun(item)
 ---@field actions? ui.picker.action[] 额外的条目操作（列表/预览区里用）
 ---@field on_cancel? fun()
@@ -93,16 +104,40 @@ end
 function M.pick(opts)
 	local items = opts.items or {}
 	local text_of = opts.text or tostring
-	local entries = {}
-	for i, item in ipairs(items) do
-		entries[i] = { item = item, text = text_of(item) or "", id = i }
+	local max_results = math.max(1, opts.max_results or MAX_RESULTS)
+
+	-- 索引：entries 与 lows 同序，lows[i] 是 entries[i].text 的小写。
+	-- 小写只在建索引时做一次（老实现每次按键都靠 text_cb 回 Lua 逐条 lower，
+	-- 那是 matchfuzzypos 慢 3~4 倍的主因），并且之后可以把纯字符串表直接喂给
+	-- matchfuzzypos，不再走 text_cb。
+	local entries, lows, by_low = {}, {}, {}
+
+	---@param list table[]
+	local function rebuild(list)
+		entries, lows, by_low = {}, {}, {}
+		for i = 1, #list do
+			local text = text_of(list[i]) or ""
+			local low = text:lower()
+			local e = { item = list[i], text = text, low = low, id = i }
+			entries[i] = e
+			lows[i] = low
+			local same = by_low[low]
+			if same then
+				same[#same + 1] = e
+			else
+				by_low[low] = { e }
+			end
+		end
 	end
+	rebuild(items)
 
 	local columns = vim.o.columns
 	local origin_win = vim.api.nvim_get_current_win()
 	local title = opts.title or "pick"
 
 	local filtered = entries
+	-- 命中数超过 max_results 被截断时，count 后面加个 "+"
+	local truncated = false
 	local sel = 1
 	local updating = false
 	local pending = false
@@ -258,7 +293,7 @@ function M.pick(opts)
 	end
 	local function render_count()
 		local n = #filtered
-		local label = ("%s %d/%d"):format(title, n == 0 and 0 or sel, n)
+		local label = ("%s %d/%d%s"):format(title, n == 0 and 0 or sel, n, truncated and "+" or "")
 		if label == last_label then
 			return
 		end
@@ -277,6 +312,30 @@ function M.pick(opts)
 		})
 	end
 
+	-- preview 结果缓存：选中/过滤每变一次就会重画 preview，而 preview 常常要读文件
+	-- （feat/test_picker 就是 readfile），大项目里每次按键都读盘非常卡。缓存按条目
+	-- 身份（item 表/字符串）存，弱键 + 上限，条目被回收就自动掉。
+	local preview_cache = setmetatable({}, { __mode = "k" })
+	local preview_cached = 0
+	local use_cache = opts.preview_cache ~= false
+
+	local function cached_preview(item)
+		if not use_cache then
+			return opts.preview(item), false
+		end
+		local hit = preview_cache[item]
+		if hit ~= nil then
+			return hit, true
+		end
+		local res = opts.preview(item)
+		if preview_cached > 512 then
+			preview_cache, preview_cached = setmetatable({}, { __mode = "k" }), 0
+		end
+		preview_cache[item] = res
+		preview_cached = preview_cached + 1
+		return res, false
+	end
+
 	local function render_preview()
 		if not (preview_win and vim.api.nvim_win_is_valid(preview_win)) then
 			return
@@ -284,7 +343,7 @@ function M.pick(opts)
 		local entry = filtered[sel]
 		local plines = {}
 		if entry then
-			local ok, res = pcall(opts.preview, entry.item)
+			local ok, res = pcall(cached_preview, entry.item)
 			if ok then
 				local pw = vim.api.nvim_win_get_width(preview_win) - 1
 				for _, l in ipairs(to_lines(res)) do
@@ -382,51 +441,71 @@ function M.pick(opts)
 	local function filter()
 		local q = current_query()
 		local marks
+		truncated = false
 		if q == "" then
-			filtered = entries
+			-- 空 query：原顺序，同样受 max_results 限制（否则几万条全写进 buffer）
+			if #entries > max_results then
+				filtered = {}
+				for i = 1, max_results do
+					filtered[i] = entries[i]
+				end
+				truncated = true
+			else
+				filtered = entries
+			end
 		else
-			-- 两边都转小写：matchfuzzy 是 smartcase，不这样处理时输大写（如 API）
-			-- 会变成大小写敏感，一条都匹配不到。ASCII 小写不改变字节长度。
-			local lower = string.lower
-			local out = vim.fn.matchfuzzypos(entries, lower(q), {
-				text_cb = function(e)
-					return lower(e.text)
-				end,
-			})
-			local matched, positions, scores = out[1] or {}, out[2] or {}, out[3] or {}
+			-- matchfuzzy 是 smartcase：不统一小写的话，输入大写（如 API）会变成
+			-- 大小写敏感，一条都匹配不到。lows 早已是建索引时算好的小写串。
+			-- matchfuzzypos 的返回值是 {命中文本, 字符位置, 分数} 三元组（一个 Vim List）
+			local res = vim.fn.matchfuzzypos(lows, q:lower())
+			local matched = res[1] or {}
+			local positions = res[2] or {}
+			local scores = res[3] or {}
 
 			-- 按匹配度降序（同分保持原顺序）
 			local order = {}
 			for i = 1, #matched do
 				order[i] = i
 			end
-			table.sort(order, function(a, b)
-				if scores[a] ~= scores[b] then
-					return scores[a] > scores[b]
-				end
-				return a < b
-			end)
+			if #order > 1 then
+				table.sort(order, function(a, b)
+					if scores[a] ~= scores[b] then
+						return scores[a] > scores[b]
+					end
+					return a < b
+				end)
+			end
+
+			local keep = math.min(#order, max_results)
+			truncated = #order > keep
 
 			filtered, marks = {}, {}
-			for k, idx in ipairs(order) do
-				-- 用 id 把 matchfuzzypos 的副本换回原条目（调用方给的同一张表）
-				local e = entries[matched[idx].id or 0]
+			-- 小写文本相同的条目在 by_low 里按原顺序排着，命中几次就按序取几个
+			local take = {}
+			for k = 1, keep do
+				local idx = order[k]
+				local low = matched[idx]
+				local same = by_low[low]
+				local nth = (take[low] or 0) + 1
+				take[low] = nth
+				local e = same and same[nth]
 				if e then
-					filtered[k] = e
+					filtered[#filtered + 1] = e
 					-- matchfuzzypos 给的是「字符位置」（不是字节），换成字节区间；
-					-- 结束位置用 p+1 的 byteidx，才能包住整个多字节字符（中文一个字 3 字节）
+					-- 结束位置用 p+1 的 byteidx，才能包住整个多字节字符（中文一个字 3 字节）。
+					-- 位置是相对小写串的，所以用 e.low 换算（ASCII 下与 e.text 等价）。
 					local cols = {}
 					for _, p in ipairs(positions[idx] or {}) do
-						local s = vim.fn.byteidx(e.text, p)
-						local en = vim.fn.byteidx(e.text, p + 1)
-						if s >= 0 and en > s then
-							cols[#cols + 1] = { s, en }
+						local st = vim.fn.byteidx(low, p)
+						local en = vim.fn.byteidx(low, p + 1)
+						if st >= 0 and en > st then
+							cols[#cols + 1] = { st, en }
 						end
 					end
-					marks[k] = cols
+					marks[#filtered] = cols
 				end
 			end
-			end
+		end
 		sel = 1
 		render(marks)
 	end
@@ -435,10 +514,7 @@ function M.pick(opts)
 	---@param new_items table[]
 	local function set_items(new_items)
 		items = new_items
-		entries = {}
-		for i, item in ipairs(new_items) do
-			entries[i] = { item = item, text = text_of(item) or "", id = i }
-		end
+		rebuild(new_items)
 		sel = 1
 		last_label = nil -- 强制重画计数
 		filter()
@@ -564,7 +640,8 @@ function M.pick(opts)
 		end,
 	})
 
-	render()
+	-- 走 filter()（而不是直接 render()），空 query 也会应用 max_results 截断
+	filter()
 	vim.api.nvim_set_current_win(prompt_win)
 	vim.api.nvim_win_set_cursor(prompt_win, { 1, #PREFIX })
 	vim.cmd("startinsert!")

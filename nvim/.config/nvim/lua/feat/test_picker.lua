@@ -63,28 +63,24 @@ for _, spec in ipairs(SPECS) do
 	table.insert(BY_EXT[spec.ext], spec)
 end
 
-local function scan()
-	if vim.fn.executable("rg") ~= 1 then
-		vim.notify("test_picker: 需要 ripgrep (rg)", vim.log.levels.ERROR)
-		return {}
-	end
-
-	local cwd = vim.fn.getcwd()
+---rg 的参数（扫描全项目测试声明）
+---@param cwd string
+---@return string[]
+local function rg_args(cwd)
 	local args = { "rg", "--json", "--no-messages", "-n", "-U" }
 	for _, spec in ipairs(SPECS) do
 		vim.list_extend(args, { "-e", spec.pattern, "-g", spec.glob })
 	end
+	return args
+end
 
-	local ok, res = pcall(function()
-		return vim.system(args, { cwd = cwd, text = true }):wait(10000)
-	end)
-	if not ok or not res or (res.code or 0) > 2 then
-		vim.notify("test_picker: ripgrep 失败: " .. tostring(ok and res and res.stderr or res), vim.log.levels.ERROR)
-		return {}
-	end
-
+---把 rg --json 的输出解析成条目（纯计算，无 IO）
+---@param stdout string
+---@param cwd string
+---@return table[]
+local function parse(stdout, cwd)
 	local items, seen = {}, {}
-	for line in (res.stdout or ""):gmatch("[^\n]+") do
+	for line in (stdout or ""):gmatch("[^\n]+") do
 		local ok_json, ev = pcall(vim.json.decode, line)
 		if ok_json and ev.type == "match" then
 			local path = ev.data.path.text
@@ -123,6 +119,61 @@ local function scan()
 	return items
 end
 
+---当前在跑的 rg job（重复触发时取消上一个，避免旧结果覆盖新结果）
+local scan_job
+local scanning = false
+
+---异步扫描，扫描期间不阻塞 UI
+---@param on_done fun(items: table[]|nil, err: string|nil)
+local function scan_async(on_done)
+	if vim.fn.executable("rg") ~= 1 then
+		on_done(nil, "需要 ripgrep (rg)")
+		return
+	end
+	if scanning and scan_job then
+		pcall(scan_job.kill, scan_job, 15)
+		scan_job = nil
+	end
+	local cwd = vim.fn.getcwd()
+	scanning = true
+	local ok, job = pcall(vim.system, rg_args(cwd), { cwd = cwd, text = true }, function(res)
+		-- 回调在 fast event 上下文里，解析和 UI 都要回主循环
+		vim.schedule(function()
+			scanning = false
+			scan_job = nil
+			if (res.code or 0) > 2 then
+				on_done(nil, "ripgrep 失败: " .. tostring(res.stderr))
+				return
+			end
+			on_done(parse(res.stdout, cwd), nil)
+		end)
+	end)
+	if not ok then
+		scanning = false
+		on_done(nil, tostring(job))
+		return
+	end
+	scan_job = job
+end
+
+---同步扫描（仅供调试 / 外部复用，会阻塞 UI；正常流程走 scan_async）
+---@return table[]
+local function scan_sync()
+	if vim.fn.executable("rg") ~= 1 then
+		vim.notify("test_picker: 需要 ripgrep (rg)", vim.log.levels.ERROR)
+		return {}
+	end
+	local cwd = vim.fn.getcwd()
+	local ok, res = pcall(function()
+		return vim.system(rg_args(cwd), { cwd = cwd, text = true }):wait(10000)
+	end)
+	if not ok or not res or (res.code or 0) > 2 then
+		vim.notify("test_picker: ripgrep 失败: " .. tostring(ok and res and res.stderr or res), vim.log.levels.ERROR)
+		return {}
+	end
+	return parse(res.stdout, cwd)
+end
+
 ---读取文件行（优先用已加载的 buffer，含未保存修改）
 ---@param item table
 ---@param from integer
@@ -147,20 +198,34 @@ local function jump(item)
 	vim.cmd("normal! zvzz")
 end
 
----扫描全项目测试声明（供调试 / 外部复用）
+---扫描全项目测试声明（同步，会阻塞；调试 / 外部复用用）
 function M.scan()
-	return scan()
+	return scan_sync()
 end
+
+local open_picker -- 前向声明（M.pick 里异步回调要用）
 
 ---@param opts? { run?: boolean, debug?: boolean }
 function M.pick(opts)
 	opts = opts or {}
-	local items = scan()
-	if #items == 0 then
-		vim.notify("test_picker: 没扫到测试（检查 rg 规则 / 是否在项目根目录）", vim.log.levels.WARN)
-		return
-	end
+	-- rg 扫全项目在大仓库上是秒级，必须异步，否则整个 UI 冻住
+	vim.notify("test_picker: 扫描测试声明…", vim.log.levels.INFO)
+	scan_async(function(items, err)
+		if err then
+			vim.notify("test_picker: " .. err, vim.log.levels.ERROR)
+			return
+		end
+		if not items or #items == 0 then
+			vim.notify("test_picker: 没扫到测试（检查 rg 规则 / 是否在项目根目录）", vim.log.levels.WARN)
+			return
+		end
+		open_picker(items, opts)
+	end)
+end
 
+---@param items table[]
+---@param opts { run?: boolean, debug?: boolean }
+function open_picker(items, opts)
 	local function run_after(item, mode)
 		jump(item)
 		local neotest = require("neotest")
