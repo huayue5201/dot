@@ -2,7 +2,8 @@
 ---@brief 浮窗地图：按 rex 的真实分屏布局画出格子，点哪个格子就发给哪个 pane 里的 agent。
 --
 -- 只在 rex 里、且能定位到 block 时才用（见 rex.lua）；否则调用方回落 vim.ui.select。
--- 交互：光标停留即高亮，<CR> 或鼠标左键选中，q / <Esc> 取消，数字键直达第 N 个候选。
+-- 交互：每个格子里一个字母（按候选顺序 a、b、c…），按字母直接选中；
+-- 也可以把光标移过去按 <CR> / 单击，q 或 <Esc> 取消。
 local api = vim.api
 local M = {}
 
@@ -115,7 +116,10 @@ end
 -- 布局 → 画布
 ----------------------------------------------------------------------
 
-local MIN_W, MIN_H = 8, 2
+local MIN_W, MIN_H = 2, 1
+
+-- 候选 → 键位：a、b、c…（超过 26 个就退回数字编号）
+local ALPHABET = "abcdefghijklmnopqrstuvwxyz"
 
 local function cells_of(rect, W, H)
 	local x = math.floor(rect[1] * W + 0.5) + 1
@@ -127,19 +131,23 @@ local function cells_of(rect, W, H)
 	return x, math.min(y, H), math.max(x1, x), math.max(y1, y)
 end
 
-local function pane_label(item, label)
-	local parts = {}
-	if item then
-		table.insert(parts, ("#%d"):format(item.index))
-		if item.icon and item.icon ~= "" then
-			table.insert(parts, item.icon)
-		end
-		table.insert(parts, item.name or item.label or "")
-	else
-		table.insert(parts, "·")
-		table.insert(parts, label or "")
+--- 格子里只放一个字母；没有候选的 pane 留空，只靠底色和分缝表达布局
+local function pane_label(item)
+	if not item then
+		return ""
 	end
-	return table.concat(parts, " ")
+	return item.letter or tostring(item.index)
+end
+
+--- 把一段字放在格子正中间（放不下就什么也不放）
+local function text_center(g, y0, y1, x0, x1, str, group)
+	if not str or str == "" then
+		return
+	end
+	local w = vim.fn.strdisplaywidth(str)
+	local y = math.floor((y0 + y1) / 2)
+	local x = x0 + math.max(0, math.floor((x1 - x0 + 1 - w) / 2))
+	text(g, y, x0, x1, string.rep(" ", math.max(0, x - x0)) .. str, group)
 end
 
 --- 把 rex 的叶子几何算成字符格（1-based，左下含端点），并标出「太小放不下标签」的
@@ -160,18 +168,18 @@ local function geometry(panes, by_block, W, H)
 end
 
 --- 画一帧。footer 占底部若干行，不覆盖格子。
-local function paint(panes, by_block, labels, W, H, sel, footer)
+local function paint(panes, by_block, W, H, sel, footer)
 	local geom = geometry(panes, by_block, W, H)
 	-- 格子太小的候选也要在底部点名
 	local too_small = {}
 	for _, g in ipairs(geom) do
 		if g.small and g.item then
-			table.insert(too_small, ("#%d"):format(g.item.index))
+			table.insert(too_small, g.item.letter or tostring(g.item.index))
 		end
 	end
 	local lines = {}
 	if #too_small > 0 then
-		table.insert(lines, ("格子太小，按数字键直达：%s"):format(table.concat(too_small, " ")))
+		table.insert(lines, ("格子太小，直接按字母：%s"):format(table.concat(too_small, " ")))
 	end
 	for _, line in ipairs(footer or {}) do
 		table.insert(lines, line)
@@ -184,11 +192,10 @@ local function paint(panes, by_block, labels, W, H, sel, footer)
 	for _, t in ipairs(geom) do
 		-- 底部若干行让给 footer：pane 底部相应收短，而不是整块消失
 		local y1 = math.min(t.y1, pane_h)
-		if not t.small and y1 - t.y0 + 1 >= 2 then
+		if not t.small then
 			local group = t.item and (sel == t.item and "AiMapSel" or "AiMapAgent") or "AiMapPane"
 			fill(g, t.y0, y1, t.x0, t.x1, group)
-			local ty = (y1 - t.y0 + 1 >= 3) and (t.y0 + 1) or t.y0
-			text(g, ty, t.x0 + 1, t.x1, pane_label(t.item, labels[t.pane.block_id]), group)
+			text_center(g, t.y0, y1, t.x0, t.x1, pane_label(t.item), group)
 			for y = t.y0, y1 do
 				hit[y] = hit[y] or {}
 				for x = t.x0, t.x1 do
@@ -222,7 +229,11 @@ function M.select(opts)
 	define_hl()
 
 	local by_block = {}
-	for _, it in ipairs(items) do
+	for i, it in ipairs(items) do
+		it.letter = ALPHABET:sub(i, i)
+		if it.letter == "" then
+			it.letter = nil
+		end
 		if it.block_id then
 			by_block[it.block_id] = it
 		end
@@ -257,17 +268,26 @@ function M.select(opts)
 	if #stray > 0 then
 		local names = {}
 		for _, it in ipairs(stray) do
-			table.insert(names, ("#%d"):format(it.index))
+			table.insert(names, it.letter or tostring(it.index))
 		end
-		table.insert(footer, ("不在这个 window，按数字键直达：%s"):format(table.concat(names, " ")))
+		table.insert(footer, ("不在这个 window，直接按字母：%s"):format(table.concat(names, " ")))
 	end
 
-	local W = math.min(math.max(vim.o.columns - 6, 30), 110)
-	local H = math.min(math.max(vim.o.lines - 8, 8), 34)
+	-- 只需要放一个字母，所以做成小块提示图：大约半个屏幕
+	local W = math.min(math.max(math.floor(vim.o.columns * 0.5 + 0.5), 20), 60)
+	local H = math.min(math.max(math.floor(vim.o.lines * 0.5 + 0.5), 5), 22)
+
+	-- 消息区（cmdheight 上方那块）的 zindex 比浮窗高，残留的消息会盖在浮窗上，
+	-- 表现为中间多出一条竖线或几个乱码字。开窗之前先把消息区清干净。
+	pcall(vim.cmd, "silent! messages clear")
+	pcall(api.nvim_echo, { { "" } }, false, {})
 
 	local buf = api.nvim_create_buf(false, true)
 	vim.bo[buf].bufhidden = "wipe"
 	vim.bo[buf].swapfile = false
+	-- 缩进参考线一类的插件会在光标所在行画竖线（mini.indentscope 的符号就是 │），
+	-- 它会盖在地图上，表现为每个 pane 里凭空多出一条竖线。
+	vim.b[buf].miniindentscope_disable = true
 
 	local sel = nil
 	for _, it in ipairs(located) do
@@ -279,7 +299,7 @@ function M.select(opts)
 
 	local hit
 	local function repaint()
-		local painted = paint(panes, by_block, opts.labels or {}, W, H, sel, footer)
+		local painted = paint(panes, by_block, W, H, sel, footer)
 		local lines, segs, h = painted[1], painted[2], painted[3]
 		hit = h
 		vim.bo[buf].modifiable = true
@@ -309,11 +329,26 @@ function M.select(opts)
 		height = H,
 		style = "minimal",
 		border = "rounded",
+		-- 不让 WinEnter/BufWinEnter 一类的 autocmd 碰这个窗口：有些插件会往里塞
+		-- 行号列/缩进参考线/状态列，在浮窗里渲染出来就是一条竖线或数字。
+		noautocmd = true,
 		title = " " .. (opts.title or "发到哪个 agent？") .. " ",
 		title_pos = "center",
 	})
+	-- 浮窗里什么都不要：行号/折叠/符号/状态列都可能被别的插件注入（statuscol.nvim 会给
+	-- 每个新窗口设 statuscolumn），在浮窗里渲染出来就是一条竖线或多余的数字。
 	vim.wo[win].wrap = false
 	vim.wo[win].cursorline = false
+	vim.wo[win].number = false
+	vim.wo[win].relativenumber = false
+	vim.wo[win].signcolumn = "no"
+	vim.wo[win].foldcolumn = "0"
+	vim.wo[win].foldenable = false
+	vim.wo[win].statuscolumn = ""
+	vim.wo[win].colorcolumn = ""
+	vim.wo[win].list = false
+	vim.wo[win].spell = false
+	vim.wo[win].winbar = ""
 	vim.wo[win].winhighlight = "Normal:AiMapBg"
 	api.nvim_set_current_win(win)
 
@@ -401,6 +436,16 @@ function M.select(opts)
 	map("<Esc>", function()
 		close(nil)
 	end, "取消")
+	for _, it in ipairs(items) do
+		if it.letter then
+			local letter = it.letter
+			for _, lhs in ipairs({ letter, letter:upper() }) do
+				map(lhs, function()
+					close(it)
+				end, "选 " .. letter)
+			end
+		end
+	end
 	for i = 1, 9 do
 		map(tostring(i), function()
 			for _, it in ipairs(items) do

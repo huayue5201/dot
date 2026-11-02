@@ -143,7 +143,7 @@ local function map_select(mod, cands, note_avoid, cb)
 		labels = rex.labels(data),
 		items = items,
 		cursor_block = rex.block(),
-		title = ("发到哪个 %s？（鼠标点格子 / 数字键直达）"):format(mod.label or mod.id or err),
+		title = ("发到哪个 %s？（按字母 / 点格子）"):format(mod.label or mod.id or err),
 		on_choose = function(item)
 			if not item then
 				return -- 取消：什么都不做
