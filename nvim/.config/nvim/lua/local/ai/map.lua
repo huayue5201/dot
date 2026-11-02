@@ -125,8 +125,12 @@ local function cells_of(rect, W, H)
 	local y = math.floor(rect[2] * H + 0.5) + 1
 	local w = math.max(1, math.floor(rect[3] * W + 0.5))
 	local h = math.max(1, math.floor(rect[4] * H + 0.5))
-	local x1 = math.min(x + w - 2, W) -- 留 1 格当分隔缝
-	local y1 = math.min(y + h - 2, H)
+	-- 留 1 格当分隔缝，但贴着画布边缘的那一侧不留：否则地图最下/最右会空出一条
+	-- 没有底色的缝，看起来像浮窗底下多出来一块。
+	local x_end = math.floor((rect[1] + rect[3]) * W + 0.5)
+	local y_end = math.floor((rect[2] + rect[4]) * H + 0.5)
+	local x1 = (x_end >= W) and W or math.min(x + w - 2, W)
+	local y1 = (y_end >= H) and H or math.min(y + h - 2, H)
 	return x, math.min(y, H), math.max(x1, x), math.max(y1, y)
 end
 
