@@ -197,6 +197,12 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 				cwd: process.cwd(),
 				ts: Math.floor(Date.now() / 1000),
 				embedded: EMBEDDED,
+				// 跑在 rex 里时把所在 session/block 一起登记：nvim 侧据此把这个实例
+				// 映射到终端分屏里的具体位置（浮窗地图选目标用）。不在 rex 里就是 undefined。
+				rex:
+					process.env.REX_SESSION && process.env.REX_BLOCK
+						? { session: process.env.REX_SESSION, block: process.env.REX_BLOCK }
+						: undefined,
 			}),
 		);
 	}
