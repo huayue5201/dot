@@ -357,7 +357,17 @@ end
 
 --- 当前的选择方式（"map"|"list"）
 ---@return string
-function M.picker()
+--- 读写多候选时的选择器："map"（rex 分屏地图，默认）或 "list"（vim.ui.select）
+---@param value string|nil 省略时只读
+---@return string
+function M.picker(value)
+	if value ~= nil then
+		if value ~= "map" and value ~= "list" then
+			vim.notify(("[ai] picker 只能是 map 或 list（当前 %s）"):format(picker), vim.log.levels.WARN)
+		else
+			picker = value
+		end
+	end
 	return picker
 end
 

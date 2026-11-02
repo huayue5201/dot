@@ -2,7 +2,7 @@
 ---@brief 浮窗输入框：写问题，普通模式 <CR> 交给 on_submit(text)。不认识任何 agent。
 --
 -- 键位刻意不侵入 vim 的两种模式：
---   insert 里除了 <A-]>（minuet 拉补全）全走原生行为 —— <CR>/<C-j> 就是换行
+--   insert 里除了 <A-]>（minuet 拉补全）和 <C-s>（直接发送）全走原生行为 —— <CR>/<C-j> 就是换行
 --   normal 里 <CR> 发送、<Esc>/q 取消、<C-c> 取消
 --
 -- 为什么是浮窗而不是 :edit 临时文件 / codecompanion：提问是一次性的 5 秒动作，
@@ -40,7 +40,7 @@ function M.input(opts)
 		col = math.max(0, math.floor((ui_w - width) / 2)),
 		title = " " .. opts.title .. " ",
 		title_pos = "center",
-		footer = " <Esc> 退编辑 · 普通模式 <CR> 发送 · q 关闭 · <A-]> 补全 ",
+		footer = " <C-s> 直接发送 · <Esc> 退编辑 · 普通模式 <CR> 发送 · q 关闭 · <A-]> 补全 ",
 		footer_pos = "center",
 		noautocmd = true,
 	})
@@ -70,6 +70,8 @@ function M.input(opts)
 
 	-- 只在 normal 模式发送：insert 里的 <CR> 保持原生换行，<C-j> 保持原生换行
 	vim.keymap.set("n", "<CR>", submit, { buffer = buf, nowait = true, desc = "AI: 发送问题" })
+	-- insert 里想直接发就按 <C-s>：写完了不用先退普通模式
+	vim.keymap.set("i", "<C-s>", submit, { buffer = buf, nowait = true, desc = "AI: 发送问题" })
 	-- insert 模式下 <Esc>/<C-c> 保持默认（退出编辑模式，窗口留着）；normal 模式下才关窗
 	vim.keymap.set("n", "<Esc>", close, { buffer = buf, nowait = true, desc = "AI: 取消" })
 	vim.keymap.set("n", "q", close, { buffer = buf, nowait = true, desc = "AI: 取消" })

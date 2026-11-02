@@ -39,6 +39,8 @@ local function define_hl()
 	-- 浮层（rex 里被 float 出来的 pane）比平铺层亮一点，好在覆盖的地方看得出层次
 	api.nvim_set_hl(0, "AiMapFloat", { bg = blend(p.chip_bg, p.fg, 0.12), fg = p.dim })
 	api.nvim_set_hl(0, "AiMapFloatSel", { bg = blend(blend(p.chip_bg, p.fg, 0.12), p.green, 0.34), fg = p.green, bold = true })
+	-- 底部那行「窗口外：…」的说明，用轨道底色 + 暗字，不抢格子的注意力
+	api.nvim_set_hl(0, "AiMapLegend", { bg = p.bar_strip, fg = p.dim, italic = true })
 end
 
 ----------------------------------------------------------------------
@@ -118,10 +120,20 @@ end
 -- 布局 → 画布
 ----------------------------------------------------------------------
 
-local MIN_W, MIN_H = 2, 1
+
 
 -- 候选 → 键位：a、b、c…（超过 26 个就退回数字编号）
 local ALPHABET = "abcdefghijklmnopqrstuvwxyz"
+-- h/j/k/l 被方向键占用了：候选多于 7 个时，第 8 个候选的字母正好是 h，会和「往左
+-- 移动」撞车，所以分字母时跳过这四个。超过 22 个候选再用数字。
+local RESERVED = { h = true, j = true, k = true, l = true }
+local LETTERS = {}
+for i = 1, #ALPHABET do
+	local ch = ALPHABET:sub(i, i)
+	if not RESERVED[ch] then
+		LETTERS[#LETTERS + 1] = ch
+	end
+end
 
 local function cells_of(rect, W, H)
 	local x = math.floor(rect[1] * W + 0.5) + 1
@@ -146,60 +158,83 @@ local function pane_label(item)
 end
 
 --- 把一段字放在格子正中间（放不下就什么也不放）
-local function text_center(g, y0, y1, x0, x1, str, group)
-	if not str or str == "" then
-		return
-	end
-	local w = vim.fn.strdisplaywidth(str)
-	local y = math.floor((y0 + y1) / 2)
-	local x = x0 + math.max(0, math.floor((x1 - x0 + 1 - w) / 2))
-	text(g, y, x0, x1, string.rep(" ", math.max(0, x - x0)) .. str, group)
-end
 
 --- 把 rex 的叶子几何算成字符格（1-based，左下含端点），并标出「太小放不下标签」的
 ---@param panes table[]
 ---@param by_block table<string, table>
 ---@param W integer
 ---@param H integer
----@return table[] geom  { { pane, item, x0, y0, x1, y1, small } }
+---@return table[] geom  { { pane, item, x0, y0, x1, y1 } }
 local function geometry(panes, by_block, W, H)
 	local out = {}
 	for _, pane in ipairs(panes) do
 		local item = by_block[pane.block_id]
 		local x0, y0, x1, y1 = cells_of(pane.rect, W, H)
-		local small = (x1 - x0 + 1 < MIN_W) or (y1 - y0 + 1 < MIN_H)
-		table.insert(out, { pane = pane, item = item, x0 = x0, y0 = y0, x1 = x1, y1 = y1, small = small })
+		table.insert(out, { pane = pane, item = item, x0 = x0, y0 = y0, x1 = x1, y1 = y1 })
 	end
 	return out
 end
 
 --- 画一帧。整块都是格子，没有底栏——内容固定，不会因为候选多少而跳动。
-local function paint(panes, by_block, W, H, sel)
-	local geom = geometry(panes, by_block, W, H)
+local function paint(panes, by_block, W, H, sel, note)
+	-- 底部要留一行写字时，画布按 H-1 算，别让说明覆盖掉最下面那块 pane
+	local canvas_h = note and (H - 1) or H
+	local geom = geometry(panes, by_block, W, canvas_h)
 	local g = grid_new(W, H)
-	local hit = {}
+	local hit, owner = {}, {}
 	for _, t in ipairs(geom) do
-		if not t.small then
-			local float = t.pane.kind == "floating"
-			local group
-			if t.item then
-				if sel == t.item then
-					group = float and "AiMapFloatSel" or "AiMapSel"
-				else
-					group = "AiMapAgent"
-				end
+		local float = t.pane.kind == "floating"
+		local group
+		if t.item then
+			if sel == t.item then
+				group = float and "AiMapFloatSel" or "AiMapSel"
 			else
-				group = float and "AiMapFloat" or "AiMapPane"
+				group = "AiMapAgent"
 			end
-			fill(g, t.y0, t.y1, t.x0, t.x1, group)
-			text_center(g, t.y0, t.y1, t.x0, t.x1, pane_label(t.item), group)
-			for y = t.y0, t.y1 do
-				hit[y] = hit[y] or {}
-				for x = t.x0, t.x1 do
-					hit[y][x] = t.item
-				end
+		else
+			group = float and "AiMapFloat" or "AiMapPane"
+		end
+		fill(g, t.y0, t.y1, t.x0, t.x1, group)
+		for y = t.y0, t.y1 do
+			hit[y] = hit[y] or {}
+			owner[y] = owner[y] or {}
+			for x = t.x0, t.x1 do
+				hit[y][x] = t.item
+				owner[y][x] = t.pane
 			end
 		end
+	end
+
+	-- 字母第二遍再放：浮层会盖住底下那块 pane 的中心，如果第一遍就把字母写进去，
+	-- 被盖住的字母就消失了（用户看得见的那块却没有字母）。所以只往「还有自己底色」
+	-- 的格子里放，取这些格子的中间一个。
+	for _, t in ipairs(geom) do
+		local letter = pane_label(t.item)
+		if letter and letter ~= "" then
+			local cells = {}
+			for y = t.y0, t.y1 do
+				for x = t.x0, t.x1 do
+					if owner[y] and owner[y][x] == t.pane then
+						cells[#cells + 1] = { y, x }
+					end
+				end
+			end
+			if #cells > 0 then
+				local mid = cells[math.floor((#cells + 1) / 2)]
+				local float = t.pane.kind == "floating"
+				local group
+				if t.item then
+					group = (sel == t.item) and (float and "AiMapFloatSel" or "AiMapSel") or "AiMapAgent"
+				else
+					group = float and "AiMapFloat" or "AiMapPane"
+				end
+				text(g, mid[1], mid[2], mid[2], letter, group)
+			end
+		end
+	end
+
+	if note and note ~= "" then
+		text(g, H, 1, W, note, "AiMapLegend")
 	end
 
 	local rows, segs = rows_of(g, W, H)
@@ -306,7 +341,7 @@ function M.select(opts)
 
 	local by_block = {}
 	for i, it in ipairs(items) do
-		it.letter = ALPHABET:sub(i, i)
+		it.letter = LETTERS[i]
 		if it.letter == "" then
 			it.letter = nil
 		end
@@ -377,8 +412,26 @@ function M.select(opts)
 		})
 	end
 
+	--- 不在当前 window 里的候选：地图上没格子，用底部一行列出来（字母照样能按）
+	local function outside_note()
+		local located = {}
+		for _, p in ipairs(panes) do
+			located[p.block_id] = true
+		end
+		local out = {}
+		for _, it in ipairs(items) do
+			if it.letter and it.block_id and not located[it.block_id] then
+				out[#out + 1] = it.letter .. " " .. (it.name or it.label or "?")
+			end
+		end
+		if #out == 0 then
+			return nil
+		end
+		return "窗口外：" .. table.concat(out, "  ")
+	end
+
 	local function repaint()
-		local painted = paint(panes, by_block, W, H, sel)
+		local painted = paint(panes, by_block, W, H, sel, outside_note())
 		local lines, segs, h = painted[1], painted[2], painted[3]
 		hit = h
 		vim.bo[buf].modifiable = true

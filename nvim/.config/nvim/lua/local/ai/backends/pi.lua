@@ -19,6 +19,21 @@ local function ask_dir()
 	return cache .. "/pi-agent/ask"
 end
 
+--- pid 还活着吗：uv.kill(pid, 0) 只是探活，返回 true 才算活着；EPERM 说明
+--- 进程存在但我们没权限发信号，同样算活着
+---@param pid integer|nil
+---@return boolean
+local function alive(pid)
+	if not pid or pid <= 0 then
+		return false
+	end
+	local ok, res, err_name = pcall(vim.uv.kill, pid, 0)
+	if ok and res then
+		return true
+	end
+	return ok and err_name == "EPERM"
+end
+
 --- 扫描登记目录，返回活着的 pi 实例（活跃度降序）
 ---@return table[]
 function M.targets()
@@ -33,8 +48,11 @@ function M.targets()
 				return vim.json.decode(table.concat(vim.fn.readfile(dir .. "/" .. name), "\n"))
 			end)
 			if ok and type(entry) == "table" and entry.sock then
-				-- pid 还活着才认（uv.kill 不走子进程，~0.001ms vs vim.fn.system 的 ~1.9ms）
-				if pcall(vim.uv.kill, tonumber(entry.pid) or -1, 0) then
+				-- pid 还活着才认（uv.kill 不走子进程，~0.001ms vs vim.fn.system 的 ~1.9ms）。
+				-- 注意 uv.kill 不抛异常，返回值才是结果：活着给 true，死了给 nil + "ESRCH"，
+				-- 所以我们自己的进程无权发信号时是 nil + "EPERM"（那也是活着），
+				-- 别用 pcall 的成败判断存活，之前就是这么错的：死实例会一直留在列表里。
+				if alive(tonumber(entry.pid)) then
 					local embedded = entry.embedded == true
 					table.insert(out, {
 						id = tostring(entry.pid),
