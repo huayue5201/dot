@@ -2,9 +2,10 @@
 ---@brief 浮窗地图：按 rex 的真实分屏布局画出格子，点哪个格子就发给哪个 pane 里的 agent。
 --
 -- 只在 rex 里、且能定位到 block 时才用（见 rex.lua）；否则调用方回落 vim.ui.select。
--- 交互：每个格子里一个字母（按候选顺序 a、b、c…），按字母直接选中；
+-- 交互：每个格子里「图标 + 字母」（按候选顺序 a、b、c…），按字母直接选中；
 -- h/j/k/l 按方向选中相邻的格子，也可以直接单击格子；q 或 <Esc> 取消。
 -- 画布是只读的静态图：不显示光标（Cursor 映射成背景色），没有底部帮助文字。
+-- 标签居中放在「浮层盖完之后仍然看得见」的那块区域里，被浮层切得放不下时退化成只放字母。
 local api = vim.api
 local M = {}
 
@@ -41,6 +42,29 @@ local function define_hl()
 	api.nvim_set_hl(0, "AiMapFloatSel", { bg = blend(blend(p.chip_bg, p.fg, 0.12), p.green, 0.34), fg = p.green, bold = true })
 	-- 底部那行「窗口外：…」的说明，用轨道底色 + 暗字，不抢格子的注意力
 	api.nvim_set_hl(0, "AiMapLegend", { bg = p.bar_strip, fg = p.dim, italic = true })
+end
+
+-- 图标用 agent 自己的品牌色：只设 fg，底色仍由格子那组提供
+-- （extmark 的 hl_group 支持数组，后者叠在前者上面）
+local icon_groups = {}
+local function icon_group(color)
+	if type(color) ~= "string" or color == "" then
+		return nil
+	end
+	local name = "AiMapIcon" .. color:gsub("[^%w]", "")
+	if not icon_groups[name] then
+		api.nvim_set_hl(0, name, { fg = color, default = true })
+		icon_groups[name] = true
+	end
+	return name
+end
+
+--- 把基础组和叠加组合成 extmark 能吃的 hl_group
+local function hl(base, extra)
+	if extra then
+		return { base, extra }
+	end
+	return base
 end
 
 ----------------------------------------------------------------------
@@ -89,20 +113,29 @@ local function text(g, y, x0, x1, str, group)
 	end
 end
 
+--- 高亮组可能是字符串或数组（叠加），合并相邻段时按内容比而不是按引用比
+local function group_key(grp)
+	if type(grp) == "table" then
+		return table.concat(grp, ",")
+	end
+	return grp or "AiMapBg"
+end
+
 --- 把画布压成行 + 每行的「字节区间 → 高亮组」段
 local function rows_of(g, W, H)
 	local lines, segs = {}, {}
 	for y = 1, H do
 		local parts, row_segs = {}, {}
-		local byte, run_group, run_start = 0, nil, 0
+		local byte, run_group, run_key, run_start = 0, nil, nil, 0
 		for x = 1, W do
 			local cell = g[y][x] or { ch = " ", group = "AiMapBg" }
 			local ch, grp = cell.ch or " ", cell.group or "AiMapBg"
-			if grp ~= run_group then
+			local key = group_key(grp)
+			if key ~= run_key then
 				if run_group then
 					table.insert(row_segs, { run_start, byte, run_group })
 				end
-				run_group, run_start = grp, byte
+				run_group, run_key, run_start = grp, key, byte
 			end
 			table.insert(parts, ch)
 			byte = byte + #ch
@@ -159,6 +192,66 @@ end
 
 --- 把一段字放在格子正中间（放不下就什么也不放）
 
+--- 在「浮层盖完之后还看得见」的格子里找一段连续区间放标签，返回 y、起点、终点。
+--- 先取可见区 bbox 的中心；中心被浮层压掉时自动挪到离中心最近的可见段上。
+---@param t table geometry 条目
+---@param owner table<integer, table<integer, table>> 每格现在归谁（后画的浮层会覆盖）
+---@param need integer 需要的连续显示宽度
+---@return integer? y, integer? x, integer? stop
+local function place_label(t, owner, need)
+	local minx, maxx, miny, maxy = math.huge, -1, math.huge, -1
+	for y = t.y0, t.y1 do
+		for x = t.x0, t.x1 do
+			if owner[y] and owner[y][x] == t.pane then
+				if x < minx then
+					minx = x
+				end
+				if x > maxx then
+					maxx = x
+				end
+				if y < miny then
+					miny = y
+				end
+				if y > maxy then
+					maxy = y
+				end
+			end
+		end
+	end
+	if maxx < minx or maxy < miny then
+		return nil
+	end
+	local cx, cy = (minx + maxx) / 2, (miny + maxy) / 2
+	local best, best_score
+	for y = miny, maxy do
+		local start
+		for x = minx, maxx + 1 do
+			local vis = x <= maxx and owner[y] and owner[y][x] == t.pane
+			if vis then
+				start = start or x
+			elseif start then
+				local len = x - start
+				if len >= need then
+					local at = start + math.floor((len - need) / 2)
+					-- 按「标签中心 → 可见区中心」的直线距离挑：没被遮的格子正好落中心；
+					-- 中心被浮层压掉时，宁可往上下错一行也要保持左右居中。
+					local dx = at + (need - 1) / 2 - cx
+					local dy = y - cy
+					local score = dx * dx + dy * dy
+					if not best_score or score < best_score then
+						best, best_score = { y, at, start + len - 1 }, score
+					end
+				end
+				start = nil
+			end
+		end
+	end
+	if not best then
+		return nil
+	end
+	return best[1], best[2], best[3]
+end
+
 --- 把 rex 的叶子几何算成字符格（1-based，左下含端点），并标出「太小放不下标签」的
 ---@param panes table[]
 ---@param by_block table<string, table>
@@ -205,30 +298,45 @@ local function paint(panes, by_block, W, H, sel, note)
 		end
 	end
 
-	-- 字母第二遍再放：浮层会盖住底下那块 pane 的中心，如果第一遍就把字母写进去，
-	-- 被盖住的字母就消失了（用户看得见的那块却没有字母）。所以只往「还有自己底色」
-	-- 的格子里放，取这些格子的中间一个。
+	-- 标签第二遍再放：浮层会盖住底下那块 pane 的中心，如果第一遍就写进去，
+	-- 被盖住的标签就消失了（用户看得见的那块反而没有标签）。所以只在「还有自己
+	-- 底色」的格子里找位置，并且居中放在这块可见区域的中心。
 	for _, t in ipairs(geom) do
 		local letter = pane_label(t.item)
-		if letter and letter ~= "" then
-			local cells = {}
-			for y = t.y0, t.y1 do
-				for x = t.x0, t.x1 do
-					if owner[y] and owner[y][x] == t.pane then
-						cells[#cells + 1] = { y, x }
-					end
-				end
-			end
-			if #cells > 0 then
-				local mid = cells[math.floor((#cells + 1) / 2)]
-				local float = t.pane.kind == "floating"
-				local group
-				if t.item then
-					group = (sel == t.item) and (float and "AiMapFloatSel" or "AiMapSel") or "AiMapAgent"
+		if letter ~= "" then
+			local float = t.pane.kind == "floating"
+			local group
+			if t.item then
+				if sel == t.item then
+					group = float and "AiMapFloatSel" or "AiMapSel"
 				else
-					group = float and "AiMapFloat" or "AiMapPane"
+					group = "AiMapAgent"
 				end
-				text(g, mid[1], mid[2], mid[2], letter, group)
+			else
+				group = float and "AiMapFloat" or "AiMapPane"
+			end
+			-- 图标 + 空格 + 字母当成一个整体居中；格子被浮层切得太窄就只放字母
+			local icon = t.item and t.item.icon or nil
+			if icon == "" then
+				icon = nil
+			end
+			local iw = icon and vim.fn.strdisplaywidth(icon) or 0
+			local lw = vim.fn.strdisplaywidth(letter)
+			local y, x, stop
+			if icon then
+				y, x, stop = place_label(t, owner, iw + 1 + lw)
+			end
+			if not y then
+				icon, iw = nil, 0
+				y, x, stop = place_label(t, owner, lw)
+			end
+			if y then
+				if icon then
+					text(g, y, x, stop, icon, hl(group, icon_group(t.item.icon_hl)))
+					text(g, y, x + iw + 1, stop, letter, hl(group, "Bold"))
+				else
+					text(g, y, x, stop, letter, hl(group, "Bold"))
+				end
 			end
 		end
 	end

@@ -45,6 +45,15 @@ local function icon_prefix(mod, t)
 	return icon .. " "
 end
 
+--- 图标的主色（品牌色）：跟字形同一条解析顺序，取不到就 nil，由地图继承格子前景色
+---@param mod table|nil
+---@param t table|nil
+---@return string|nil
+local function icon_color(mod, t)
+	local icons = require("local.ai.icons")
+	return icons.color(t and t.id) or icons.color(mod and mod.id)
+end
+
 local function pick_opts()
 	return {
 		related = matching == "related" or matching == "single",
@@ -165,6 +174,7 @@ local function map_select(mod, cands, note_avoid, cb)
 			label = t.label,
 			name = vim.fn.fnamemodify(t.cwd or "?", ":t"),
 			icon = icon_prefix(mod, t):gsub("%s+$", ""),
+			icon_hl = icon_color(mod, t),
 			tier = c.tier,
 		})
 	end
@@ -380,7 +390,7 @@ function M.setup(opts)
 	opts = opts or {}
 	matching = opts.matching or "exact"
 	picker = opts.picker or "map"
-	require("local.ai.icons").setup(opts.icons)
+	require("local.ai.icons").setup(opts.icons, opts.icon_colors)
 	backends.register(require("local.ai.backends.pi"))
 	for _, mod in ipairs(opts.extra or {}) do
 		backends.register(mod)

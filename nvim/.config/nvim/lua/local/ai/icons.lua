@@ -22,19 +22,31 @@ local glyphs = {
 	generic = vim.fn.nr2char(0xF120),
 }
 
+--- 图标主色（品牌色）。没列在这里的返回 nil，调用方继承所在格子的前景色。
+local colors = {
+	-- Anthropic 的橙，Claude Code 的标识色
+	claude = "#d97757",
+}
+
+---把 id 归一到 glyphs 的 key（"claude-code" / "claude_code" → "claude"）
 ---@param key string|nil
 ---@return string|nil
-local function lookup(key)
+local function base_key(key)
 	if type(key) ~= "string" or key == "" then
 		return nil
 	end
-	local icon = glyphs[key]
-	if icon then
-		return icon
+	if glyphs[key] then
+		return key
 	end
-	-- "claude-code" / "claude_code" 这类 id 也认
 	local base = key:lower():gsub("[^%w]+", "-"):match("^[%a]+")
-	return base and glyphs[base] or nil
+	return (base and glyphs[base]) and base or nil
+end
+
+---@param key string|nil
+---@return string|nil
+local function lookup(key)
+	local k = base_key(key)
+	return k and glyphs[k] or nil
 end
 
 --- 取某个 agent 的图标；认不出来时给 fallback（不会返回 nil）
@@ -51,11 +63,25 @@ function M.find(key)
 	return lookup(key)
 end
 
----@param map table<string, string>|nil
-function M.setup(map)
+--- 取某个 agent 图标的主色；没配就返回 nil（调用方自己回落）
+---@param key string|nil
+---@return string|nil
+function M.color(key)
+	local k = base_key(key)
+	return k and colors[k] or nil
+end
+
+---@param map table<string, string>|nil 字形覆盖
+---@param palette table<string, string>|nil 颜色覆盖（hex）
+function M.setup(map, palette)
 	for k, v in pairs(map or {}) do
 		if type(v) == "string" and v ~= "" then
 			glyphs[k] = v
+		end
+	end
+	for k, v in pairs(palette or {}) do
+		if type(v) == "string" and v ~= "" then
+			colors[k] = v
 		end
 	end
 end
@@ -63,6 +89,11 @@ end
 ---@return table<string, string>
 function M.all()
 	return vim.deepcopy(glyphs)
+end
+
+---@return table<string, string>
+function M.all_colors()
+	return vim.deepcopy(colors)
 end
 
 return M
