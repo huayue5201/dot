@@ -18,12 +18,6 @@ local highlight_defs = {
 	SaveDotDirty = { fg = "#E4080A", bold = true }, -- 当前 buffer 未保存（红点）
 	SaveDotClean = { fg = "#50fa7b", bold = true }, -- 当前 buffer 已保存（绿点）
 
-	-- 模式高亮
-	NormalMode = { bold = true },
-	InsertMode = { bold = true },
-	VisualMode = { bold = true },
-	ReplaceMode = { bold = true },
-
 	-- 其他高亮
 	PinkHighlight = { fg = "#ffde7d", bold = true },
 	StatuslineIcon = { fg = "#ffc125", bold = true },
@@ -36,6 +30,9 @@ local highlight_defs = {
 	-- 段间分隔符（低对比，只做视觉分界）
 	StlSep = { fg = colors.darkgray },
 
+	-- 最右侧的 Neovim 徽标（Neovim 品牌绿）
+	NvimIcon = { fg = "#57A143", bold = true },
+
 	-- 数据库工作台（sqmeow）窗口角色
 	DbIcon = { fg = colors.cyan, bold = true },
 	DbLocked = { fg = colors.gray, italic = true },
@@ -46,51 +43,9 @@ for group, opts in pairs(highlight_defs) do
 end
 
 -- ================================
--- 模式配置
+-- 滚动条进度图标
 -- ================================
--- 更完整的 MODES 表（基于 :help mode() 列出的可能返回值）
-local MODES = {
-	-- Normal
-	["n"] = { label = "NORMAL", hl = "NormalMode" },
-	["no"] = { label = "N·OP_PENDING", hl = "NormalMode" },
-
-	-- Visual
-	["v"] = { label = "VISUAL", hl = "VisualMode" },
-	["V"] = { label = "V-LINE", hl = "VisualMode" }, -- visual line
-	["\22"] = { label = "V-BLOCK", hl = "VisualMode" }, -- visual block (Ctrl-V). \22 is the ASCII for Ctrl-V
-
-	-- Select (select mode, rarely used)
-	["s"] = { label = "SELECT", hl = "VisualMode" },
-	["S"] = { label = "S-LINE", hl = "VisualMode" },
-	["\19"] = { label = "S-BLOCK", hl = "VisualMode" }, -- Ctrl-S (if appears)
-
-	-- Insert / Replace / Command / Terminal
-	["i"] = { label = "INSERT", hl = "InsertMode" },
-	["ic"] = { label = "INSERT", hl = "InsertMode" }, -- insert completion
-	["ix"] = { label = "INSERT", hl = "InsertMode" }, -- insert mapping
-
-	["R"] = { label = "REPLACE", hl = "ReplaceMode" },
-	["Rv"] = { label = "V-REPLACE", hl = "ReplaceMode" }, -- virtual replace?
-
-	["c"] = { label = "COMMAND", hl = "DefaultMode" },
-	["cv"] = { label = "VIM EX", hl = "DefaultMode" }, -- Ex mode from vim
-	["ce"] = { label = "EX", hl = "DefaultMode" },
-
-	-- Hit-enter prompt, more prompt-like states
-	["r"] = { label = "PROMPT", hl = "DefaultMode" }, -- hit-enter prompt, etc.
-	["rm"] = { label = "MORE", hl = "DefaultMode" }, -- more-mode (for r? etc)
-	["r?"] = { label = "CONFIRM", hl = "DefaultMode" },
-
-	-- Operator-pending (after typed operator like d, c, y)
-	["o"] = { label = "OP-PENDING", hl = "DefaultMode" },
-
-	-- Terminal mode
-	["t"] = { label = "TERMINAL", hl = "DefaultMode" },
-}
-
--- ================================
--- 滚动条图标
--- ================================
+-- 15 帧进度字形（由 get_scrollbar 按当前行位置取帧）
 local PROGRESS_ICONS = {
 	" ",
 	" ",
@@ -108,35 +63,6 @@ local PROGRESS_ICONS = {
 	" ",
 	" ",
 }
-
--- ================================
--- 核心功能函数
--- ================================
--- 更鲁棒的 mode 显示函数
-function M.mode()
-	-- 使用 nvim_get_mode().mode，它返回精确的模式字符串（可能是多字符）
-	local current_mode = vim.api.nvim_get_mode().mode
-
-	-- 试直接匹配完整模式（优先精确匹配）
-	local mode_info = MODES[current_mode]
-	if not mode_info then
-		-- 如果没有精确匹配，尝试用第一个字符做退化匹配（如 "niI" -> "n"）
-		local short = current_mode:sub(1, 1)
-		mode_info = MODES[short] or { label = current_mode, hl = "DefaultMode" }
-	end
-
-	-- 返回带高亮的文本
-	return "%#StatuslineIcon# %*"
-		.. "%#"
-		.. mode_info.hl
-		.. "#"
-		.. mode_info.label
-		.. "%#StatuslineIcon#  %*"
-		.. "%#"
-		.. mode_info.hl
-		.. "#"
-		.. "%*"
-end
 
 -- ================================
 -- 保存提示功能
@@ -235,7 +161,7 @@ local function todo_markers()
 		return ""
 	end
 	-- 使用 StatuslineIcon 高亮组保持一致
-	return string.format("%%#StatuslineIcon# %%#Normal#%d ", count)
+	return string.format("%%#StatuslineIcon# %%*%d ", count)
 end
 
 -- ================================
@@ -304,7 +230,6 @@ end
 
 -- 各模块构建函数
 local builders = {
-	mode = M.mode,
 	save = save_status,
 	lsp = lsp,
 	todo = todo_markers,
@@ -348,9 +273,12 @@ end
 
 --- 拼接最终状态栏（%l/%c/%p 由 Neovim 在绘制时展开，无需 Lua 计算）
 --- 分隔策略：builder 只负责内容，不负责空格；段间的空格统一在这里加。
---- 左侧（mode/save/lsp）用两个空格，右侧分组之间用 dim 的 │，尾部
+--- 左侧（save/lsp）用两个空格，右侧分组之间用 dim 的 │，尾部
 --- 行列/滚动条/百分比视为一块，内部仍用空格。
 local SEP = " %#StlSep#│%* "
+
+--- 最右侧的 Neovim 徽标（nerd font，nf-md-vim）
+local NVIM_ICON = "  "
 
 --- 去掉段内容首尾的空白（builder 历史上各自带不同数量的尾随空格）
 ---@param value string
@@ -375,11 +303,18 @@ local function join(pieces, sep)
 end
 
 local function compose()
-	local left = join({ state.mode, state.save, state.lsp, "%#Normal#" }, "  ")
 	local tail = "%l:%c  " .. state.scroll .. " " .. "%p"
 	local right = join({ state.todo, state.dap, "%{%v:lua.Statusline.db()%}", state.vcs, state.upstream, tail }, SEP)
 
-	return "%#Normal#" .. left .. "%=" .. right .. " "
+	-- 徽标固定在最左、单独成段：状态模块全空时也不会留下悬空分隔符
+	local badge = "%#NvimIcon#" .. NVIM_ICON .. "%*"
+	local status = join({ state.save, state.lsp }, "  ")
+	local left = status ~= "" and (badge .. SEP .. status) or badge
+
+	-- 整条状态栏只用 StatusLine 一种底色：`%*` 复位到 StatusLine。不要用
+	-- `%#Normal#`——Normal 的 bg 与 StatusLine 不同，会在左边段与 `%=` 填充区
+	-- 之间留下一条颜色不一样的「断口」。
+	return "%*" .. left .. "%*%=" .. right .. " "
 end
 
 --- 应用：重建脏模块 -> 更新 statusline -> 重绘
@@ -481,15 +416,6 @@ vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
 	end,
 })
 
--- 模式变化：只更新模式
-vim.api.nvim_create_autocmd("ModeChanged", {
-	group = statusline_group,
-	callback = function()
-		enqueue("mode")
-		apply()
-	end,
-})
-
 -- 缓冲区/修改状态变化
 vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "BufAdd", "BufDelete", "BufWipeout", "BufWritePost" }, {
 	group = statusline_group,
@@ -499,6 +425,9 @@ vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "BufAdd", "BufDelete", "Bu
 		enqueue("todo")
 		enqueue("lsp")
 		enqueue("upstream")
+		-- 滚动条是 Lua 算的（不像 %l/%p 由 Neovim 绘制时展开），换 buffer/窗口必须重算，
+		-- 否则会一直显示上一个 buffer 的进度位置。
+		enqueue("scroll")
 		apply()
 	end,
 })
