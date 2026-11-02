@@ -288,6 +288,30 @@ function M.select(opts)
 	sel = sel or located[1]
 
 	local hit
+	local win
+	-- 浮窗居中：用 UI 的真实尺寸而不是 vim.o.lines。vim.o.lines 含底部的命令行行，
+	-- 而消息区/cmdline 高度变化时编辑器区域会跟着变，按 o.lines 算就会偏移。
+	local function editor_size()
+		local ui = api.nvim_list_uis()[1]
+		if not ui then
+			return vim.o.columns, vim.o.lines
+		end
+		return ui.width, ui.height - (vim.o.cmdheight or 1)
+	end
+
+	-- 每次重画都重新贴一次位置：命令行/消息区尺寸变化时，浮窗不该被推着走。
+	local function place()
+		if not (win and api.nvim_win_is_valid(win)) then
+			return
+		end
+		local cols, rows = editor_size()
+		pcall(api.nvim_win_set_config, win, {
+			relative = "editor",
+			row = math.max(0, math.floor((rows - H) / 2)),
+			col = math.max(0, math.floor((cols - W) / 2)),
+		})
+	end
+
 	local function repaint()
 		local painted = paint(panes, by_block, W, H, sel)
 		local lines, segs, h = painted[1], painted[2], painted[3]
@@ -295,6 +319,7 @@ function M.select(opts)
 		vim.bo[buf].modifiable = true
 		api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 		vim.bo[buf].modifiable = false
+		place()
 		api.nvim_buf_clear_namespace(buf, NS, 0, -1)
 		for y, list in ipairs(segs) do
 			for _, seg in ipairs(list) do
@@ -311,10 +336,11 @@ function M.select(opts)
 
 	repaint()
 
-	local win = api.nvim_open_win(buf, true, {
+	local cols0, rows0 = editor_size()
+	win = api.nvim_open_win(buf, true, {
 		relative = "editor",
-		row = math.floor((vim.o.lines - H) / 2),
-		col = math.floor((vim.o.columns - W) / 2),
+		row = math.max(0, math.floor((rows0 - H) / 2)),
+		col = math.max(0, math.floor((cols0 - W) / 2)),
 		width = W,
 		height = H,
 		style = "minimal",
@@ -340,6 +366,10 @@ function M.select(opts)
 	vim.wo[win].winbar = ""
 	-- Cursor 映射成底色 = 光标不可见：这是只读画布，光标块只会显得脏。
 	vim.wo[win].winhighlight = "Normal:AiMapBg,Cursor:AiMapBg,CursorIM:AiMapBg"
+	-- 光标要在格子之间走动，'scrolloff' 一介入浮窗就会自己滚（画布宽度 == 窗口高度，
+	-- 滚动不会有空行，视觉上就成了「整块地图往上平移」）。关掉。
+	vim.wo[win].scrolloff = 0
+	vim.wo[win].sidescrolloff = 0
 	api.nvim_set_current_win(win)
 
 	local finished = false
@@ -376,6 +406,11 @@ function M.select(opts)
 	end
 
 	-- 当前格子（光标看不见，所以只靠高亮表达）：格子里没有候选时不算
+	api.nvim_create_autocmd("VimResized", {
+		group = api.nvim_create_augroup("AiMapPlace", { clear = true }),
+		callback = place,
+	})
+
 	local function at_current()
 		local row = api.nvim_win_get_cursor(win)[1]
 		local col = api.nvim_win_get_cursor(win)[2] + 1
