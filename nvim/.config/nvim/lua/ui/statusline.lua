@@ -278,7 +278,7 @@ end
 local SEP = " %#StlSep#│%* "
 
 --- 最右侧的 Neovim 徽标（nerd font，nf-md-vim）
-local NVIM_ICON = "  "
+local NVIM_ICON = "  "
 
 --- 去掉段内容首尾的空白（builder 历史上各自带不同数量的尾随空格）
 ---@param value string
