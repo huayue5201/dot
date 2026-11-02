@@ -6,6 +6,7 @@
 --   registry / servers / state / icons / statusline   与具体 server 无关的基础设施
 --   capabilities / diagnostics / autocmds / keys      全局行为（capabilities、诊断 UI、autocmd、键位）
 --   panel.lua     LSP 控制面板（浮窗）
+--   lightbulb.lua code action 灯泡浮窗（全局，替代 nvim-lightbulb）
 --   actions.lua   跨模块的用户动作（runnables、code lens、外部文档、重启 …）
 --   features/     单个 LSP 能力的客户端实现（每个 feature 保持自包含，由 autocmds 挂接）
 --     code_lens.lua          渲染 + 鼠标交互 + 执行
@@ -24,6 +25,7 @@ function M.setup()
 	require("lsp_ext.keys").global() -- 全局按键映射
 	require("lsp_ext.features.hover_scroll").setup() -- hover 浮窗不进入也能滚
 	require("lsp_ext.panel").setup() -- :LspPanel 控制面板命令
+	require("lsp_ext.lightbulb").setup() -- code action 灯泡浮窗（CursorHold 全局触发，非按 client 装配）
 end
 
 return M

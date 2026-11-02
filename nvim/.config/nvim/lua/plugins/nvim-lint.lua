@@ -1,6 +1,7 @@
 -- https://github.com/mfussenegger/nvim-lint
--- 作用：给只有 tree-sitter/sqlfluff 的 SQL buffer 补上语法诊断。
--- 只启用了 sqlfluff，并且只保留解析错误（PRS），不刷风格类规则。
+-- 作用：补 LSP 覆盖不到的诊断。
+--   * sql = sqlfluff：只保留解析错误（PRS），不刷风格类规则。
+--   * make = checkmake：Makefile 规则检查（minphony/tab 缩进等），brew install checkmake
 return {
 	"mfussenegger/nvim-lint",
 	config = function()
@@ -8,6 +9,7 @@ return {
 
 		lint.linters_by_ft = {
 			sql = { "sqlfluff" },
+			make = { "checkmake" },
 		}
 
 		-- https://github.com/sqlfluff/sqlfluff

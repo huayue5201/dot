@@ -1,4 +1,8 @@
--- 拼写检查：只对文本类 buffer 自动开，代码里靠 <leader>zw 手动
+-- 拼写检查的「词典层」：spelllang / spellfile / 种子词 / zg 后的 mkspell
+--
+-- 注意：markdown 等文本 buffer 的**显示**交给 spellwand.nvim（见 lsp/spellwand.lua），
+-- 那边把同一个 spell 引擎包成 LSP，出 diagnostics + code action，不再有红波浪线。
+-- 所以这里不再 vim.wo.spell = true；<leader>zw 保留作应急（原生高亮 + z=）。
 --
 -- 两个关键点：
 --   1. `cjk` 是 vim 内置的 «东亚洲字符不标红» 支持（:h spell-cjk），中文注释能忍全靠它；
@@ -129,8 +133,7 @@ function M.setup()
 		group = group,
 		pattern = vim.tbl_keys(TEXT_FT),
 		callback = function()
-			vim.wo.spell = true
-			vim.w.spell_auto = true -- 记住：这个窗口的 spell 是我们自动开的
+			-- 不再开原生高亮（spellwand 负责显示），只保证词典选项就位
 			vim.bo.spellfile = ADD_FILE
 			vim.bo.spelllang = spelllang()
 			-- camel：只在文档里拆驼峰（DynamicConfig → Dynamic + Config），代码里拆了反而更吵
@@ -138,7 +141,7 @@ function M.setup()
 		end,
 	})
 
-	-- 同一个窗口切回代码时把自动开的 spell 关掉（spell 是窗口选项，不关就会漏到代码 buffer 里）
+	-- 切到代码 buffer 时把（手动开的）原生高亮关掉，避免漏到代码里
 	vim.api.nvim_create_autocmd("FileType", {
 		group = group,
 		pattern = "*",
@@ -162,7 +165,7 @@ function M.setup()
 		vim.bo.spellfile = ADD_FILE
 		vim.bo.spelllang = spelllang()
 		vim.wo.spell = not vim.wo.spell
-		vim.w.spell_auto = nil -- 手动开的就别自动关
+		vim.w.spell_auto = vim.wo.spell -- 手动开的就别自动关
 	end, { desc = "拼写检查开关" })
 end
 

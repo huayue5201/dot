@@ -37,6 +37,10 @@ return {
 				-- markdown = { "prettier" }, -- 若装了 prettier，可改为整体格式化 markdown（含表格/列表换行）
 				-- https://github.com/sqlfluff/sqlfluff
 				sql = { "sqlfluff" },
+				-- https://github.com/EbodShojaei/bake （mbake：Makefile 格式化/校验，
+				-- conform 内置 formatter 名叫 bake，命令是 `mbake format --stdin`；
+				-- 由 brew 之外的 uv 管理：uv tool install mbake）
+				make = { "bake" },
 				-- 通配：所有 filetype 保存时顺带清理行尾空格（替代原来的 BufWritePre %s 全量替换）
 				["*"] = { "trim_whitespace" },
 			},

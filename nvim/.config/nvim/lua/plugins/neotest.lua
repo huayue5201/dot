@@ -70,6 +70,7 @@ return {
 
 		-- FIX(neotest-golang#599): 表驱动测试发现是 O(N²)（1000 行 = 41s，堵死 neotest
 		-- 的 discovery 子进程）。上游修好后删掉下面这一行 + lua/fix/ 里对应文件。
+		-- 是否已修：:FixStatus（lua/fix/init.lua 的守卫会盯着上游源码）
 		require("fix.neotest_golang_table_tests").install()
 
 		vim.keymap.set("n", "<leader>tr", function()

@@ -53,7 +53,7 @@
       "src": "https://github.com/propilideno/buffer-preview.nvim"
     },
     "bufferline.nvim": {
-      "rev": "4dab1bbf124db72730e248a4973b27e84b4bd3df",
+      "rev": "66c4070e506669f99799f743c0fd8817b7d5f18d",
       "src": "/Users/lijia/neovim-plugins/bufferline.nvim"
     },
     "cash.nvim": {

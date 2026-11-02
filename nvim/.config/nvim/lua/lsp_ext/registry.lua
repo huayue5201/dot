@@ -52,7 +52,16 @@ function M._load_all_lsp_configs()
 	local configs = {}
 	for _, path in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
 		local filename = vim.fn.fnamemodify(path, ":t:r")
-		local ok, config = pcall(dofile, path)
+		-- 优先用 vim.lsp.config 解析后的配置：rtp 里所有同名 lsp/*.lua 会被
+		-- deep_extend 合并、vim.lsp.config(name, ...) 优先级最高，那才是 nvim 真正
+		-- 启动 client 时用的那份。单独 dofile 只能拿到「某一个文件」：插件自带的
+		-- lsp/xxx.lua 会盖掉用户的同名文件（filetypes 丢了 / settings 被打回默认值）。
+		local ok, config = pcall(function()
+			return vim.lsp.config[filename]
+		end)
+		if not ok or type(config) ~= "table" then
+			ok, config = pcall(dofile, path)
+		end
 
 		if ok and type(config) == "table" then
 			local valid, err = M._validate_lsp_config(config)
