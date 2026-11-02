@@ -425,15 +425,17 @@ function M.select(opts)
 		close(nil)
 	end, "取消")
 
-	-- h/j/k/l：按方向选中相邻的格子（不移动光标，直接选）
+	-- h/j/k/l：把高亮移到相邻的格子（不直接发送，回车才确认）
 	for _, dir in ipairs({ "h", "j", "k", "l" }) do
 		map(dir, function()
 			local pane = neighbour(panes, current_pane(), dir)
 			local item = pane and by_block[pane.block_id]
 			if item then
-				close(item)
+				sel = item
+				move_to(item)
+				repaint()
 			end
-		end, "往 " .. dir .. " 方向选")
+		end, "往 " .. dir .. " 方向移动")
 	end
 	for _, it in ipairs(items) do
 		if it.letter then
