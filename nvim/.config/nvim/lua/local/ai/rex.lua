@@ -80,14 +80,24 @@ local function flatten(node, out)
 	flatten(split.after, out)
 end
 
---- 展平一个 window 的 tiled 布局 → { { block_id, rect }, ... }
+--- 展平一个 window 的所有层 → { { block_id, rect, kind }, ... }
+--
+-- 数组顺序就是叠放顺序：tiled 层在最底下，floating 层按数组顺序往上叠（越靠后
+-- 越靠前，和 rex raise_layer/lower_layer 的顺序一致）。rect 已经是相对整个 window
+-- 的绝对坐标（浮层把自己的 bounds 也写进了 rect），所以可以直接一层层覆盖着画。
 ---@param window table
 ---@return table[]
 function M.panes(window)
 	local out = {}
 	for _, layer in ipairs((window or {}).layers or {}) do
-		if layer.kind == "tiled" and layer.layout then
-			flatten(layer.layout, out)
+		local kind = layer.kind or "tiled"
+		if layer.layout then
+			local layer_panes = {}
+			flatten(layer.layout, layer_panes)
+			for _, p in ipairs(layer_panes) do
+				p.kind = kind
+				table.insert(out, p)
+			end
 		end
 	end
 	return out

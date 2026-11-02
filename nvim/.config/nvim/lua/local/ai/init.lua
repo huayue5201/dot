@@ -30,14 +30,18 @@ local pinned = nil
 --- 多候选时的选择器："map"（rex 分屏地图，默认）/ "list"（vim.ui.select 列表）
 local picker = "map"
 
---- 后端图标（可缺省）。选择器里统一「图标 名字」的排法，一眼看清是哪个 agent
+--- 图标：实例自带的优先，其次按实例 id / 后端 id 查 icons 表，最后落到通用机器人字形。
+--- 选择器里统一「图标 名字」的排法，一眼看清是哪个 agent
 ---@param mod table|nil
----@return string prefix 带尾空格，没有图标时是空串
-local function icon_prefix(mod)
-	local icon = mod and mod.icon
-	if type(icon) ~= "string" or icon == "" then
-		return ""
-	end
+---@param t table|nil 具体实例（target），可自带 icon
+---@return string prefix 带尾空格
+local function icon_prefix(mod, t)
+	local icons = require("local.ai.icons")
+	local icon = (t and t.icon)
+		or (type(mod and mod.icon) == "string" and mod.icon ~= "" and mod.icon)
+		or icons.find(t and t.id)
+		or icons.find(mod and mod.id)
+		or icons.fallback
 	return icon .. " "
 end
 
@@ -97,6 +101,37 @@ end
 ---@param cb fun(target: table|nil)
 --- 把候选映射到 rex 的格子并弹地图；返回 false 表示「用不了地图」，调用方回落列表
 ---@return boolean opened
+--- 老的选择器：纯列表，跨 tab / 跨 window 的候选也都在这里（地图只管当前 window）
+local function list_select(mod, cands, note_avoid, cb)
+	vim.ui.select(cands, {
+		prompt = ("发到哪个 %s%s？（:AiTarget 可记住选择，地图里按 <Tab> 也能来这里）"):format(
+			icon_prefix(mod),
+			mod.label or mod.id
+		),
+		format_item = function(c)
+			local t = c.target
+			local parts = {
+				("#%d"):format(t.index or 0),
+				icon_prefix(mod, t) .. (t.label or t.id),
+				vim.fn.fnamemodify(t.cwd or "?", ":~"),
+			}
+			if c.tier > 1 then
+				table.insert(parts, "(不在当前项目)")
+			end
+			if t.avoid then
+				table.insert(parts, "— 回复只到它的宿主 UI，不回 nvim")
+			end
+			return table.concat(parts, "  ")
+		end,
+	}, function(c)
+		if not c then
+			return cb(nil) -- 取消：什么都不做
+		end
+		note_avoid(c.target)
+		cb(c.target)
+	end)
+end
+
 local function map_select(mod, cands, note_avoid, cb)
 	local rex = require("local.ai.rex")
 	if not rex.available() then
@@ -129,7 +164,7 @@ local function map_select(mod, cands, note_avoid, cb)
 			target = t,
 			label = t.label,
 			name = vim.fn.fnamemodify(t.cwd or "?", ":t"),
-			icon = icon_prefix(mod):gsub("%s+$", ""),
+			icon = icon_prefix(mod, t):gsub("%s+$", ""),
 			tier = c.tier,
 		})
 	end
@@ -149,6 +184,10 @@ local function map_select(mod, cands, note_avoid, cb)
 			end
 			note_avoid(item.target)
 			cb(item.target)
+		end,
+		-- 地图里按 <Tab>：改用列表（跨 tab 的候选只有列表看得到）
+		on_switch = function()
+			list_select(mod, cands, note_avoid, cb)
 		end,
 	})
 	return true
@@ -193,30 +232,7 @@ local function choose_target(mod, cb)
 		-- 不在 rex 里 / 候选没登记位置 / 出错 → 安静回落到列表
 	end
 
-	vim.ui.select(cands, {
-		prompt = ("发到哪个 %s%s？（:AiTarget 可记住选择）"):format(icon_prefix(mod), mod.label or mod.id),
-		format_item = function(c)
-			local t = c.target
-			local parts = {
-				("#%d"):format(t.index or 0),
-				icon_prefix(mod) .. (t.label or t.id),
-				vim.fn.fnamemodify(t.cwd or "?", ":~"),
-			}
-			if c.tier > 1 then
-				table.insert(parts, "(不在当前项目)")
-			end
-			if t.avoid then
-				table.insert(parts, "— 回复只到它的宿主 UI，不回 nvim")
-			end
-			return table.concat(parts, "  ")
-		end,
-	}, function(c)
-		if not c then
-			return cb(nil) -- 取消：什么都不做
-		end
-		note_avoid(c.target)
-		cb(c.target)
-	end)
+	list_select(mod, cands, note_avoid, cb)
 end
 
 --- 直接把一段文本发给当前后端（供别的命令/插件复用，不经过浮窗）
@@ -354,6 +370,7 @@ function M.setup(opts)
 	opts = opts or {}
 	matching = opts.matching or "exact"
 	picker = opts.picker or "map"
+	require("local.ai.icons").setup(opts.icons)
 	backends.register(require("local.ai.backends.pi"))
 	for _, mod in ipairs(opts.extra or {}) do
 		backends.register(mod)

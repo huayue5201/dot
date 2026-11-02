@@ -11,9 +11,8 @@
 
 local M = { id = "pi", label = "pi" }
 
--- 选择器/通知里的后端图标：nf-md-robot（U+F06A9）。用 nr2char 而不是字面量，
--- 避免源码或同步过程把私有区字形弄坏（与 lsp_ext/icons.lua 同一约定）。
-M.icon = vim.fn.nr2char(0xF06A9)
+-- 图标不在这里写死：选择器/通知统一由 local/ai/icons.lua 按后端 id / 实例 id 解析
+-- （pi = π），可用 ai.setup({ icons = { pi = ... } }) 覆盖。
 
 local function ask_dir()
 	local cache = os.getenv("XDG_CACHE_HOME") or (os.getenv("HOME") .. "/.cache")

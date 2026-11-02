@@ -36,6 +36,9 @@ local function define_hl()
 	api.nvim_set_hl(0, "AiMapPane", { bg = p.chip_bg, fg = p.dim })
 	api.nvim_set_hl(0, "AiMapAgent", { bg = blend(p.chip_bg, p.green, 0.10), fg = p.green })
 	api.nvim_set_hl(0, "AiMapSel", { bg = blend(p.chip_bg, p.green, 0.34), fg = p.green, bold = true })
+	-- 浮层（rex 里被 float 出来的 pane）比平铺层亮一点，好在覆盖的地方看得出层次
+	api.nvim_set_hl(0, "AiMapFloat", { bg = blend(p.chip_bg, p.fg, 0.12), fg = p.dim })
+	api.nvim_set_hl(0, "AiMapFloatSel", { bg = blend(blend(p.chip_bg, p.fg, 0.12), p.green, 0.34), fg = p.green, bold = true })
 end
 
 ----------------------------------------------------------------------
@@ -177,7 +180,17 @@ local function paint(panes, by_block, W, H, sel)
 	local hit = {}
 	for _, t in ipairs(geom) do
 		if not t.small then
-			local group = t.item and (sel == t.item and "AiMapSel" or "AiMapAgent") or "AiMapPane"
+			local float = t.pane.kind == "floating"
+			local group
+			if t.item then
+				if sel == t.item then
+					group = float and "AiMapFloatSel" or "AiMapSel"
+				else
+					group = "AiMapAgent"
+				end
+			else
+				group = float and "AiMapFloat" or "AiMapPane"
+			end
 			fill(g, t.y0, t.y1, t.x0, t.x1, group)
 			text_center(g, t.y0, t.y1, t.x0, t.x1, pane_label(t.item), group)
 			for y = t.y0, t.y1 do
@@ -233,7 +246,7 @@ end
 ----------------------------------------------------------------------
 
 --- 打开地图选择器
----@param opts { panes: table[], items: table[], cursor_block?: string, on_choose: fun(item: table|nil) }
+---@param opts { panes: table[], items: table[], cursor_block?: string, on_choose: fun(item: table|nil), on_switch?: fun() }
 function M.select(opts)
 	local panes = opts.panes or {}
 	local items = opts.items or {}
@@ -373,7 +386,7 @@ function M.select(opts)
 	api.nvim_set_current_win(win)
 
 	local finished = false
-	local function close(item)
+	local function close(item, switch)
 		if finished then
 			return
 		end
@@ -383,6 +396,12 @@ function M.select(opts)
 		end
 		if api.nvim_buf_is_valid(buf) then
 			pcall(api.nvim_buf_delete, buf, { force = true })
+		end
+		if switch then
+			if opts.on_switch then
+				opts.on_switch()
+			end
+			return
 		end
 		if opts.on_choose then
 			opts.on_choose(item)
@@ -456,6 +475,9 @@ function M.select(opts)
 			close(item)
 		end
 	end, "选中当前格子")
+	map("<Tab>", function()
+		close(nil, true)
+	end, "切到列表选择器")
 	map("q", function()
 		close(nil)
 	end, "取消")

@@ -27,14 +27,17 @@ require("lsp_ext").setup() --lsp
 require("feat.fork_upstream").setup() -- 上游状态组件（状态栏 + :ForkUpstream），须早于状态栏以复用磁盘缓存
 require("ui.statusline") -- 状态栏（加载即自动构建并设置，无需手动调用 active）
 require("feat.tab_workspace").setup() -- 一个 tab 一个工作区（切 tab 隔离 buffer + 每 tab cwd + neo-tree 跟随）
+require("feat.terminal").setup() -- 一个 tab 一组终端（底部 panel + winbar 标签，替代 betterTerm，见 lua/feat/terminal.lua）
 
 -- 导航/窗口、自动命令、按键映射（三者合计仅 ~1.6ms，同步加载以避免启动后 300ms 内按键映射缺失）
 require("feat.navigation").setup() -- 导航/窗口：buffer 快捷键、buffer 设置、窗口尺寸守卫
 require("feat.spell").setup() -- 拼写检查：文本类 buffer 自动开，<leader>zw 手动（中文靠 cjk，技术词靠 dirtytalk）
 require("boot.autocmds") -- 加载自动命令
 require("boot.keymaps") -- 加载按键映射
-require("local.ai").setup() -- <leader>aq：浮窗写问题，连同锚点发给外部 AI（默认 pi，见 lua/local/ai/init.lua）
+-- <leader>aq：浮窗写问题，连同锚点发给外部 AI（默认 pi，见 lua/local/ai/init.lua）。
+-- 图标表在 lua/local/ai/icons.lua，想换某个 agent 的图标就 setup({ icons = { claude = "✻" } })
+require("local.ai").setup()
 require("local.ai.pi_bridge").attach() -- 给 pi 的上下文桥：外部可经 RPC 拉取活着的 buffer/选区/诊断（见文件头）
 require("local.textdiff").setup() -- 本地小模块：选区文本对比（:Diff / 可视模式 D、gD，见 lua/local/textdiff.lua）
-require("local.lightbulb").setup() -- 本地小模块：code action 行末灯泡浮窗（替代 nvim-lightbulb，见 lua/local/lightbulb.lua）
-require("local.project").setup() -- 本地小模块：项目概览（:Project / <leader>pP，见 lua/local/project.lua）
+require("local.project").setup() -- 本地小模块：项目概览（:Project / <leader>ii，见 lua/local/project/）
+require("fix").setup() -- 临时修复守卫：:FixStatus 看上游修好没（见 lua/fix/init.lua）

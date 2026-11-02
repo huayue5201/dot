@@ -43,7 +43,7 @@ function M.tmux(opts)
 		id = id,
 		label = label,
 		-- 默认 nf-fa-terminal（U+F120）
-		icon = opts.icon or vim.fn.nr2char(0xF120),
+		icon = opts.icon or require("local.ai.icons").find(opts.id) or require("local.ai.icons").get("generic"),
 		targets = function()
 			local ok, list = pcall(opts.panes)
 			return ok and list or {}

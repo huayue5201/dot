@@ -63,7 +63,7 @@ function M.list()
 		out[#out + 1] = {
 			id = id,
 			label = mod.label or id,
-			icon = mod.icon,
+			icon = mod.icon or require("local.ai.icons").find(id),
 			available = available,
 			reason = reason,
 		}
