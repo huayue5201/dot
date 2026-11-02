@@ -273,9 +273,9 @@ function M.select(opts)
 		table.insert(footer, ("不在这个 window，直接按字母：%s"):format(table.concat(names, " ")))
 	end
 
-	-- 只需要放一个字母，所以做成小块提示图：大约半个屏幕
-	local W = math.min(math.max(math.floor(vim.o.columns * 0.5 + 0.5), 20), 60)
-	local H = math.min(math.max(math.floor(vim.o.lines * 0.5 + 0.5), 5), 22)
+	-- 只需要放一个字母，所以做成小块提示图：屏幕的三分之一左右，再多也是空的
+	local W = math.min(math.max(math.floor(vim.o.columns * 0.32 + 0.5), 16), 40)
+	local H = math.min(math.max(math.floor(vim.o.lines * 0.34 + 0.5), 4), 14)
 
 	-- 消息区（cmdheight 上方那块）的 zindex 比浮窗高，残留的消息会盖在浮窗上，
 	-- 表现为中间多出一条竖线或几个乱码字。开窗之前先把消息区清干净。
