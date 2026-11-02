@@ -229,7 +229,7 @@ end
 ----------------------------------------------------------------------
 
 --- 打开地图选择器
----@param opts { panes: table[], items: table[], cursor_block?: string, title?: string, on_choose: fun(item: table|nil) }
+---@param opts { panes: table[], items: table[], cursor_block?: string, on_choose: fun(item: table|nil) }
 function M.select(opts)
 	local panes = opts.panes or {}
 	local items = opts.items or {}
@@ -309,17 +309,16 @@ function M.select(opts)
 
 	local win = api.nvim_open_win(buf, true, {
 		relative = "editor",
-		row = math.floor((vim.o.lines - H) / 2) - 1,
+		row = math.floor((vim.o.lines - H) / 2),
 		col = math.floor((vim.o.columns - W) / 2),
 		width = W,
 		height = H,
 		style = "minimal",
-		border = "rounded",
+		-- 不要边框：整块就是地图本身，格子直接贴着屏幕（title 依赖边框，所以一并去掉）
+		border = "none",
 		-- 不让 WinEnter/BufWinEnter 一类的 autocmd 碰这个窗口：有些插件会往里塞
 		-- 行号列/缩进参考线/状态列，在浮窗里渲染出来就是一条竖线或数字。
 		noautocmd = true,
-		title = " " .. (opts.title or "发到哪个 agent？") .. " ",
-		title_pos = "center",
 	})
 	-- 浮窗里什么都不要：行号/折叠/符号/状态列都可能被别的插件注入（statuscol.nvim 会给
 	-- 每个新窗口设 statuscolumn），在浮窗里渲染出来就是一条竖线或多余的数字。
