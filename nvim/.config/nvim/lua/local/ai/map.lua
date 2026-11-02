@@ -211,6 +211,13 @@ end
 ---@param from table|nil
 ---@param dir string
 ---@return table|nil
+local function covers(outer, inner)
+	return outer[1] <= inner[1] + 1e-9
+		and outer[2] <= inner[2] + 1e-9
+		and outer[1] + outer[3] >= inner[1] + inner[3] - 1e-9
+		and outer[2] + outer[4] >= inner[2] + inner[4] - 1e-9
+end
+
 local function neighbour(panes, from, dir)
 	if not from or not from.rect then
 		return nil
@@ -219,17 +226,62 @@ local function neighbour(panes, from, dir)
 	local r0 = from.rect
 	local fcx, fcy = r0[1] + r0[3] / 2, r0[2] + r0[4] / 2
 
+	-- 浮层压在某个 pane 上面：它的四条边都在那块 pane 内部，按方向找邻居永远是空的
+	-- （挪不回去就是这么来的）。所以先看「谁包住了我」，四个方向都往它走。
+	local holder, holder_area
+	for _, pane in ipairs(panes) do
+		local r = pane.rect
+		if r and pane.block_id ~= from.block_id and covers(r, r0) then
+			local area = r[3] * r[4]
+			if not holder_area or area < holder_area then
+				holder, holder_area = pane, area
+			end
+		end
+	end
+	if holder then
+		return holder
+	end
+
+	-- 按「边到边的空隙」挑邻居，而不是中心点距离：中心点会让远处的浮层看起来比紧贴
+	-- 着的分屏更近（浮层小、中心更偏），空隙为 0 的才是真正贴着的那块。
 	local best, best_score
 	for _, pane in ipairs(panes) do
 		local r = pane.rect
 		if r and pane.block_id ~= from.block_id then
 			local cx, cy = r[1] + r[3] / 2, r[2] + r[4] / 2
+			local gap
+			if dir == "h" then
+				gap = r0[1] - (r[1] + r[3])
+			elseif dir == "l" then
+				gap = r[1] - (r0[1] + r0[3])
+			elseif dir == "j" then
+				gap = r[2] - (r0[2] + r0[4])
+			else
+				gap = r0[2] - (r[2] + r[4])
+			end
+			if gap >= -1e-6 then
+				local cross = horizontal and math.abs(cy - fcy) or math.abs(cx - fcx)
+				local score = gap * 4 + cross
+				if not best_score or score < best_score then
+					best, best_score = pane, score
+				end
+			end
+		end
+	end
+	if best then
+		return best
+	end
+
+	-- 整高的 pane（左边那一整列）往上下走时没有任何一块「贴着」，这时才退回按中心点
+	-- 找：跨过边界进到另一列的上/下半边。被自己包住的浮层不参与（那不是邻居）。
+	for _, pane in ipairs(panes) do
+		local r = pane.rect
+		if r and pane.block_id ~= from.block_id and not covers(r0, r) then
+			local cx, cy = r[1] + r[3] / 2, r[2] + r[4] / 2
 			local along = horizontal and (cx - fcx) or (cy - fcy)
 			local forward = ((dir == "l" or dir == "j") and along > 1e-6)
 				or ((dir == "h" or dir == "k") and along < -1e-6)
 			if forward then
-				-- 十字方向优先：侧向中心距的权重比沿方向的距离大，避免跑到斜对角的
-				-- 大格子里去（例如从右上角往下，应该去正下方而不是整高的左侧）。
 				local cross = horizontal and math.abs(cy - fcy) or math.abs(cx - fcx)
 				local score = cross * 4 + math.abs(along)
 				if not best_score or score < best_score then
@@ -409,15 +461,27 @@ function M.select(opts)
 	end
 
 	local function move_to(item)
+		-- 落在格子的中间而不是「第一格」：来回移动时光标位置稳定
+		local cells = {}
 		for y, list in pairs(hit or {}) do
 			for x, it in pairs(list) do
 				if it == item then
-					pcall(api.nvim_win_set_cursor, win, { y, x - 1 })
-					return true
+					cells[#cells + 1] = { y, x }
 				end
 			end
 		end
-		return false
+		if #cells == 0 then
+			return false
+		end
+		table.sort(cells, function(a, b)
+			if a[1] ~= b[1] then
+				return a[1] < b[1]
+			end
+			return a[2] < b[2]
+		end)
+		local mid = cells[math.floor((#cells + 1) / 2)]
+		pcall(api.nvim_win_set_cursor, win, { mid[1], mid[2] - 1 })
+		return true
 	end
 
 	if sel then
@@ -451,6 +515,28 @@ function M.select(opts)
 			end
 		end
 		return nil
+	end
+
+	-- 按画面走：从光标所在格往外一格一格挪，遇到的第一个别的 pane 就是画面上的邻居。
+	-- 这样浮层和它底下的 pane 能来回穿（按 rect 算「谁在我旁边」时，浮层的边全在被它
+	-- 盖住的那块里面，两边互相看不见，就回不去了）。
+	---@return table|nil item, integer|nil y, integer|nil x 跨进对方的第一格
+	local function walk(dir)
+		local dy = (dir == "j" and 1) or (dir == "k" and -1) or 0
+		local dx = (dir == "l" and 1) or (dir == "h" and -1) or 0
+		local cur = api.nvim_win_get_cursor(win)
+		local y, x = cur[1], cur[2] + 1
+		local from = hit and hit[y] and hit[y][x]
+		while true do
+			y, x = y + dy, x + dx
+			if y < 1 or y > H or x < 1 or x > W then
+				return nil
+			end
+			local item = hit and hit[y] and hit[y][x]
+			if item and item ~= from then
+				return item, y, x
+			end
+		end
 	end
 
 	local function map(lhs, fn, desc)
@@ -488,11 +574,19 @@ function M.select(opts)
 	-- h/j/k/l：把高亮移到相邻的格子（不直接发送，回车才确认）
 	for _, dir in ipairs({ "h", "j", "k", "l" }) do
 		map(dir, function()
-			local pane = neighbour(panes, current_pane(), dir)
-			local item = pane and by_block[pane.block_id]
+			-- 先按画面走；走不出画布时（整高的 pane 往上下走）再按 rect 找邻居
+			local item, y, x = walk(dir)
+			if not item then
+				local pane = neighbour(panes, current_pane(), dir)
+				item = pane and by_block[pane.block_id]
+			end
 			if item then
 				sel = item
-				move_to(item)
+				if y then
+					pcall(api.nvim_win_set_cursor, win, { y, x - 1 })
+				else
+					move_to(item)
+				end
 				repaint()
 			end
 		end, "往 " .. dir .. " 方向移动")
