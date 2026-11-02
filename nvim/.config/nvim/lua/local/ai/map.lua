@@ -3,7 +3,8 @@
 --
 -- 只在 rex 里、且能定位到 block 时才用（见 rex.lua）；否则调用方回落 vim.ui.select。
 -- 交互：每个格子里一个字母（按候选顺序 a、b、c…），按字母直接选中；
--- 也可以把光标移过去按 <CR> / 单击，q 或 <Esc> 取消。
+-- h/j/k/l 按方向选中相邻的格子，也可以直接单击格子；q 或 <Esc> 取消。
+-- 画布是只读的静态图：不显示光标（Cursor 映射成背景色），没有底部帮助文字。
 local api = vim.api
 local M = {}
 
@@ -35,8 +36,6 @@ local function define_hl()
 	api.nvim_set_hl(0, "AiMapPane", { bg = p.chip_bg, fg = p.dim })
 	api.nvim_set_hl(0, "AiMapAgent", { bg = blend(p.chip_bg, p.green, 0.10), fg = p.green })
 	api.nvim_set_hl(0, "AiMapSel", { bg = blend(p.chip_bg, p.green, 0.34), fg = p.green, bold = true })
-	api.nvim_set_hl(0, "AiMapLabel", { bg = p.chip_bg, fg = p.chip_fg })
-	api.nvim_set_hl(0, "AiMapLegend", { bg = p.bar_strip, fg = p.dim, italic = true })
 end
 
 ----------------------------------------------------------------------
@@ -167,36 +166,17 @@ local function geometry(panes, by_block, W, H)
 	return out
 end
 
---- 画一帧。footer 占底部若干行，不覆盖格子。
-local function paint(panes, by_block, W, H, sel, footer)
+--- 画一帧。整块都是格子，没有底栏——内容固定，不会因为候选多少而跳动。
+local function paint(panes, by_block, W, H, sel)
 	local geom = geometry(panes, by_block, W, H)
-	-- 格子太小的候选也要在底部点名
-	local too_small = {}
-	for _, g in ipairs(geom) do
-		if g.small and g.item then
-			table.insert(too_small, g.item.letter or tostring(g.item.index))
-		end
-	end
-	local lines = {}
-	if #too_small > 0 then
-		table.insert(lines, ("格子太小，直接按字母：%s"):format(table.concat(too_small, " ")))
-	end
-	for _, line in ipairs(footer or {}) do
-		table.insert(lines, line)
-	end
-	local foot_h = math.min(#lines, math.max(H - MIN_H, 0))
-	local pane_h = H - foot_h
-
 	local g = grid_new(W, H)
 	local hit = {}
 	for _, t in ipairs(geom) do
-		-- 底部若干行让给 footer：pane 底部相应收短，而不是整块消失
-		local y1 = math.min(t.y1, pane_h)
 		if not t.small then
 			local group = t.item and (sel == t.item and "AiMapSel" or "AiMapAgent") or "AiMapPane"
-			fill(g, t.y0, y1, t.x0, t.x1, group)
-			text_center(g, t.y0, y1, t.x0, t.x1, pane_label(t.item), group)
-			for y = t.y0, y1 do
+			fill(g, t.y0, t.y1, t.x0, t.x1, group)
+			text_center(g, t.y0, t.y1, t.x0, t.x1, pane_label(t.item), group)
+			for y = t.y0, t.y1 do
 				hit[y] = hit[y] or {}
 				for x = t.x0, t.x1 do
 					hit[y][x] = t.item
@@ -205,16 +185,43 @@ local function paint(panes, by_block, W, H, sel, footer)
 		end
 	end
 
-	local y = pane_h + 1
-	for i = 1, foot_h do
-		local line = lines[i] or ""
-		local pad = math.max(0, W - vim.fn.strdisplaywidth(line) - 1)
-		text(g, y, 1, W, line .. string.rep(" ", pad), "AiMapLegend")
-		y = y + 1
-	end
-
 	local rows, segs = rows_of(g, W, H)
 	return { rows, segs, hit }
+end
+
+--- 方向选择：从 from 出发，往 dir（h/j/k/l）方向最近的那个 pane
+---@param panes table[]
+---@param from table|nil
+---@param dir string
+---@return table|nil
+local function neighbour(panes, from, dir)
+	if not from or not from.rect then
+		return nil
+	end
+	local horizontal = dir == "h" or dir == "l"
+	local r0 = from.rect
+	local fcx, fcy = r0[1] + r0[3] / 2, r0[2] + r0[4] / 2
+
+	local best, best_score
+	for _, pane in ipairs(panes) do
+		local r = pane.rect
+		if r and pane.block_id ~= from.block_id then
+			local cx, cy = r[1] + r[3] / 2, r[2] + r[4] / 2
+			local along = horizontal and (cx - fcx) or (cy - fcy)
+			local forward = ((dir == "l" or dir == "j") and along > 1e-6)
+				or ((dir == "h" or dir == "k") and along < -1e-6)
+			if forward then
+				-- 十字方向优先：侧向中心距的权重比沿方向的距离大，避免跑到斜对角的
+				-- 大格子里去（例如从右上角往下，应该去正下方而不是整高的左侧）。
+				local cross = horizontal and math.abs(cy - fcy) or math.abs(cx - fcx)
+				local score = cross * 4 + math.abs(along)
+				if not best_score or score < best_score then
+					best, best_score = pane, score
+				end
+			end
+		end
+	end
+	return best
 end
 
 ----------------------------------------------------------------------
@@ -222,7 +229,7 @@ end
 ----------------------------------------------------------------------
 
 --- 打开地图选择器
----@param opts { panes: table[], labels: table<string,string>, items: table[], cursor_block?: string, title?: string, on_choose: fun(item: table|nil) }
+---@param opts { panes: table[], items: table[], cursor_block?: string, title?: string, on_choose: fun(item: table|nil) }
 function M.select(opts)
 	local panes = opts.panes or {}
 	local items = opts.items or {}
@@ -239,43 +246,22 @@ function M.select(opts)
 		end
 	end
 
-	-- 本 window 里定位不到的候选，用底部文字列出来
-	local located, footer = {}, {}
+	-- 只看得到本 window 里的 pane；其他候选仍可按字母直达
+	local located = {}
 	for _, it in ipairs(items) do
 		if it.block_id and by_block[it.block_id] == it then
-			local found = false
 			for _, p in ipairs(panes) do
 				if p.block_id == it.block_id then
-					found = true
+					table.insert(located, it)
 					break
 				end
 			end
-			if found then
-				table.insert(located, it)
-			end
 		end
-	end
-	local in_panes = {}
-	for _, it in ipairs(located) do
-		in_panes[it.index] = true
-	end
-	local stray = {}
-	for _, it in ipairs(items) do
-		if not in_panes[it.index] then
-			table.insert(stray, it)
-		end
-	end
-	if #stray > 0 then
-		local names = {}
-		for _, it in ipairs(stray) do
-			table.insert(names, it.letter or tostring(it.index))
-		end
-		table.insert(footer, ("不在这个 window，直接按字母：%s"):format(table.concat(names, " ")))
 	end
 
-	-- 只需要放一个字母，所以做成小块提示图：屏幕的三分之一左右，再多也是空的
+	-- 只需要放一个字母，所以做成小块提示图：屏幕三分之一左右，再多也是空的
 	local W = math.min(math.max(math.floor(vim.o.columns * 0.32 + 0.5), 16), 40)
-	local H = math.min(math.max(math.floor(vim.o.lines * 0.34 + 0.5), 4), 14)
+	local H = math.min(math.max(math.floor(vim.o.lines * 0.26 + 0.5), 4), 12)
 
 	-- 消息区（cmdheight 上方那块）的 zindex 比浮窗高，残留的消息会盖在浮窗上，
 	-- 表现为中间多出一条竖线或几个乱码字。开窗之前先把消息区清干净。
@@ -299,7 +285,7 @@ function M.select(opts)
 
 	local hit
 	local function repaint()
-		local painted = paint(panes, by_block, W, H, sel, footer)
+		local painted = paint(panes, by_block, W, H, sel)
 		local lines, segs, h = painted[1], painted[2], painted[3]
 		hit = h
 		vim.bo[buf].modifiable = true
@@ -349,7 +335,8 @@ function M.select(opts)
 	vim.wo[win].list = false
 	vim.wo[win].spell = false
 	vim.wo[win].winbar = ""
-	vim.wo[win].winhighlight = "Normal:AiMapBg"
+	-- Cursor 映射成底色 = 光标不可见：这是只读画布，光标块只会显得脏。
+	vim.wo[win].winhighlight = "Normal:AiMapBg,Cursor:AiMapBg,CursorIM:AiMapBg"
 	api.nvim_set_current_win(win)
 
 	local finished = false
@@ -385,57 +372,69 @@ function M.select(opts)
 		move_to(sel)
 	end
 
-	local function at_cursor()
+	-- 当前格子（光标看不见，所以只靠高亮表达）：格子里没有候选时不算
+	local function at_current()
 		local row = api.nvim_win_get_cursor(win)[1]
-		local col = vim.fn.virtcol(".")
+		local col = api.nvim_win_get_cursor(win)[2] + 1
 		local list = hit and hit[row]
-		if not list then
+		return list and (list[col] or list[1]) or nil
+	end
+
+	local function current_pane()
+		local row = api.nvim_win_get_cursor(win)[1]
+		local col = api.nvim_win_get_cursor(win)[2] + 1
+		local list = hit and hit[row]
+		local item = list and (list[col] or list[1]) or nil
+		if not item then
 			return nil
 		end
-		if list[col] then
-			return list[col]
-		end
-		for x = 1, W do
-			if list[x] then
-				return list[x]
+		for _, p in ipairs(panes) do
+			if p.block_id == item.block_id then
+				return p
 			end
 		end
 		return nil
 	end
 
-	local map = function(lhs, fn, desc)
+	local function map(lhs, fn, desc)
 		vim.keymap.set("n", lhs, fn, { buffer = buf, nowait = true, silent = true, desc = desc })
 	end
 
-	map("<CR>", function()
-		local item = at_cursor()
+	-- 鼠标：点哪个格子直接选哪个（不需要先移光标）
+	map("<LeftMouse>", function()
+		local ok, pos = pcall(vim.fn.getmousepos)
+		if not (ok and pos and pos.winid == win) then
+			return
+		end
+		local list = hit and hit[pos.line]
+		local item = list and (list[pos.wincol] or list[pos.column] or list[1])
 		if item then
 			close(item)
-		end
-	end, "选中光标所在格子")
-	map("<LeftMouse>", function()
-		-- 鼠标先落在某格：点一下等于「移过去 + 选中」
-		local ok, pos = pcall(vim.fn.getmousepos)
-		if ok and pos and pos.winid == win then
-			pcall(api.nvim_win_set_cursor, win, { pos.line, math.max(pos.column - 1, 0) })
-			local item = at_cursor()
-			if item then
-				close(item)
-			end
 		end
 	end, "点选格子")
-	map("<2-LeftMouse>", function()
-		local item = at_cursor()
+	map("<CR>", function()
+		local item = at_current()
 		if item then
 			close(item)
 		end
-	end, "双击选中")
+	end, "选中当前格子")
 	map("q", function()
 		close(nil)
 	end, "取消")
 	map("<Esc>", function()
 		close(nil)
 	end, "取消")
+
+	-- h/j/k/l：按方向选中相邻的格子（不移动光标，直接选）
+	for _, dir in ipairs({ "h", "j", "k", "l" }) do
+		map(dir, function()
+			local pane = neighbour(panes, current_pane(), dir)
+			local item = pane and by_block[pane.block_id]
+			if item then
+				close(item)
+			end
+		end, "往 " .. dir .. " 方向选")
+	end
 	for _, it in ipairs(items) do
 		if it.letter then
 			local letter = it.letter
@@ -457,19 +456,8 @@ function M.select(opts)
 		end, "直达第 " .. i .. " 个候选")
 	end
 
+	-- 只读画布：不跟光标走，不做 CursorMoved 重画，内容始终稳定
 	local group = api.nvim_create_augroup("AiMapSel" .. buf, { clear = true })
-	api.nvim_create_autocmd("CursorMoved", {
-		group = group,
-		buffer = buf,
-		callback = function()
-			local item = at_cursor()
-			if item and item ~= sel then
-				sel = item
-				repaint()
-				move_to(item)
-			end
-		end,
-	})
 	api.nvim_create_autocmd("BufWipeout", {
 		group = group,
 		buffer = buf,
