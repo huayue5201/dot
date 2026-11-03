@@ -87,7 +87,7 @@ local function attach(buf, origin_win, origin_buf)
 	vim.keymap.set("n", "t", function()
 		M.open({ full = not state[buf].full })
 	end, vim.tbl_extend("force", opts, { desc = "精简 ⇄ 完整" }))
-	-- A(Ask)：把这份概览的紧凑摘要连同一个问题发给 AI 后端（走 local.ai）
+	-- A(Ask)：把这份概览的紧凑摘要连同一个问题发给 AI 后端（走 ask_agent）
 	vim.keymap.set("n", "A", function()
 		local st = state[buf]
 		if st and st.data then

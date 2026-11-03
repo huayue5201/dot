@@ -50,13 +50,13 @@ function M.open(opts)
 	return ui.open(opts)
 end
 
---- 打开提问浮窗，摘要作为 <project-overview> 随问题一起发出（走 local.ai 的后端通道）
+--- 打开提问浮窗，摘要作为 <project-overview> 随问题一起发出（走 ask-agent 插件的后端通道）
 ---@param data table
 ---@param opts? { prompt?: string }
 local function ask_ai(data, opts)
-	local ok, ai = pcall(require, "local.ai")
+	local ok, ai = pcall(require, "ask_agent")
 	if not ok then
-		notify("没有 local.ai 模块，无法发问")
+		notify("没有 ask_agent 模块，无法发问")
 		return
 	end
 	local text, tokens = M.digest(data)
