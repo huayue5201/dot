@@ -290,6 +290,16 @@ local function open_panel(bufnr, tab)
 		return win
 	end
 	-- 从当前窗口切一条出来，再换成终端 buffer
+	-- 当前窗口是侧栏时（比如点侧栏的 ✕ 关终端）不能拿它当基准切，否则侧栏被挤到上面
+	local cur_win = api.nvim_get_current_win()
+	if sidebar.is_sidebar_buf(api.nvim_win_get_buf(cur_win)) then
+		for _, w in ipairs(api.nvim_tabpage_list_wins(tab)) do
+			if api.nvim_win_is_valid(w) and not sidebar.is_sidebar_buf(api.nvim_win_get_buf(w)) then
+				api.nvim_set_current_win(w)
+				break
+			end
+		end
+	end
 	vim.cmd((opts.position == "top" and "topleft " or "botright ") .. "split")
 	win = api.nvim_get_current_win()
 	api.nvim_win_set_height(win, opts.size)
@@ -531,7 +541,25 @@ function M.select()
 	end)
 end
 
+--- winbar chip 与侧栏行尾共用的关闭字形
+---@return string
+function M.close_icon()
+	return opts.close_icon
+end
+
+--- 还活着的终端总数（侧栏是全量列表，所以按全局算）
+---@return integer
+local function total_terms()
+	local n = 0
+	for _, tab in ipairs(state.tabs()) do
+		n = n + #state.list(tab)
+	end
+	return n
+end
+
 --- 结束终端（默认当前）并收掉它的窗口
+--- 关掉之后：一个终端都不剩就整个收起终端界面；还有别的终端则把焦点交给
+--- 列表里的上一个（没有上一个就下一个），免得面板/侧栏落在空窗口上把布局弄歪。
 ---@param target integer|nil
 function M.kill(target)
 	local bufnr = target
@@ -541,7 +569,35 @@ function M.kill(target)
 	if not vim.b[bufnr].tw_term then
 		return
 	end
+
+	local tab = state.tab_of(bufnr) or api.nvim_get_current_tabpage()
+	-- 先记下它在列表里的位置：关掉后优先回到它上面那个
+	local list = state.list(tab)
+	local idx = 0
+	for i, b in ipairs(list) do
+		if b == bufnr then
+			idx = i
+		end
+	end
+	local successor = (idx > 1 and list[idx - 1]) or list[idx + 1]
+
 	state.remove(bufnr)
+
+	-- 面板窗口里显示的就是要关的这个终端时，直接把窗口换成后继终端：
+	-- 否则窗口先被 hide、回头再 split 重建，侧栏会被当成基准窗口切一刀，跑到上面去
+	local panel_win
+	if successor and api.nvim_buf_is_valid(successor) then
+		for _, win in ipairs(fn.win_findbuf(bufnr)) do
+			if api.nvim_win_is_valid(win) and vim.w[win].tw_term_panel then
+				panel_win = win
+			end
+		end
+	end
+	if panel_win then
+		state.active(tab, successor)
+		attach(panel_win, successor, tab)
+	end
+
 	for _, win in ipairs(fn.win_findbuf(bufnr)) do
 		if api.nvim_win_is_valid(win) then
 			if #api.nvim_tabpage_list_wins(api.nvim_win_get_tabpage(win)) > 1 then
@@ -554,7 +610,32 @@ function M.kill(target)
 		end
 	end
 	pcall(api.nvim_buf_delete, bufnr, { force = true })
-	redraw()
+
+	if total_terms() == 0 then
+		-- 最后一个终端没了：面板 + 侧栏一起收起，不留「没有终端」占位行
+		hide_panel(tab)
+		redraw()
+		return
+	end
+
+	if panel_win and api.nvim_win_is_valid(panel_win) then
+		-- 布局原地不动，只把焦点交给上一个终端
+		api.nvim_set_current_win(panel_win)
+		if opts.sidebar then
+			sidebar.open(panel_win, tab)
+		end
+		if opts.startinsert and fn.mode() ~= "t" then
+			vim.cmd.startinsert()
+		end
+		redraw()
+		return
+	end
+
+	if successor and api.nvim_buf_is_valid(successor) and vim.b[successor].tw_term then
+		M.open(successor)
+	else
+		redraw()
+	end
 end
 
 --- 面板高度（winfix_guard 维持布局用）

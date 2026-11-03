@@ -173,6 +173,9 @@ function M.apply()
 	api.nvim_set_hl(0, "TwTermSbActive", { fg = c.fg, bg = c.active_bg, bold = true })
 	api.nvim_set_hl(0, "TwTermSbDead", { fg = c.dim, bg = c.sb_bg, italic = true })
 	api.nvim_set_hl(0, "TwTermSbBadge", { fg = c.green, bg = c.sb_header_bg, bold = true })
+	-- 行尾的关闭按钮：平时是暗色，当前终端那行亮一点，看得出「能点」
+	api.nvim_set_hl(0, "TwTermSbClose", { fg = c.chip_close, bg = c.sb_bg })
+	api.nvim_set_hl(0, "TwTermSbCloseActive", { fg = M.blend(c.active_bg, c.fg, 0.5), bg = c.active_bg })
 end
 
 ----------------------------------------------------------------------
