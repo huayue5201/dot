@@ -4,8 +4,8 @@
 
 return {
 	dir = "~/neovim-plugins/ask-agent.nvim",
-	-- 地图模式要读 rex 的分屏几何，列表模式要 dropbar 的菜单（vim.ui.select 的全局覆盖）
-	dependencies = { "Bekaboo/dropbar.nvim" },
+	-- 无硬依赖：地图模式按需 pcall rex 的分屏几何；列表模式走 vim.ui.select，
+	-- 由本配置里接管它的插件（当前是 dropbar）决定长什么样
 	config = function()
 		local ask = require("ask_agent")
 
