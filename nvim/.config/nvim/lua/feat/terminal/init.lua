@@ -338,9 +338,41 @@ end
 -- 终端 buffer
 ----------------------------------------------------------------------
 
+--- 终端里此刻是否有前台程序占着 tty（fzf / less / htop / 交互式 CLI …）。
+--- 判据：该 tty 的前台进程组 `tpgid` ≠ shell 自己的进程组 `pgid`。
+--- 不用「查子进程」：zsh -i 里 `ff` 是 zsh → bash → fzf 三层，按层数判断会漏；
+--- 而 tpgid 与层数无关，shell 里挂着后台任务时也不会误判。
+---@param bufnr integer
+---@return boolean
+function M.has_foreground_program(bufnr)
+	local pid = vim.b[bufnr].terminal_job_pid
+	if not pid then
+		return false
+	end
+	local out = fn.system({ "ps", "-o", "tpgid=", "-o", "pgid=", "-p", tostring(pid) })
+	if vim.v.shell_error ~= 0 then
+		return false
+	end
+	local tpgid, pgid = out:match("^%s*(%d+)%s+(%d+)%s*$")
+	return tpgid ~= nil and pgid ~= nil and tpgid ~= pgid
+end
+
 local function set_term_keymaps(bufnr)
 	local o = { buffer = bufnr, silent = true, nowait = true }
-	vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], o)
+	-- Esc 在这里是二义的：终端里跑着 ff(fzf) / less / htop 时，Esc 属于那个程序
+	-- （fzf 用它清空查询再按一次取消）；只有停在 shell 提示符上，Esc 才该是
+	-- 「离开终端模式」。以前这里硬映射成 <C-\\><C-n>，于是任何 TUI 都收不到 Esc。
+	vim.keymap.set("t", "<Esc>", function()
+		if M.has_foreground_program(bufnr) then
+			-- 映射把按键拦下了，所以要显式写进 pty
+			api.nvim_chan_send(vim.b[bufnr].terminal_job_id, "\27")
+		else
+			api.nvim_feedkeys(api.nvim_replace_termcodes("<C-\\><C-n>", true, false, true), "n", false)
+		end
+	end, o)
+	-- 保底出口：有些全屏 TUI（htop、gdb …）不吃 Esc，Esc 会被原样送进程序，
+	-- 想回普通模式就用这个组合，TUI 基本不会抢它。
+	vim.keymap.set("t", "<C-Esc>", [[<C-\><C-n>]], o)
 	for _, k in ipairs({ "h", "j", "k", "l" }) do
 		vim.keymap.set("t", "<C-" .. k .. ">", "<Cmd>wincmd " .. k .. "<CR>", o)
 	end
@@ -659,7 +691,7 @@ function M.setup(o)
 	opts = vim.tbl_deep_extend("force", opts, o or {})
 
 	define_hl()
-	sidebar.setup()
+	sidebar.setup(M)
 	vim.api.nvim_create_autocmd("ColorScheme", {
 		group = api.nvim_create_augroup("FeatTerminalHl", { clear = true }),
 		callback = define_hl,

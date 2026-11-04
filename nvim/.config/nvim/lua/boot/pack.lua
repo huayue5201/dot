@@ -249,6 +249,7 @@ local deferred = {
 	["codecompanion.nvim"] = true,
 	["treesj"] = true,
 	["neotest"] = true,
+	["codediff.nvim"] = true,
 	["diffbandit.nvim"] = true,
 	["neogit"] = true,
 	["atlas.nvim"] = true,

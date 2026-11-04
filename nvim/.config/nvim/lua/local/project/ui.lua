@@ -17,10 +17,8 @@ local state = store.state
 
 local M = {}
 
---- 懒加载 public API：ask / chat 在 init 里，直接 require 会成环（init → ui → init）
-local function public()
-	return require("local.project")
-end
+--- 懒加载 public API：ask / chat 在 init 里，由 init 写入 store.actions（不回指 init）
+local actions = store.actions
 
 ----------------------------------------------------------------------
 -- 窗口 / 按键
@@ -91,14 +89,14 @@ local function attach(buf, origin_win, origin_buf)
 	vim.keymap.set("n", "A", function()
 		local st = state[buf]
 		if st and st.data then
-			public().ask()
+			actions.ask()
 		end
 	end, vim.tbl_extend("force", opts, { desc = "带着概览问 AI" }))
 	-- C(Chat)：把摘要塞进 codecompanion chat，在 chat 里接着聊
 	vim.keymap.set("n", "C", function()
 		local st = state[buf]
 		if st and st.data then
-			public().chat({})
+			actions.chat({})
 		end
 	end, vim.tbl_extend("force", opts, { desc = "概览进 codecompanion chat" }))
 end
@@ -195,10 +193,8 @@ function M.open(opts)
 		end
 	end
 	vim.api.nvim_buf_set_name(buf, name)
-	-- 关掉 markview 的原地渲染：这里是数据表，二次排版只会加噪音（顺序：先禁后设 ft）
-	pcall(function()
-		require("markview.state").set_buffer_state(buf, { enable = false })
-	end)
+	-- 不需要在这里禁用原地渲染：render-markdown 的 ignore() 对 "project://" 开头的
+	-- buffer 名直接返回 true（见 lua/plugins/render-markdown.lua），压根不会 attach。
 
 	attach(buf, origin_win, origin_buf)
 
@@ -224,10 +220,10 @@ function M.setup()
 		M.open({ full = args.bang })
 	end, { bang = true, desc = "项目概览（!: 完整版）" })
 	vim.api.nvim_create_user_command("ProjectAsk", function()
-		public().ask()
+		actions.ask()
 	end, { desc = "带着项目概览问 AI（精简摘要随问题发出）" })
 	vim.api.nvim_create_user_command("ProjectChat", function(args)
-		public().chat({ adapter = args.args ~= "" and args.args or nil })
+		actions.chat({ adapter = args.args ~= "" and args.args or nil })
 	end, {
 		nargs = "?",
 		desc = "把项目概览摘要放进 codecompanion chat（默认 deepseek，可传 pi）",
@@ -239,10 +235,10 @@ function M.setup()
 		M.open()
 	end, { desc = "项目概览（规模 / 结构 / 活跃区）" })
 	vim.keymap.set("n", "<leader>ia", function()
-		public().ask()
+		actions.ask()
 	end, { desc = "带着项目概览问 AI" })
 	vim.keymap.set("n", "<leader>ic", function()
-		public().chat()
+		actions.chat()
 	end, { desc = "项目概览放进 codecompanion chat" })
 end
 

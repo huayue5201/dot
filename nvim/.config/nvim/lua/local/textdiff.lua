@@ -1,6 +1,6 @@
 -- 轻量「选区文本对比」：只做「快速看差异」这一件事，无第三方依赖。
 --
--- 文件级 / 全文件 diff 用 codediff.nvim（lua/plugins/codediff.lua）；本模块只处理
+-- 文件级 / 全文件 diff 用 diffbandit.nvim（lua/plugins/diffbandit.lua）；本模块只处理
 -- 一小段文本的去向：
 --   :'<,'>Diff            选区 vs 默认寄存器（respects 'clipboard'）→ 居中浮窗 unified
 --   :'<,'>Diff @r         选区 vs 寄存器 r

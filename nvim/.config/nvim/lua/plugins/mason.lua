@@ -19,7 +19,7 @@ return {
 					"codelldb",
 					"cortex-debug",
 					-- "copilot-language-server",
-					-- "delve",
+					"delve",
 					-- "gofumpt",
 					-- "gopls",
 					"js-debug-adapter",

@@ -28,7 +28,7 @@ M.config = { width = 22 }
 ---@return string
 local function close_glyph()
 	local ok, icon = pcall(function()
-		return require("feat.terminal").close_icon()
+		return M.host.close_icon()
 	end)
 	if not ok or type(icon) ~= "string" or icon == "" then
 		return "☓"
@@ -376,11 +376,11 @@ local function ensure_buf()
 	vim.keymap.set("n", "x", function()
 		local item = M.item_at_cursor()
 		if item then
-			require("feat.terminal").kill(item.bufnr)
+			M.host.kill(item.bufnr)
 		end
 	end, vim.tbl_extend("force", o, { desc = "结束该终端" }))
 	vim.keymap.set("n", "q", function()
-		require("feat.terminal").hide()
+		M.host.hide()
 	end, vim.tbl_extend("force", o, { desc = "收起终端" }))
 	return buf
 end
@@ -543,9 +543,9 @@ function M.click_action(pos)
 	-- ①点中的字节列已经在 ✕ 上 ②或屏幕列到了 ✕ 起始列（右侧余量、宽度算错时的兜底）
 	local on_x = item.close_byte ~= nil and (col >= item.close_byte or (wincol > 0 and wincol >= close_col()))
 	if on_x then
-		require("feat.terminal").kill(item.bufnr)
+		M.host.kill(item.bufnr)
 	else
-		require("feat.terminal").open(item.bufnr)
+		M.host.open(item.bufnr)
 	end
 	-- 点完把视图拉回来（scrolloff 可能刚把短列表推过）
 	reset_view(api.nvim_get_current_win())
@@ -561,7 +561,7 @@ function M.jump_at_cursor()
 	if not item then
 		return
 	end
-	require("feat.terminal").open(item.bufnr)
+	M.host.open(item.bufnr)
 end
 
 --- 关掉光标那一行的终端（行尾 ✕ 走这里；键盘 x 直接用 item_at_cursor）
@@ -570,7 +570,7 @@ function M.close_at_cursor()
 	if not item then
 		return
 	end
-	require("feat.terminal").kill(item.bufnr)
+	M.host.kill(item.bufnr)
 end
 
 --- 该 buffer 是不是侧栏
@@ -580,7 +580,11 @@ function M.is_sidebar_buf(bufnr)
 	return bufnr == buf
 end
 
-function M.setup()
+--- host 由 feat.terminal 注入（close_icon / open / kill / hide），
+--- 这样本文件对 feat.terminal 零回指，加载图保持单向：init → sidebar。
+---@param host { close_icon: function, open: function, kill: function, hide: function }
+function M.setup(host)
+	M.host = host
 	define_hl()
 	api.nvim_create_autocmd("ColorScheme", {
 		group = api.nvim_create_augroup("FeatTermSidebarHl", { clear = true }),

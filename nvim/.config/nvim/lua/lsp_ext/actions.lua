@@ -101,12 +101,159 @@ function M.open_all_diagnostics()
 	vim.notify("workspace diagnostics: scanning...", vim.log.levels.INFO)
 end
 
+local BUF_LOC_TITLE = "Buffer Diagnostics"
+local BUF_LOC_SEVERITY = { min = vim.diagnostic.severity.HINT }
+
+---@brief `grd` 打开的 buffer 诊断 loclist 会随诊断变化就地刷新（不重开窗口、不抢焦点）。
+--- 只维护一份：再次 grd 会重建状态；loclist 窗口或文件窗口关掉后自动注销。
+local live_loc = { group = nil, file_win = nil, buf = nil, timer = nil }
+
+local function find_buf_loc_window()
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		local info = vim.fn.getwininfo(win)[1]
+		if info and info.loclist == 1 and vim.fn.getloclist(win, { title = 1 }).title == BUF_LOC_TITLE then
+			return win
+		end
+	end
+end
+
+local function stop_live_loclist()
+	local s = live_loc
+	if s.timer then
+		s.timer:stop()
+		if not s.timer:is_closing() then
+			s.timer:close()
+		end
+	end
+	s.timer = nil
+	if s.group then
+		pcall(vim.api.nvim_del_augroup_by_id, s.group)
+	end
+	s.group, s.file_win, s.buf = nil, nil, nil
+end
+
+local function refresh_live_loclist()
+	local s = live_loc
+	if not s.group then
+		return
+	end
+	if not (s.file_win and vim.api.nvim_win_is_valid(s.file_win)) then
+		return stop_live_loclist()
+	end
+	if not (s.buf and vim.api.nvim_buf_is_valid(s.buf)) then
+		return stop_live_loclist()
+	end
+
+	local list_win = find_buf_loc_window()
+	if not list_win then
+		return stop_live_loclist()
+	end
+
+	-- 记住光标下的条目，刷新后按 (bufnr, lnum) 找回，避免条目增删导致漂移
+	local old_items = vim.fn.getloclist(list_win, { items = 1 }).items or {}
+	local line = vim.api.nvim_win_get_cursor(list_win)[1]
+	local anchor = old_items[line]
+
+	local items = vim.diagnostic.toqflist(vim.diagnostic.get(s.buf, { severity = BUF_LOC_SEVERITY }))
+	vim.fn.setloclist(s.file_win, {}, "r", { items = items, title = BUF_LOC_TITLE })
+
+	if not vim.api.nvim_win_is_valid(list_win) then
+		return
+	end
+	local target
+	if anchor then
+		for i, item in ipairs(items) do
+			if item.bufnr == anchor.bufnr and item.lnum == anchor.lnum then
+				target = i
+				break
+			end
+		end
+	end
+	target = target or math.min(line, #items)
+	if target >= 1 then
+		pcall(vim.api.nvim_win_set_cursor, list_win, { target, 0 })
+	end
+end
+
+local function schedule_live_refresh()
+	local s = live_loc
+	if not s.group then
+		return
+	end
+	if not s.timer then
+		s.timer = vim.uv.new_timer()
+	end
+	s.timer:stop()
+	s.timer:start(
+		150,
+		0,
+		vim.schedule_wrap(function()
+			if live_loc.group then
+				refresh_live_loclist()
+			end
+		end)
+	)
+end
+
+local function start_live_loclist(file_win, bufnr)
+	stop_live_loclist()
+	if not find_buf_loc_window() then
+		return -- 没有诊断，loclist 窗口没开，不用挂监听
+	end
+
+	live_loc.file_win, live_loc.buf = file_win, bufnr
+	local group = vim.api.nvim_create_augroup("UserLiveBufferDiagnostics", { clear = true })
+	live_loc.group = group
+
+	vim.api.nvim_create_autocmd("DiagnosticChanged", {
+		group = group,
+		callback = function(ev)
+			if ev.buf == live_loc.buf then
+				schedule_live_refresh()
+			end
+		end,
+	})
+
+	-- 文件窗口里换 buffer 时，loclist 跟着换成新 buffer 的诊断
+	vim.api.nvim_create_autocmd("BufEnter", {
+		group = group,
+		callback = function(ev)
+			if vim.api.nvim_get_current_win() ~= live_loc.file_win then
+				return
+			end
+			live_loc.buf = ev.buf
+			schedule_live_refresh()
+		end,
+	})
+
+	vim.api.nvim_create_autocmd("WinClosed", {
+		group = group,
+		callback = function()
+			vim.schedule(function()
+				if not live_loc.group then
+					return
+				end
+				if not (live_loc.file_win and vim.api.nvim_win_is_valid(live_loc.file_win)) then
+					return stop_live_loclist()
+				end
+				if not find_buf_loc_window() then
+					stop_live_loclist()
+				end
+			end)
+		end,
+	})
+end
+
 function M.open_buffer_diagnostics()
+	local file_win = vim.api.nvim_get_current_win()
+	local bufnr = vim.api.nvim_get_current_buf()
+
 	vim.diagnostic.setloclist({
 		open = true,
-		title = "Buffer Diagnostics",
-		severity = { min = vim.diagnostic.severity.HINT },
+		title = BUF_LOC_TITLE,
+		severity = BUF_LOC_SEVERITY,
 	})
+	start_live_loclist(file_win, bufnr)
 end
 
 ---------------------------------------------------------

@@ -16,8 +16,9 @@
 --     （含注释与空行、按扩展名猜语言），报告里会标明数据来源。
 --   * 「活跃区」= 最近 90 天 git log 改动次数排序。新项目真正该先读的通常不是 README
 --     吹的架构，而是最近还在动的文件。
---   * buffer 是 buftype=nofile 的 markdown（只读，可 yank / 搜索 / gd 跳转），并主动
---     关掉 markview 的原地渲染：这里是数据表，不需要二次排版。
+--   * buffer 是 buftype=nofile 的 markdown（只读，可 yank / 搜索 / gd 跳转），名字以
+--     project:// 开头，render-markdown 会在 ignore() 里跳过它：这里是数据表，
+--     不需要二次排版。
 --
 -- 模块划分（都在 lua/local/project/ 下）：
 --   util.lua    路径 / 行数格式化 / git 子进程 / 文件遍历 / 语言表
@@ -179,6 +180,9 @@ function M.bridge(req)
 		digest = text,
 	}
 end
+
+--- ui 只读 store.actions，不回指本模块（断 init ⇄ ui）
+store.actions.ask, store.actions.chat = M.ask, M.chat
 
 function M.setup()
 	ui.setup()

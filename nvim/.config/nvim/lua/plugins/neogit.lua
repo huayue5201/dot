@@ -3,7 +3,6 @@
 return {
 	"NeogitOrg/neogit",
 	dependencies = {
-		"esmuellert/codediff.nvim",
 		"m00qek/baleia.nvim",
 	},
 	keys = {

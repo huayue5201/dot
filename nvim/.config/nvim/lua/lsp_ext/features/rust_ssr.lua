@@ -9,12 +9,12 @@
 --   1) 两栏输入（Search / Replace）→ 拼成 `search ==>> replace`
 --   2) 请求返回 WorkspaceEdit（此时还没有任何 buffer 被改）
 --   3) ui.float_list 列出「文件:行 旧 ⟹ 新」，<CR> 跳过去看上下文，a 才应用，
---      d 用 codediff 打开「现在 vs 应用后」的单文件 diff（生成在 cache 里的临时副本）
+--      d 用 diffbandit 打开「现在 vs 应用后」的单文件 diff（生成在 cache 里的临时副本）
 --
 -- UI 复用：
 --   输入 → dap-extensions.ui.popup（两栏 + 历史；未加载时退回 vim.ui.input）
 --   预览 → ui.float_list（j/k、<CR>、a、d、?、q 都由它提供）
---   diff → codediff.nvim 的 file_diff handler（两个磁盘路径对比，inline 布局跟着用户配置）
+--   diff → diffbandit.nvim 的 files()（两个磁盘路径对比，三栏 + 连接带布局）
 --
 -- 用法（在 LspAttach 中调用 setup）：
 --   :RustSsr           弹输入框（两栏）
@@ -224,7 +224,7 @@ local function apply_text_edits(lines, edits, enc)
 	return vim.split(text, "\n", { plain = true })
 end
 
---- 用 codediff 预览当前条目所在文件的改动（before = 现在的内容，after = 应用 SSR 之后）
+--- 用 diffbandit 预览当前条目所在文件的改动（before = 现在的内容，after = 应用 SSR 之后）
 ---@param it table
 local function open_diff(it)
 	if not pending or not pending.changes then
@@ -235,9 +235,9 @@ local function open_diff(it)
 		notify("这个文件没有待应用的修改", vim.log.levels.WARN)
 		return
 	end
-	local ok_mod, file_diff = pcall(require, "codediff.commands.handlers.file_diff")
-	if not (ok_mod and type(file_diff.run) == "function") then
-		notify("codediff 不可用（检查 lua/plugins/codediff.lua 是否加载）", vim.log.levels.ERROR)
+	local ok_mod, diffbandit = pcall(require, "diffbandit")
+	if not (ok_mod and type(diffbandit.files) == "function") then
+		notify("diffbandit 不可用（检查 lua/plugins/diffbandit.lua 是否加载）", vim.log.levels.ERROR)
 		return
 	end
 
@@ -253,9 +253,12 @@ local function open_diff(it)
 		return
 	end
 
-	local ok2, err2 = pcall(file_diff.run, before, after, { exit_on_close = false })
+	local ok2, err2 = pcall(diffbandit.files, before, after, {
+		left_label = "current",
+		right_label = "SSR after",
+	})
 	if not ok2 then
-		notify("codediff 打开失败：" .. tostring(err2), vim.log.levels.ERROR)
+		notify("diffbandit 打开失败：" .. tostring(err2), vim.log.levels.ERROR)
 		return
 	end
 	notify(("%d 处改动预览（SSR 结果仍保留：:RustSsrApply 应用 / ! 应用到已写盘内容）"):format(#edits))
@@ -371,7 +374,7 @@ local function open_preview(items, query)
 		help = {
 			{ "<CR>", "跳到命中处看上下文（预览不关闭 pending）" },
 			{ "a", "应用全部修改" },
-			{ "d", "用 codediff 看当前文件会变成什么样（不应用）" },
+			{ "d", "用 diffbandit 看当前文件会变成什么样（不应用）" },
 			{ "j / k", "上下移动" },
 			{ "y", "把当前行的旧/新文本拼成 query 复制" },
 			{ "q / <Esc>", "取消（丢弃结果）" },

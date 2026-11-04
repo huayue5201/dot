@@ -123,5 +123,81 @@ return {
 			pattern = "*",
 			callback = set_special_stc,
 		})
+
+		-- FIX: 让 qf / codecompanion 这类特殊 buffer 的 statuscolumn 在普通 buffer 窗口里
+		-- 换回全局值；窗口从特殊 buffer 切走时也必须复原，否则一直沿用特殊布局。
+		-- [diffbandit-compat] 清空 diffbandit 窗格的 statuscolumn / signcolumn（见下方说明）
+		-- diffbandit 的自绘图格（内容 / 行号 / connector / overview / 状态头）宽度
+		-- 精确到 1 列（connector 默认 5 列、行号栏 4 列），它们自己把 number /
+		-- signcolumn / foldcolumn 全关掉，但不会重置 'statuscolumn'；而
+		-- setopt = true 写的是全局值，于是上面那套 5 个 sign 列 + 行号 + 折叠
+		-- 列被塞进这些窗格，把行号栏和连接带一起挤错位（丝带在数字栏处断开
+		-- 3 列）。按 winhighlight 里的 "DiffBandit" 标记识别，直接清空。
+		--
+		-- 另外 diffbandit 在「可编辑」的右侧内容窗格（<leader>Hd 这类当前文件 vs HEAD）
+		-- 会显式把 'signcolumn' 设成 "auto"（session/layout.lua:243 apply_right_source_window_options），
+		-- 于是 gitsigns 的 ┃ / ┆ 标志出现在右栏，把 diff 的色块/连接带切断。这里对它自己的
+		-- 窗格一律强制 signcolumn=no；插件每次写窗格选项都走 util/nvim.lua:30
+		-- set_window_options，包一层在它写完后再抹一遍（走 OptionSet 行不通：在它的
+		-- 回调里改同一个选项会被忽略，且 Lua 侧的写入不一定触发该事件）。
+		local function clear_diffbandit_statuscol()
+			for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+				if vim.api.nvim_win_is_valid(win) and vim.wo[win].winhighlight:find("DiffBandit", 1, true) then
+					if vim.wo[win].statuscolumn ~= "" then
+						vim.wo[win].statuscolumn = ""
+					end
+					if vim.wo[win].signcolumn ~= "no" then
+						vim.wo[win].signcolumn = "no"
+					end
+					-- 全局 foldcolumn=1 也会带进 diff 内容窗格，多占一列、把色块挤断
+					if vim.wo[win].foldcolumn ~= "0" then
+						vim.wo[win].foldcolumn = "0"
+					end
+				end
+			end
+		end
+		local function strip_gutter(win)
+			if not vim.api.nvim_win_is_valid(win) then
+				return
+			end
+			if vim.wo[win].winhighlight:find("DiffBandit", 1, true) then
+				if vim.wo[win].statuscolumn ~= "" then
+					vim.wo[win].statuscolumn = ""
+				end
+				if vim.wo[win].signcolumn ~= "no" then
+					vim.wo[win].signcolumn = "no"
+				end
+				if vim.wo[win].foldcolumn ~= "0" then
+					vim.wo[win].foldcolumn = "0"
+				end
+			end
+		end
+		local function ensure_patch()
+			local dbnvim = require("diffbandit.util.nvim")
+			if dbnvim._diffbandit_gutter_patched then
+				return
+			end
+			dbnvim._diffbandit_gutter_patched = true
+			local orig = dbnvim.set_window_options
+			dbnvim.set_window_options = function(win, opts, ...)
+				local ret = orig(win, opts, ...)
+				strip_gutter(win)
+				return ret
+			end
+		end
+		-- diffbandit 按需加载时，它的 runtime 目录此刻可能还不在 rtp 上，先试一次，
+		-- 失败就在后续事件里补。
+		pcall(ensure_patch)
+		local function schedule_clear()
+			pcall(ensure_patch)
+			-- 窗格刚开出来时 winhl 还没写，推到下一轮再判定。
+			vim.schedule(clear_diffbandit_statuscol)
+		end
+		vim.api.nvim_create_autocmd({ "WinNew", "BufWinEnter", "TabEnter", "WinEnter" }, {
+			group = vim.api.nvim_create_augroup("DiffbanditStatuscol", { clear = true }),
+			pattern = "*",
+			callback = schedule_clear,
+		})
+		-- [/diffbandit-compat]
 	end,
 }

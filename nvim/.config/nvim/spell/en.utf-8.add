@@ -30,3 +30,6 @@ visuals
 monorepo
 worktree
 worktrees
+cwd
+cmd
+github

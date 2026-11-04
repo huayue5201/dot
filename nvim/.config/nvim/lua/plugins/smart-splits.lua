@@ -38,11 +38,64 @@ return {
 
 		local map = vim.keymap.set
 
+		-- [diffbandit-compat] 绕过 diffbandit focusable=false 窗格导致的 winnr 导航失效
+		-- diffbandit 的自绘 gutter（行号 / connector / overview）都是 focusable=false 的
+		-- nvim_open_win 窗格，win_id2win() 返回 0，于是 winnr('l') 把它们当不存在、
+		-- 甚至返回当前窗口 —— smart-splits 据此判定「已经在边缘」就不再移动，
+		-- 所以在 diff 面板里 <C-h>/<C-l> 失效（<C-w>l 走原生 nav 仍是好的）。
+		-- 这里先按 session 的 left_win / right_win（以及 git 面板的 nav_win）直接跳转，
+		-- 跳不动再交回 smart-splits（这时才是真的到边，可能该跨到 herdr/Rex pane）。
+		local function db_move(dir)
+			local ok, state = pcall(require, "diffbandit.state")
+			if not ok then
+				return false
+			end
+			local tab = vim.api.nvim_get_current_tabpage()
+			local win = vim.api.nvim_get_current_win()
+			local hosts = {}
+			for _, s in pairs(state.sessions or {}) do
+				hosts[#hosts + 1] = s
+			end
+			for _, p in pairs(state.panels or {}) do
+				hosts[#hosts + 1] = p
+			end
+			local function valid(w)
+				return w and vim.api.nvim_win_is_valid(w) and w or nil
+			end
+			for _, h in ipairs(hosts) do
+				if not h.disposed and h.tabpage == tab then
+					local left, right = valid(h.left_win), valid(h.right_win)
+					local nav = valid(h.panel and h.panel.nav_win)
+					local target
+					if dir == "left" then
+						target = win == right and left or (win == left and nav)
+					elseif dir == "right" then
+						target = win == nav and left or (win == left and right)
+					end
+					if target and target ~= win then
+						vim.api.nvim_set_current_win(target)
+						return true
+					end
+				end
+			end
+			return false
+		end
+		-- [/diffbandit-compat]
+
 		-- 移动光标到相邻窗口（ctrl+hjkl，单修饰符，与 herdr 统一）
-		map({ "n", "x" }, "<C-h>", ss.move_cursor_left, { desc = "Smart-splits: 光标去左窗口" })
+		-- （<C-h>/<C-l> 的外层包装属 diffbandit 兼容层，见上）
+		map({ "n", "x" }, "<C-h>", function()
+			if not db_move("left") then
+				ss.move_cursor_left()
+			end
+		end, { desc = "Smart-splits: 光标去左窗口" })
 		map({ "n", "x" }, "<C-j>", ss.move_cursor_down, { desc = "Smart-splits: 光标去下窗口" })
 		map({ "n", "x" }, "<C-k>", ss.move_cursor_up, { desc = "Smart-splits: 光标去上窗口" })
-		map({ "n", "x" }, "<C-l>", ss.move_cursor_right, { desc = "Smart-splits: 光标去右窗口" })
+		map({ "n", "x" }, "<C-l>", function()
+			if not db_move("right") then
+				ss.move_cursor_right()
+			end
+		end, { desc = "Smart-splits: 光标去右窗口" })
 
 		-- 调整窗口大小（ctrl+alt+hjkl）。
 		-- 不用裸 alt：macOS 下 Option 会被终端组合成特殊字符，且 alt 以 ESC 前缀传输时

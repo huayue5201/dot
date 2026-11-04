@@ -1,8 +1,8 @@
 -- https://github.com/akinsho/git-conflict.nvim
 --
--- 冲突解决的按键分工（避免和 codediff 的 3 路视图搞混）：
+-- 冲突解决的按键分工（避免和 diffbandit 的 3 路视图搞混）：
 --   工作区文件里（本插件，buffer-local）：co ours / ct theirs / cb both / c0 none / ]x [x
---   codediff 冲突视图内（它自己管）：<leader>co / <leader>ct / <leader>cb / <leader>cx
+--   diffbandit 冲突视图内（它自己管）：<leader>Hm 打开；视图内 >>/<< 取本地/远端，gb 取两边，]c/[c 跳冲突
 
 return {
 	"akinsho/git-conflict.nvim",

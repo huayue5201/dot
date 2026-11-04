@@ -49,6 +49,14 @@ return {
 			on_attach = function(bufnr)
 				local gs = require("gitsigns")
 
+				-- [diffbandit-compat] diffbandit 会话里的 buffer 由它自己映射 ]c/[c 等；这里再挂一遍会用后写入的
+				-- buffer-local 映射盖掉 diffbandit 的，导致 diff 窗格里 ]c 实际走的是 gitsigns
+				-- （且常因没有对应 hunk 而静默无反应）。
+				local ok, diffbandit = pcall(require, "diffbandit")
+				if ok and diffbandit.owns_buffer and diffbandit.owns_buffer(bufnr) then
+					return
+				end
+
 				local function map(mode, keys, func, desc)
 					vim.keymap.set(mode, keys, func, { buffer = bufnr, desc = desc })
 				end

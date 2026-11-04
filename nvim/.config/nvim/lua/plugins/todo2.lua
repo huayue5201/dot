@@ -65,9 +65,9 @@ return {
 			-- 所有字形都在这里：任意项设 "" 即不显示（状态图标见下方 status）
 			-- 详见 :h todo2-icons；没有 Nerd Font 也可全换成 ASCII
 			icons = {
-				time = "↻", -- 行尾「最近改动时间」前缀（终态不加）
+				time = "󰑥 ", -- 行尾「最近改动时间」前缀（终态不加）
 				separator = "·", -- 时间与到期日之间的分隔
-				body = "¶", -- 正文折叠后的占位
+				body = " ", -- 正文折叠后的占位
 				warning = "⚠", -- 正文末尾疑似元数据时的提醒
 				unknown_status = "●", -- 状态没有配 icon 时的兜底
 				-- 树形缩进（抽屉 / 视图 / 代码侧分组共用）
@@ -93,9 +93,9 @@ return {
 				drawer = {
 					fold_open = "▾",
 					fold_closed = "▸",
-					cut = "✂ ",
+					cut = "󰆐 ",
 					code_link = "󰦼 ", -- 任务自己的代码锚点
-					code_link_inherited = "󱞥 ", -- 仅继承自父任务的锚点
+					code_link_inherited = "󰮵", -- 仅继承自父任务的锚点
 				},
 				file = "📁", -- 文件分组标题（归档组用 archived 状态的图标）
 				-- 月历徽章
@@ -233,11 +233,26 @@ return {
 		vim.keymap.set("n", "<leader>mtt", "<cmd>TodoTag<cr>", { desc = "编辑标签（抽屉 t）" })
 		vim.keymap.set("n", "<leader>mtD", "<cmd>TodoDue<cr>", { desc = "设/清到期日（抽屉 D）" })
 		vim.keymap.set("n", "<leader>mtS", "<cmd>TodoStart<cr>", { desc = "设/清开始日（抽屉 S）" })
-		vim.keymap.set("n", "<leader>mtC", "<cmd>TodoCalendar<cr>", { desc = "打开项目月历（抽屉 C 里点选日期）" })
-		vim.keymap.set("n", "<leader>mti", "<cmd>TodoSet<cr>", { desc = "属性面板 状态/标签/开始/到期（抽屉 i）" })
+		vim.keymap.set(
+			"n",
+			"<leader>mtC",
+			"<cmd>TodoCalendar<cr>",
+			{ desc = "打开项目月历（抽屉 C 里点选日期）" }
+		)
+		vim.keymap.set(
+			"n",
+			"<leader>mti",
+			"<cmd>TodoSet<cr>",
+			{ desc = "属性面板 状态/标签/开始/到期（抽屉 i）" }
+		)
 		vim.keymap.set("n", "<leader>mte", "<cmd>TodoTask rename<cr>", { desc = "改任务标题（抽屉 e）" })
 		vim.keymap.set("n", "<leader>mtE", "<cmd>TodoTask desc<cr>", { desc = "编辑任务正文（抽屉 E）" })
-		vim.keymap.set("n", "<leader>mtc", "<cmd>TodoContext<cr>", { desc = "复制任务上下文 Markdown（抽屉 c）" })
+		vim.keymap.set(
+			"n",
+			"<leader>mtc",
+			"<cmd>TodoContext<cr>",
+			{ desc = "复制任务上下文 Markdown（抽屉 c）" }
+		)
 		vim.keymap.set("n", "<leader>mtl", "<cmd>TodoLink<cr>", { desc = "把代码位置关联到任务" })
 		vim.keymap.set("n", "<leader>mtf", "<cmd>TodoFilter<cr>", { desc = "筛选（抽屉 f）" })
 		vim.keymap.set("n", "<leader>mtF", "<cmd>TodoFilter!<cr>", { desc = "清除筛选（抽屉 F）" })
@@ -246,8 +261,18 @@ return {
 		vim.keymap.set("n", "<leader>mto", "<cmd>TodoFilter due:overdue<cr>", { desc = "预设筛选：已过期" })
 
 		-- ── 视图组 mv-（末位 == 抽屉键）────────────────────────────
-		vim.keymap.set("n", "<leader>mvo", "<cmd>TodoView float<cr>", { desc = "浮窗预览 TODO 文件（抽屉 o）" })
-		vim.keymap.set("n", "<leader>mvP", "<cmd>TodoView preview<cr>", { desc = "智能预览 TODO/代码（抽屉 P 预览关联代码）" })
+		vim.keymap.set(
+			"n",
+			"<leader>mvo",
+			"<cmd>TodoView float<cr>",
+			{ desc = "浮窗预览 TODO 文件（抽屉 o）" }
+		)
+		vim.keymap.set(
+			"n",
+			"<leader>mvP",
+			"<cmd>TodoView preview<cr>",
+			{ desc = "智能预览 TODO/代码（抽屉 P 预览关联代码）" }
+		)
 		vim.keymap.set("n", "<leader>mvs", "<cmd>TodoView split<cr>", { desc = "水平分割打开" })
 		vim.keymap.set("n", "<leader>mvv", "<cmd>TodoView vsplit<cr>", { desc = "垂直分割打开" })
 		vim.keymap.set("n", "<leader>mve", "<cmd>TodoView edit<cr>", { desc = "编辑模式打开" })
@@ -256,7 +281,12 @@ return {
 		-- ── 文件组 mf-（末位 == 抽屉键；文件头上的 a/r/d）──────────
 		vim.keymap.set("n", "<leader>mfa", "<cmd>TodoFile new<cr>", { desc = "新建 TODO 文件（抽屉 a）" })
 		vim.keymap.set("n", "<leader>mfr", "<cmd>TodoFile rename<cr>", { desc = "重命名文件（抽屉 r）" })
-		vim.keymap.set("n", "<leader>mfd", "<cmd>TodoFile delete<cr>", { desc = "删除文件（抽屉在文件头按 d）" })
+		vim.keymap.set(
+			"n",
+			"<leader>mfd",
+			"<cmd>TodoFile delete<cr>",
+			{ desc = "删除文件（抽屉在文件头按 d）" }
+		)
 
 		-- ── 归档组 ma- ────────────────────────────────────────────
 		vim.keymap.set("n", "<leader>max", "<cmd>TodoArchive<cr>", { desc = "归档任务组（抽屉 x）" })
@@ -269,8 +299,23 @@ return {
 		vim.keymap.set("n", "<leader>mlb", "<cmd>TodoLinks!<cr>", { desc = "当前缓冲区双链标记 (LocList)" })
 
 		-- ── git 组 mg-（抽屉内 gs/gr/gb 同字母）───────────────────
-		vim.keymap.set("n", "<leader>mgs", "<cmd>TodoGit sync<cr>", { desc = "增量同步提交里的任务引用（抽屉 gs）" })
-		vim.keymap.set("n", "<leader>mgr", "<cmd>TodoGit review<cr>", { desc = "提交前自查脏文件里的锚点（抽屉 gr）" })
-		vim.keymap.set("n", "<leader>mgb", "<cmd>TodoGit blame<cr>", { desc = "查任务锚点的提交历史（抽屉 gb）" })
+		vim.keymap.set(
+			"n",
+			"<leader>mgs",
+			"<cmd>TodoGit sync<cr>",
+			{ desc = "增量同步提交里的任务引用（抽屉 gs）" }
+		)
+		vim.keymap.set(
+			"n",
+			"<leader>mgr",
+			"<cmd>TodoGit review<cr>",
+			{ desc = "提交前自查脏文件里的锚点（抽屉 gr）" }
+		)
+		vim.keymap.set(
+			"n",
+			"<leader>mgb",
+			"<cmd>TodoGit blame<cr>",
+			{ desc = "查任务锚点的提交历史（抽屉 gb）" }
+		)
 	end,
 }

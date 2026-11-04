@@ -1,5 +1,6 @@
 -- https://github.com/esmuellert/codediff.nvim
--- NOTE: 备选插件 https://github.com/CoreyKaylor/diffbandit.nvim
+-- 与 diffbandit.nvim 并存：codediff 用 <leader>h*（常用），diffbandit 让到 <leader>H*。
+-- 保留 codediff 主要为了它的「选区行范围历史」（visual <leader>hh）和内联 diff 视图。
 
 return {
 	"esmuellert/codediff.nvim",
@@ -7,7 +8,7 @@ return {
 		require("codediff").setup({
 			diff = {
 				-- 单文件模式
-				layout = "inline",
+				-- layout = "inline",
 				-- 注意：gutter_signs 必须在 diff 下面（插件读 config.options.diff.gutter_signs，
 				-- 顶层同名键会被 tbl_deep_extend 当未知键吞掉，符号就不显示）。
 				gutter_signs = {
@@ -35,7 +36,7 @@ return {
 			},
 		})
 
-		-- 快捷键
+		-- 快捷键（小写 h 前缀；diffbandit 已让到 <leader>H*）
 		local keymap = vim.keymap.set
 		local opts = { noremap = true, silent = true }
 
