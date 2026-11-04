@@ -31,7 +31,6 @@ return {
 				-- "buffers",
 				"git_status",
 				"document_symbols",
-				"notes.ui.neotree", -- 笔记 vault（notes.nvim）
 			},
 			close_if_last_window = true,
 			popup_border_style = "rounded",
@@ -49,7 +48,6 @@ return {
 					-- { source = "buffers" },
 					{ source = "git_status" },
 					{ source = "document_symbols" },
-					{ source = "notes" },
 				},
 			},
 
