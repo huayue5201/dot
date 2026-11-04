@@ -4,4 +4,6 @@ return {
 	cache = {}, -- root -> { head = string, data = table }
 	state = {}, -- bufnr -> { root, data, full, paths, origin_win }
 	last = nil, ---@type { root: string, data: table }|nil 最近一次采集（:ProjectAsk 复用，避免重复跑 tokei）
+	--- 由 init 在加载末尾注册；ui 只读，不回指 init（断 init ⇄ ui）
+	actions = {}, ---@type { ask?: fun(), chat?: fun(o?: table) }
 }

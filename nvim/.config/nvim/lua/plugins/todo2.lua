@@ -10,10 +10,7 @@ return {
 		-- 唯一完整参考：:h todo2（:Todo help 打开）
 		vim.g.todo2_config = {
 			-- 核心开关
-			conceal_enable = true, -- TODO 文件 conceal 渲染（todo:id、复选框图标等）
-			conceal_due = true, -- 行内 @YYYY-MM-DD 隐藏，改在行尾元数据带显示（光标压上去才显原日期）
-
-			-- 统一入口：:Todo（无参 = 抽屉，`:Todo <sub>` = :Todo<Sub>，`:Todo help` = :h todo2）
+			conceal_enable = true, -- TODO 文件 conceal 渲染（状态 checkbox → 图标；@created 默认隐藏）
 
 			-- 解析器行为
 			parser = {
@@ -27,95 +24,150 @@ return {
 				reconcile_on_start = true,
 			},
 
-			-- 代码文件里的任务渲染（默认：任务标签绘制在代码行**上方**的虚拟行）
-			-- 需要改成行内/行末时在插件默认值基础上覆盖：position = "inline" | "below"
-			code_render = {
-				-- "trunc"（默认，不随横滚）| "scroll"（nowrap 时随代码横滚）| "auto" | "wrap"
-				virt_lines_overflow = "trunc",
+			-- 任务正文（任务行下方的缩进续行）
+			description = {
+				fold = true, -- TODO 文件里默认折叠正文
+				format_on_save = true, -- 保存时把正文缩进规整到列表项内容列
 			},
 
-			-- 进度条样式（TODO 行 / 抽屉 / 代码端 / 统计摘要共用这一套）
+			-- 代码文件里的任务渲染（默认：任务标签画在代码行上方的虚拟行）
+			code_render = {
+				position = "above", -- "above" | "below" | "inline"
+				max_lines = 3, -- 同一代码行最多展示几个任务，超出折叠为「代表任务 + +N」
+				virt_lines_overflow = "trunc", -- "trunc" | "scroll" | "auto" | "wrap"
+			},
+
+			-- 到期日输入：true = 三格日期面板，false = 一行表达式输入（:h todo2-date-panel）
+			due = {
+				panel = true,
+			},
+
+			-- 智能预览（:TodoView preview）同一锚点最多平铺几个窗口
+			preview = {
+				max_blocks = 20,
+			},
+
+			-- 进度条样式（字形在 icons.progress，这里只管长度和高亮组）
 			progress_bar = {
 				style = "full",
-				chars = {
-					filled = "▰",
-					empty = "▱",
-				},
-				length = { min = 5, max = 20 }, -- 5~20 自适应（不再是固定长度）
+				length = { min = 5, max = 20 },
 				highlights = {
 					done = "Todo2ProgressDone",
 					todo = "Todo2ProgressTodo",
 				},
 			},
 
-			-- 复选框图标（未完成 / 完成 / 归档）
-			checkbox_icons = {
-				todo = "◻",
-				done = "✔",
-				archived = "📦",
-			},
+			-- 视图（viewer）显示配置
+			viewer_show_icons = true,
+			viewer_show_child_count = true,
+			viewer_file_header_style = "─ %s ──[ %d tasks ]",
 
-			-- 树形缩进图标（drawer / viewer 共用）
-			viewer_icons = {
-				indent = {
+			-- 所有字形都在这里：任意项设 "" 即不显示（状态图标见下方 status）
+			-- 详见 :h todo2-icons；没有 Nerd Font 也可全换成 ASCII
+			icons = {
+				time = "↻", -- 行尾「最近改动时间」前缀（终态不加）
+				separator = "·", -- 时间与到期日之间的分隔
+				body = "¶", -- 正文折叠后的占位
+				warning = "⚠", -- 正文末尾疑似元数据时的提醒
+				unknown_status = "●", -- 状态没有配 icon 时的兜底
+				-- 树形缩进（抽屉 / 视图 / 代码侧分组共用）
+				tree = {
 					top = "│ ",
 					middle = "├─",
 					last = "└─",
 					ws = "  ",
 				},
+				-- 子任务进度条
+				progress = {
+					filled = "▰",
+					empty = "▱",
+				},
+				-- 代码文件里的任务标记
+				code = {
+					above = "󱞡 ", -- 组内上方分组箭头
+					below = "󱞽 ", -- 组内下方分组箭头
+					branch = "└ ", -- 缩进分支
+					bar = " │ ", -- 组内竖线
+				},
+				-- 抽屉
+				drawer = {
+					fold_open = "▾",
+					fold_closed = "▸",
+					cut = "✂ ",
+					code_link = "󰦼 ", -- 任务自己的代码锚点
+					code_link_inherited = "󱞥 ", -- 仅继承自父任务的锚点
+				},
+				file = "📁", -- 文件分组标题（归档组用 archived 状态的图标）
+				-- 月历徽章
+				calendar = {
+					commitment = "●", -- 承诺层（有 @due / @start）
+					mark = "○", -- 活动层（无日期，按最后修改时间）
+				},
 			},
-
-			-- 视图（viewer）显示配置
-			viewer_show_icons = true, -- 是否显示图标
-			viewer_show_child_count = true, -- 是否显示子任务计数
-			viewer_file_header_style = "─ %s ──[ %d tasks ]", -- 文件 header 格式
 
 			-- 任务树抽屉（:TodoDrawer / :Todo）
 			drawer = {
 				position = "right", -- "right" | "bottom"（bottom 上下拆分可展示更多）
 				width = 60, -- position = "right" 时的宽度
 				height = 12, -- position = "bottom" 时的高度
-				focus_on_jump = false, -- true 时 <CR> 跳转后焦点跟随到代码窗口
-				expand_lines = true, -- 光标行超出抽屉宽度时用浮窗补全显示完整内容
+				focus_on_jump = false, -- true 时 <CR> 跳转后焦点跟到代码窗口
+				expand_lines = true, -- 光标行超出宽度时用浮窗补全完整内容
 			},
 
-			-- 项目月历（:TodoCalendar；抽屉里按 C 是在月历浮窗里点日期写截止日）
-			-- 只收录带 @YYYY-MM-DD 的任务；行内日期平时隐藏，行尾元数据带显示 `11-02 · ↻10-30`
+			-- 项目月历（:TodoCalendar）：只收录带 @due / @start 的活动任务
 			calendar = {
 				first_day_of_week = "monday", -- "monday" | "sunday"
-				show_completed = true, -- false 时已完成任务不计入格子也不进当日列表
-				mark_icon = "●",
-				done_icon = "○",
-				winblend = 0,
+				winblend = 0, -- 浮层透明度（0 = 不透明）
+				show_completed = true, -- false 时已完成任务不计数、不上格
 			},
 
-			-- Git 集成（提交消息关单 / 锚点历史 / 提交前自查）
-			git = {
-				enable = true, -- 总开关（:TodoGit sync! 可临时绕过）
-				trigger = "manual", -- "manual" | "on_open"（on_open 时打开 TODO 自动增量同步）
-				show_metadata = true, -- 在查看器 / 抽屉显示关联提交
-				refs = {
-					-- 提交消息里出现 [Tt]odo:<id> 时把该任务标为完成
-					{ pattern = "[Tt]odo[:：]%s*([0-9a-z]+)", status = "completed" },
+			-- 状态：状态全部编码进 checkbox，文件是唯一真相源
+			-- `- [ ]` 第一个活跃状态、`- [d]` doing、`- [b]` blocked、`- [x]` 完成、`- [>]` 归档
+			-- checkbox 省略时：第一个状态用空格，其余取 label 里第一个没被占用的字母
+			-- （空格 / x / X / > 永远留给终态）；type = incomplete（默认）/ complete / inactive
+			status = {
+				cycle = {
+					{ label = "todo", icon = " ", color = "#51cf66" },
+					{ label = "doing", icon = "▶ ", color = "#f5c2e7", checkbox = "d" },
+					{ label = "blocked", icon = "⛔ ", color = "#ff6b6b", checkbox = "b" },
+				},
+				-- 终态只允许改显示，语义（完成 / 归档）不变
+				terminal = {
+					completed = { icon = "✔", color = "#868e96" },
+					archived = { icon = "📦", color = "#868e96" },
 				},
 			},
 
-			-- 归档区域标题前缀（归档任务存放于文件内 `## Archived (YYYY-MM)` 段）
+			-- 命名筛选（:TodoFilter save NAME 写入本表，:TodoFilter @NAME 应用）
+			filters = {},
+
+			-- 归档区域标题前缀（归档任务存在文件内 `## Archived (YYYY-MM)` 段）
 			archive_section = {
 				title_prefix = "## Archived",
 			},
 
-			-- 归档（归档 = 把任务行移入文件内 `## Archived (YYYY-MM)` 段，可逆；:TodoArchive / :TodoUnarchive）
+			-- 归档（:TodoArchive / :TodoUnarchive；归档只是移入归档段，可逆）
 			archive = {
 				allow_unfinished = true, -- 是否允许归档含未完成任务的组（<leader>mA! 可强制）
-				include_in_render = false, -- 抽屉初次打开时是否并入归档任务（抽屉内按 A 可切换）
-				auto_after_days = 0, -- 自动归档阈值（天，0=关闭）
+				include_in_render = false, -- 抽屉初次打开是否并入归档任务（抽屉内 A 可切换）
+				auto_after_days = 0, -- 整棵子树完成后自动归档的天数（0 = 关闭）
 			},
 
-			-- 孤儿任务回收（任务行被手删后，store 里的记录先隔离再清理）
+			-- 孤儿任务回收（任务行被手删后，store 记录先隔离再清理）
 			orphan = {
 				enabled = true,
 				retention_days = 30, -- 隔离超过该天数仍无文件恢复即清除（0 = 永不清除）
+			},
+
+			-- 项目级回收（项目从磁盘删掉 / 改名后遗留的 TODO 目录）
+			-- 只在项目根确实不存在（ENOENT）且超过该天数时才移动，绝不删除
+			projects = {
+				retention_days = 30, -- 0 = 永不自动移动，平时只报告；:TodoGc! 才动手
+			},
+
+			-- 性能观测：关闭时插桩零开销，开启后用 :TodoProfile 看 count/avg/max
+			profile = {
+				enabled = false,
 			},
 
 			-- TODO 文件识别（可扩展任意格式）
@@ -131,7 +183,7 @@ return {
 				default_content = { "## Active" },
 			},
 
-			-- MCP 接入点：publish = true 时 setup 阶段就发布本实例的 RPC 地址给 MCP 桥
+			-- MCP 接入点：publish = true 时 setup 阶段就把本实例的 RPC 地址给 MCP 桥
 			mcp = {
 				publish = true,
 			},
@@ -140,8 +192,19 @@ return {
 			ai = {
 				include_code = true, -- 是否附带代码块正文
 				include_ancestors = true, -- 是否附带祖先链
-				include_children = 1, -- 子树层数：true=全部，数字=层数
-				max_code_lines = 200, -- 代码正文最多取多少行（0 表示不限）
+				include_children = 1, -- 子树层数：true = 全部，数字 = 层数
+				max_code_lines = 200, -- 代码正文最多取多少行（0 = 不限）
+			},
+
+			-- Git 集成（提交消息关单 / 锚点历史 / 提交前自查）
+			git = {
+				enable = true, -- 总开关（:TodoGit sync! 可临时绕过）
+				trigger = "manual", -- "manual" | "on_open"（on_open 时打开 TODO 自动增量同步）
+				show_metadata = true, -- 在查看器 / 抽屉显示关联提交
+				refs = {
+					-- 提交消息里出现 todo:<id> 时把该任务标为完成
+					{ pattern = "[Tt]odo[:：]%s*([0-9a-z]+)", status = "completed" },
+				},
 			},
 		}
 	end,
