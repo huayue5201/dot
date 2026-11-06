@@ -107,7 +107,7 @@ check(r.item == "k", "M-s 应选中第 11 项，实际 " .. tostring(r.item))
 -- 5b. 提示文本在边框中间（含输入模式标记）
 ----------------------------------------------------------------------
 
-local titles, bodies, cursors, marks = {}, {}, {}, {}
+local titles, bodies, cursors, marks, inputs = {}, {}, {}, {}, {}
 local orig_rk_title = menu._read_key
 local title_reads = 0
 menu._read_key = function()
@@ -121,6 +121,15 @@ menu._read_key = function()
 			end
 		end
 		local text = table.concat(parts)
+		local buf = vim.api.nvim_win_get_buf(w)
+		local body = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+		if cfg.relative ~= "" and body[1] and body[1]:find("❯", 1, true) then
+			local hl = {}
+			for _, m in ipairs(vim.api.nvim_buf_get_extmarks(buf, -1, 0, -1, { details = true })) do
+				hl[#hl + 1] = (m[4] or {}).hl_group
+			end
+			inputs[#inputs + 1] = { line = body[1], cursor = vim.api.nvim_win_get_cursor(w), hl = hl }
+		end
 		if text == "Pick: " then
 			titles[#titles + 1] = { text = text, pos = cfg.title_pos }
 			bodies[#bodies + 1] = vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(w), 0, -1, false)
@@ -146,19 +155,22 @@ menu._read_key = orig_rk_title
 check(#titles >= 2, "应在每次读键前都更新边框标题")
 check(titles[1] and titles[1].text:find("Pick: ", 1, true) ~= nil, "标题应包含 prompt")
 check(titles[1] and titles[1].pos == "center", "标题应居中（title_pos = center）")
--- 查询框固定在列表下面（" ❯ " + 查询），标题只放提示词
-local last_body, last_cursor = bodies[#bodies], cursors[#cursors]
+-- 输入框是**独立的浮窗**，贴在列表下方；列表本身不再有输入行
+local last_body = bodies[#bodies]
+check(last_body and last_body[1] ~= nil and not last_body[1]:find("❯", 1, true), "列表里不应再有输入行")
+local last_input = inputs[#inputs]
+check(last_input ~= nil, "输入模式应有一个独立的输入框浮窗")
 check(
-	last_body and last_body[#last_body] == " ❯ g ",
-	"输入框应是最后一行，实际 " .. tostring(last_body and last_body[#last_body])
+	last_input and last_input.line == " ❯ g ",
+	"输入框内容应为查询文本，实际 " .. tostring(last_input and last_input.line)
 )
 check(
-	last_cursor and last_cursor[1] == #last_body and last_cursor[2] == 6,
-	"光标应停在输入框查询末尾（末行,6），实际 " .. vim.inspect(last_cursor)
+	last_input and last_input.cursor[1] == 1 and last_input.cursor[2] == 6,
+	"光标应停在输入框查询末尾（1,6），实际 " .. vim.inspect(last_input and last_input.cursor)
 )
 check(bodies[1] and bodies[1][1] == " 1 alpha", "导航模式下没有查询行")
 -- 输入框的光标格要有 Cursor 高亮：浮窗里的真光标未必被终端显示，这一格保证位置可见
-local last_marks = marks[#marks] or {}
+local last_marks = (last_input and last_input.hl) or {}
 local has_cursor = false
 for _, g in ipairs(last_marks) do
 	if g == "Cursor" then

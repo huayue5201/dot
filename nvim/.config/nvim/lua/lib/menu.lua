@@ -22,7 +22,7 @@
 --            <CR> 选当前，j/k 仍然可以上下移动；
 --            Esc 只退回导航模式（查询保留），再按 Esc 才取消。
 --   帮助浮窗：'?' 打开，任意键（含 Esc）收起；关菜单时一并关掉。
--- 提示文本（prompt）显示在浮窗上边框中间；输入模式时列表**下面**多出一行输入框
+-- 提示文本（prompt）显示在浮窗上边框中间；输入模式时列表下方**单独浮一个输入框**
 -- （" ❯ " + 查询），跟 dropbar 的菜单一致。输入位置用一个 Cursor 高亮的格子画出来：
 -- 浮窗里的真光标在部分终端/配置下根本不显示，不能只依赖它。
 
@@ -237,6 +237,75 @@ local function anchor()
 	return { row = math.max(1, pos.row), col = math.max(left, pos.col) }
 end
 
+---输入框：独立的浮窗，贴在列表下方（跟 dropbar 的菜单一样，脱离列表单独浮着）。
+---输入位置用 Cursor 高亮的格子画出来——浮窗里的真光标在部分终端/配置下根本不显示，
+---只依赖它就会「看不见光标」；真光标正常时与这一格重合。
+---@param state table
+---@param menu_row integer 列表浮窗的上边（不含边框）
+---@param menu_height integer 列表浮窗的行数
+local function render_input(state, menu_row, menu_height)
+	if not (state.mode == "input" or state.query ~= "") then
+		if state.input_win and api.nvim_win_is_valid(state.input_win) then
+			pcall(api.nvim_win_close, state.input_win, true)
+		end
+		state.input_win = nil
+		return
+	end
+
+	local line = " ❯ " .. state.query .. " "
+	local width = math.min(M.config.width, math.max(20, fn.strdisplaywidth(line) + 1))
+	-- 列表带边框，下沿再留一行空；下面放不下就翻到列表上方
+	local row = menu_row + menu_height + 2
+	if row + 2 >= vim.go.lines then
+		row = math.max(1, menu_row - 3)
+	end
+	local col = state.pos.col
+	if col + width > vim.go.columns then
+		col = math.max(1, vim.go.columns - width - 1)
+	end
+
+	if state.input_buf == nil or not api.nvim_buf_is_valid(state.input_buf) then
+		state.input_buf = api.nvim_create_buf(false, true)
+		api.nvim_set_option_value("buftype", "nofile", { buf = state.input_buf })
+	end
+	api.nvim_set_option_value("modifiable", true, { buf = state.input_buf })
+	api.nvim_buf_set_lines(state.input_buf, 0, -1, false, { line })
+	api.nvim_set_option_value("modifiable", false, { buf = state.input_buf })
+	api.nvim_buf_clear_namespace(state.input_buf, ns, 0, -1)
+
+	local opts = {
+		relative = "editor",
+		row = row,
+		col = col,
+		width = width,
+		height = 1,
+		style = "minimal",
+		border = M.config.border,
+		noautocmd = true,
+	}
+	if state.input_win == nil or not api.nvim_win_is_valid(state.input_win) then
+		state.input_win = api.nvim_open_win(state.input_buf, true, opts)
+		for _, o in ipairs({ { "statuscolumn", "" }, { "signcolumn", "no" }, { "foldcolumn", "0" }, { "wrap", false } }) do
+			api.nvim_set_option_value(o[1], o[2], { win = state.input_win })
+		end
+		api.nvim_set_option_value("winhl", "Normal:Pmenu,FloatBorder:FloatBorder", { win = state.input_win })
+	else
+		api.nvim_win_set_config(state.input_win, opts)
+	end
+
+	-- 前缀 " ❯ " 的 ❯ 在字节 1..3
+	api.nvim_buf_set_extmark(state.input_buf, ns, 0, 1, { end_col = 4, hl_group = "Identifier" })
+	local col_byte = INPUT_PREFIX_BYTES + #state.query
+	api.nvim_buf_set_extmark(state.input_buf, ns, 0, col_byte, {
+		end_col = col_byte + 1,
+		hl_group = "Cursor",
+		priority = 210,
+	})
+	pcall(api.nvim_win_set_cursor, state.input_win, { 1, col_byte })
+	-- 输入框是当前窗口：真光标（终端能显示时）就落在查询末尾
+	pcall(api.nvim_set_current_win, state.input_win)
+end
+
 ---@param state table
 local function render(state)
 	local view = state.view
@@ -249,19 +318,6 @@ local function render(state)
 		lines[#lines + 1] = " " .. M.line(i, entry.text)
 		if i == state.sel then
 			cursor_line = #lines
-		end
-	end
-
-	-- 输入框固定在列表**下面**（跟 dropbar 的菜单一致），只在输入模式或已有查询时出现。
-	-- 光标位用一个 Cursor 高亮的格子画出来：浮窗里的真光标在某些终端/配置下不显示，
-	-- 这一格保证「输入位置」永远可见（真光标恰好也在同一格时看不出差别）。
-	local input_line, input_col
-	if state.mode == "input" or state.query ~= "" then
-		lines[#lines + 1] = " ❯ " .. state.query .. " "
-		input_line = #lines
-		input_col = INPUT_PREFIX_BYTES + #state.query
-		if state.mode == "input" then
-			cursor_line = input_line
 		end
 	end
 
@@ -280,12 +336,7 @@ local function render(state)
 
 	local height = #lines
 
-	-- 从光标所在行的下一行开始画：浮窗若压在光标格上，真光标画在浮窗第一格，
-	-- 屏幕上看就是"光标还在原来那个位置，没有进菜单"。
-	local row = state.pos.row + 1
-	if row + height > vim.go.lines - 1 then
-		row = math.max(1, state.pos.row - height - 1)
-	end
+	local row = state.pos.row
 
 	local win_opts = {
 		relative = "editor",
@@ -354,18 +405,8 @@ local function render(state)
 		})
 	end
 	local cursor_col = 1
-	if input_line and state.mode == "input" then
-		cursor_col = input_col
-	end
-	-- 输入位置始终画出来（hl = Cursor），不依赖浮窗里的真光标是否被终端显示
-	if input_line and state.mode == "input" then
-		api.nvim_buf_set_extmark(state.buf, ns, input_line - 1, input_col, {
-			end_col = input_col + 1,
-			hl_group = "Cursor",
-			priority = 210,
-		})
-	end
 	pcall(api.nvim_win_set_cursor, state.win, { cursor_line, cursor_col })
+	render_input(state, row, height)
 	render_help(state)
 	-- 阻塞读键前必须显式刷一次：nvim 在等待输入时不会自动 flush 待处理的浮窗重绘，
 	-- 少了这一句表现为「按了快捷键什么都没弹出」。
@@ -391,6 +432,10 @@ local function close(state)
 	if state.buf and api.nvim_buf_is_valid(state.buf) then
 		pcall(api.nvim_buf_delete, state.buf, { force = true })
 	end
+	if state.input_win and api.nvim_win_is_valid(state.input_win) then
+		pcall(api.nvim_win_close, state.input_win, true)
+	end
+	state.input_win = nil
 	if state.help_win and api.nvim_win_is_valid(state.help_win) then
 		pcall(api.nvim_win_close, state.help_win, true)
 	end
