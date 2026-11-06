@@ -232,9 +232,10 @@ local function close(state)
 		pcall(api.nvim_buf_delete, state.buf, { force = true })
 	end
 	state.win, state.buf = nil, nil
-	-- 关掉浮窗后立刻重绘：否则浮窗占过的区域会留下残影（边框/底色）
+	-- 关掉浮窗后强制整屏重绘：浮窗占过的区域（尤其 statuscolumn）不会被自动置脏，
+	-- 会留下深色竖纹残影，直到下一次整屏重绘（比如另一个浮窗弹出）才消失。
 	if vim.go.columns > 0 then
-		pcall(vim.cmd, "redraw")
+		pcall(vim.cmd, "redraw!")
 	end
 end
 
