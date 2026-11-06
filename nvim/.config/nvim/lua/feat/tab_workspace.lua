@@ -21,6 +21,7 @@ local session = require("feat.tab_workspace.session")
 local lsp = require("feat.tab_workspace.lsp")
 local workspace = require("feat.tab_workspace.workspace")
 local root = require("feat.tab_workspace.root")
+local roots = require("feat.tab_workspace.roots")
 local local_settings = require("feat.tab_workspace.local_settings")
 
 local M = {}
@@ -47,6 +48,10 @@ M.picker = workspace.picker
 M.edit_local_settings = local_settings.edit
 M.reload_local_settings = local_settings.reload
 M.alternate = workspace.alternate
+M.attach_root = workspace.attach_root
+M.detach_root = workspace.detach_root
+M.roots = workspace.roots
+M.workspace_tree = workspace.tree
 M.resolve_root = root.resolve
 M.root_back = root.back
 M.root_unpin = root.unpin
@@ -178,6 +183,18 @@ function M.setup(opts)
 				lifecycle.prune()
 				lsp.on_tab_closed()
 			end)
+		end,
+	})
+
+	-- 主根变了：如果新主根也在辅助根里，从辅助列表里摘掉（不重复显示同一目录）
+	vim.api.nvim_create_autocmd({ "DirChanged", "User" }, {
+		group = group,
+		pattern = { "DirChanged", "TabWorkspaceRoot" },
+		callback = function(args)
+			if args.event == "User" and args.pattern ~= "TabWorkspaceRoot" then
+				return
+			end
+			roots.reconcile(vim.api.nvim_get_current_tabpage())
 		end,
 	})
 end

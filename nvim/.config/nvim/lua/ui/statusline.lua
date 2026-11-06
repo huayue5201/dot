@@ -275,6 +275,15 @@ local function workspace()
 			table.insert(parts, "%#StlSep#" .. WS_LOCK .. "%*")
 		end
 
+		-- 附加了辅助根（多根工作区）：+N；用 <leader>ew 看并列的多根树
+		local ok_roots, roots = pcall(require, "feat.tab_workspace.roots")
+		if ok_roots then
+			local extra = #roots.aux(tab)
+			if extra > 0 then
+				table.insert(parts, string.format("%%#StlSep#+%d%%*", extra))
+			end
+		end
+
 		local tabs = #vim.api.nvim_list_tabpages()
 		if tabs > 1 then
 			table.insert(parts, string.format("%%#StlSep#%d/%d%%*", number, tabs))
@@ -450,7 +459,7 @@ vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI", "FocusGained" }, {
 -- ================================
 local statusline_group = vim.api.nvim_create_augroup("Statusline", { clear = true })
 
--- 工作区锚点：切 tab（TabEnter）/ :tcd（DirChanged）/ pin 变化时重算
+-- 工作区锚点：切 tab（TabEnter）/ :tcd（DirChanged）/ 根与辅助根变化时重算
 vim.api.nvim_create_autocmd({ "TabEnter", "DirChanged" }, {
 	group = statusline_group,
 	callback = function()
@@ -459,9 +468,9 @@ vim.api.nvim_create_autocmd({ "TabEnter", "DirChanged" }, {
 	end,
 })
 
--- pin 的增减不一定会 :tcd（例如 <leader>lwR 解除锁定后自动跟随没触发切换）
+-- pin / 辅助根的增减不一定伴随 :tcd（例如 <leader>lw+ 只是加了个附加根）
 vim.api.nvim_create_autocmd("User", {
-	pattern = "TabWorkspaceRoot",
+	pattern = { "TabWorkspaceRoot", "TabWorkspaceRoots" },
 	group = statusline_group,
 	callback = function()
 		enqueue("ws")

@@ -251,4 +251,67 @@ function M.alternate()
 	vim.api.nvim_set_current_tabpage(last)
 end
 
+-- ================= 辅助根（主根 + N 辅助根）=================
+
+--- 给当前工作区附加一个辅助根（<leader>lw+）
+--- cwd 永远是主根；辅助根只影响多根消费者（<leader>ew 的 workspace 树、会话）。
+---@param dir? string 省略则交互输入
+function M.attach_root(dir)
+	local roots = require("feat.tab_workspace.roots")
+	local function run(input)
+		local ok, err = roots.attach(vim.api.nvim_get_current_tabpage(), input)
+		if not ok then
+			vim.notify("未附加: " .. tostring(err), vim.log.levels.WARN)
+		end
+		return ok
+	end
+	if dir then
+		return run(dir)
+	end
+	vim.ui.input({ prompt = "附加根目录: ", default = vim.fn.getcwd() .. "/", completion = "dir" }, function(input)
+		if input and input ~= "" then
+			run(input)
+		end
+	end)
+end
+
+--- 移除辅助根（<leader>lw-）：无参数时在当前辅助根里选
+---@param dir? string
+function M.detach_root(dir)
+	local roots = require("feat.tab_workspace.roots")
+	local tab = vim.api.nvim_get_current_tabpage()
+	if dir then
+		if not roots.detach(tab, dir) then
+			vim.notify("不是辅助根: " .. dir, vim.log.levels.WARN)
+		end
+		return
+	end
+	local list = roots.aux(tab)
+	if #list == 0 then
+		vim.notify("当前工作区没有辅助根", vim.log.levels.INFO)
+		return
+	end
+	vim.ui.select(list, {
+		prompt = "移除辅助根: ",
+		format_item = function(d)
+			return vim.fn.fnamemodify(d, ":~")
+		end,
+	}, function(choice)
+		if choice then
+			roots.detach(tab, choice)
+		end
+	end)
+end
+
+--- 当前工作区的根列表（主根在前）
+---@return string[]
+function M.roots()
+	return require("feat.tab_workspace.roots").all(vim.api.nvim_get_current_tabpage())
+end
+
+--- 打开多根树（neo-tree 的 workspace 源）
+function M.tree()
+	vim.cmd("Neotree workspace toggle")
+end
+
 return M

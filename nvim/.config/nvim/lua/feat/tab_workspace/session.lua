@@ -17,8 +17,9 @@ local pending = false
 -- 会话里 tab_workspace 数据的格式版本。
 -- v1（旧）：{ ["1"] = {bufname, ...}, ["2"] = {...} } —— 以 tab 序号为键。
 --   tab 作用域会话从 tab2 存、在 tab1 载入时键对不上，归属只能整体丢掉。
--- v2：{ v = 2, scoped = bool, list = { { root = ..., names = {bufname...} }, ... } }
+-- v2：{ v = 2, scoped = bool, list = { { root = ..., names = {bufname...}, aux = {dir...} }, ... } }
 --   按 tab 顺序存数组，载入时按顺序对回 tab，序号如何变都不影响。
+--   aux（可选）= 这个工作区的辅助根；缺省表示单根（兼容旧文件）。
 local FORMAT = 2
 
 ---@param tab integer
@@ -46,6 +47,18 @@ local function owned_names(tab)
 	return names
 end
 
+--- 某个 tab 的辅助根（没有就返回 nil，不往会话文件里写空表）
+---@param tab integer
+---@return string[]?
+local function tab_aux(tab)
+	local ok, roots = pcall(require, "feat.tab_workspace.roots")
+	if not ok then
+		return nil
+	end
+	local dirs = roots.aux(tab)
+	return #dirs > 0 and dirs or nil
+end
+
 --- 导出 buffer 归属，供 resession 扩展写进会话文件。
 ---@param tabpage? integer 只导出这一个 tab（tab 作用域会话），nil = 导出全部
 ---@return table
@@ -54,12 +67,12 @@ function M.export(tabpage)
 		return {
 			v = FORMAT,
 			scoped = true,
-			list = { { root = tab_root(tabpage), names = owned_names(tabpage) } },
+			list = { { root = tab_root(tabpage), names = owned_names(tabpage), aux = tab_aux(tabpage) } },
 		}
 	end
 	local list = {}
 	for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
-		list[#list + 1] = { root = tab_root(tab), names = owned_names(tab) }
+		list[#list + 1] = { root = tab_root(tab), names = owned_names(tab), aux = tab_aux(tab) }
 	end
 	return { v = FORMAT, list = list }
 end
@@ -103,18 +116,30 @@ function M.restore(map)
 		end
 	end
 
+	---@param tab integer
+	---@param entry table
+	local function restore_entry(tab, entry)
+		assign(tab, entry.names)
+		if type(entry.aux) == "table" then
+			local ok, roots = pcall(require, "feat.tab_workspace.roots")
+			if ok then
+				roots.set(tab, entry.aux)
+			end
+		end
+	end
+
 	if map.v == FORMAT and type(map.list) == "table" then
 		if map.scoped then
 			-- tab 作用域会话：归属属于「被载入的那个 tab」，按顺序取第一项
 			local entry = map.list[1]
 			if entry then
-				assign(vim.api.nvim_get_current_tabpage(), entry.names)
+				restore_entry(vim.api.nvim_get_current_tabpage(), entry)
 			end
 		else
 			for i, tab in ipairs(vim.api.nvim_list_tabpages()) do
 				local entry = map.list[i]
 				if entry then
-					assign(tab, entry.names)
+					restore_entry(tab, entry)
 				end
 			end
 		end

@@ -23,11 +23,45 @@ return {
 			grug_far.get_instance("explorer"):update_input_values(prefills, false)
 		end
 
+		-- filesystem 与 workspace 源共用键位：两个树操作的是同一批真实路径
+		local fs_maps = {
+			["o"] = "open_and_close",
+			["<cr>"] = "open_and_close",
+			["<2-LeftMouse>"] = "open_and_close",
+			["O"] = "system_open",
+			["C"] = "open_and_clear_filter",
+			["h"] = function(state)
+				local node = state.tree:get_node()
+				if node.type == "directory" and node:is_expanded() then
+					require("neo-tree.sources.filesystem").toggle_directory(state, node)
+				else
+					require("neo-tree.ui.renderer").focus_node(state, node:get_parent_id())
+				end
+			end,
+			["l"] = function(state)
+				local node = state.tree:get_node()
+				if node.type == "directory" then
+					if not node:is_expanded() then
+						require("neo-tree.sources.filesystem").toggle_directory(state, node)
+					elseif node:has_children() then
+						require("neo-tree.ui.renderer").focus_node(state, node:get_child_ids()[1])
+					end
+				else
+					require("neo-tree.sources.filesystem.commands").open(state)
+					require("neo-tree.command").execute({ action = "close" })
+				end
+			end,
+			-- map our new command to z
+			z = "grug_far_replace",
+		}
+
 		---@diagnostic disable-next-line: missing-fields
 		require("neo-tree").setup({
 			-- ========== 基础设置 ==========
 			sources = {
 				"filesystem",
+				-- 多根源（主根 + 辅助根）：模块在 lua/feat/tab_workspace/neo_tree.lua
+				"feat.tab_workspace.neo_tree",
 				-- "buffers",
 				"git_status",
 				"document_symbols",
@@ -45,6 +79,7 @@ return {
 				statusline = false,
 				sources = {
 					{ source = "filesystem" },
+					{ source = "workspace" },
 					-- { source = "buffers" },
 					{ source = "git_status" },
 					{ source = "document_symbols" },
@@ -86,36 +121,30 @@ return {
 					},
 				},
 				window = {
-					mappings = {
-						["o"] = "open_and_close",
-						["<cr>"] = "open_and_close",
-						["<2-LeftMouse>"] = "open_and_close",
-						["O"] = "system_open",
-						["C"] = "open_and_clear_filter",
-						["h"] = function(state)
-							local node = state.tree:get_node()
-							if node.type == "directory" and node:is_expanded() then
-								require("neo-tree.sources.filesystem").toggle_directory(state, node)
-							else
-								require("neo-tree.ui.renderer").focus_node(state, node:get_parent_id())
-							end
-						end,
-						["l"] = function(state)
-							local node = state.tree:get_node()
-							if node.type == "directory" then
-								if not node:is_expanded() then
-									require("neo-tree.sources.filesystem").toggle_directory(state, node)
-								elseif node:has_children() then
-									require("neo-tree.ui.renderer").focus_node(state, node:get_child_ids()[1])
-								end
-							else
-								require("neo-tree.sources.filesystem.commands").open(state)
-								require("neo-tree.command").execute({ action = "close" })
-							end
-						end,
-						-- map our new command to z
-						z = "grug_far_replace",
+					mappings = fs_maps,
+				},
+			},
+
+			-- ========== 多根源（主根 + 辅助根）==========
+			-- 根由 feat.tab_workspace.roots 管理（<leader>lw+ / <leader>lw-），
+			-- 顶层是并排的根目录，展开后与 filesystem 源完全一致。
+			workspace = {
+				-- cwd 只有一个，多根不跟着 cwd 跑
+				bind_to_cwd = false,
+				filtered_items = {
+					show_hidden_count = false,
+					never_show = {
+						".DS_Store",
 					},
+				},
+				window = {
+					mappings = fs_maps,
+				},
+				renderers = {
+					directory = vim.list_extend(
+						{ { "indent" }, { "workspace_badge" } },
+						require("neo-tree.defaults").renderers.directory
+					),
 				},
 			},
 
@@ -203,6 +232,7 @@ return {
 		-- ========== 快捷键映射 ==========
 		vim.keymap.set("n", "<leader>ef", "<Cmd>Neotree toggle<CR>")
 		vim.keymap.set("n", "<leader>ee", "<Cmd>Neotree filesystem reveal<CR>")
+		vim.keymap.set("n", "<leader>ew", "<Cmd>Neotree workspace toggle<CR>")
 		-- vim.keymap.set("n", "<leader>eb", "<Cmd>Neotree buffers toggle<CR>")
 		vim.keymap.set("n", "<leader>eg", "<Cmd>Neotree git_status toggle<CR>")
 		vim.keymap.set("n", "<leader>es", "<Cmd>Neotree document_symbols toggle<CR>")
