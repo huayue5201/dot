@@ -71,7 +71,8 @@ ws.visible_buffers()     ws.close_buffer(buf)   ws.is_managed_buf(buf)
 ## `.nvim.lua`（工作区本地配置）
 
 放在工作区根目录，行为对标 Emacs `.dir-locals.el`、VS Code `.vscode/settings.json`：
-配置跟着目录走，离开工作区时逐项还原。
+配置跟着目录走，离开工作区时逐项还原。完整参考（全部 `w.*` 参数、占位符、回滚矩阵、示例、排查）
+见 [nvim-lua.md](./nvim-lua.md)，下面只是速览。
 
 ```lua
 w.opt({ tabstop = 4, shiftwidth = 4 })          -- 根下所有 buffer 的 buffer-local 选项

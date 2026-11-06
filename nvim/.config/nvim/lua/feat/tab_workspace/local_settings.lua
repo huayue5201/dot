@@ -437,6 +437,7 @@ function M.edit()
 		vim.fn.writefile({
 			"-- 工作区本地配置：仅在 " .. dir .. " 下生效，离开工作区时逐项回滚。",
 			"-- 通过 w.* 登记的改动才会被追踪，其余代码不受回滚保护。",
+			"-- 完整说明：~/.config/nvim/lua/feat/tab_workspace/nvim-lua.md",
 			"",
 			"-- w.opt({ tabstop = 4, shiftwidth = 4 })",
 			'-- w.global_opt({ spelllang = { "cjk", "en" } })',
