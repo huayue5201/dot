@@ -211,7 +211,8 @@ local function render(state)
 		end
 	end
 	pcall(api.nvim_win_set_cursor, state.win, { cursor_line, 0 })
-	-- 阻塞读键前把浮窗真正刷到屏幕上（否则某些情况下界面上什么都看不到）
+	-- 阻塞读键前必须显式刷一次：nvim 在等待输入时不会自动 flush 待处理的浮窗重绘，
+	-- 少了这一句表现为「按了快捷键什么都没弹出」。
 	if vim.go.columns > 0 then
 		pcall(vim.cmd, "redraw")
 	end
@@ -231,6 +232,10 @@ local function close(state)
 		pcall(api.nvim_buf_delete, state.buf, { force = true })
 	end
 	state.win, state.buf = nil, nil
+	-- 关掉浮窗后立刻重绘：否则浮窗占过的区域会留下残影（边框/底色）
+	if vim.go.columns > 0 then
+		pcall(vim.cmd, "redraw")
+	end
 end
 
 ---读一个键（测试里可替换 M._read_key 来驱动菜单）
