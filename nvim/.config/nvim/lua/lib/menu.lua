@@ -22,8 +22,9 @@
 --            <CR> 选当前，j/k 仍然可以上下移动；
 --            Esc 只退回导航模式（查询保留），再按 Esc 才取消。
 --   帮助浮窗：'?' 打开，任意键（含 Esc）收起；关菜单时一并关掉。
--- 提示文本（prompt）显示在浮窗上边框中间；查询文本占浮窗第一行，浮窗打开时是当前窗口，
--- 所以那里是**真光标**（终端画的），不是拼出来的字符。
+-- 提示文本（prompt）显示在浮窗上边框中间；输入模式时列表**下面**多出一行输入框
+-- （" ❯ " + 查询），跟 dropbar 的菜单一致。输入位置用一个 Cursor 高亮的格子画出来：
+-- 浮窗里的真光标在部分终端/配置下根本不显示，不能只依赖它。
 
 local api = vim.api
 local fn = vim.fn
@@ -41,6 +42,9 @@ M.config = {
 M._busy = false
 
 local ns = api.nvim_create_namespace("lib-menu")
+
+-- 输入框前缀 " ❯ " 的字节长度（❯ 是 3 字节，光标列按字节算）
+local INPUT_PREFIX_BYTES = 5
 
 ---第 idx 项的标签
 ---@param idx integer
@@ -237,23 +241,27 @@ end
 local function render(state)
 	local view = state.view
 	local lines = {}
-	-- 输入模式（或已经有查询）时，查询文本占第一行：这样终端会在这行画**真光标**，
-	-- 不像以前那样在边框标题里拼一个 ▏ 假光标。
-	local query_row = state.mode == "input" or state.query ~= ""
-	local base = query_row and 1 or 0
-	if query_row then
-		-- 行首留一格：菜单从光标下方一行开始画，光标落在查询文本之后，
-		-- 末尾再留一格（normal 模式下光标不能停在行尾之后），看起来就是紧贴文本的块状光标
-		lines[1] = " " .. state.query .. " "
-	end
 	if #view == 0 then
-		lines[base + 1] = state.query == "" and "  (empty)" or "  (no match)"
+		lines[1] = state.query == "" and "  (empty)" or "  (no match)"
 	end
-	local cursor_line = query_row and 1 or 1
+	local cursor_line = 1
 	for i, entry in ipairs(view) do
-		lines[base + i] = " " .. M.line(i, entry.text)
-		if i == state.sel and not (query_row and state.mode == "input") then
-			cursor_line = base + i
+		lines[#lines + 1] = " " .. M.line(i, entry.text)
+		if i == state.sel then
+			cursor_line = #lines
+		end
+	end
+
+	-- 输入框固定在列表**下面**（跟 dropbar 的菜单一致），只在输入模式或已有查询时出现。
+	-- 光标位用一个 Cursor 高亮的格子画出来：浮窗里的真光标在某些终端/配置下不显示，
+	-- 这一格保证「输入位置」永远可见（真光标恰好也在同一格时看不出差别）。
+	local input_line, input_col
+	if state.mode == "input" or state.query ~= "" then
+		lines[#lines + 1] = " ❯ " .. state.query .. " "
+		input_line = #lines
+		input_col = INPUT_PREFIX_BYTES + #state.query
+		if state.mode == "input" then
+			cursor_line = input_line
 		end
 	end
 
@@ -314,7 +322,7 @@ local function render(state)
 
 	-- 标签与命中位置的高亮（行首一个空格 + 标签 + 空格）
 	for i, entry in ipairs(view) do
-		local lnum = base + i - 1
+		local lnum = i - 1
 		local label = M.label(i)
 		local text_start = 1 + #label + 1
 		if label ~= "" then
@@ -325,7 +333,7 @@ local function render(state)
 		end
 		for _, pos in ipairs(entry.positions) do
 			local col = text_start + pos
-			if col < #lines[base + i] then
+			if col < #lines[i] then
 				api.nvim_buf_set_extmark(state.buf, ns, lnum, col, {
 					end_col = col + 1,
 					hl_group = "Special",
@@ -336,7 +344,7 @@ local function render(state)
 	end
 	-- 选中行用 extmark 铺满整行（不再依赖 'cursorline'：它会让浮窗参与
 	-- 下面窗口 statuscolumn 的重绘，留下残影）
-	local sel_line = base + state.sel
+	local sel_line = state.sel
 	if sel_line <= #lines and lines[sel_line] then
 		api.nvim_buf_set_extmark(state.buf, ns, sel_line - 1, 0, {
 			end_col = #lines[sel_line],
@@ -346,8 +354,16 @@ local function render(state)
 		})
 	end
 	local cursor_col = 1
-	if query_row and state.mode == "input" then
-		cursor_col = 1 + #state.query
+	if input_line and state.mode == "input" then
+		cursor_col = input_col
+	end
+	-- 输入位置始终画出来（hl = Cursor），不依赖浮窗里的真光标是否被终端显示
+	if input_line and state.mode == "input" then
+		api.nvim_buf_set_extmark(state.buf, ns, input_line - 1, input_col, {
+			end_col = input_col + 1,
+			hl_group = "Cursor",
+			priority = 210,
+		})
 	end
 	pcall(api.nvim_win_set_cursor, state.win, { cursor_line, cursor_col })
 	render_help(state)

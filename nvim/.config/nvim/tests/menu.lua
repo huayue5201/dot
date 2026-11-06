@@ -107,7 +107,7 @@ check(r.item == "k", "M-s 应选中第 11 项，实际 " .. tostring(r.item))
 -- 5b. 提示文本在边框中间（含输入模式标记）
 ----------------------------------------------------------------------
 
-local titles, bodies, cursors = {}, {}, {}
+local titles, bodies, cursors, marks = {}, {}, {}, {}
 local orig_rk_title = menu._read_key
 local title_reads = 0
 menu._read_key = function()
@@ -125,6 +125,13 @@ menu._read_key = function()
 			titles[#titles + 1] = { text = text, pos = cfg.title_pos }
 			bodies[#bodies + 1] = vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(w), 0, -1, false)
 			cursors[#cursors + 1] = vim.api.nvim_win_get_cursor(w)
+			local hl = {}
+			for _, m in
+				ipairs(vim.api.nvim_buf_get_extmarks(vim.api.nvim_win_get_buf(w), -1, 0, -1, { details = true }))
+			do
+				hl[#hl + 1] = (m[4] or {}).hl_group
+			end
+			marks[#marks + 1] = hl
 		end
 	end
 	if title_reads == 1 then
@@ -139,17 +146,26 @@ menu._read_key = orig_rk_title
 check(#titles >= 2, "应在每次读键前都更新边框标题")
 check(titles[1] and titles[1].text:find("Pick: ", 1, true) ~= nil, "标题应包含 prompt")
 check(titles[1] and titles[1].pos == "center", "标题应居中（title_pos = center）")
--- 查询文本现在是 buffer 第一行（真光标停在末尾），标题只放提示词
+-- 查询框固定在列表下面（" ❯ " + 查询），标题只放提示词
 local last_body, last_cursor = bodies[#bodies], cursors[#cursors]
 check(
-	last_body and last_body[1] == " g ",
-	"输入模式下查询应是第一行，实际 " .. tostring(last_body and last_body[1])
+	last_body and last_body[#last_body] == " ❯ g ",
+	"输入框应是最后一行，实际 " .. tostring(last_body and last_body[#last_body])
 )
 check(
-	last_cursor and last_cursor[1] == 1 and last_cursor[2] == 2,
-	"输入模式下光标应停在查询末尾（1,2），实际 " .. vim.inspect(last_cursor)
+	last_cursor and last_cursor[1] == #last_body and last_cursor[2] == 6,
+	"光标应停在输入框查询末尾（末行,6），实际 " .. vim.inspect(last_cursor)
 )
 check(bodies[1] and bodies[1][1] == " 1 alpha", "导航模式下没有查询行")
+-- 输入框的光标格要有 Cursor 高亮：浮窗里的真光标未必被终端显示，这一格保证位置可见
+local last_marks = marks[#marks] or {}
+local has_cursor = false
+for _, g in ipairs(last_marks) do
+	if g == "Cursor" then
+		has_cursor = true
+	end
+end
+check(has_cursor, "输入框应有一个 Cursor 高亮的格子标记光标位置")
 
 ----------------------------------------------------------------------
 -- 6. 单飞
