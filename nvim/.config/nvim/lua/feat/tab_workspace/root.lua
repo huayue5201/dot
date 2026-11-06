@@ -188,6 +188,7 @@ end
 function M.set_pin(tab, dir)
 	pinned[tab] = dir
 	prev[tab] = nil
+	vim.api.nvim_exec_autocmds("User", { pattern = "TabWorkspaceRoot" })
 end
 
 --- 清空 pin / 回退点（测试与重置用）
@@ -224,6 +225,7 @@ function M.unpin(tab)
 		return false
 	end
 	pinned[tab] = nil
+	vim.api.nvim_exec_autocmds("User", { pattern = "TabWorkspaceRoot" })
 	vim.notify("已解除根目录锁定，恢复自动跟随", vim.log.levels.INFO)
 	M.maybe_follow()
 	return true

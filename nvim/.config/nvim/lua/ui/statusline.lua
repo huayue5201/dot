@@ -36,6 +36,14 @@ local highlight_defs = {
 	-- 数据库工作台（sqmeow）窗口角色
 	DbIcon = { fg = colors.cyan, bold = true },
 	DbLocked = { fg = colors.gray, italic = true },
+
+	-- 工作区锚点：每个根目录固定占一个槽位（颜色 = 一眼区分「我在哪」）
+	StlWs1 = { fg = colors.blue, bold = true },
+	StlWs2 = { fg = colors.magenta, bold = true },
+	StlWs3 = { fg = colors.cyan, bold = true },
+	StlWs4 = { fg = colors.green, bold = true },
+	StlWs5 = { fg = colors.yellow, bold = true },
+	StlWs6 = { fg = colors.red, bold = true },
 }
 
 for group, opts in pairs(highlight_defs) do
@@ -225,11 +233,76 @@ function M.db()
 end
 
 -- ================================
+-- 工作区锚点（每个 tab = 一个工作区，根目录见 feat/tab_workspace/root.lua）
+-- ================================
+-- 状态栏是全局字符串，切 tab 不会自动重算，靠下方 TabEnter / DirChanged 刷新。
+-- 颜色槽位固定为 StlWs1..6：同一个根目录永远同一个颜色，且不动态创建高亮组。
+local WS_ICON = "" -- nf-md-folder
+local WS_LOCK = "" -- nf-md-lock（根目录被手动锁定，自动跟随不再覆盖）
+local WS_SLOTS = 6
+
+--- 根目录 -> 固定槽位（稳定哈希，便宜）
+---@param dir string
+---@return integer
+local function ws_slot(dir)
+	local h = 0
+	for i = 1, #dir do
+		h = (h * 31 + dir:byte(i)) % 1000003
+	end
+	return h % WS_SLOTS + 1
+end
+
+local function workspace()
+	local ok, out = pcall(function()
+		-- 必须按 statusline_winid 取所在 tab：惰性重绘时当前窗口可能已经不是它
+		local tab = vim.api.nvim_get_current_tabpage()
+		local win = tonumber(vim.g.statusline_winid)
+		if win and vim.api.nvim_win_is_valid(win) then
+			tab = vim.api.nvim_win_get_tabpage(win)
+		end
+		local number = vim.api.nvim_tabpage_get_number(tab)
+		local ok_cwd, dir = pcall(vim.fn.getcwd, -1, number)
+		if not ok_cwd or type(dir) ~= "string" or dir == "" then
+			return ""
+		end
+		dir = dir:gsub("/+$", "")
+		if dir == "" then
+			dir = "/"
+		end
+
+		-- 名字取末段；家目录 / 文件系统根用完整缩写形式（末段没有信息量）
+		local short = vim.fn.fnamemodify(dir, ":t")
+		local pretty = vim.fn.fnamemodify(dir, ":~")
+		if short == "" or short == "." or short == "/" or pretty == "~" then
+			short = pretty
+		end
+		short = short:gsub("%%", "%%%%")
+
+		local parts = { string.format("%%#StlWs%d#%s %s%%*", ws_slot(dir), WS_ICON, short) }
+
+		-- 已锁定（<leader>lws 显式设根 / <leader>lwr 回退）：自动跟随不再改它
+		local ok_root, root = pcall(require, "feat.tab_workspace.root")
+		if ok_root and root.pin_of(tab) ~= nil then
+			table.insert(parts, "%#StlSep#" .. WS_LOCK .. "%*")
+		end
+
+		local tabs = #vim.api.nvim_list_tabpages()
+		if tabs > 1 then
+			table.insert(parts, string.format("%%#StlSep#%d/%d%%*", number, tabs))
+		end
+
+		return " " .. table.concat(parts, " ") .. " "
+	end)
+	return ok and out or ""
+end
+
+-- ================================
 -- 状态栏组装（高性能版：缓存 + 事件驱动）
 -- ================================
 
 -- 各模块构建函数
 local builders = {
+	ws = workspace,
 	save = save_status,
 	lsp = lsp,
 	todo = todo_markers,
@@ -308,7 +381,7 @@ local function compose()
 
 	-- 徽标固定在最左、单独成段：状态模块全空时也不会留下悬空分隔符
 	local badge = "%#NvimIcon#" .. NVIM_ICON .. "%*"
-	local status = join({ state.save, state.lsp }, "  ")
+	local status = join({ state.ws, state.save, state.lsp }, "  ")
 	local left = status ~= "" and (badge .. SEP .. status) or badge
 
 	-- 整条状态栏只用 StatusLine 一种底色：`%*` 复位到 StatusLine。不要用
@@ -387,6 +460,25 @@ vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI", "FocusGained" }, {
 -- 事件驱动刷新
 -- ================================
 local statusline_group = vim.api.nvim_create_augroup("Statusline", { clear = true })
+
+-- 工作区锚点：切 tab（TabEnter）/ :tcd（DirChanged）/ pin 变化时重算
+vim.api.nvim_create_autocmd({ "TabEnter", "DirChanged" }, {
+	group = statusline_group,
+	callback = function()
+		enqueue("ws")
+		apply()
+	end,
+})
+
+-- pin 的增减不一定会 :tcd（例如 <leader>lwR 解除锁定后自动跟随没触发切换）
+vim.api.nvim_create_autocmd("User", {
+	pattern = "TabWorkspaceRoot",
+	group = statusline_group,
+	callback = function()
+		enqueue("ws")
+		apply()
+	end,
+})
 
 -- gitsigns 更新（status_dict 变了但 buffer 没动，如后台 fetch / index 完成）
 vim.api.nvim_create_autocmd("User", {
