@@ -11,6 +11,7 @@
 --   root.lua      —— 按当前文件判定项目根（marker / LSP）并自动切 tab 根目录
 --   workspace.lua —— 切根目录、新建/关闭/切换工作区、保存/载入会话
 --   session_guard.lua —— 会话归属校验、autosave、载入后 cwd 修正
+--   local_settings.lua —— 工作区本地配置（<根>/.nvim.lua）的加载与回滚
 -- 本文件只留公共 API 与 setup/autocmd/resession 挂接。
 local util = require("feat.tab_workspace.util")
 local state = require("feat.tab_workspace.state")
@@ -20,6 +21,7 @@ local session = require("feat.tab_workspace.session")
 local lsp = require("feat.tab_workspace.lsp")
 local workspace = require("feat.tab_workspace.workspace")
 local root = require("feat.tab_workspace.root")
+local local_settings = require("feat.tab_workspace.local_settings")
 
 local M = {}
 
@@ -42,6 +44,8 @@ M.load_session = workspace.load_session
 M.new_workspace = workspace.new_workspace
 M.close_workspace = workspace.close_workspace
 M.picker = workspace.picker
+M.edit_local_settings = local_settings.edit
+M.reload_local_settings = local_settings.reload
 M.alternate = workspace.alternate
 M.resolve_root = root.resolve
 M.root_back = root.back
@@ -69,6 +73,8 @@ function M.setup(opts)
 	}, M.config or {}, opts or {})
 	lsp.configure(M.config)
 	root.setup({ enabled = M.config.auto_root, markers = M.config.root_markers })
+	-- 项目本地配置（.nvim.lua）随工作区加载/回滚；顺带接管 'exrc'
+	local_settings.setup()
 
 	-- 启动时把当前 tab 已显示的 buffer 归位
 	local current = vim.api.nvim_get_current_tabpage()
@@ -196,6 +202,8 @@ function M.attach_resession()
 	-- 时调用，relist 会被挡掉，bufferline 会先把所有 tab 的 buffer 画出来。
 	resession.add_hook("post_load", function()
 		session.on_post_load()
+		-- 会话恢复会切换各 tab 的根，配置要跟着落到最终的工作区
+		local_settings.sync()
 	end)
 
 	attached = true
