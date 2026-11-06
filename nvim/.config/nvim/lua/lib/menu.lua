@@ -22,7 +22,8 @@
 --            <CR> 选当前，j/k 仍然可以上下移动；
 --            Esc 只退回导航模式（查询保留），再按 Esc 才取消。
 --   帮助浮窗：'?' 打开，任意键（含 Esc）收起；关菜单时一并关掉。
--- 提示文本（prompt）与当前查询显示在浮窗上边框中间。
+-- 提示文本（prompt）显示在浮窗上边框中间；查询文本占浮窗第一行，浮窗打开时是当前窗口，
+-- 所以那里是**真光标**（终端画的），不是拼出来的字符。
 
 local api = vim.api
 local fn = vim.fn
@@ -123,15 +124,11 @@ function M.line(idx, text)
 	return label .. " " .. text
 end
 
----上边框中间的标题：提示 + 当前查询（+ 模式标记）
+---上边框中间的标题：只放提示词（查询本身是 buffer 的第一行，光标由终端画）
 ---@param state table
 ---@return string
 function M.title(state)
-	local text = state.prompt .. state.query
-	if state.mode == "input" then
-		text = text .. " ▏"
-	end
-	return text
+	return state.prompt
 end
 
 ---按键帮助（? 打开）
@@ -240,14 +237,23 @@ end
 local function render(state)
 	local view = state.view
 	local lines = {}
-	local cursor_line = 1
-	if #view == 0 then
-		lines[1] = state.query == "" and "  (empty)" or "  (no match)"
+	-- 输入模式（或已经有查询）时，查询文本占第一行：这样终端会在这行画**真光标**，
+	-- 不像以前那样在边框标题里拼一个 ▏ 假光标。
+	local query_row = state.mode == "input" or state.query ~= ""
+	local base = query_row and 1 or 0
+	if query_row then
+		-- 末尾留一个空格：normal 模式下光标不能停在行尾之后，真光标就落在这一格上
+		-- （看起来就是紧贴查询文本的块状光标，跟终端命令行里一样）
+		lines[1] = state.query .. " "
 	end
+	if #view == 0 then
+		lines[base + 1] = state.query == "" and "  (empty)" or "  (no match)"
+	end
+	local cursor_line = query_row and 1 or 1
 	for i, entry in ipairs(view) do
-		lines[#lines + 1] = " " .. M.line(i, entry.text)
-		if i == state.sel then
-			cursor_line = i
+		lines[base + i] = " " .. M.line(i, entry.text)
+		if i == state.sel and not (query_row and state.mode == "input") then
+			cursor_line = base + i
 		end
 	end
 
@@ -284,7 +290,8 @@ local function render(state)
 	}
 	if state.win == nil or not api.nvim_win_is_valid(state.win) then
 		state.origin_win = api.nvim_get_current_win()
-		state.win = api.nvim_open_win(state.buf, false, win_opts)
+		-- enter = true：成为当前窗口，终端才会在查询行画真光标（关窗时切回 origin_win）
+		state.win = api.nvim_open_win(state.buf, true, win_opts)
 		api.nvim_set_option_value("winhl", "Normal:Pmenu,FloatBorder:FloatBorder,FloatTitle:Title", { win = state.win })
 		api.nvim_set_option_value("wrap", false, { win = state.win })
 		-- 浮窗必须清掉 statuscolumn / signcolumn / foldcolumn：
@@ -300,7 +307,7 @@ local function render(state)
 
 	-- 标签与命中位置的高亮（行首一个空格 + 标签 + 空格）
 	for i, entry in ipairs(view) do
-		local lnum = i - 1
+		local lnum = base + i - 1
 		local label = M.label(i)
 		local text_start = 1 + #label + 1
 		if label ~= "" then
@@ -311,7 +318,7 @@ local function render(state)
 		end
 		for _, pos in ipairs(entry.positions) do
 			local col = text_start + pos
-			if col < #lines[i] then
+			if col < #lines[base + i] then
 				api.nvim_buf_set_extmark(state.buf, ns, lnum, col, {
 					end_col = col + 1,
 					hl_group = "Special",
@@ -322,15 +329,20 @@ local function render(state)
 	end
 	-- 选中行用 extmark 铺满整行（不再依赖 'cursorline'：它会让浮窗参与
 	-- 下面窗口 statuscolumn 的重绘，留下残影）
-	if cursor_line <= #lines and lines[cursor_line] then
-		api.nvim_buf_set_extmark(state.buf, ns, cursor_line - 1, 0, {
-			end_col = #lines[cursor_line],
+	local sel_line = base + state.sel
+	if sel_line <= #lines and lines[sel_line] then
+		api.nvim_buf_set_extmark(state.buf, ns, sel_line - 1, 0, {
+			end_col = #lines[sel_line],
 			hl_group = "PmenuSel",
 			hl_eol = true,
 			priority = 50,
 		})
 	end
-	pcall(api.nvim_win_set_cursor, state.win, { cursor_line, 0 })
+	local cursor_col = 0
+	if query_row and state.mode == "input" then
+		cursor_col = #state.query
+	end
+	pcall(api.nvim_win_set_cursor, state.win, { cursor_line, cursor_col })
 	render_help(state)
 	-- 阻塞读键前必须显式刷一次：nvim 在等待输入时不会自动 flush 待处理的浮窗重绘，
 	-- 少了这一句表现为「按了快捷键什么都没弹出」。

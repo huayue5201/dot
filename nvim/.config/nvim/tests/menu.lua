@@ -107,19 +107,24 @@ check(r.item == "k", "M-s 应选中第 11 项，实际 " .. tostring(r.item))
 -- 5b. 提示文本在边框中间（含输入模式标记）
 ----------------------------------------------------------------------
 
-local titles = {}
+local titles, bodies, cursors = {}, {}, {}
 local orig_rk_title = menu._read_key
 local title_reads = 0
 menu._read_key = function()
 	title_reads = title_reads + 1
 	for _, w in ipairs(vim.api.nvim_list_wins()) do
 		local cfg = vim.api.nvim_win_get_config(w)
+		local parts = {}
 		if cfg.title then
-			local parts = {}
 			for _, chunk in ipairs(cfg.title) do
 				parts[#parts + 1] = chunk[1]
 			end
-			titles[#titles + 1] = { text = table.concat(parts), pos = cfg.title_pos }
+		end
+		local text = table.concat(parts)
+		if text == "Pick: " then
+			titles[#titles + 1] = { text = text, pos = cfg.title_pos }
+			bodies[#bodies + 1] = vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(w), 0, -1, false)
+			cursors[#cursors + 1] = vim.api.nvim_win_get_cursor(w)
 		end
 	end
 	if title_reads == 1 then
@@ -134,11 +139,17 @@ menu._read_key = orig_rk_title
 check(#titles >= 2, "应在每次读键前都更新边框标题")
 check(titles[1] and titles[1].text:find("Pick: ", 1, true) ~= nil, "标题应包含 prompt")
 check(titles[1] and titles[1].pos == "center", "标题应居中（title_pos = center）")
-local last = titles[#titles]
+-- 查询文本现在是 buffer 第一行（真光标停在末尾），标题只放提示词
+local last_body, last_cursor = bodies[#bodies], cursors[#cursors]
 check(
-	last and last.text:find("Pick: g", 1, true) ~= nil,
-	"输入模式下标题应带出当前查询，实际 " .. tostring(last and last.text)
+	last_body and last_body[1] == "g ",
+	"输入模式下查询应是第一行，实际 " .. tostring(last_body and last_body[1])
 )
+check(
+	last_cursor and last_cursor[1] == 1 and last_cursor[2] == 1,
+	"输入模式下光标应停在查询末尾（1,1），实际 " .. vim.inspect(last_cursor)
+)
+check(bodies[1] and bodies[1][1] == " 1 alpha", "导航模式下没有查询行")
 
 ----------------------------------------------------------------------
 -- 6. 单飞
@@ -225,6 +236,11 @@ check(r.item == "gamma", "Esc 退出输入模式应保留查询（gamma），实
 -- 退出输入模式后 j/k 恢复为移动
 r = run("i" .. kc("<Esc>") .. "j" .. kc("<CR>"))
 check(r.item == "beta", "Esc 之后 j 应恢复为移动，实际 " .. tostring(r.item))
+
+-- 浮窗用 enter=true 才能画真光标，关掉后必须把焦点还给原窗口
+local before_win = vim.api.nvim_get_current_win()
+r = run("2")
+check(vim.api.nvim_get_current_win() == before_win, "关闭菜单后焦点应回到原窗口")
 
 ----------------------------------------------------------------------
 -- 6d. ? 打开按键帮助浮窗
