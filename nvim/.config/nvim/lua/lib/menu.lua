@@ -15,8 +15,12 @@
 --   vim.ui.select(items, { prompt = "Pick: ", format_item = tostring }, function(item) ... end)
 --   （setup() 会接管 vim.ui.select；这里也导出同签名的 M.select）
 --
--- 键位：1-9 直接选，10 项以后 M-<pivot>；<CR> 选当前；<C-n>/<Down>、<C-p>/<Up> 移动；
---       <BS> 退格、<C-u> 清空查询；Esc / <C-c> 取消（回调 nil）。
+-- 两种模式（跟 dropbar 的菜单一致：打开时是导航模式，不会一上来就吃字符）：
+--   导航模式：j / <Down> / <C-n> 下移，k / <Up> / <C-p> 上移；1-9 直接选，10 项以后 M-<pivot>；
+--            <CR> 选当前；i 或 f 或 / 进入输入模式；Esc / q 取消。
+--   输入模式：字符进入查询（内建 matchfuzzypos），<BS> 退格，<C-u> 清空；
+--            <CR> 选当前，Esc 取消，j/k 仍然可以上下移动。
+-- 提示文本（prompt）与当前查询显示在浮窗上边框中间。
 
 local api = vim.api
 local fn = vim.fn
@@ -25,12 +29,12 @@ local M = {}
 
 M.config = {
 	width = 64, -- 浮窗最大宽度（列）
-	max_height = 14, -- 最多显示多少项（不含提示行）
+	max_height = 14, -- 最多显示多少项
 	border = "rounded",
 	pivots = "asdfghjkl", -- 第 10 项起用 M-<pivot> 标签（与 dropbar 的肌肉记忆一致）
 }
 
--- 同一时间只允许一个菜单：重复按键直接忽略，不再叠一层
+-- 同一时间只允许一个菜单：重复按键直接取消新请求，不再叠一层
 M._busy = false
 
 local ns = api.nvim_create_namespace("lib-menu")
@@ -53,7 +57,7 @@ end
 ---@param items any[]
 ---@param query string
 ---@param format_item? fun(item: any): string
----@return { item: any, text: string, positions: integer[] }[]
+---@return { item: any, idx: integer, text: string, positions: integer[] }[]
 function M.filter(items, query, format_item)
 	local fmt = format_item or tostring
 	local texts = {}
@@ -117,28 +121,38 @@ function M.line(idx, text)
 	return label .. " " .. text
 end
 
+---上边框中间的标题：提示 + 当前查询（+ 模式标记）
+---@param state table
+---@return string
+function M.title(state)
+	local text = state.prompt .. state.query
+	if state.mode == "input" then
+		text = text .. " ▏"
+	end
+	return text
+end
+
 ---计算浮窗位置：优先贴光标下方，放不下就往上收
 ---@return { row: integer, col: integer }
 local function anchor()
 	local win = api.nvim_get_current_win()
 	local row = fn.screenpos(win, fn.line("."), 1).row
 	local col = fn.screenpos(win, fn.line("."), 1).col
-	local avail = math.max(1, vim.go.lines - row - 2)
-	return { row = math.max(1, row), col = math.max(1, col - 1), avail = avail }
+	return { row = math.max(1, row), col = math.max(1, col - 1) }
 end
 
 ---@param state table
 local function render(state)
 	local view = state.view
-	local lines = { state.prompt .. state.query }
+	local lines = {}
 	local cursor_line = 1
 	if #view == 0 then
-		lines[2] = state.query == "" and "  (empty)" or "  (no match)"
+		lines[1] = state.query == "" and "  (empty)" or "  (no match)"
 	end
 	for i, entry in ipairs(view) do
 		lines[#lines + 1] = " " .. M.line(i, entry.text)
 		if i == state.sel then
-			cursor_line = #lines
+			cursor_line = i
 		end
 	end
 
@@ -148,27 +162,24 @@ local function render(state)
 	api.nvim_set_option_value("modifiable", false, { buf = state.buf })
 	api.nvim_buf_clear_namespace(state.buf, ns, 0, -1)
 
-	local width = M.config.width
 	local height = #lines
-	local row = state.pos.row
-	if row + height + 1 > vim.go.lines then
-		row = math.max(1, vim.go.lines - height - 2)
-	end
 
 	local win_opts = {
 		relative = "editor",
-		row = row,
+		row = state.pos.row,
 		col = state.pos.col,
-		width = width,
+		width = M.config.width,
 		height = height,
 		style = "minimal",
 		border = M.config.border,
+		title = M.title(state),
+		title_pos = "center",
 	}
 	if state.win == nil or not api.nvim_win_is_valid(state.win) then
 		state.win = api.nvim_open_win(state.buf, false, win_opts)
 		api.nvim_set_option_value(
 			"winhl",
-			"Normal:Pmenu,FloatBorder:FloatBorder,CursorLine:PmenuSel",
+			"Normal:Pmenu,FloatBorder:FloatBorder,CursorLine:PmenuSel,FloatTitle:Title",
 			{ win = state.win }
 		)
 		api.nvim_set_option_value("cursorline", true, { win = state.win })
@@ -177,13 +188,11 @@ local function render(state)
 		api.nvim_win_set_config(state.win, win_opts)
 	end
 
-	-- 提示行用低调色
-	api.nvim_buf_set_extmark(state.buf, ns, 0, 0, { end_row = 0, end_col = #lines[1], hl_group = "Comment" })
+	-- 标签与命中位置的高亮（行首一个空格 + 标签 + 空格）
 	for i, entry in ipairs(view) do
-		-- 第 0 行是提示行，第 i 项在 buffer 的 0-based 行 i；光标行（1-based）是 i + 1
-		local lnum = i
+		local lnum = i - 1
 		local label = M.label(i)
-		local text_start = 1 + #label + 1 -- 行首缩进 + 标签 + 空格
+		local text_start = 1 + #label + 1
 		if label ~= "" then
 			api.nvim_buf_set_extmark(state.buf, ns, lnum, 1, {
 				end_col = 1 + #label,
@@ -192,7 +201,7 @@ local function render(state)
 		end
 		for _, pos in ipairs(entry.positions) do
 			local col = text_start + pos
-			if col < #lines[lnum + 1] then
+			if col < #lines[i] then
 				api.nvim_buf_set_extmark(state.buf, ns, lnum, col, {
 					end_col = col + 1,
 					hl_group = "Special",
@@ -201,7 +210,7 @@ local function render(state)
 			end
 		end
 	end
-	api.nvim_win_set_cursor(state.win, { cursor_line, 0 })
+	pcall(api.nvim_win_set_cursor, state.win, { cursor_line, 0 })
 	-- 阻塞读键前把浮窗真正刷到屏幕上（否则某些情况下界面上什么都看不到）
 	if vim.go.columns > 0 then
 		pcall(vim.cmd, "redraw")
@@ -216,7 +225,7 @@ local function close(state)
 		state.aug = nil
 	end
 	if state.win and api.nvim_win_is_valid(state.win) then
-		api.nvim_win_close(state.win, true)
+		pcall(api.nvim_win_close, state.win, true)
 	end
 	if state.buf and api.nvim_buf_is_valid(state.buf) then
 		pcall(api.nvim_buf_delete, state.buf, { force = true })
@@ -258,6 +267,7 @@ function M.select(items, opts, on_choice)
 	local state = {
 		prompt = opts.prompt or "Select: ",
 		query = "",
+		mode = "normal", -- 打开时不进输入模式：j/k 上下，i/f 才输入
 		formatted = opts.format_item,
 		sel = 1,
 		pos = anchor(),
@@ -265,18 +275,18 @@ function M.select(items, opts, on_choice)
 	state.view = M.filter(items, state.query, state.formatted)
 
 	M._busy = true
-	if state.win == nil then
-		local ok_win = pcall(render, state)
-		if not ok_win then
-			M._busy = false
-			if M.builtin then
-				return M.builtin(items, opts, on_choice)
-			end
-			if on_choice then
-				on_choice(nil, nil)
-			end
-			return false
+
+	-- 先画一次（建窗失败就直接退回原始实现，别静默吞掉请求）
+	if not pcall(render, state) then
+		M._busy = false
+		close(state)
+		if M.builtin then
+			return M.builtin(items, opts, on_choice)
 		end
+		if on_choice then
+			on_choice(nil, nil)
+		end
+		return false
 	end
 
 	-- 浮窗被外部关掉（:q、切 tab、别的插件关浮窗）时，循环还阻塞在读键上，
@@ -294,6 +304,18 @@ function M.select(items, opts, on_choice)
 		end,
 	})
 
+	local function move(delta)
+		if #state.view == 0 then
+			return
+		end
+		state.sel = (state.sel - 1 + delta) % #state.view + 1
+	end
+
+	local function refilter()
+		state.view = M.filter(items, state.query, state.formatted)
+		state.sel = 1
+	end
+
 	local ok, err = pcall(function()
 		while true do
 			-- 窗口没了就别再画、也别再吃键
@@ -305,7 +327,7 @@ function M.select(items, opts, on_choice)
 			if key == nil then
 				break
 			end
-			-- 读键期间窗口可能已经被关掉（WinClosed 会塞一个 Esc 解除阻塞），此时一律按取消处理
+			-- 读键期间窗口可能已经被关掉（WinClosed 会塞一个 Esc 解除阻塞），一律按取消处理
 			if state.closed_externally or state.win == nil or not api.nvim_win_is_valid(state.win) then
 				break
 			end
@@ -314,6 +336,7 @@ function M.select(items, opts, on_choice)
 			end
 			local k = fn.keytrans(key)
 			local kl = k:lower() -- 特殊键 keytrans 可能大写（<C-N>）
+
 			if kl == "<esc>" or kl == "<c-c>" or kl == "<c-g>" then
 				break
 			elseif kl == "<cr>" or kl == "<nl>" then
@@ -322,25 +345,19 @@ function M.select(items, opts, on_choice)
 					state.choice = entry
 				end
 				break
-			elseif kl == "<down>" or kl == "<c-n>" or kl == "<tab>" then
-				if #state.view > 0 then
-					state.sel = state.sel % #state.view + 1
-				end
-			elseif kl == "<up>" or kl == "<c-p>" or kl == "<s-tab>" then
-				if #state.view > 0 then
-					state.sel = (state.sel - 2) % #state.view + 1
-				end
+			elseif kl == "<down>" or kl == "<c-n>" then
+				move(1)
+			elseif kl == "<up>" or kl == "<c-p>" then
+				move(-1)
 			elseif kl == "<bs>" then
 				if state.query ~= "" then
 					state.query = state.query:sub(1, -2)
-					state.view = M.filter(items, state.query, state.formatted)
-					state.sel = 1
+					refilter()
 				end
 			elseif kl == "<c-u>" then
 				if state.query ~= "" then
 					state.query = ""
-					state.view = M.filter(items, state.query, state.formatted)
-					state.sel = 1
+					refilter()
 				end
 			elseif kl:match("^<m%-(%a)>$") then
 				local pivot = kl:match("^<m%-(%a)>$")
@@ -357,10 +374,24 @@ function M.select(items, opts, on_choice)
 					state.choice = state.view[state.sel]
 					break
 				end
+			elseif kl == "j" or kl == "k" then
+				-- 导航模式下 j/k 上下移动；输入模式下 j/k 是查询字符
+				if state.mode == "normal" then
+					move(kl == "j" and 1 or -1)
+				else
+					state.query = state.query .. kl
+					refilter()
+				end
+			elseif state.mode == "normal" and (kl == "q") then
+				break
+			elseif #k == 1 and (k == "i" or k == "f" or k == "/") and state.mode == "normal" then
+				state.mode = "input"
 			elseif #k == 1 and k:byte() >= 32 and k:byte() < 127 then
-				state.query = state.query .. k
-				state.view = M.filter(items, state.query, state.formatted)
-				state.sel = 1
+				-- 输入模式下才吃掉可打印字符
+				if state.mode == "input" then
+					state.query = state.query .. k
+					refilter()
+				end
 			end
 		end
 	end)

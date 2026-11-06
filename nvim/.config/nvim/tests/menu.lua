@@ -74,13 +74,25 @@ check(r.item == "gamma", "两次 <C-n> 后 <CR> 应选中 gamma，实际 " .. to
 r = run(kc("<C-p>") .. kc("<CR>"))
 check(r.item == "delta", "<C-p> 应回绕到末项")
 
-r = run("ga" .. kc("<CR>"))
-check(r.item == "gamma", "输入 ga 后 <CR> 应选中 gamma，实际 " .. tostring(r.item))
+r = run("i" .. "ga" .. kc("<CR>"))
+check(r.item == "gamma", "i 进输入模式后输入 ga 应选中 gamma，实际 " .. tostring(r.item))
 
-r = run("gm" .. kc("<BS>") .. "amm" .. kc("<CR>"))
+r = run("f" .. "ga" .. kc("<CR>"))
+check(r.item == "gamma", "f 也能进输入模式，实际 " .. tostring(r.item))
+
+r = run("ga" .. kc("<CR>"))
+check(r.item == "alpha", "导航模式下字母不进入查询（应选第一项），实际 " .. tostring(r.item))
+
+r = run("jj" .. kc("<CR>"))
+check(r.item == "gamma", "导航模式 j 应下移，实际 " .. tostring(r.item))
+
+r = run("ijk" .. kc("<C-u>") .. kc("<CR>"))
+check(r.item == "alpha", "输入模式 j/k 是查询字符（<C-u> 清空后应选回第一项）")
+
+r = run("i" .. "gm" .. kc("<BS>") .. "amm" .. kc("<CR>"))
 check(r.item == "gamma", "退格后继续输入应仍能命中 gamma，实际 " .. tostring(r.item))
 
-r = run("zzz" .. kc("<C-u>") .. kc("<CR>"))
+r = run("i" .. "zzz" .. kc("<C-u>") .. kc("<CR>"))
 check(r.item == "alpha", "<C-u> 清空查询后 <CR> 应选回第一项")
 
 r = run(kc("<Esc>"))
@@ -88,6 +100,43 @@ check(r.called == 1 and r.item == nil, "Esc 应回调 (nil, nil)")
 
 r = run(kc("<M-s>"), { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l" })
 check(r.item == "k", "M-s 应选中第 11 项，实际 " .. tostring(r.item))
+
+----------------------------------------------------------------------
+-- 5b. 提示文本在边框中间（含输入模式标记）
+----------------------------------------------------------------------
+
+local titles = {}
+local orig_rk_title = menu._read_key
+local title_reads = 0
+menu._read_key = function()
+	title_reads = title_reads + 1
+	for _, w in ipairs(vim.api.nvim_list_wins()) do
+		local cfg = vim.api.nvim_win_get_config(w)
+		if cfg.title then
+			local parts = {}
+			for _, chunk in ipairs(cfg.title) do
+				parts[#parts + 1] = chunk[1]
+			end
+			titles[#titles + 1] = { text = table.concat(parts), pos = cfg.title_pos }
+		end
+	end
+	if title_reads == 1 then
+		return "i"
+	elseif title_reads == 2 then
+		return "g"
+	end
+	return nil
+end
+menu.select({ "alpha", "beta" }, { prompt = "Pick: ", format_item = tostring }, function() end)
+menu._read_key = orig_rk_title
+check(#titles >= 2, "应在每次读键前都更新边框标题")
+check(titles[1] and titles[1].text:find("Pick: ", 1, true) ~= nil, "标题应包含 prompt")
+check(titles[1] and titles[1].pos == "center", "标题应居中（title_pos = center）")
+local last = titles[#titles]
+check(
+	last and last.text:find("Pick: g", 1, true) ~= nil,
+	"输入模式下标题应带出当前查询，实际 " .. tostring(last and last.text)
+)
 
 ----------------------------------------------------------------------
 -- 6. 单飞
@@ -135,9 +184,14 @@ local orig_read_key_6b = menu._read_key
 menu._read_key = function()
 	-- 模拟"读键期间浮窗被 :q / 切 tab / 别的插件关掉"，同时手上还有键要继续消费
 	for _, w in ipairs(vim.api.nvim_list_wins()) do
-		local b = vim.api.nvim_win_get_buf(w)
-		local first = vim.api.nvim_buf_get_lines(b, 0, 1, false)[1]
-		if first and first:find("External: ", 1, true) then
+		local cfg = vim.api.nvim_win_get_config(w)
+		local text = ""
+		if cfg.title then
+			for _, chunk in ipairs(cfg.title) do
+				text = text .. chunk[1]
+			end
+		end
+		if text:find("External: ", 1, true) then
 			vim.api.nvim_win_close(w, true)
 		end
 	end
