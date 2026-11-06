@@ -17,6 +17,8 @@
 --   w.au("BufWritePre", { pattern = "*.rs" }, function(args) ... end)
 --   w.cmd("Build", function(args) ... end, { desc = "构建" })
 --   w.map("n", "<leader>B", "<cmd>Build<cr>", { desc = "构建" })
+--   w.task({ name = "构建", cmd = { "make" } })          -- 进 :OverseerRun 的任务列表
+--   w.launch({ name = "调试", filetype = "rust", ... })  -- 进 nvim-dap 的配置列表
 --
 -- 文件本身仍是可执行的 Lua（受 :trust 信任列表约束，未信任时 vim.secure.read
 -- 返回 nil，我们直接跳过），除 w.* 之外的副作用不受回滚保护。
@@ -34,6 +36,8 @@ local GROUP = "TabWorkspaceLocalSettings"
 ---@field maps table[] w.map 的声明
 ---@field bufs table<integer, table<string, any>> buffer -> 选项名 -> 原值
 ---@field cmd_names string[] w.cmd 创建的命令名
+---@field tasks table[] w.task 的声明（登记到 overseer 的单一 provider 里）
+---@field launches table[] w.launch 注入 dap.configurations 的配置（回滚时按引用摘除）
 
 ---@type TabWorkspaceLocalState?
 local active = nil
@@ -125,6 +129,42 @@ local function apply_buf(st, buf)
 	end
 end
 
+--- 任务里的 ${...} 占位符展开。
+--- 变量名与 nvim-dap 的 ${file} / ${workspaceFolder} 保持一致，这样任务和调试配置
+--- 是同一套写法；overseer 自己不做展开，所以这里补上。
+---@param st TabWorkspaceLocalState
+---@param value any
+---@param file string 当前 buffer 的完整路径（可能为空）
+---@return any
+local function expand(st, value, file)
+	if type(value) == "table" then
+		local out = {}
+		for k, v in pairs(value) do
+			out[expand(st, k, file)] = expand(st, v, file)
+		end
+		return out
+	end
+	if type(value) ~= "string" then
+		return value
+	end
+	local basename = file ~= "" and vim.fs.basename(file) or ""
+	local vars = {
+		workspaceFolder = st.root,
+		workspaceFolderBasename = vim.fs.basename(st.root),
+		file = file,
+		fileBasename = basename,
+		fileBasenameNoExtension = (basename:gsub("%.[^.]*$", "")),
+		fileDirname = file ~= "" and vim.fs.dirname(file) or st.root,
+		fileExtname = (basename:match("%.([^.]+)$") or ""),
+	}
+	return (
+		value:gsub("%${([%w_]+)}", function(name)
+			local v = vars[name]
+			return v ~= nil and v or ("${" .. name .. "}")
+		end)
+	)
+end
+
 --- 暴露给 .nvim.lua 的登记 API
 ---@param st TabWorkspaceLocalState
 ---@return table
@@ -203,6 +243,39 @@ local function api(st)
 		end
 	end
 
+	--- 登记一个任务，出现在 :OverseerRun 的列表里（离开工作区后消失）
+	---@param spec table { name, cmd, args?, cwd?, env?, components?, desc?, tags?, condition? }
+	function w.task(spec)
+		if type(spec) ~= "table" or type(spec.name) ~= "string" or spec.cmd == nil then
+			vim.notify("工作区配置: w.task 需要 { name, cmd }", vim.log.levels.WARN)
+			return
+		end
+		st.tasks[#st.tasks + 1] = spec
+		M._ensure_task_provider()
+	end
+
+	--- 登记一个调试配置，注入 dap.configurations[filetype]（离开工作区后摘除）
+	---@param spec table nvim-dap 的配置，额外要求 filetype 字段
+	function w.launch(spec)
+		if type(spec) ~= "table" or type(spec.filetype) ~= "string" then
+			vim.notify("工作区配置: w.launch 需要 { filetype, name, type, request, ... }", vim.log.levels.WARN)
+			return
+		end
+		local ok, dap = pcall(require, "dap")
+		if not ok then
+			vim.notify(
+				"工作区配置: nvim-dap 未加载，跳过 w.launch " .. tostring(spec.name),
+				vim.log.levels.WARN
+			)
+			return
+		end
+		local config = vim.deepcopy(spec)
+		config.filetype = nil
+		dap.configurations[spec.filetype] = dap.configurations[spec.filetype] or {}
+		table.insert(dap.configurations[spec.filetype], config)
+		st.launches[#st.launches + 1] = { filetype = spec.filetype, config = config }
+	end
+
 	return w
 end
 
@@ -232,6 +305,65 @@ function M.revert()
 	for _, name in ipairs(st.cmd_names) do
 		pcall(vim.api.nvim_del_user_command, name)
 	end
+	-- dap.configurations 是纯 Lua 表：按引用摘除自己注入的那几条
+	if #st.launches > 0 then
+		local ok, dap = pcall(require, "dap")
+		if ok then
+			for _, item in ipairs(st.launches) do
+				local list = dap.configurations[item.filetype]
+				for i = (list and #list) or 0, 1, -1 do
+					if rawequal(list[i], item.config) then
+						table.remove(list, i)
+						break
+					end
+				end
+			end
+		end
+	end
+end
+
+local task_provider_registered = false
+
+--- 把「当前工作区声明的任务」接到 overseer 的模板列表里。
+--- overseer 没有反注册 API，所以只注册一个常驻 provider：它每次返回 active 里的任务，
+--- 离开工作区后 active 为空 → 返回空表，任务自然从 :OverseerRun 消失。
+function M._ensure_task_provider()
+	if task_provider_registered then
+		return
+	end
+	local ok, overseer = pcall(require, "overseer")
+	if not ok then
+		vim.notify_once("工作区配置: overseer 不可用，w.task 被忽略", vim.log.levels.WARN)
+		return
+	end
+	overseer.register_template({
+		name = "工作区任务",
+		generator = function()
+			local st = active
+			if not st or #st.tasks == 0 then
+				return {}
+			end
+			return vim.tbl_map(function(spec)
+				return {
+					name = spec.name,
+					desc = spec.desc,
+					tags = spec.tags,
+					condition = spec.condition,
+					builder = function()
+						local file = vim.api.nvim_buf_get_name(0)
+						return {
+							cmd = expand(st, spec.cmd, file),
+							args = expand(st, spec.args, file),
+							cwd = expand(st, spec.cwd or "${workspaceFolder}", file),
+							env = spec.env and expand(st, spec.env, file) or nil,
+							components = spec.components or { "default" },
+						}
+					end,
+				}
+			end, st.tasks)
+		end,
+	})
+	task_provider_registered = true
 end
 
 --- 按当前 tab 的根目录加载 / 卸载工作区配置
@@ -268,12 +400,18 @@ function M.sync(tab)
 		maps = {},
 		bufs = {},
 		cmd_names = {},
+		tasks = {},
+		launches = {},
 	}
 	active = st
 
 	local ok, run_err = pcall(fn, api(st))
 	if not ok then
 		vim.notify(string.format("工作区配置 %s: %s", path, run_err), vim.log.levels.ERROR)
+	end
+
+	if #st.tasks > 0 then
+		M._ensure_task_provider()
 	end
 
 	for _, buf in ipairs(target_bufs(st)) do
@@ -305,6 +443,8 @@ function M.edit()
 			'-- w.au("BufWritePre", { pattern = "*.rs" }, function(args) end)',
 			'-- w.cmd("Build", function(args) end, { desc = "构建" })',
 			'-- w.map("n", "<leader>B", "<cmd>Build<cr>", { desc = "构建" })',
+			'-- w.task({ name = "构建", cmd = { "make" }, cwd = "${workspaceFolder}" })',
+			'-- w.launch({ name = "调试", filetype = "rust", type = "codelldb", request = "launch" })',
 		}, path)
 	end
 	vim.cmd.edit(vim.fn.fnameescape(path))

@@ -11,6 +11,8 @@
 --   * 切走工作区：buffer 选项、全局选项、用户命令、键位全部还原
 --   * 切回来：重新生效
 --   * 没有 .nvim.lua 的目录：什么都不做
+--   * w.task 声明的任务出现在 overseer 模板列表里，离开后消失
+--   * w.launch 声明的调试配置注入 dap.configurations，离开后摘除
 --   * .nvim.lua 里写错语法：不炸编辑器，只报错，且不留下半套配置
 --
 -- 退出码：有失败 1，全通过 0。
@@ -32,6 +34,19 @@ local function real(path)
 	return (ok and res) or path
 end
 
+-- overseer / nvim-dap 是普通插件：把它们加进 rtp 才能在这里验证 D 层。
+-- 没装的机器上跳过对应断言（不影响其余行为）。
+local function add_plugin(dirname, module)
+	local dir = vim.fn.expand("~/.local/share/nvim/site/pack/core/opt/") .. dirname
+	if vim.fn.isdirectory(dir) ~= 1 then
+		return false
+	end
+	vim.opt.rtp:append(dir)
+	return pcall(require, module)
+end
+local has_overseer = add_plugin("overseer.nvim", "overseer")
+local has_dap = add_plugin("nvim-dap", "dap")
+
 local base = vim.fn.tempname() .. "-tw-local"
 vim.fn.mkdir(base .. "/proj-a/src", "p")
 vim.fn.mkdir(base .. "/proj-b", "p")
@@ -45,6 +60,8 @@ vim.fn.writefile({
 	'w.global_opt({ fillchars = "eob: " })',
 	'w.cmd("WsBuild", function() vim.g.ws_built = (vim.g.ws_built or 0) + 1 end, {})',
 	'w.map("n", "<leader>zz", "<cmd>WsBuild<cr>", { desc = "工作区构建" })',
+	'w.task({ name = "工作区构建任务", cmd = { "make" }, cwd = "${workspaceFolder}" })',
+	'w.launch({ name = "工作区调试", filetype = "lua", type = "nlua", request = "launch", program = "${workspaceFolder}/src/a.lua" })',
 }, A .. "/.nvim.lua")
 vim.fn.writefile({ "x" }, A .. "/src/a.lua")
 vim.fn.writefile({ "y" }, B .. "/b.lua")
@@ -76,6 +93,34 @@ vim.fn.bufload(buf_a2)
 vim.api.nvim_exec_autocmds("FileType", { buffer = buf_a2 })
 check(vim.bo[buf_a2].tabstop == 7, "proj-a: 新打开的 buffer 也应套用 tabstop")
 
+-- D 层：任务进 overseer 模板列表、调试配置进 dap.configurations
+if has_overseer then
+	local names, done = {}, false
+	require("overseer.template").list({ dir = vim.fn.getcwd() }, function(tmpls)
+		for _, t in ipairs(tmpls or {}) do
+			names[t.name] = true
+		end
+		done = true
+	end)
+	vim.wait(2000, function()
+		return done
+	end)
+	check(names["工作区构建任务"], "proj-a: 任务应出现在 overseer 模板列表")
+end
+if has_dap then
+	local found
+	for _, cfg in ipairs(require("dap").configurations.lua or {}) do
+		if cfg.name == "工作区调试" then
+			found = cfg
+		end
+	end
+	check(found ~= nil, "proj-a: 调试配置应注入 dap.configurations")
+	check(
+		found and found.program == "${workspaceFolder}/src/a.lua",
+		"proj-a: 调试配置里的 ${workspaceFolder} 应原样保留，交给 nvim-dap 运行时展开"
+	)
+end
+
 -- 用户动作：切到 proj-b（那里没有 .nvim.lua）
 vim.cmd.tcd(B)
 vim.cmd.edit(B .. "/b.lua")
@@ -91,6 +136,24 @@ check(
 )
 check(vim.fn.exists(":WsBuild") == 0, "离开 proj-a: :WsBuild 应被删除")
 check(vim.fn.maparg("<leader>zz", "n") == "", "离开 proj-a: <leader>zz 应被删除")
+if has_dap then
+	for _, cfg in ipairs(require("dap").configurations.lua or {}) do
+		check(cfg.name ~= "工作区调试", "离开 proj-a: 调试配置应被摘除")
+	end
+end
+if has_overseer then
+	local names, done = {}, false
+	require("overseer.template").list({ dir = vim.fn.getcwd() }, function(tmpls)
+		for _, t in ipairs(tmpls or {}) do
+			names[t.name] = true
+		end
+		done = true
+	end)
+	vim.wait(2000, function()
+		return done
+	end)
+	check(not names["工作区构建任务"], "离开 proj-a: 任务应消失")
+end
 
 -- 用户动作：切回 proj-a
 vim.cmd.tcd(A)
