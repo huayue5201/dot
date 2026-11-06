@@ -9,6 +9,8 @@
 --   4. 输入字符过滤、<BS> 退格、<C-u> 清空
 --   5. Esc 取消 → 回调 (nil, nil)
 --   6. 单飞：菜单开着时第二次调用只返回 false，不叠第二层；结束后能再开
+--   6c. 输入模式下 Esc 只退回导航模式，不关菜单；再按 Esc 才取消
+--   6d. ? 打开按键帮助浮窗，任意键收起
 --   7. setup() 之后 vim.ui.select 走的是这个菜单；M.builtin 保留原实现
 --
 -- 退出码：有失败 1，全通过 0。
@@ -207,6 +209,60 @@ pcall(vim.fn.feedkeys, "", "x")
 check(ext.n == 1, "浮窗被外部关闭后应结束并回调一次，实际回调 " .. ext.n .. " 次")
 check(ext.item == nil, "外部关闭应视为取消（回调 nil）")
 check(menu._busy == false, "外部关闭后 _busy 应复位")
+
+----------------------------------------------------------------------
+-- 6c. Esc 的两段语义：输入模式 -> 导航模式 -> 取消
+----------------------------------------------------------------------
+
+-- 第一次 Esc 只退出输入模式（查询保留），第二次 Esc 才取消
+r = run("i" .. "ga" .. kc("<Esc>") .. kc("<Esc>"))
+check(r.called == 1 and r.item == nil, "输入模式连按两次 Esc 才取消，实际 " .. tostring(r.item))
+
+-- 退出输入模式后查询仍在：Esc 之后按 <CR> 应选中过滤后的第一项（gamma）
+r = run("i" .. "ga" .. kc("<Esc>") .. kc("<CR>"))
+check(r.item == "gamma", "Esc 退出输入模式应保留查询（gamma），实际 " .. tostring(r.item))
+
+-- 退出输入模式后 j/k 恢复为移动
+r = run("i" .. kc("<Esc>") .. "j" .. kc("<CR>"))
+check(r.item == "beta", "Esc 之后 j 应恢复为移动，实际 " .. tostring(r.item))
+
+----------------------------------------------------------------------
+-- 6d. ? 打开按键帮助浮窗
+----------------------------------------------------------------------
+
+local help_wins = {}
+local orig_rk_help = menu._read_key
+local help_reads = 0
+menu._read_key = function()
+	help_reads = help_reads + 1
+	local found = nil
+	for _, w in ipairs(vim.api.nvim_list_wins()) do
+		local cfg = vim.api.nvim_win_get_config(w)
+		local text = ""
+		if cfg.title then
+			for _, chunk in ipairs(cfg.title) do
+				text = text .. chunk[1]
+			end
+		end
+		if text == " Help " then
+			found = { win = w, lines = vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(w), 0, -1, false) }
+		end
+	end
+	help_wins[help_reads] = found
+	if help_reads == 1 then
+		return "?"
+	elseif help_reads == 2 then
+		return "x" -- 任意键只收帮助
+	end
+	return nil
+end
+menu.select({ "alpha", "beta" }, { prompt = "Query: ", format_item = tostring }, function() end)
+menu._read_key = orig_rk_help
+check(help_wins[1] == nil, "按 ? 之前不应有帮助浮窗")
+check(help_wins[2] ~= nil, "按 ? 之后应出现帮助浮窗")
+local hl = help_wins[2] and table.concat(help_wins[2].lines, "\n") or ""
+check(hl:find("<Esc>", 1, true) ~= nil and hl:find("<CR>", 1, true) ~= nil, "帮助应列出按键说明")
+check(#vim.api.nvim_list_wins() >= 1, "帮助收起后不应残留窗口")
 
 ----------------------------------------------------------------------
 -- 7. 接管 vim.ui.select

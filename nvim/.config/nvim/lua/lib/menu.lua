@@ -17,9 +17,11 @@
 --
 -- 两种模式（跟 dropbar 的菜单一致：打开时是导航模式，不会一上来就吃字符）：
 --   导航模式：j / <Down> / <C-n> 下移，k / <Up> / <C-p> 上移；1-9 直接选，10 项以后 M-<pivot>；
---            <CR> 选当前；i 或 f 或 / 进入输入模式；Esc / q 取消。
+--            <CR> 选当前；i 或 f 或 / 进入输入模式；? 打开按键帮助；Esc / q 取消。
 --   输入模式：字符进入查询（内建 matchfuzzypos），<BS> 退格，<C-u> 清空；
---            <CR> 选当前，Esc 取消，j/k 仍然可以上下移动。
+--            <CR> 选当前，j/k 仍然可以上下移动；
+--            Esc 只退回导航模式（查询保留），再按 Esc 才取消。
+--   帮助浮窗：'?' 打开，任意键（含 Esc）收起；关菜单时一并关掉。
 -- 提示文本（prompt）与当前查询显示在浮窗上边框中间。
 
 local api = vim.api
@@ -132,6 +134,95 @@ function M.title(state)
 	return text
 end
 
+---按键帮助（? 打开）
+M.help_entries = {
+	{ "j / k, <Down>/<Up>", "move" },
+	{ "<C-n> / <C-p>", "move" },
+	{ "1-9", "pick by number" },
+	{ "M-<pivot>", "pick items 10+" },
+	{ "<CR>", "accept" },
+	{ "i / f / /", "type to filter" },
+	{ "<BS> / <C-u>", "delete char / clear query" },
+	{ "<Esc>", "leave input mode, then close" },
+	{ "?", "this help" },
+}
+
+---帮助浮窗的内容（等宽对齐）
+---@return string[]
+local function help_lines()
+	local kw = 0
+	for _, e in ipairs(M.help_entries) do
+		kw = math.max(kw, #e[1])
+	end
+	local lines = { " Keys" }
+	for _, e in ipairs(M.help_entries) do
+		lines[#lines + 1] = " " .. e[1] .. string.rep(" ", kw - #e[1] + 2) .. e[2]
+	end
+	return lines
+end
+
+---帮助浮窗：开/关都走这里（state.help 决定是否显示）
+---@param state table
+local function render_help(state)
+	if not state.help then
+		if state.help_win and api.nvim_win_is_valid(state.help_win) then
+			pcall(api.nvim_win_close, state.help_win, true)
+		end
+		state.help_win = nil
+		return
+	end
+
+	local lines = help_lines()
+	local width = 0
+	for _, l in ipairs(lines) do
+		width = math.max(width, fn.strdisplaywidth(l))
+	end
+	width = width + 1
+	local height = #lines
+
+	-- 优先放菜单右边，右边放不下就放左边
+	local row, col = state.pos.row, state.pos.col + M.config.width + 2
+	if col + width > vim.go.columns then
+		col = state.pos.col - width - 2
+	end
+	row = math.min(row, math.max(1, vim.go.lines - height - 1))
+	col = math.max(1, col)
+
+	if state.help_buf == nil or not api.nvim_buf_is_valid(state.help_buf) then
+		state.help_buf = api.nvim_create_buf(false, true)
+		api.nvim_set_option_value("buftype", "nofile", { buf = state.help_buf })
+	end
+	api.nvim_set_option_value("modifiable", true, { buf = state.help_buf })
+	api.nvim_buf_set_lines(state.help_buf, 0, -1, false, lines)
+	api.nvim_set_option_value("modifiable", false, { buf = state.help_buf })
+
+	local win_opts = {
+		relative = "editor",
+		row = row,
+		col = col,
+		width = width,
+		height = height,
+		style = "minimal",
+		border = M.config.border,
+		title = " Help ",
+		title_pos = "center",
+		noautocmd = true,
+	}
+	if state.help_win == nil or not api.nvim_win_is_valid(state.help_win) then
+		state.help_win = api.nvim_open_win(state.help_buf, false, win_opts)
+		for _, o in ipairs({ { "statuscolumn", "" }, { "signcolumn", "no" }, { "foldcolumn", "0" }, { "wrap", false } }) do
+			api.nvim_set_option_value(o[1], o[2], { win = state.help_win })
+		end
+		api.nvim_set_option_value(
+			"winhl",
+			"Normal:Pmenu,FloatBorder:FloatBorder,FloatTitle:Title",
+			{ win = state.help_win }
+		)
+	else
+		api.nvim_win_set_config(state.help_win, win_opts)
+	end
+end
+
 ---计算浮窗位置：优先贴光标下方，放不下就往上收
 ---@return { row: integer, col: integer }
 local function anchor()
@@ -240,6 +331,7 @@ local function render(state)
 		})
 	end
 	pcall(api.nvim_win_set_cursor, state.win, { cursor_line, 0 })
+	render_help(state)
 	-- 阻塞读键前必须显式刷一次：nvim 在等待输入时不会自动 flush 待处理的浮窗重绘，
 	-- 少了这一句表现为「按了快捷键什么都没弹出」。
 	if vim.go.columns > 0 then
@@ -264,6 +356,10 @@ local function close(state)
 	if state.buf and api.nvim_buf_is_valid(state.buf) then
 		pcall(api.nvim_buf_delete, state.buf, { force = true })
 	end
+	if state.help_win and api.nvim_win_is_valid(state.help_win) then
+		pcall(api.nvim_win_close, state.help_win, true)
+	end
+	state.help_win = nil
 	state.win, state.buf = nil, nil
 	-- 关掉浮窗后强制整屏重绘：浮窗占过的区域（尤其 statuscolumn）不会被自动置脏，
 	-- 会留下深色竖纹残影，直到下一次整屏重绘（比如另一个浮窗弹出）才消失。
@@ -378,14 +474,21 @@ function M.select(items, opts, on_choice)
 			if state.closed_externally or state.win == nil or not api.nvim_win_is_valid(state.win) then
 				break
 			end
-			if key == "\27" then
-				break
-			end
 			local k = fn.keytrans(key)
 			local kl = k:lower() -- 特殊键 keytrans 可能大写（<C-N>）
 
 			if kl == "<esc>" or kl == "<c-c>" or kl == "<c-g>" then
-				break
+				if state.help then
+					state.help = false -- 帮助开着：先收帮助
+				elseif state.mode == "input" then
+					state.mode = "normal" -- 输入模式：只退回导航模式，不关菜单
+				else
+					break
+				end
+			elseif state.help then
+				state.help = false -- 帮助开着时任何其他键都只收帮助
+			elseif kl == "?" and state.mode == "normal" then
+				state.help = true
 			elseif kl == "<cr>" or kl == "<nl>" then
 				local entry = state.view[state.sel]
 				if entry then
