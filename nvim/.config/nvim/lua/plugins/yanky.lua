@@ -6,7 +6,7 @@
 --   * <leader>p / <leader>P 走 yanky 的 put：进入环并把粘贴目标高亮出来
 --   * ]y / [y 在「刚用 yanky 粘贴过」之后循环更旧/更新的一条
 -- 不用 <C-n>/<C-p>（insert 里是补全），也不占 ]p / [p（Vim 内建「粘贴并按 indent 调整」）。
--- 不启用 yanky 自带的 picker（它走 vim.ui.select，本机被 dropbar 的编号菜单接走，很难用）：
+-- 不启用 yanky 自带的 picker（它走 vim.ui.select，而本机的 vim.ui.select 是 lib/menu.lua 的浮窗菜单，没有预览）：
 -- :YankyRingHistory 改成用自带的 lua/ui/picker.lua —— 底部整宽列表 + 模糊过滤 + 右侧预览。
 
 return {
@@ -95,7 +95,7 @@ return {
 		end, { desc = "环粘贴范围 textobj" })
 
 		-- :YankyRingHistory 用 ui.picker 重做
-		-- yanky 自带的是 vim.ui.select（本机被 dropbar 的编号菜单接管，无输入行无预览），
+		-- yanky 自带的是 vim.ui.select（本机由 lib/menu.lua 接管：有输入行，但没有预览），
 		-- 这里 override 掉：列表 + matchfuzzy 过滤 + 右侧多行内容预览。
 		-- yanky 里 regcontents 正常是字符串（getreg 的返回值）；保险起见兼容行数组
 		local function reg_lines(v)

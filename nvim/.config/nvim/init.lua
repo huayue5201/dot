@@ -12,6 +12,7 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 -- 立即加载基础配置
 require("boot.compat") -- 只吞掉上游插件的 `client.supports_method` 弃用提示
 require("boot.settings") -- 基础 Neovim 选项
+require("lib.menu").setup() -- 浮窗选择菜单（接管 vim.ui.select，见 lua/lib/menu.lua 顶部说明）
 require("boot.dotenv").load() -- 环境变量（须早于 boot.pack，见 ~/.env）
 
 -- 启动前修补：LSP 日志轮转（mason bin 进 PATH 由 mason.setup() 自己 prepend，见 mason/settings.lua:17）

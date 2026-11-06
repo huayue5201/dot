@@ -600,66 +600,24 @@ function M.rename(new_name)
 	end
 end
 
---- 选择并切到本 tab 的某个终端
--- 单飞：菜单已经开着的时候再按 <leader>Ts 不再叠一层（dropbar 的 vim.ui.select
--- 取消时不会回调 on_choice，所以解锁靠「那扇浮窗关闭」，不能只靠回调）。
-local select_open = false
-
----@param win integer
-local function release_when_closed(win)
-	local id
-	id = api.nvim_create_autocmd("WinClosed", {
-		callback = function(args)
-			if tonumber(args.match) ~= win then
-				return
-			end
-			select_open = false
-			pcall(api.nvim_del_autocmd, id)
-		end,
-	})
-end
-
+--- 选择并切到本 tab 的某个终端（单飞由 lib/menu 保证：菜单开着时再按不会叠一层）
 function M.select()
-	if select_open then
-		return
-	end
 	local tab = api.nvim_get_current_tabpage()
 	local list = state.list(tab)
 	if #list == 0 then
 		vim.notify("no terminal in this workspace", vim.log.levels.INFO)
 		return
 	end
-
-	local before = {}
-	for _, win in ipairs(api.nvim_list_wins()) do
-		before[win] = true
-	end
-
-	select_open = true
 	vim.ui.select(list, {
 		prompt = "Terminal: ",
 		format_item = function(bufnr)
 			return buf_label(bufnr)
 		end,
 	}, function(bufnr)
-		select_open = false
 		if bufnr then
 			M.open(bufnr)
 		end
 	end)
-
-	-- 同步实现的选单：返回时浮窗已经在列表里，锁定到它关闭为止
-	if not select_open then
-		return
-	end
-	for _, win in ipairs(api.nvim_list_wins()) do
-		if not before[win] then
-			release_when_closed(win)
-			return
-		end
-	end
-	-- 异步实现、拿不到窗口：立即解锁，宁可不防叠也别把用户锁在外面
-	select_open = false
 end
 
 --- winbar chip 与侧栏行尾共用的关闭字形

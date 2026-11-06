@@ -7,7 +7,7 @@
 | `boot/` | 启动阶段按序执行的脚本：加载器、安装器、启动前后修补、全局选项/映射/自动命令 | `pack.lua`、`settings.lua`、`keymaps.lua` |
 | `ui/` | 可被别处复用的界面部件（不是插件） | `statusline.lua`、`float_list.lua`、`colors.lua` |
 | `feat/` | 自研的完整功能，一个功能一个文件或一个目录 | `navigation/`、`tab_workspace/`、`fork_upstream.lua` |
-| `lib/` | 被多个域共用的小工具，不自己开窗口 | `context.lua`、`lsp_request.lua`、`tool.lua`、`cargo.lua` |
+| `lib/` | 被多个域共用的基础设施（浮窗只有 `menu.lua`） | `context.lua`、`lsp_request.lua`、`tool.lua`、`cargo.lua`、`menu.lua`（接管 `vim.ui.select` 的浮窗选择菜单，零依赖模糊匹配） |
 | `local/` | 「自研替代某个插件」的小模块 | `lightbulb.lua`、`textdiff.lua` |
 | `plugins/` | 第三方插件的 spec，一插件一文件 | `gitsigns.lua`、`blink.lua` |
 | `lsp_ext/` | 在**内置 LSP 客户端**之上加的一层：面板、features、icons、servers 注册 | `panel.lua`、`features/rust_ssr.lua` |

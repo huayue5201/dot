@@ -158,56 +158,35 @@ check(
 )
 
 ----------------------------------------------------------------------
--- 5. <leader>Ts 重复按不会叠出第二个选择菜单
+-- 5. <leader>Ts 选择菜单：委托给 vim.ui.select
+--    （"不叠第二层"是 lib/menu 的职责，见 tests/menu.lua 的单飞用例）
 ----------------------------------------------------------------------
 
 local orig_select = vim.ui.select
-local calls = 0
-
--- 模仿 dropbar：同步开出浮窗，取消（Esc）时不回调 on_choice
-local menu_win = nil
-vim.ui.select = function()
+local calls, got_prompt, got_items, got_fmt = 0, nil, nil, nil
+vim.ui.select = function(items, opts, cb)
 	calls = calls + 1
-	local b = vim.api.nvim_create_buf(false, true)
-	menu_win = vim.api.nvim_open_win(b, false, {
-		relative = "editor",
-		row = 1,
-		col = 1,
-		width = 12,
-		height = 1,
-		style = "minimal",
-	})
+	got_prompt = opts and opts.prompt
+	got_fmt = opts and opts.format_item
+	got_items = items
+	cb(nil) -- 模拟取消
 end
 
--- 先造一个终端（前面把终端都删过了）
 tcd(A)
 edit(A .. "/src/x.lua")
 local seed = term.new()
 check(seed ~= nil, "应能新建终端")
 
 term.select()
-check(calls == 1, ("第一次按键应打开菜单，实际 %d"):format(calls))
-term.select()
-term.select()
-check(calls == 1, ("菜单开着时重复按键不应再打开菜单，实际 %d"):format(calls))
+check(calls == 1, ("按键一次应调用 vim.ui.select 一次，实际 %d"):format(calls))
+check(got_prompt == "Terminal: ", ("prompt 应为 Terminal: ，实际 %s"):format(tostring(got_prompt)))
+check(type(got_items) == "table" and #got_items == 1, "列表应只含本 tab 的终端")
+check(type(got_fmt) == "function" and type(got_fmt(got_items[1])) == "string", "format_item 应给出可读名字")
 
-vim.api.nvim_win_close(menu_win, true)
-check(calls == 1, "关掉菜单本身不应触发新菜单")
+-- 取消（cb(nil)）不应切窗口
+local before_win = vim.api.nvim_get_current_win()
 term.select()
-check(calls == 2, ("菜单关掉后再按键应重新打开，实际 %d"):format(calls))
-if menu_win and vim.api.nvim_win_is_valid(menu_win) then
-	vim.api.nvim_win_close(menu_win, true)
-end
-
--- 会正常回调（选中/取消）的实现：立即解锁，不残留状态
-vim.ui.select = function(_, _, cb)
-	calls = calls + 1
-	cb(nil)
-end
-local before_ok = calls
-term.select()
-term.select()
-check(calls == before_ok + 2, "回调型实现不应被单飞锁住")
+check(vim.api.nvim_get_current_win() == before_win, "取消后不应切窗口")
 
 vim.ui.select = orig_select
 
