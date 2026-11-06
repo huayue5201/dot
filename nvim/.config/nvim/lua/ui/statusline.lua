@@ -261,28 +261,17 @@ local function workspace()
 			tab = vim.api.nvim_win_get_tabpage(win)
 		end
 		local number = vim.api.nvim_tabpage_get_number(tab)
-		local ok_cwd, dir = pcall(vim.fn.getcwd, -1, number)
-		if not ok_cwd or type(dir) ~= "string" or dir == "" then
+		local ok_root, root = pcall(require, "feat.tab_workspace.root")
+		if not ok_root then
 			return ""
 		end
-		dir = dir:gsub("/+$", "")
-		if dir == "" then
-			dir = "/"
-		end
+		local dir = (root.cwd(tab):gsub("/+$", ""))
+		local name = (root.name(tab):gsub("%%", "%%%%"))
 
-		-- 名字取末段；家目录 / 文件系统根用完整缩写形式（末段没有信息量）
-		local short = vim.fn.fnamemodify(dir, ":t")
-		local pretty = vim.fn.fnamemodify(dir, ":~")
-		if short == "" or short == "." or short == "/" or pretty == "~" then
-			short = pretty
-		end
-		short = short:gsub("%%", "%%%%")
-
-		local parts = { string.format("%%#StlWs%d#%s %s%%*", ws_slot(dir), WS_ICON, short) }
+		local parts = { string.format("%%#StlWs%d#%s %s%%*", ws_slot(dir), WS_ICON, name) }
 
 		-- 已锁定（<leader>lws 显式设根 / <leader>lwr 回退）：自动跟随不再改它
-		local ok_root, root = pcall(require, "feat.tab_workspace.root")
-		if ok_root and root.pin_of(tab) ~= nil then
+		if root.pin_of(tab) ~= nil then
 			table.insert(parts, "%#StlSep#" .. WS_LOCK .. "%*")
 		end
 

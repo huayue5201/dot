@@ -176,6 +176,22 @@ function M.cwd(tab)
 	return vim.fn.getcwd()
 end
 
+--- 工作区展示名：根目录末段；家目录 / 文件系统根用 ~ 与 /（末段没有信息量）
+---@param tab? integer
+---@return string
+function M.name(tab)
+	tab = tab or vim.api.nvim_get_current_tabpage()
+	local pretty = vim.fn.fnamemodify(M.cwd(tab), ":~"):gsub("/+$", "")
+	if pretty == "~" or pretty == "" then
+		return pretty == "" and "/" or "~"
+	end
+	local short = vim.fn.fnamemodify(pretty, ":t")
+	if short == "" or short == "." or short == "/" then
+		return pretty
+	end
+	return short
+end
+
 ---@param tab integer
 ---@return string|nil
 function M.pin_of(tab)

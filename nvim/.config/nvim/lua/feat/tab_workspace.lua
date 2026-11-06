@@ -41,6 +41,7 @@ M.save_session = workspace.save_session
 M.load_session = workspace.load_session
 M.new_workspace = workspace.new_workspace
 M.close_workspace = workspace.close_workspace
+M.picker = workspace.picker
 M.alternate = workspace.alternate
 M.resolve_root = root.resolve
 M.root_back = root.back

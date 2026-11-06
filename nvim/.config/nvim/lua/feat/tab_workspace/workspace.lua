@@ -65,6 +65,120 @@ function M.save_session()
 	resession.save_all({ notify = false })
 end
 
+--- 工作区 / 会话统一选择器
+---
+--- 列表 = 已打开的 tab（工作区） + 已保存但未打开的会话 + 「打开新目录」。
+--- 选择已打开的 tab → 切过去；选择会话 → 新开 tab 里载入（不顶掉当前工作区）；
+--- 选择「打开新目录」→ 走 new_workspace（会先保存当前会话）。
+---@param opts? table
+function M.picker(opts)
+	opts = opts or {}
+	local root = require("feat.tab_workspace.root")
+	local ok_state, state = pcall(require, "feat.tab_workspace.state")
+	local ok_guard, guard = pcall(require, "feat.tab_workspace.session_guard")
+	local current_tab = vim.api.nvim_get_current_tabpage()
+
+	local items = {}
+	local open_roots = {}
+
+	-- 1. 已打开的工作区（按 tab 顺序）
+	for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
+		local dir = root.cwd(tab)
+		open_roots[(dir:gsub("/+$", ""))] = true
+		items[#items + 1] = {
+			kind = "tab",
+			tab = tab,
+			number = vim.api.nvim_tabpage_get_number(tab),
+			label = root.name(tab),
+			dir = vim.fn.fnamemodify(dir, ":~"),
+			buffers = ok_state and #state.tab_buffers(tab) or 0,
+			current = tab == current_tab,
+		}
+	end
+
+	-- 2. 已保存、但根目录还没被任何 tab 打开的会话（最近的在前）
+	local ok_resession, resession = pcall(require, "resession")
+	if ok_resession then
+		local ok_list, sessions = pcall(resession.list, { dir = opts.dir })
+		local ok_util, util = pcall(require, "resession.util")
+		local saved = {}
+		for _, name in ipairs(type(sessions) == "table" and sessions or {}) do
+			local data = ok_guard and guard.read(name, opts) or nil
+			local opened = false
+			if ok_guard and type(data) == "table" then
+				for path in pairs(guard.roots_of_data(data)) do
+					if open_roots[path] then
+						opened = true
+						break
+					end
+				end
+			end
+			if not opened then
+				local dir
+				if type(data) == "table" then
+					local first_tab = data.tabs and data.tabs[1]
+					dir = type(first_tab) == "table" and first_tab.cwd or data.global and data.global.cwd
+				end
+				-- 与 load_order = "modification_time" 一致：最近的在前
+				local path = ok_util and util.get_session_file(name, opts.dir)
+				saved[#saved + 1] = {
+					kind = "session",
+					name = name,
+					dir = type(dir) == "string" and dir ~= "" and vim.fn.fnamemodify(dir, ":~") or "",
+					mtime = path and vim.fn.getftime(path) or 0,
+				}
+			end
+		end
+		table.sort(saved, function(a, b)
+			return a.mtime > b.mtime
+		end)
+		vim.list_extend(items, saved)
+	end
+
+	items[#items + 1] = { kind = "new" }
+
+	---@param item table
+	---@return string
+	local function format_item(item)
+		if item.kind == "new" then
+			return "+ 打开目录…"
+		end
+		if item.kind == "tab" then
+			return string.format(
+				"%s %d  %s  %s  %d buf",
+				item.current and "●" or "○",
+				item.number,
+				item.label,
+				item.dir,
+				item.buffers
+			)
+		end
+		return string.format("·    %s  %s", item.name, item.dir)
+	end
+
+	vim.ui.select(items, {
+		prompt = "工作区",
+		format_item = format_item,
+	}, function(item)
+		if not item then
+			return
+		end
+		if item.kind == "tab" then
+			if vim.api.nvim_tabpage_is_valid(item.tab) then
+				vim.api.nvim_set_current_tabpage(item.tab)
+			end
+		elseif item.kind == "session" then
+			-- 新开一个 tab 再载入：tab 作用域会话会复用「干净的当前 tab」，
+			-- 直接载入会把当前工作区顶掉。
+			M.save_session()
+			vim.cmd("tabnew")
+			M.load_session(item.name, opts)
+		else
+			M.new_workspace()
+		end
+	end)
+end
+
 --- 载入会话（tab 作用域会话会复用当前 tab，而不是每载一次多一个 tab）
 ---@param name? string
 ---@param opts? table
@@ -74,50 +188,11 @@ function M.load_session(name, opts)
 		return
 	end
 	opts = vim.tbl_extend("keep", opts or {}, { attach = true })
-	local ok_guard, guard = pcall(require, "feat.tab_workspace.session_guard")
 	if not name then
-		local sessions = resession.list({ dir = opts.dir })
-		if vim.tbl_isempty(sessions) then
-			vim.notify("没有已保存的会话", vim.log.levels.WARN)
-			return
-		end
-		local ok_util, util = pcall(require, "resession.util")
-		local items = {}
-		for _, session_name in ipairs(sessions) do
-			local data = ok_guard and guard.read(session_name, opts) or nil
-			local path = ok_util and util.get_session_file(session_name, opts.dir) or nil
-			items[#items + 1] = {
-				name = session_name,
-				data = data,
-				mtime = path and vim.fn.getftime(path) or 0,
-			}
-		end
-		-- 与 load_order = "modification_time" 一致：最近的在前
-		table.sort(items, function(a, b)
-			return a.mtime > b.mtime
-		end)
-		vim.ui.select(items, {
-			prompt = "载入会话",
-			format_item = function(item)
-				local data = item.data
-				if type(data) ~= "table" then
-					return item.name
-				end
-				local dir = data.tab_scoped and data.tabs and data.tabs[1] and data.tabs[1].cwd
-					or data.global and data.global.cwd
-				local tag = data.tab_scoped and "(tab) " or ""
-				if type(dir) == "string" and dir ~= "" then
-					return string.format("%s%s [%s]", tag, item.name, vim.fn.fnamemodify(dir, ":~"))
-				end
-				return tag .. item.name
-			end,
-		}, function(selected)
-			if selected then
-				M.load_session(selected.name, opts)
-			end
-		end)
-		return
+		-- 无参 = 交互选择：统一到 picker（同一个入口管「打开中的 / 已保存的 / 新目录」）
+		return M.picker(opts)
 	end
+	local ok_guard, guard = pcall(require, "feat.tab_workspace.session_guard")
 	local data = ok_guard and guard.read(name, opts) or nil
 	if type(data) == "table" and data.tab_scoped then
 		if ok_guard then
