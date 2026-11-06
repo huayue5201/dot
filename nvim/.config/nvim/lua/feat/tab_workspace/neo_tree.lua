@@ -64,6 +64,7 @@ local function root_items(state)
 	for i, dir in ipairs(roots.all(tab)) do
 		items[i] = {
 			id = dir,
+			path = dir,
 			name = vim.fn.fnamemodify(dir, ":~"),
 			type = "directory",
 			loaded = false,
@@ -106,6 +107,7 @@ function M.navigate(state, _path, path_to_reveal, callback, _async)
 	end
 	local tree_root = {
 		id = SYNTH_ID,
+		path = state.path,
 		name = "工作区",
 		type = "directory",
 		loaded = true,

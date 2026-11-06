@@ -193,6 +193,9 @@ else
 		-- 展开辅助根 → 出现真实子节点
 		local node = state.tree:get_node(root_b)
 		check(node ~= nil, "能取到辅助根节点")
+		-- 根节点必须带 path：neo-tree 的 git_status/diagnostics 组件按 node.path 取数据，
+		-- 少了它会在渲染时报 "table index is nil"（find_existing_worktree）
+		check(node ~= nil and node.path == root_b, "根节点带 path（git 组件依赖）")
 		if node then
 			local ok_toggle, toggle_err = pcall(source.toggle_directory, state, node)
 			check(ok_toggle, "展开辅助根不报错: " .. tostring(toggle_err))
