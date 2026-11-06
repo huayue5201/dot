@@ -95,15 +95,15 @@ Rules:
 
 		-- 普通模式：翻译当前词（回显）
 		vim.keymap.set("n", "<localLeader>te", function()
-			translator.start("echo", { bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.expand("<cword>") })
-		end, { silent = true, desc = "翻译并回显（当前词）" })
+			translator.start("window", { bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.expand("<cword>") })
+		end, { silent = true, desc = "翻译并浮窗显示（当前词）" })
 
 		-- 普通模式：翻译当前句（回显）—— key 改为 tE，避免与"读原文"冲突
 		vim.keymap.set("n", "<localLeader>tE", function()
 			vim.cmd("normal! vis")
 			local text = util.get_visual_selection()
-			translator.start("echo", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
-		end, { silent = true, desc = "翻译并回显（当前句）" })
+			translator.start("window", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
+		end, { silent = true, desc = "翻译并浮窗显示（当前句）" })
 
 		-- 窗口显示（当前词）
 		vim.keymap.set("n", "<localleader>tw", function()
@@ -114,6 +114,11 @@ Rules:
 		end, { silent = true, desc = "翻译并窗口显示（当前词）" })
 
 		vim.keymap.set("n", "<localleader>ti", "<Cmd>TranslateI<CR>", { desc = "交互翻译" })
+
+		-- buffer 内虚拟文本中英对照（再按一次关闭；Esc 可中止进行中的批量请求）
+		vim.keymap.set("n", "<localleader>tv", "<Cmd>TranslateV<CR>", { silent = true, desc = "虚拟文本对照（开/关）" })
+		vim.keymap.set("n", "<localleader>tV", "<Cmd>TranslateVClear<CR>", { silent = true, desc = "清除虚拟文本对照" })
+		vim.keymap.set("v", "<localleader>tv", ":TranslateV<CR>", { silent = true, desc = "虚拟文本对照（选区）" })
 
 		-- API 文档翻译（面向代码符号，需配置 translator_llm）
 		vim.keymap.set("n", "<localLeader>td", "<Cmd>TranslateApi<CR>", { desc = "API 文档翻译" })
@@ -128,7 +133,7 @@ Rules:
 
 		-- 翻译剪贴板
 		vim.keymap.set("n", "<localLeader>tx", function()
-			translator.start("echo", { bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.getreg("*") })
+			translator.start("window", { bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.getreg("*") })
 		end, { silent = true, desc = "翻译剪贴板" })
 
 		-- 二级操作（也可在翻译浮窗 footer 里直接按 s/S/a/y/Esc）
@@ -141,8 +146,8 @@ Rules:
 		----------------------------------------------------------------------
 		vim.keymap.set("v", "<localLeader>te", function()
 			local text = util.get_visual_selection()
-			translator.start("echo", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
-		end, { silent = true, desc = "翻译并回显（选区）" })
+			translator.start("window", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
+		end, { silent = true, desc = "翻译并浮窗显示（选区）" })
 
 		vim.keymap.set("v", "<localleader>tw", function()
 			local text = util.get_visual_selection()
