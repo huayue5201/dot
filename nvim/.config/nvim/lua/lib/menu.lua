@@ -253,7 +253,8 @@ local function render_input(state, menu_row, menu_height)
 	end
 
 	local line = " ❯ " .. state.query .. " "
-	local width = math.min(M.config.width, math.max(20, fn.strdisplaywidth(line) + 1))
+	-- 宽度与列表浮窗一致：两个浮窗左右边对齐，看起来是同一个面板
+	local width = M.config.width
 	-- 列表带边框，下沿再留一行空；下面放不下就翻到列表上方
 	local row = menu_row + menu_height + 2
 	if row + 2 >= vim.go.lines then
