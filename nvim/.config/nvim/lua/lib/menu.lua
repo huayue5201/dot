@@ -160,7 +160,14 @@ local function render(state)
 		end
 	end
 
-	state.buf = state.buf or api.nvim_create_buf(false, false)
+	if state.buf == nil then
+		state.buf = api.nvim_create_buf(false, true)
+		-- buftype=nofile 让「浮窗专用」的 buffer 与普通文件区分开：
+		-- statuscol.nvim 之类的 statuscolumn 提供者会据此清掉窗口的 statuscolumn
+		-- （它们的 bt_ignore 默认就含 nofile），否则浮窗会继承
+		-- %{%v:lua.require('statuscol')...%} 并按浮窗的行号污染下面窗口的缓存。
+		api.nvim_set_option_value("buftype", "nofile", { buf = state.buf })
+	end
 	api.nvim_set_option_value("modifiable", true, { buf = state.buf })
 	api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
 	api.nvim_set_option_value("modifiable", false, { buf = state.buf })
@@ -178,11 +185,24 @@ local function render(state)
 		border = M.config.border,
 		title = M.title(state),
 		title_pos = "center",
+		-- 关键：浮窗创建期间不要跑 autocmd。statuscol.nvim 的处理器用
+		-- nvim_get_current_win() 定位窗口，浮窗创建时「当前窗口」还是下面那个，
+		-- 于是它把 'statuscolumn' 设到了别的窗口上、并污染自己的每窗口缓存
+		-- （表现为下面窗口的 statuscolumn 多出一列折叠符 / 深色竖纹残影）。
+		noautocmd = true,
 	}
 	if state.win == nil or not api.nvim_win_is_valid(state.win) then
+		state.origin_win = api.nvim_get_current_win()
 		state.win = api.nvim_open_win(state.buf, false, win_opts)
 		api.nvim_set_option_value("winhl", "Normal:Pmenu,FloatBorder:FloatBorder,FloatTitle:Title", { win = state.win })
 		api.nvim_set_option_value("wrap", false, { win = state.win })
+		-- 浮窗必须清掉 statuscolumn / signcolumn / foldcolumn：
+		-- statuscol.nvim 的 'statuscolumn' 是全局表达式 %{%v:lua...%}，浮窗也会继承它，
+		-- 而它取的是 nvim_get_current_win()（浮窗不是当前窗口 → 按下面的窗口求值），
+		-- 算出来的片段会污染下面窗口的缓存，留下一列深色竖纹。
+		api.nvim_set_option_value("statuscolumn", "", { win = state.win })
+		api.nvim_set_option_value("signcolumn", "no", { win = state.win })
+		api.nvim_set_option_value("foldcolumn", "0", { win = state.win })
 	else
 		api.nvim_win_set_config(state.win, win_opts)
 	end
@@ -236,6 +256,10 @@ local function close(state)
 	end
 	if state.win and api.nvim_win_is_valid(state.win) then
 		pcall(api.nvim_win_close, state.win, true)
+	end
+	-- 焦点回到原窗口：否则下面那个窗口会按「非当前窗口」渲染一帧
+	if state.origin_win and api.nvim_win_is_valid(state.origin_win) then
+		pcall(api.nvim_set_current_win, state.origin_win)
 	end
 	if state.buf and api.nvim_buf_is_valid(state.buf) then
 		pcall(api.nvim_buf_delete, state.buf, { force = true })
