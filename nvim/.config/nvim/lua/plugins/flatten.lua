@@ -6,7 +6,6 @@ return {
 	config = function()
 		local flatten = require("flatten")
 
-
 		flatten.setup({
 			-- ========== 窗口设置 ==========
 			window = {

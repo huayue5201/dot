@@ -293,7 +293,8 @@ function M.setup(opts, settings)
 	})
 
 	-- 不重映射任何按键，只旁路观察 <C-w> 后的 resize 键，置 hint。
-	local resize_keys = { [">"] = true, ["<"] = true, ["+"] = true, ["-"] = true, ["="] = true, ["|"] = true, ["_"] = true }
+	local resize_keys =
+		{ [">"] = true, ["<"] = true, ["+"] = true, ["-"] = true, ["="] = true, ["|"] = true, ["_"] = true }
 	local pending_ctrl_w = false
 	vim.on_key(function(key)
 		if pending_ctrl_w then

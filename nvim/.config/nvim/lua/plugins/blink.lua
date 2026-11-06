@@ -37,7 +37,7 @@ return {
 			completion = {
 				keyword = { range = "full" },
 				accept = { auto_brackets = { enabled = true } },
-				list = { selection = { preselect = false, auto_insert = true } },
+				list = { selection = { preselect = false, auto_insert = false } },
 				menu = {
 					border = "rounded",
 					draw = {
@@ -74,9 +74,22 @@ return {
 			},
 
 			keymap = {
+				-- 分工：<Tab>/<S-Tab> 只移动选中项（不落字），<CR> 落字。
+				-- 配 completion.list.selection.auto_insert = false，所以 Tab 只改高亮；
+				-- <CR> 用 select_and_accept 而不是 accept：preselect = false 时没选中项，
+				-- 裸 accept 会返回 true 但什么都不插（把回车吞掉）。
+				-- select_* 在菜单没开时返回 false，会落到 snippet_*(占位符跳转)
+				-- 再落到 fallback（原生缩进 / 换行 / autopairs 的 <CR>）。
 				preset = "default",
+				["<CR>"] = { "select_and_accept", "fallback" },
 				["<Tab>"] = {
+					"select_next",
 					"snippet_forward",
+					"fallback",
+				},
+				["<S-Tab>"] = {
+					"select_prev",
+					"snippet_backward",
 					"fallback",
 				},
 				["<A-1>"] = {

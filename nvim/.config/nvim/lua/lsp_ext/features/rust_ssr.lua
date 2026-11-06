@@ -261,7 +261,11 @@ local function open_diff(it)
 		notify("diffbandit 打开失败：" .. tostring(err2), vim.log.levels.ERROR)
 		return
 	end
-	notify(("%d 处改动预览（SSR 结果仍保留：:RustSsrApply 应用 / ! 应用到已写盘内容）"):format(#edits))
+	notify(
+		("%d 处改动预览（SSR 结果仍保留：:RustSsrApply 应用 / ! 应用到已写盘内容）"):format(
+			#edits
+		)
+	)
 end
 
 --- 当前打开的预览列表（重复预览时先关旧的，避免叠窗）
@@ -276,7 +280,10 @@ local function apply_pending()
 	end
 	local ok, err = pcall(vim.lsp.util.apply_workspace_edit, pending.edit, pending.encoding)
 	if not ok then
-		notify("应用失败（文件可能已被改动，请重新执行 SSR）：" .. tostring(err), vim.log.levels.ERROR)
+		notify(
+			"应用失败（文件可能已被改动，请重新执行 SSR）：" .. tostring(err),
+			vim.log.levels.ERROR
+		)
 		return false
 	end
 	notify(("已应用 %d 处修改：%s（逐 buffer u 撤销，:wa 写盘）"):format(pending.count, pending.query))
@@ -366,7 +373,7 @@ local function open_preview(items, query)
 					if not it then
 						return
 					end
-					vim.fn.setreg(vim.v.register ~= "" and vim.v.register or "\"", ("%s ==>> %s"):format(it.old, it.new))
+					vim.fn.setreg(vim.v.register ~= "" and vim.v.register or '"', ("%s ==>> %s"):format(it.old, it.new))
 					notify("已复制当前行的旧/新文本，可整理成 query 模板")
 				end,
 			},
@@ -409,7 +416,9 @@ local function request(client, bufnr, query, selections, apply_now, pos)
 	end
 
 	local enc = client.offset_encoding or "utf-8"
-	notify("请求中…（" .. ((selections and #selections > 0) and "选区/行范围" or "整个 workspace") .. "）")
+	notify(
+		"请求中…（" .. ((selections and #selections > 0) and "选区/行范围" or "整个 workspace") .. "）"
+	)
 
 	client:request("experimental/ssr", {
 		textDocument = pos.textDocument,

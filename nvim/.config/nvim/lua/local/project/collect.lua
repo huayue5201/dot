@@ -110,17 +110,23 @@ local function detect_build(root, fileset, full)
 			name = name or line:match('^name%s*=%s*"(.-)"')
 			version = version or line:match('^version%s*=%s*"(.-)"')
 		end
-		note("pyproject.toml" .. ((name or version) and ("：" .. table.concat(vim.tbl_filter(function(x)
-			return x ~= nil
-		end, { name, version }), " ")) or ""))
+		note("pyproject.toml" .. ((name or version) and ("：" .. table.concat(
+			vim.tbl_filter(function(x)
+				return x ~= nil
+			end, { name, version }),
+			" "
+		)) or ""))
 	end
 	if fileset["setup.py"] then
 		note("setup.py")
 	end
 	if fileset["Dockerfile"] or fileset["docker-compose.yml"] or fileset["compose.yml"] then
-		note("Docker： " .. table.concat(vim.tbl_filter(function(x)
-			return fileset[x] and x or nil
-		end, { "Dockerfile", "docker-compose.yml", "compose.yml" }), " · "))
+		note("Docker： " .. table.concat(
+			vim.tbl_filter(function(x)
+				return fileset[x] and x or nil
+			end, { "Dockerfile", "docker-compose.yml", "compose.yml" }),
+			" · "
+		))
 	end
 	return out
 end
@@ -146,7 +152,10 @@ local function detect_deps(root, fileset)
 		end
 	end
 	if fileset["Cargo.toml"] then
-		add("cargo dependencies", toml_section_keys(root, "Cargo.toml", { dependencies = true, ["dev-dependencies"] = true }, 40))
+		add(
+			"cargo dependencies",
+			toml_section_keys(root, "Cargo.toml", { dependencies = true, ["dev-dependencies"] = true }, 40)
+		)
 	end
 	if fileset["go.mod"] then
 		local list = {}
@@ -395,7 +404,6 @@ local function collect(root, full, done)
 		done(build_data(info, named, full))
 	end)
 end
-
 
 return {
 	collect = collect,

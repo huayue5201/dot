@@ -165,6 +165,13 @@ return {
 				retention_days = 30, -- 0 = 永不自动移动，平时只报告；:TodoGc! 才动手
 			},
 
+			-- 过期回收（两处只增不减的账本：删除墓碑与项目隔离区）
+			-- 到期直接删除；TODO 文件永不在此列（md 是真源）
+			expire = {
+				enabled = true, -- false = 什么都不删
+				days = 180, -- 超过该天数即删除（0 = 永不删除）
+			},
+
 			-- 性能观测：关闭时插桩零开销，开启后用 :TodoProfile 看 count/avg/max
 			profile = {
 				enabled = false,
@@ -277,6 +284,7 @@ return {
 		vim.keymap.set("n", "<leader>mvv", "<cmd>TodoView vsplit<cr>", { desc = "垂直分割打开" })
 		vim.keymap.set("n", "<leader>mve", "<cmd>TodoView edit<cr>", { desc = "编辑模式打开" })
 		vim.keymap.set("n", "<leader>mvc", "<cmd>TodoCalendar<cr>", { desc = "项目月历（时间维度视图）" })
+		vim.keymap.set("n", "<leader>mvg", "<cmd>TodoGlobal<cr>", { desc = "全局视图：跨项目活跃任务" })
 
 		-- ── 文件组 mf-（末位 == 抽屉键；文件头上的 a/r/d）──────────
 		vim.keymap.set("n", "<leader>mfa", "<cmd>TodoFile new<cr>", { desc = "新建 TODO 文件（抽屉 a）" })
@@ -297,6 +305,8 @@ return {
 		-- ── 链接组 ml- ────────────────────────────────────────────
 		vim.keymap.set("n", "<leader>mla", "<cmd>TodoLinks<cr>", { desc = "全部双链标记 (QF)" })
 		vim.keymap.set("n", "<leader>mlb", "<cmd>TodoLinks!<cr>", { desc = "当前缓冲区双链标记 (LocList)" })
+		-- 跨项目：挑选目标而不是输入 id（抽屉 L 同一入口）
+		vim.keymap.set("n", "<leader>mlL", "<cmd>TodoRel<cr>", { desc = "关联其它项目的任务（抽屉 L）" })
 
 		-- ── git 组 mg-（抽屉内 gs/gr/gb 同字母）───────────────────
 		vim.keymap.set(

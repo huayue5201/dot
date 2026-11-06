@@ -21,11 +21,7 @@ local tw_util = require("feat.tab_workspace.util")
 ---@param ft string
 ---@return boolean
 local function is_state_filetype(ft)
-	return ft == "sqmeow-drawer"
-		or ft == "sqmeow-result"
-		or ft == "sqmeow-help"
-		or ft == "neo-tree"
-		or ft == "NvimTree"
+	return ft == "sqmeow-drawer" or ft == "sqmeow-result" or ft == "sqmeow-help" or ft == "neo-tree" or ft == "NvimTree"
 end
 
 --- 窗口是否是「状态窗口」：插件自己锁了它，或它显示的是插件界面。

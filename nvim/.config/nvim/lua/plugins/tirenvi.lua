@@ -85,7 +85,10 @@ return {
 			local ok, state = pcall(require, "tirenvi.io.buf_state")
 			local parser = ok and state.get(vim.api.nvim_get_current_buf(), state.IKEY.PARSER)
 			if not parser then
-				vim.notify("当前缓冲区不支持表格视图（需 csv/tsv/markdown/codecompanion）", vim.log.levels.WARN)
+				vim.notify(
+					"当前缓冲区不支持表格视图（需 csv/tsv/markdown/codecompanion）",
+					vim.log.levels.WARN
+				)
 				return
 			end
 			vim.cmd("Tir toggle")

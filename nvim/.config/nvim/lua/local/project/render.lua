@@ -215,7 +215,13 @@ local function render(data, full)
 		push(k(data.license))
 	end
 	if #data.tags > 0 then
-		push({ (#data.tags > 1 and (num(#data.tags) .. " 个 tag（最新 " .. data.tags[1] .. "）") or (data.tags[1] .. "（1 个 tag）")), "ProjectKey" })
+		push({
+			(
+				#data.tags > 1 and (num(#data.tags) .. " 个 tag（最新 " .. data.tags[1] .. "）")
+				or (data.tags[1] .. "（1 个 tag）")
+			),
+			"ProjectKey",
+		})
 	end
 	if data.git then
 		if data.dirty > 0 then
@@ -405,7 +411,6 @@ local function render(data, full)
 
 	return L, H, paths
 end
-
 
 return {
 	render = render,

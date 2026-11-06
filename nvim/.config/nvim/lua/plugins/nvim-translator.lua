@@ -95,7 +95,10 @@ Rules:
 
 		-- 普通模式：翻译当前词（回显）
 		vim.keymap.set("n", "<localLeader>te", function()
-			translator.start("window", { bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.expand("<cword>") })
+			translator.start(
+				"window",
+				{ bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.expand("<cword>") }
+			)
 		end, { silent = true, desc = "翻译并浮窗显示（当前词）" })
 
 		-- 普通模式：翻译当前句（回显）—— key 改为 tE，避免与"读原文"冲突
@@ -116,9 +119,24 @@ Rules:
 		vim.keymap.set("n", "<localleader>ti", "<Cmd>TranslateI<CR>", { desc = "交互翻译" })
 
 		-- buffer 内虚拟文本中英对照（再按一次关闭；Esc 可中止进行中的批量请求）
-		vim.keymap.set("n", "<localleader>tv", "<Cmd>TranslateV<CR>", { silent = true, desc = "虚拟文本对照（开/关）" })
-		vim.keymap.set("n", "<localleader>tV", "<Cmd>TranslateVClear<CR>", { silent = true, desc = "清除虚拟文本对照" })
-		vim.keymap.set("v", "<localleader>tv", ":TranslateV<CR>", { silent = true, desc = "虚拟文本对照（选区）" })
+		vim.keymap.set(
+			"n",
+			"<localleader>tv",
+			"<Cmd>TranslateV<CR>",
+			{ silent = true, desc = "虚拟文本对照（开/关）" }
+		)
+		vim.keymap.set(
+			"n",
+			"<localleader>tV",
+			"<Cmd>TranslateVClear<CR>",
+			{ silent = true, desc = "清除虚拟文本对照" }
+		)
+		vim.keymap.set(
+			"v",
+			"<localleader>tv",
+			":TranslateV<CR>",
+			{ silent = true, desc = "虚拟文本对照（选区）" }
+		)
 
 		-- API 文档翻译（面向代码符号，需配置 translator_llm）
 		vim.keymap.set("n", "<localLeader>td", "<Cmd>TranslateApi<CR>", { desc = "API 文档翻译" })

@@ -87,6 +87,9 @@ return {
 				},
 				window = {
 					mappings = {
+						["o"] = "open_and_close",
+						["<cr>"] = "open_and_close",
+						["<2-LeftMouse>"] = "open_and_close",
 						["O"] = "system_open",
 						["C"] = "open_and_clear_filter",
 						["h"] = function(state)
@@ -105,6 +108,9 @@ return {
 								elseif node:has_children() then
 									require("neo-tree.ui.renderer").focus_node(state, node:get_child_ids()[1])
 								end
+							else
+								require("neo-tree.sources.filesystem.commands").open(state)
+								require("neo-tree.command").execute({ action = "close" })
 							end
 						end,
 						-- map our new command to z
@@ -115,6 +121,16 @@ return {
 
 			-- ========== 自定义命令 ==========
 			commands = {
+				-- 打开文件后自动关闭 neo-tree 面板（目录仍然只是展开/折叠）
+				open_and_close = function(state)
+					local node = state.tree:get_node()
+					local is_file = node and node.type == "file"
+					require("neo-tree.sources.filesystem.commands").open(state)
+					if is_file then
+						require("neo-tree.command").execute({ action = "close" })
+					end
+				end,
+
 				open_and_clear_filter = function(state)
 					local node = state.tree:get_node()
 					if node and node.type == "file" then

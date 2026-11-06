@@ -259,7 +259,11 @@ function M.describe(row)
 		add("上游：%s", meta.issue)
 	end
 	if row.rev then
-		add("rev：%s%s", row.rev:sub(1, 12), row.rev_changed and ("（写 fix 时是 " .. tostring(meta.baseline_rev) .. "）") or "（未变）")
+		add(
+			"rev：%s%s",
+			row.rev:sub(1, 12),
+			row.rev_changed and ("（写 fix 时是 " .. tostring(meta.baseline_rev) .. "）") or "（未变）"
+		)
 	end
 	if row.dir == nil then
 		add("插件目录：找不到 %s（改了名或没装？）", tostring(meta.plugin))
@@ -292,10 +296,10 @@ function M.describe(row)
 		add("  1. 删除 %s", vim.fn.fnamemodify(meta.file or "", ":~:."))
 		local sites = M.require_sites(meta.module or "")
 		if #sites == 0 then
-			add("  2. lua/plugins/ 里没找到 require(\"%s\")（已删过？）", meta.module or "?")
+			add('  2. lua/plugins/ 里没找到 require("%s")（已删过？）', meta.module or "?")
 		else
 			for i, site in ipairs(sites) do
-				add("  %d. 删除 %s 里的 require(\"%s\") 那一行", i + 1, site, meta.module)
+				add('  %d. 删除 %s 里的 require("%s") 那一行', i + 1, site, meta.module)
 			end
 		end
 		for _, step in ipairs(meta.cleanup or {}) do
@@ -322,7 +326,12 @@ function M.report()
 		title = "FIX 守卫（lua/fix/ 临时修复的上游状态）",
 		items = rows,
 		text = function(row)
-			return string.format("[%s] %s — %s", STATUS_LABEL[row.status] or row.status, row.meta.id or "?", row.meta.title or "")
+			return string.format(
+				"[%s] %s — %s",
+				STATUS_LABEL[row.status] or row.status,
+				row.meta.id or "?",
+				row.meta.title or ""
+			)
 		end,
 		preview = function(row)
 			return M.describe(row)

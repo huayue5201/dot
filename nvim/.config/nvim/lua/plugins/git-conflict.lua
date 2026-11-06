@@ -14,7 +14,9 @@ return {
 			pattern = "GitConflictDetected",
 			callback = function()
 				vim.notify(
-					("检测到冲突：%s（co=ours  ct=theirs  cb=both  c0=none  ]x/[x 跳转）"):format(vim.fn.expand("<afile>")),
+					("检测到冲突：%s（co=ours  ct=theirs  cb=both  c0=none  ]x/[x 跳转）"):format(
+						vim.fn.expand("<afile>")
+					),
 					vim.log.levels.WARN
 				)
 			end,

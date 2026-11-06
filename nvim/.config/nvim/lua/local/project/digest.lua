@@ -118,5 +118,4 @@ function M.digest(data)
 	return text, est_tokens(text)
 end
 
-
 return M

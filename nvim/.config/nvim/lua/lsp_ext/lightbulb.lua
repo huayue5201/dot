@@ -274,17 +274,21 @@ local function check_actions()
 	-- （正常情况下一秒内会有结果；这里只处理「全部无 action」）
 	local all_gen = gen
 	grace_timer:stop()
-	grace_timer:start(1200, 0, vim.schedule_wrap(function()
-		if all_gen ~= generation then
-			return
-		end
-		if cache and cache.tick == tick and cache.lnum == lnum then
-			return
-		end
-		-- 没有任何 server 报「有 action」→ 记录为无并用 hide
-		cache = { buf = bufnr, lnum = lnum, tick = tick, has = false }
-		M.hide()
-	end))
+	grace_timer:start(
+		1200,
+		0,
+		vim.schedule_wrap(function()
+			if all_gen ~= generation then
+				return
+			end
+			if cache and cache.tick == tick and cache.lnum == lnum then
+				return
+			end
+			-- 没有任何 server 报「有 action」→ 记录为无并用 hide
+			cache = { buf = bufnr, lnum = lnum, tick = tick, has = false }
+			M.hide()
+		end)
+	)
 end
 
 ----------------------------------------------------------------------
@@ -332,13 +336,17 @@ local function schedule_check()
 	generation = generation + 1
 	local gen = generation
 	debounce_timer:stop()
-	debounce_timer:start(opts.debounce, 0, vim.schedule_wrap(function()
-		scheduled = nil
-		if gen ~= generation then
-			return
-		end
-		check_actions()
-	end))
+	debounce_timer:start(
+		opts.debounce,
+		0,
+		vim.schedule_wrap(function()
+			scheduled = nil
+			if gen ~= generation then
+				return
+			end
+			check_actions()
+		end)
+	)
 end
 
 set_anchor = function(a)

@@ -252,20 +252,16 @@ local function walk_files(root, limit)
 	return files
 end
 
-
 local function lang_of(path)
 	local ext = path:match("%.([%w]+)$")
 	return ext and EXT_LANG[ext:lower()] or "其他"
 end
 
-
 --- 某个目录对应的项目根（不在 git 里就退回 cwd）
 ---@param root_opt string|nil
 ---@return string
 local function resolve_root(root_opt)
-	local root = root_opt
-		or git_sync(vim.fn.getcwd(), { "rev-parse", "--show-toplevel" })
-		or vim.fn.getcwd()
+	local root = root_opt or git_sync(vim.fn.getcwd(), { "rev-parse", "--show-toplevel" }) or vim.fn.getcwd()
 	return vim.fs.normalize(root)
 end
 

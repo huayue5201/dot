@@ -109,7 +109,6 @@ return {
 					-- You can also call `require("celeste_comment").track_state()` in your
 					-- own dot-repeat keymap to enable sticky cursor behavior.
 					-- See `:help celeste_comment-api` for more details.
-
 				},
 
 				hooks = {

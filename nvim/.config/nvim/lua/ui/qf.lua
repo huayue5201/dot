@@ -69,7 +69,8 @@ local function goto_nr(kind, winid, nr)
 			return
 		end
 		-- 列表号越大越新：往小走 = 更旧（colder），往大走 = 更新（cnewer）
-		local cmd = kind == "loc" and (delta < 0 and "lolder %d" or "lnewer %d") or (delta < 0 and "colder %d" or "cnewer %d")
+		local cmd = kind == "loc" and (delta < 0 and "lolder %d" or "lnewer %d")
+			or (delta < 0 and "colder %d" or "cnewer %d")
 		pcall(vim.cmd, cmd:format(math.abs(delta)))
 	end
 	if kind == "loc" then
@@ -145,11 +146,17 @@ function M.open(opts)
 	end
 
 	local function text(it)
-		return ("%2d %s %4d  %s"):format(it.nr, it.current and "▸" or " ", it.size, it.title ~= "" and it.title or "[无标题]")
+		return ("%2d %s %4d  %s"):format(
+			it.nr,
+			it.current and "▸" or " ",
+			it.size,
+			it.title ~= "" and it.title or "[无标题]"
+		)
 	end
 
 	local function preview(it)
-		local out = { ("%s %d：%s（%d 条）"):format(label, it.nr, it.title ~= "" and it.title or "[无标题]", it.size) }
+		local out =
+			{ ("%s %d：%s（%d 条）"):format(label, it.nr, it.title ~= "" and it.title or "[无标题]", it.size) }
 		out[#out + 1] = ""
 		local raws = list_items(kind, winid, it.nr)
 		for i, raw in ipairs(raws) do

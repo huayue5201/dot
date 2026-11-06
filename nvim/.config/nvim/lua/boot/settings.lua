@@ -63,7 +63,7 @@ vim.opt.guicursor:append({
 vim.o.wrap = false -- 不自动换行
 vim.o.linebreak = true -- 按单词边界换行
 vim.o.showbreak = "⤸" -- 换行提示符
-vim.o.list = true -- 显示不可见字符
+vim.o.list = false -- 不可见字符改为「只在选区显示」（visual-whitespace.nvim，<leader>zb 切换）
 vim.opt.listchars = {
 	tab = "╎ ",
 	multispace = " ",

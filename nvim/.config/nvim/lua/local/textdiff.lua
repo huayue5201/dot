@@ -256,10 +256,14 @@ end
 ---@param label_a string
 ---@param label_b string
 local function open_tab(a, b, label_a, label_b)
-	local hunks = vim.diff(table.concat(a, "\n") .. "\n", table.concat(b, "\n") .. "\n", vim.tbl_extend("force", DIFF_OPTS, {
-		result_type = "indices",
-		ctxlen = 3,
-	}))
+	local hunks = vim.diff(
+		table.concat(a, "\n") .. "\n",
+		table.concat(b, "\n") .. "\n",
+		vim.tbl_extend("force", DIFF_OPTS, {
+			result_type = "indices",
+			ctxlen = 3,
+		})
+	)
 
 	local ok_tab, tab = pcall(vim.cmd.tabnew)
 	if not ok_tab then

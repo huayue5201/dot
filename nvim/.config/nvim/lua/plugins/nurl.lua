@@ -16,7 +16,7 @@ local function scratchpad()
 		"return {",
 		"\t{",
 		'\t\t"https://jsonplaceholder.typicode.com/posts/1",',
-		"\t\ttitle = \"示例请求\",",
+		'\t\ttitle = "示例请求",',
 		"\t},",
 		"}",
 	})

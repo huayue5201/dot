@@ -273,7 +273,7 @@ local function build_template(kind, env)
 		"-- 由 :DapProjectInit 生成，可按需修改。",
 		"-- kind 省略时按项目特征自动推断。",
 		"return {",
-		("\tkind = %q, -- \"embedded\" | \"desktop\""):format(kind),
+		('\tkind = %q, -- "embedded" | "desktop"'):format(kind),
 		"",
 		"\t-- 嵌入式调试参数（OpenOCD / probe-rs 使用；desktop 项目可删）",
 		"\tenvConfig = {",

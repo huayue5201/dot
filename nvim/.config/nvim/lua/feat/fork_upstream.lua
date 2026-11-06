@@ -185,7 +185,10 @@ function M.refresh(repo, opts)
 	if not ok then
 		if not missing_warned then
 			missing_warned = true
-			notify(("找不到可执行文件 %s（检查 PATH，或 setup({ bin = ... })）"):format(cfg.bin), vim.log.levels.ERROR)
+			notify(
+				("找不到可执行文件 %s（检查 PATH，或 setup({ bin = ... })）"):format(cfg.bin),
+				vim.log.levels.ERROR
+			)
 		end
 		return
 	end

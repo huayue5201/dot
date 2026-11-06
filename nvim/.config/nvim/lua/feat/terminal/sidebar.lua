@@ -405,7 +405,11 @@ local function apply_win_opts(win)
 	-- 顶部沿用面板那条 bar（色块连续），左对齐一个小标题
 	api.nvim_set_option_value("winbar", "%#TwTermBar# Terminals %#TwTermBar#%X", { win = win })
 	-- 侧栏自己一层底色（比终端面板亮一档）+ 一条可见的分隔线
-	api.nvim_set_option_value("winhighlight", highlights.sidebar_winhl(win == api.nvim_get_current_win()), { win = win })
+	api.nvim_set_option_value(
+		"winhighlight",
+		highlights.sidebar_winhl(win == api.nvim_get_current_win()),
+		{ win = win }
+	)
 end
 
 --- 会话恢复用：把一个已有窗口就地变成侧栏窗口（不新建分屏）

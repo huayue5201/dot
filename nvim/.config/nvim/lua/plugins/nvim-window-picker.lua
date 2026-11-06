@@ -168,10 +168,7 @@ return {
 			})
 			if not target then
 				if abort_info and abort_info.aborted then
-					print(
-						abort_info.source
-							.. " 的当前窗口被 zoom 到其他 pane，选择器已跳过"
-					)
+					print(abort_info.source .. " 的当前窗口被 zoom 到其他 pane，选择器已跳过")
 				else
 					print("No window picked!")
 				end

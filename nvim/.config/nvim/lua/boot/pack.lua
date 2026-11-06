@@ -804,7 +804,10 @@ function M.prune(opts)
 	local ok, err = pcall(vim.pack.del, names, { force = opts.force })
 	if not opts.quiet then
 		if ok then
-			vim.notify(("已删除 %d 个未使用插件:\n%s"):format(#names, table.concat(names, ", ")), vim.log.levels.INFO)
+			vim.notify(
+				("已删除 %d 个未使用插件:\n%s"):format(#names, table.concat(names, ", ")),
+				vim.log.levels.INFO
+			)
 		else
 			vim.notify("清理插件失败: " .. tostring(err), vim.log.levels.ERROR)
 		end

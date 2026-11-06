@@ -49,30 +49,18 @@ return {
 					return
 				end
 				if vim.fn.executable("rustowl") == 0 then
-					vim.notify("RustOwl: 找不到 rustowl 可执行文件（cargo install rustowl）", vim.log.levels.ERROR)
+					vim.notify(
+						"RustOwl: 找不到 rustowl 可执行文件（cargo install rustowl）",
+						vim.log.levels.ERROR
+					)
 					return
 				end
 				require("rustowl")[method](vim.api.nvim_get_current_buf())
 			end
 		end
 
-		vim.keymap.set(
-			"n",
-			"<localleader>rt",
-			rustowl_action("toggle"),
-			{ desc = "RustOwl: toggle" }
-		)
-		vim.keymap.set(
-			"n",
-			"<localleader>re",
-			rustowl_action("enable"),
-			{ desc = "RustOwl: enable" }
-		)
-		vim.keymap.set(
-			"n",
-			"<localleader>rd",
-			rustowl_action("disable"),
-			{ desc = "RustOwl: disable" }
-		)
+		vim.keymap.set("n", "<localleader>rt", rustowl_action("toggle"), { desc = "RustOwl: toggle" })
+		vim.keymap.set("n", "<localleader>re", rustowl_action("enable"), { desc = "RustOwl: enable" })
+		vim.keymap.set("n", "<localleader>rd", rustowl_action("disable"), { desc = "RustOwl: disable" })
 	end,
 }

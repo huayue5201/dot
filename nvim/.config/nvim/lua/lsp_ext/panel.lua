@@ -120,7 +120,12 @@ local function row_text(row, bufnr)
 	local icon = enabled and ICONS.on or ICONS.off
 
 	if row.kind == "feature" then
-		return string.format("%s %s%s", icon, pad(row.feature.label, NAME_WIDTH), enabled and "已开启" or "已关闭")
+		return string.format(
+			"%s %s%s",
+			icon,
+			pad(row.feature.label, NAME_WIDTH),
+			enabled and "已开启" or "已关闭"
+		)
 	end
 
 	local clients = clients_for(row.name, bufnr)

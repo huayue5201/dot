@@ -66,7 +66,8 @@ local function parse_tokei(stdout)
 	for lang, info in pairs(data) do
 		-- "Total" 是 tokei 自己汇总出来的伪语言
 		if lang ~= "Total" and type(info) == "table" and type(info.code) == "number" then
-			langs[#langs + 1] = { name = lang, code = info.code, files = type(info.reports) == "table" and #info.reports or 0 }
+			langs[#langs + 1] =
+				{ name = lang, code = info.code, files = type(info.reports) == "table" and #info.reports or 0 }
 			code, comments, blanks = code + info.code, comments + (info.comments or 0), blanks + (info.blanks or 0)
 			for _, rep in ipairs(info.reports or {}) do
 				if type(rep) == "table" and type(rep.name) == "string" then
@@ -298,7 +299,7 @@ local function toml_section_keys(root, name, wanted_sections, limit)
 		if header then
 			section = header
 		else
-			local key = line:match('^%s*([%w_%-]+)%s*=')
+			local key = line:match("^%s*([%w_%-]+)%s*=")
 			if key and section and wanted_sections[section] then
 				keys[#keys + 1] = key
 				if #keys >= limit then
@@ -309,7 +310,6 @@ local function toml_section_keys(root, name, wanted_sections, limit)
 	end
 	return keys
 end
-
 
 return {
 	detect_license = detect_license,

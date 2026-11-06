@@ -32,7 +32,10 @@ local function jump(buf)
 	local line = vim.api.nvim_win_get_cursor(0)[1]
 	local path = st.paths[line]
 	if not path then
-		notify("光标这一行没有文件路径（试试「结构」「活跃区」「最大文件」里的条目）", vim.log.levels.WARN)
+		notify(
+			"光标这一行没有文件路径（试试「结构」「活跃区」「最大文件」里的条目）",
+			vim.log.levels.WARN
+		)
 		return
 	end
 	local target = join(st.root, path)

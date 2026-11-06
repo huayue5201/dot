@@ -127,7 +127,10 @@ function M.chat(opts)
 			notify("打开 codecompanion chat 失败：" .. tostring(err), vim.log.levels.WARN)
 			return
 		end
-		notify(("概览已放进 chat（adapter=%s，~%d tok）：接着在里面提问即可"):format(adapter, tokens), vim.log.levels.INFO)
+		notify(
+			("概览已放进 chat（adapter=%s，~%d tok）：接着在里面提问即可"):format(adapter, tokens),
+			vim.log.levels.INFO
+		)
 	end)
 end
 
@@ -162,7 +165,10 @@ function M.bridge(req)
 		if not got then
 			return {
 				ok = false,
-				error = ("采集 %s 超时（%dms）：大仓库首次跑 tokei 可能较慢，稍后重试"):format(root, wait_ms),
+				error = ("采集 %s 超时（%dms）：大仓库首次跑 tokei 可能较慢，稍后重试"):format(
+					root,
+					wait_ms
+				),
 			}
 		end
 		data = got

@@ -298,29 +298,38 @@ function M.setup()
 		desc = "Fix and add insert-mode keymaps for dap-repl",
 		callback = function()
 			vim.opt.signcolumn = "no"
-			-- 向下浏览补全项
+			-- 向下浏览补全项：blink 菜单优先（tab 已被改成 select_next），
+			-- 其次原生 pum（dap-repl 的 omnifunc 走这个），最后退回缩进。
+			-- 注意 blink 用浮动窗而非 pum，所以 pumvisible() 不能当 "补全是否可见" 用。
 			vim.keymap.set("i", "<tab>", function()
-				if vim.fn.pumvisible() == 1 then
-					return "<C-n>"
-				else
-					return "<Tab>"
+				local ok, cmp = pcall(require, "blink.cmp")
+				if ok and cmp.is_menu_visible() then
+					cmp.select_next()
+					return ""
 				end
+				return vim.fn.pumvisible() == 1 and "<C-n>" or "<Tab>"
 			end, { buffer = true, expr = true, desc = "Tab Completion in dap-repl" })
 			-- 向上浏览补全项
 			vim.keymap.set("i", "<S-Tab>", function()
-				if vim.fn.pumvisible() == 1 then
-					return "<C-p>"
-				else
-					return "<Tab>"
+				local ok, cmp = pcall(require, "blink.cmp")
+				if ok and cmp.is_menu_visible() then
+					cmp.select_prev()
+					return ""
 				end
+				return vim.fn.pumvisible() == 1 and "<C-p>" or "<S-Tab>"
 			end, { buffer = true, expr = true, desc = "Reverse Tab Completion in dap-repl" })
-			-- 选择补全项
-			vim.keymap.set({ "i", "n" }, "<CR>", function()
-				if vim.fn.pumvisible() == 1 then
-					return "<C-y>"
-				else
-					return "<CR>"
+			-- 选择补全项：blink 菜单优先（<CR> 在 enter preset 里是 accept），
+			-- 其次原生 pum，最后保持普通换行
+			vim.keymap.set("i", "<CR>", function()
+				local ok, cmp = pcall(require, "blink.cmp")
+				if ok and cmp.is_menu_visible() then
+					cmp.accept()
+					return ""
 				end
+				return vim.fn.pumvisible() == 1 and "<C-y>" or "<CR>"
+			end, { buffer = true, expr = true, desc = "Confirm completion or Insert newline in dap-repl" })
+			vim.keymap.set("n", "<CR>", function()
+				return vim.fn.pumvisible() == 1 and "<C-y>" or "<CR>"
 			end, { buffer = true, expr = true, desc = "Confirm completion or Insert newline in dap-repl" })
 		end,
 	})

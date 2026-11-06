@@ -216,7 +216,10 @@ function M.pick(opts)
 			return
 		end
 		if not items or #items == 0 then
-			vim.notify("test_picker: 没扫到测试（检查 rg 规则 / 是否在项目根目录）", vim.log.levels.WARN)
+			vim.notify(
+				"test_picker: 没扫到测试（检查 rg 规则 / 是否在项目根目录）",
+				vim.log.levels.WARN
+			)
 			return
 		end
 		open_picker(items, opts)
