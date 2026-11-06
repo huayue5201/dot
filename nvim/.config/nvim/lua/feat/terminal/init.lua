@@ -456,6 +456,29 @@ function M.new(cwd)
 	return bufnr
 end
 
+--- 从 neo-tree 节点开终端：目录节点 = 该目录，文件节点 = 文件所在目录。
+--- 多根工作区里从辅助根一路按 <C-t>，终端就落在辅助根下的那个目录。
+---@param node table neo-tree 节点（需要 type 与 get_id）
+---@return integer|nil bufnr
+function M.new_for_node(node)
+	if type(node) ~= "table" or type(node.get_id) ~= "function" then
+		return nil
+	end
+	local ok, id = pcall(node.get_id, node)
+	if not ok or type(id) ~= "string" or id == "" then
+		return nil
+	end
+	-- 合成节点（workspace://roots 之类）不是真实路径
+	if id:match("^%a[%w+.-]*://") then
+		return nil
+	end
+	local dir = node.type == "directory" and id or fn.fnamemodify(id, ":h")
+	if dir == "" or fn.isdirectory(dir) == 0 then
+		return nil
+	end
+	return M.new(dir)
+end
+
 --- 会话恢复用：把一个已有窗口就地变成终端窗口（不新建分屏）。
 --- 终端进程没法存盘，所以这里起一个新 shell，位置/尺寸由 resession 还原。
 ---@param win integer

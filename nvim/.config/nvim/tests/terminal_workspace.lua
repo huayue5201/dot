@@ -89,11 +89,36 @@ check(
 )
 
 ----------------------------------------------------------------------
+-- 2b. 从多根树的节点开终端（<C-t> 走的就是 M.new_for_node）
+----------------------------------------------------------------------
+
+local function fake_node(kind, path)
+	return {
+		type = kind,
+		get_id = function()
+			return path
+		end,
+	}
+end
+
+local t_node_file = term.new_for_node(fake_node("file", B .. "/src/x.lua"))
+check(
+	term_cwd(t_node_file) == real(B .. "/src"),
+	("文件节点应开在所在目录，实际 %s"):format(term_cwd(t_node_file))
+)
+
+local t_node_dir = term.new_for_node(fake_node("directory", B))
+check(term_cwd(t_node_dir) == real(B), ("目录节点应开在该目录，实际 %s"):format(term_cwd(t_node_dir)))
+
+check(term.new_for_node(fake_node("directory", "workspace://roots")) == nil, "合成节点不应开终端")
+check(term.new_for_node(nil) == nil, "没有节点时不应报错")
+
+----------------------------------------------------------------------
 -- 3. 终端按 tab 隔离
 ----------------------------------------------------------------------
 
 local tab1 = tab()
-check(#tstate.list(tab1) == 3, ("tab1 应有 3 个终端，实际 %d"):format(#tstate.list(tab1)))
+check(#tstate.list(tab1) == 5, ("tab1 应有 5 个终端，实际 %d"):format(#tstate.list(tab1)))
 
 vim.cmd.tabnew()
 tcd(B)
@@ -106,7 +131,7 @@ check(#tstate.list(tab2) == 1, "新 tab 开的终端只登记在新 tab")
 check(term_cwd(t2) == real(B), "新 tab 的终端应在 projB")
 
 vim.cmd("tabprevious")
-check(#tstate.list(tab()) == 3, "切回 tab1 后应只看到 tab1 的 3 个终端")
+check(#tstate.list(tab()) == 5, "切回 tab1 后应只看到 tab1 的 5 个终端")
 
 ----------------------------------------------------------------------
 -- 4. 侧栏组头：工作区名 + 辅助根数量；空状态英文

@@ -53,6 +53,8 @@ return {
 			end,
 			-- map our new command to z
 			z = "grug_far_replace",
+			-- 在该节点目录开终端（文件节点用所在目录）；多根树里也就能从辅助根开
+			["<C-t>"] = "open_terminal_at",
 		}
 
 		---@diagnostic disable-next-line: missing-fields
@@ -161,6 +163,10 @@ return {
 					if is_file then
 						require("neo-tree.command").execute({ action = "close" })
 					end
+				end,
+
+				open_terminal_at = function(state)
+					require("feat.terminal").new_for_node(state.tree:get_node())
 				end,
 
 				open_and_clear_filter = function(state)
