@@ -222,6 +222,12 @@ end, { silent = true, desc = "工作区: 关闭（保存会话 + 关闭 tab）" 
 vim.keymap.set("n", "<leader>lwa", function()
 	require("feat.tab_workspace").alternate()
 end, { silent = true, desc = "工作区: 切换到上一个 tab" })
+vim.keymap.set("n", "<leader>lwr", function()
+	require("feat.tab_workspace").root_back()
+end, { silent = true, desc = "工作区: 根目录回到上一个（并锁定）" })
+vim.keymap.set("n", "<leader>lwR", function()
+	require("feat.tab_workspace").root_unpin()
+end, { silent = true, desc = "工作区: 解除根目录锁定（恢复自动跟随）" })
 vim.keymap.set("n", "<leader>lta", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
 -- 🌐 Upstream 状态（feat.fork_upstream，属于 <leader>h git 分组）

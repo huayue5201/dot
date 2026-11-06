@@ -14,34 +14,58 @@ local M = {}
 -- 恢复时已记下归属，等 resession 真正结束加载后再 relist
 local pending = false
 
+-- 会话里 tab_workspace 数据的格式版本。
+-- v1（旧）：{ ["1"] = {bufname, ...}, ["2"] = {...} } —— 以 tab 序号为键。
+--   tab 作用域会话从 tab2 存、在 tab1 载入时键对不上，归属只能整体丢掉。
+-- v2：{ v = 2, scoped = bool, list = { { root = ..., names = {bufname...} }, ... } }
+--   按 tab 顺序存数组，载入时按顺序对回 tab，序号如何变都不影响。
+local FORMAT = 2
+
 ---@param tab integer
----@return string
-local function tab_key(tab)
-	return tostring(vim.api.nvim_tabpage_get_number(tab))
+---@return string?
+local function tab_root(tab)
+	local ok, dir = pcall(vim.fn.getcwd, -1, vim.api.nvim_tabpage_get_number(tab))
+	if ok and type(dir) == "string" and dir ~= "" then
+		return dir
+	end
+	return nil
 end
 
---- 导出每 tab 的 buffer 归属（buffer 名），供 resession 扩展写进会话文件
----@return table<string, string[]>
-function M.export()
-	local out = {}
-	for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
-		local names = {}
-		for bufnr in pairs(state.owned(tab) or {}) do
-			-- 终端 / 面板 buffer 不进会话：进程没法存盘，恢复出来是死 buffer
-			if util.is_saved_buf(bufnr) then
-				names[#names + 1] = vim.api.nvim_buf_get_name(bufnr)
-			end
-		end
-		if #names > 0 then
-			table.sort(names)
-			out[tab_key(tab)] = names
+--- 某个 tab 的 buffer 名（已过滤终端/面板/无名 buffer）
+---@param tab integer
+---@return string[]
+local function owned_names(tab)
+	local names = {}
+	for bufnr in pairs(state.owned(tab) or {}) do
+		-- 终端 / 面板 buffer 不进会话：进程没法存盘，恢复出来是死 buffer
+		if util.is_saved_buf(bufnr) then
+			names[#names + 1] = vim.api.nvim_buf_get_name(bufnr)
 		end
 	end
-	return out
+	table.sort(names)
+	return names
+end
+
+--- 导出 buffer 归属，供 resession 扩展写进会话文件。
+---@param tabpage? integer 只导出这一个 tab（tab 作用域会话），nil = 导出全部
+---@return table
+function M.export(tabpage)
+	if tabpage then
+		return {
+			v = FORMAT,
+			scoped = true,
+			list = { { root = tab_root(tabpage), names = owned_names(tabpage) } },
+		}
+	end
+	local list = {}
+	for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
+		list[#list + 1] = { root = tab_root(tab), names = owned_names(tab) }
+	end
+	return { v = FORMAT, list = list }
 end
 
 --- 用会话里的归属替换当前归属表（不 relist）。
----@param map? table<string, string[]>
+---@param map? table
 ---@return boolean 是否记录了归属
 function M.restore(map)
 	if type(map) ~= "table" or next(map) == nil then
@@ -59,20 +83,45 @@ function M.restore(map)
 	end
 
 	local restored, matched = {}, 0
-	for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
-		local names = map[tab_key(tab)]
-		if names then
-			local set = {}
-			for _, name in ipairs(names) do
-				local bufnr = byname[name] or byname[vim.fn.fnamemodify(name, ":p")]
-				if bufnr then
-					set[bufnr] = true
-					matched = matched + 1
+
+	---@param tab integer
+	---@param names? string[]
+	local function assign(tab, names)
+		if type(names) ~= "table" then
+			return
+		end
+		local set = {}
+		for _, name in ipairs(names) do
+			local bufnr = byname[name] or byname[vim.fn.fnamemodify(name, ":p")]
+			if bufnr then
+				set[bufnr] = true
+				matched = matched + 1
+			end
+		end
+		if next(set) then
+			restored[tab] = set
+		end
+	end
+
+	if map.v == FORMAT and type(map.list) == "table" then
+		if map.scoped then
+			-- tab 作用域会话：归属属于「被载入的那个 tab」，按顺序取第一项
+			local entry = map.list[1]
+			if entry then
+				assign(vim.api.nvim_get_current_tabpage(), entry.names)
+			end
+		else
+			for i, tab in ipairs(vim.api.nvim_list_tabpages()) do
+				local entry = map.list[i]
+				if entry then
+					assign(tab, entry.names)
 				end
 			end
-			if next(set) then
-				restored[tab] = set
-			end
+		end
+	else
+		-- 旧格式（tab 序号为键）：按当前序号尽力匹配
+		for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
+			assign(tab, map[tostring(vim.api.nvim_tabpage_get_number(tab))])
 		end
 	end
 
@@ -129,15 +178,26 @@ function M.strip_terminal_bufs(data)
 	end
 
 	if type(data.tab_workspace) == "table" then
-		for key, names in pairs(data.tab_workspace) do
-			if type(names) == "table" then
-				local keep = {}
-				for _, name in ipairs(names) do
-					if not is_term(name) then
-						keep[#keep + 1] = name
-					end
+		local function clean(names)
+			local keep = {}
+			for _, name in ipairs(names) do
+				if not is_term(name) then
+					keep[#keep + 1] = name
 				end
-				data.tab_workspace[key] = keep
+			end
+			return keep
+		end
+		if data.tab_workspace.v == FORMAT and type(data.tab_workspace.list) == "table" then
+			for _, entry in ipairs(data.tab_workspace.list) do
+				if type(entry) == "table" and type(entry.names) == "table" then
+					entry.names = clean(entry.names)
+				end
+			end
+		else
+			for key, names in pairs(data.tab_workspace) do
+				if type(names) == "table" then
+					data.tab_workspace[key] = clean(names)
+				end
 			end
 		end
 	end

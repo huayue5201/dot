@@ -4,11 +4,13 @@ return {
 	"stevearc/resession.nvim",
 	config = function()
 		require("resession").setup({
-			-- 自动保存配置
+			-- 自动保存交给 session_guard（它会在覆盖前校验会话归属）。
+			-- resession 自带的 autosave 只看「上次 load 的会话名」，载入 A 后在 B 里
+			-- 干活会把 B 静默写进 A.json —— 这就是「存 A 打开成 B」的根因。
 			autosave = {
-				enabled = true, -- 启用自动保存
-				interval = 60, -- 每60秒保存一次
-				notify = false, -- 不弹出自动保存通知（避免打扰）
+				enabled = false,
+				interval = 60,
+				notify = false,
 			},
 
 			-- 保存会话的目录（位于 Neovim 的 state 目录下）
@@ -46,7 +48,10 @@ return {
 			-- 扩展配置
 			extensions = {
 				quickfix = {}, -- 保存和恢复 quickfix 列表
-				tab_workspace = {}, -- 保存/恢复「一 tab 一工作区」的 buffer 归属（lua/resession/extensions/tab_workspace.lua）
+				tab_workspace = {
+					-- 默认 enable_in_tab = false 时，tab 作用域会话（<leader>lss）根本不会导出归属
+					enable_in_tab = true,
+				}, -- 保存/恢复「一 tab 一工作区」的 buffer 归属（lua/resession/extensions/tab_workspace.lua）
 				tw_terminal = {}, -- 保存/恢复终端面板与终端侧栏窗口（lua/resession/extensions/tw_terminal.lua）
 			},
 		})
@@ -57,7 +62,9 @@ return {
 		vim.keymap.set("n", "<leader>lst", function()
 			require("feat.tab_workspace").save_session()
 		end, { desc = "会话: 保存当前会话" })
-		vim.keymap.set("n", "<leader>lsl", resession.load, { desc = "会话: 加载" })
+		vim.keymap.set("n", "<leader>lsl", function()
+			require("feat.tab_workspace").load_session()
+		end, { desc = "会话: 加载" })
 		vim.keymap.set("n", "<leader>lsd", resession.delete, { desc = "会话: 删除" })
 
 		-- 载入侧的清洗：resession 没有 load 侧的 buffer filter，而它对每个存下的 buffer
@@ -70,9 +77,15 @@ return {
 			local data = load_json_file(path)
 			if type(data) == "table" then
 				pcall(require("feat.tab_workspace.session").strip_terminal_bufs, data)
+				-- global.cwd / tab.cwd 指向已删除的目录时，resession 的
+				-- nvim_set_current_dir 会抛 E344，整次加载中断。
+				pcall(require("feat.tab_workspace.session_guard").sanitize_cwd, data)
 			end
 			return data
 		end
+
+		-- 带归属校验的 autosave（定时器 + VimLeavePre）
+		require("feat.tab_workspace.session_guard").setup_autosave({ interval = 60, notify = false })
 
 		-- tab_workspace 的 post_load 钩子必须在 resession 加载后才能挂（init 阶段 require 不到）
 		if not require("feat.tab_workspace").attach_resession() then
@@ -101,6 +114,15 @@ return {
 						pcall(autocmds.render_buffer, buf)
 					end
 				end
+			end)
+		end)
+
+		-- 载入后把 global cwd 归位到当前 tab 的根。resession 存下的 global.cwd
+		-- 其实是「保存时活动 tab 的根」，载入时却 :cd 整个实例，之后 :tabnew /
+		-- 没有 tab-local 的窗口就会继承上一个项目的目录。
+		resession.add_hook("post_load", function()
+			vim.schedule(function()
+				require("feat.tab_workspace.session_guard").fix_global_cwd()
 			end)
 		end)
 

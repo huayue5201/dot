@@ -8,7 +8,9 @@
 --   lifecycle.lua —— 关闭 buffer、清理已关闭 tab 的孤儿 buffer
 --   session.lua   —— resession 扩展的归属导出/恢复
 --   lsp.lua       —— 每 tab 的 LSP 生命周期
---   workspace.lua —— 切根目录、新建/关闭/切换工作区、保存会话
+--   root.lua      —— 按当前文件判定项目根（marker / LSP）并自动切 tab 根目录
+--   workspace.lua —— 切根目录、新建/关闭/切换工作区、保存/载入会话
+--   session_guard.lua —— 会话归属校验、autosave、载入后 cwd 修正
 -- 本文件只留公共 API 与 setup/autocmd/resession 挂接。
 local util = require("feat.tab_workspace.util")
 local state = require("feat.tab_workspace.state")
@@ -17,6 +19,7 @@ local lifecycle = require("feat.tab_workspace.lifecycle")
 local session = require("feat.tab_workspace.session")
 local lsp = require("feat.tab_workspace.lsp")
 local workspace = require("feat.tab_workspace.workspace")
+local root = require("feat.tab_workspace.root")
 
 local M = {}
 
@@ -35,9 +38,13 @@ M.close_buffer = lifecycle.close_buffer
 M.set_root = workspace.set_root
 M.prompt_root = workspace.prompt_root
 M.save_session = workspace.save_session
+M.load_session = workspace.load_session
 M.new_workspace = workspace.new_workspace
 M.close_workspace = workspace.close_workspace
 M.alternate = workspace.alternate
+M.resolve_root = root.resolve
+M.root_back = root.back
+M.root_unpin = root.unpin
 M.export = session.export
 M.rebuild = session.rebuild
 M.is_workspace_buf = util.is_managed_buf
@@ -47,6 +54,8 @@ M.is_managed_buf = util.is_managed_buf
 ---@field lsp_stop_on_leave boolean 离开 tab 后是否停掉它不再用的 LSP client
 ---@field lsp_restart_on_enter boolean 进入 tab 时是否恢复被停掉的 client
 ---@field lsp_stop_delay integer 延迟多久（毫秒）停，给快速切回来留缓冲
+---@field auto_root boolean 是否按当前文件自动切换 tab 根目录
+---@field root_markers string[]|nil 判定项目根的标记文件（nil = 用 root.lua 的默认列表）
 
 ---@param opts? TabWorkspaceConfig
 function M.setup(opts)
@@ -54,8 +63,11 @@ function M.setup(opts)
 		lsp_stop_on_leave = true,
 		lsp_restart_on_enter = true,
 		lsp_stop_delay = 5000,
+		auto_root = true,
+		root_markers = nil,
 	}, M.config or {}, opts or {})
 	lsp.configure(M.config)
+	root.setup({ enabled = M.config.auto_root, markers = M.config.root_markers })
 
 	-- 启动时把当前 tab 已显示的 buffer 归位
 	local current = vim.api.nvim_get_current_tabpage()
@@ -95,6 +107,18 @@ function M.setup(opts)
 				return
 			end
 			state.forget(args.buf)
+		end,
+	})
+
+	-- 打开/切到某个文件时：它不在本 tab 的根内，就把根切到它所属的项目根。
+	-- 「在根内」是绝大多数情况，此时零动作（见 root.maybe_follow）。
+	vim.api.nvim_create_autocmd({ "BufWinEnter", "BufEnter" }, {
+		group = group,
+		callback = function(args)
+			if util.resession_loading() then
+				return
+			end
+			root.maybe_follow(args.buf)
 		end,
 	})
 
@@ -142,6 +166,7 @@ function M.setup(opts)
 	vim.api.nvim_create_autocmd("TabClosed", {
 		group = group,
 		callback = function()
+			root.prune()
 			vim.schedule(function()
 				lifecycle.prune()
 				lsp.on_tab_closed()

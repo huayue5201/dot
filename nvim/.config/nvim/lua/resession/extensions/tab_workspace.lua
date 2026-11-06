@@ -3,8 +3,9 @@
 -- 逻辑本体在 lua/feat/tab_workspace/session.lua。
 local M = {}
 
-function M.on_save()
-	return require("feat.tab_workspace.session").export()
+---@param opts? { tabpage?: integer }
+function M.on_save(opts)
+	return require("feat.tab_workspace.session").export(opts and opts.tabpage)
 end
 
 --- 此时 resession 仍处于 loading 状态（relist 会被 util.resession_loading() 挡掉），

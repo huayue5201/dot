@@ -87,7 +87,8 @@ function M.close_buffer(bufnr)
 	if not other_tab and vim.bo[bufnr].modified then
 		local name = vim.api.nvim_buf_get_name(bufnr)
 		name = name == "" and "[No Name]" or vim.fn.fnamemodify(name, ":t")
-		local choice = vim.fn.confirm(string.format("%s 有未保存的修改，仍要关闭？", name), "&关闭\n&取消", 2)
+		local choice =
+			vim.fn.confirm(string.format("%s 有未保存的修改，仍要关闭？", name), "&关闭\n&取消", 2)
 		if choice ~= 1 then
 			return
 		end
