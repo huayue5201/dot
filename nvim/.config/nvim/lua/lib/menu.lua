@@ -357,6 +357,12 @@ local function render(state)
 	}
 	if state.win == nil or not api.nvim_win_is_valid(state.win) then
 		state.origin_win = api.nvim_get_current_win()
+		-- 菜单开着时把原窗口的 'cursorline' 关掉：那一条当前行高亮会让人以为
+		-- 光标还留在原 buffer 里（真光标其实已经在浮窗上了）
+		pcall(function()
+			state.origin_cursorline = api.nvim_get_option_value("cursorline", { win = state.origin_win })
+			api.nvim_set_option_value("cursorline", false, { win = state.origin_win })
+		end)
 		-- enter = true：成为当前窗口，终端才会在查询行画真光标（关窗时切回 origin_win）
 		state.win = api.nvim_open_win(state.buf, true, win_opts)
 		api.nvim_set_option_value("winhl", "Normal:Pmenu,FloatBorder:FloatBorder,FloatTitle:Title", { win = state.win })
@@ -428,6 +434,10 @@ local function close(state)
 	end
 	-- 焦点回到原窗口：否则下面那个窗口会按「非当前窗口」渲染一帧
 	if state.origin_win and api.nvim_win_is_valid(state.origin_win) then
+		if state.origin_cursorline ~= nil and api.nvim_win_is_valid(state.origin_win) then
+			pcall(api.nvim_set_option_value, "cursorline", state.origin_cursorline, { win = state.origin_win })
+		end
+		state.origin_cursorline = nil
 		pcall(api.nvim_set_current_win, state.origin_win)
 	end
 	if state.buf and api.nvim_buf_is_valid(state.buf) then
