@@ -158,6 +158,60 @@ check(
 )
 
 ----------------------------------------------------------------------
+-- 5. <leader>Ts 重复按不会叠出第二个选择菜单
+----------------------------------------------------------------------
+
+local orig_select = vim.ui.select
+local calls = 0
+
+-- 模仿 dropbar：同步开出浮窗，取消（Esc）时不回调 on_choice
+local menu_win = nil
+vim.ui.select = function()
+	calls = calls + 1
+	local b = vim.api.nvim_create_buf(false, true)
+	menu_win = vim.api.nvim_open_win(b, false, {
+		relative = "editor",
+		row = 1,
+		col = 1,
+		width = 12,
+		height = 1,
+		style = "minimal",
+	})
+end
+
+-- 先造一个终端（前面把终端都删过了）
+tcd(A)
+edit(A .. "/src/x.lua")
+local seed = term.new()
+check(seed ~= nil, "应能新建终端")
+
+term.select()
+check(calls == 1, ("第一次按键应打开菜单，实际 %d"):format(calls))
+term.select()
+term.select()
+check(calls == 1, ("菜单开着时重复按键不应再打开菜单，实际 %d"):format(calls))
+
+vim.api.nvim_win_close(menu_win, true)
+check(calls == 1, "关掉菜单本身不应触发新菜单")
+term.select()
+check(calls == 2, ("菜单关掉后再按键应重新打开，实际 %d"):format(calls))
+if menu_win and vim.api.nvim_win_is_valid(menu_win) then
+	vim.api.nvim_win_close(menu_win, true)
+end
+
+-- 会正常回调（选中/取消）的实现：立即解锁，不残留状态
+vim.ui.select = function(_, _, cb)
+	calls = calls + 1
+	cb(nil)
+end
+local before_ok = calls
+term.select()
+term.select()
+check(calls == before_ok + 2, "回调型实现不应被单飞锁住")
+
+vim.ui.select = orig_select
+
+----------------------------------------------------------------------
 -- 收尾
 ----------------------------------------------------------------------
 
