@@ -73,16 +73,24 @@ local click_action
 -- 数据
 ----------------------------------------------------------------------
 
---- 某个 tab 的工作区名（:tcd 的根目录，取末段）
+--- 某个 tab 的工作区名（主根目录末段）+ 辅助根数量
 ---@param tab integer
 ---@return string
 local function tab_root(tab)
 	if not api.nvim_tabpage_is_valid(tab) then
 		return "?"
 	end
+	local ok, roots = pcall(require, "feat.tab_workspace.roots")
+	if ok then
+		local name = require("feat.tab_workspace.root").name(tab)
+		if type(name) == "string" and name ~= "" then
+			local extra = #roots.aux(tab)
+			return extra > 0 and ("%s +%d"):format(name, extra) or name
+		end
+	end
 	local nr = api.nvim_tabpage_get_number(tab)
-	local ok, cwd = pcall(fn.getcwd, -1, nr)
-	if not ok or type(cwd) ~= "string" or cwd == "" then
+	local ok_cwd, cwd = pcall(fn.getcwd, -1, nr)
+	if not ok_cwd or type(cwd) ~= "string" or cwd == "" then
 		return "?"
 	end
 	local tail = fn.fnamemodify(cwd, ":t")
@@ -200,7 +208,7 @@ function M.render()
 	end
 
 	if #lines == 0 then
-		lines = { "没有终端" }
+		lines = { "No terminals" }
 		hl = { "TwTermSbDead" }
 	end
 	items = map

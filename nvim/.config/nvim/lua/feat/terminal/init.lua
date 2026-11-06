@@ -4,7 +4,7 @@
 --   * 作用域 = tab：一个 tab 一组终端，切 tab 互不可见；关 tab 时连带结束进程。
 --   * 身份键 = tab 句柄（不是序号，:tabmove 不影响），终端 buffer 登记在 state.lua。
 --   * hide ≠ destroy：C-; 只是把 panel 窗口 hide 掉，进程和滚动历史都留着。
---   * cwd = 创建时当前 tab 的根目录（:tcd 之后 getcwd() 就是该 tab 的根）。
+--   * cwd = 当前 buffer 所属的那个根（多根工作区里可能是辅助根；没有文件时回落到 tab 根目录）。
 --     root 变了不会劫持老终端，按 C-t / <leader>TN 新开一个。
 --   * 终端 buffer 的 buftype 是 terminal：不进 bufferline（见 feat/tab_workspace/listed.lua），
 --     也不该进会话恢复（进程没法存盘）。
@@ -420,11 +420,35 @@ local function create(tab, cwd)
 	return bufnr
 end
 
+--- 新终端的工作目录：当前 buffer 所属的那个根（多根工作区里可能是辅助根），
+--- 兜底用本 tab 的根目录（:tcd 之后 getcwd() 就是主根）。
+---@param tab integer
+---@return string
+local function terminal_cwd(tab)
+	local ok, roots = pcall(require, "feat.tab_workspace.roots")
+	if ok then
+		local name = api.nvim_buf_get_name(api.nvim_get_current_buf())
+		if name ~= "" then
+			local dir = roots.find_root(tab, name)
+			if dir then
+				return dir
+			end
+		end
+	end
+	local nr = api.nvim_tabpage_get_number(tab)
+	local ok_cwd, cwd = pcall(fn.getcwd, -1, nr)
+	if ok_cwd and type(cwd) == "string" and cwd ~= "" then
+		return cwd
+	end
+	return fn.getcwd()
+end
+
 --- 新终端并显示
+---@param cwd? string 工作目录；缺省 = 当前文件所属的根（主根或辅助根）
 ---@return integer bufnr
-function M.new()
+function M.new(cwd)
 	local tab = api.nvim_get_current_tabpage()
-	local bufnr = create(tab)
+	local bufnr = create(tab, cwd or terminal_cwd(tab))
 	open_panel(bufnr, tab)
 	if opts.startinsert and fn.mode() ~= "t" then
 		vim.cmd.startinsert()

@@ -45,6 +45,16 @@
 没做的事（有意）：把辅助根也变成一棵完整树（deep 扫描）会让大仓库开树明显变慢；辅助根默认折叠，
 展开时才扫。
 
+### 其他模块怎么对待辅助根
+
+| 模块 | 行为 |
+|---|---|
+| 终端 `feat/terminal` | 新终端的 cwd = 当前 buffer 所属的根（可能是辅助根），没有文件名时回落到主根；侧栏组头显示 `名字 +N` |
+| `.nvim.lua` | **只看主根**：辅助根里的 `.nvim.lua` 不加载（一个工作区只有一份配置） |
+| 会话 | 辅助根写在 `tab_workspace.list[i].aux`，载入时恢复 |
+| 搜索 / `:grep` | 仍按 cwd（主根）；要跨根搜索用 grug-far 手动多路径 |
+| statusline | `名字 n/N +M`，M = 辅助根数量 |
+
 ## 文件职责
 
 | 文件 | 职责 |
@@ -138,6 +148,8 @@ nvim --headless -u NONE -l tests/tab_workspace_root.lua
 nvim --headless -u NONE -l tests/tab_workspace_session.lua
 nvim --headless -u NONE -l tests/tab_workspace_local_settings.lua
 nvim --headless -u NONE -l tests/tab_workspace_roots.lua
+nvim --headless -u NONE -l tests/tab_workspace_multiroots_ux.lua   # 多根用户流程（树/会话/tab）
+nvim --headless -u NONE -l tests/terminal_workspace.lua              # 终端跟随工作区
 ```
 
 都是"用户视角"的行为测试：只做用户会做的动作（`:edit`、`:tcd`、开 tab、走 API），断言 `getcwd()`、
