@@ -237,12 +237,12 @@ end
 function M.unpin(tab)
 	tab = tab or vim.api.nvim_get_current_tabpage()
 	if not pinned[tab] then
-		vim.notify("当前 tab 没有锁定根目录", vim.log.levels.INFO)
+		vim.notify("this tab has no pinned root", vim.log.levels.INFO)
 		return false
 	end
 	pinned[tab] = nil
 	vim.api.nvim_exec_autocmds("User", { pattern = "TabWorkspaceRoot" })
-	vim.notify("已解除根目录锁定，恢复自动跟随", vim.log.levels.INFO)
+	vim.notify("root unpinned, back to auto-follow", vim.log.levels.INFO)
 	M.maybe_follow()
 	return true
 end
@@ -254,11 +254,11 @@ function M.back(tab)
 	tab = tab or vim.api.nvim_get_current_tabpage()
 	local target = prev[tab]
 	if not target then
-		vim.notify("没有可以回退的根目录", vim.log.levels.INFO)
+		vim.notify("no previous root to go back to", vim.log.levels.INFO)
 		return false
 	end
 	if vim.fn.isdirectory(target) == 0 then
-		vim.notify(string.format("上一个根目录已不存在: %s", target), vim.log.levels.WARN)
+		vim.notify(string.format("previous root no longer exists: %s", target), vim.log.levels.WARN)
 		prev[tab] = nil
 		return false
 	end
@@ -268,7 +268,7 @@ function M.back(tab)
 	end
 	prev[tab] = nil
 	M.set_pin(tab, target)
-	vim.notify(string.format("工作区根 ← %s（已锁定）", target), vim.log.levels.INFO)
+	vim.notify(string.format("workspace root ← %s (pinned)", target), vim.log.levels.INFO)
 	return true
 end
 
@@ -286,7 +286,7 @@ function M.switch(tab, dir)
 		return false
 	end
 	prev[tab] = current
-	vim.notify(string.format("工作区根 → %s", dir), vim.log.levels.INFO)
+	vim.notify(string.format("workspace root → %s", dir), vim.log.levels.INFO)
 	return true
 end
 

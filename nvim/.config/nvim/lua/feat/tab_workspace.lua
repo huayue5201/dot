@@ -211,7 +211,7 @@ function M.attach_resession()
 		return false
 	end
 	if type(resession.add_hook) ~= "function" then
-		vim.notify("resession.add_hook API 不可用，工作区恢复已跳过", vim.log.levels.WARN)
+		vim.notify("resession.add_hook unavailable, workspace restore skipped", vim.log.levels.WARN)
 		return false
 	end
 

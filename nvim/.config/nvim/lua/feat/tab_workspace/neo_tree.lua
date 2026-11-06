@@ -20,7 +20,7 @@ local roots = require("feat.tab_workspace.roots")
 
 local M = {
 	name = "workspace",
-	display_name = " 󰉋 工作区 ",
+	display_name = " 󰉋 Workspace ",
 }
 
 -- 合成根：只为让 hide_root_node 有机会把"N 个根"提升到顶层
@@ -32,9 +32,9 @@ local SYNTH_ID = "workspace://roots"
 local function workspace_badge(_, node)
 	local kind = node.extra and node.extra.workspace_root
 	if kind == "primary" then
-		return { { text = "主 ", highlight = "NeoTreeWorkspacePrimary" } }
+		return { { text = "main ", highlight = "NeoTreeWorkspacePrimary" } }
 	elseif kind == "aux" then
-		return { { text = "辅 ", highlight = "NeoTreeWorkspaceAux" } }
+		return { { text = "aux ", highlight = "NeoTreeWorkspaceAux" } }
 	end
 	return {}
 end
@@ -108,7 +108,7 @@ function M.navigate(state, _path, path_to_reveal, callback, _async)
 	local tree_root = {
 		id = SYNTH_ID,
 		path = state.path,
-		name = "工作区",
+		name = "Workspace",
 		type = "directory",
 		loaded = true,
 		children = items,

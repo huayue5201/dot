@@ -32,7 +32,7 @@
 
 ### 树：`neo_tree.lua`（neo-tree 外部源 `workspace`）
 
-一个专门的源，顶格并列展示「主根 + 辅助根」，每行带 `主 `/`辅 ` 徽标，展开后就是 filesystem 源的
+一个专门的源，顶格并列展示「主根(main) + 辅助根(aux)」，每行带 `main `/`aux ` 徽标，展开后就是 filesystem 源的
 真实目录内容（同一套过滤、gitignore、嵌套、监听）。实现方式不是重写一套树，而是复用 neo-tree 自己的渲染：
 
 - `renderer.show_nodes` 一次渲染根列表（`hide_root_node` 时合成根被 skip，真实根顶格）；
@@ -99,7 +99,7 @@ ws.visible_buffers()     ws.close_buffer(buf)   ws.is_managed_buf(buf)
 | `<leader>lws` / `<leader>lwr` / `<leader>lwR` | 锁定根 / 回退到上一个根并锁定 / 解除锁定 |
 | `<leader>lwe` | 编辑当前工作区的 `.nvim.lua` |
 | `<leader>lw+` / `<leader>lw-` | 附加辅助根 / 移除辅助根（主根仍是 cwd） |
-| `<leader>lwt` / `<leader>ew` | 多根树（neo-tree `workspace` 源） |
+| `<leader>lwt` / `<leader>ew` | 多根树（neo-tree `workspace` 源，面板名 Workspace） |
 | `<leader>lsl` / `<leader>lst` / `<leader>lss` / `<leader>lsd` | 会话：加载（与 lwl 同一 picker）/ 保存 / 保存 tab / 删除 |
 
 ## `.nvim.lua`（工作区本地配置）

@@ -104,7 +104,7 @@ local function set_buf_opt(st, buf, name, value)
 	if snap[name] == nil then
 		local ok, old = pcall(vim.api.nvim_get_option_value, name, { buf = buf })
 		if not ok then
-			vim.notify(string.format("工作区配置: 未知选项 %s", name), vim.log.levels.WARN)
+			vim.notify(string.format("workspace config: unknown option %s", name), vim.log.levels.WARN)
 			return
 		end
 		snap[name] = old
@@ -189,7 +189,7 @@ local function api(st)
 			if st.globals[name] == nil then
 				local ok, old = pcall(vim.api.nvim_get_option_value, name, {})
 				if not ok then
-					vim.notify(string.format("工作区配置: 未知选项 %s", name), vim.log.levels.WARN)
+					vim.notify(string.format("workspace config: unknown option %s", name), vim.log.levels.WARN)
 				else
 					st.globals[name] = old
 				end
@@ -217,7 +217,10 @@ local function api(st)
 	---@param opts? table
 	function w.cmd(name, fn, opts)
 		if vim.fn.exists(":" .. name) == 2 then
-			vim.notify(string.format("工作区配置: 命令 :%s 已存在，跳过", name), vim.log.levels.WARN)
+			vim.notify(
+				string.format("workspace config: command :%s already exists, skipped", name),
+				vim.log.levels.WARN
+			)
 			return
 		end
 		vim.api.nvim_create_user_command(name, fn, opts or {})
@@ -247,7 +250,7 @@ local function api(st)
 	---@param spec table { name, cmd, args?, cwd?, env?, components?, desc?, tags?, condition? }
 	function w.task(spec)
 		if type(spec) ~= "table" or type(spec.name) ~= "string" or spec.cmd == nil then
-			vim.notify("工作区配置: w.task 需要 { name, cmd }", vim.log.levels.WARN)
+			vim.notify("workspace config: w.task requires { name, cmd }", vim.log.levels.WARN)
 			return
 		end
 		st.tasks[#st.tasks + 1] = spec
@@ -258,13 +261,16 @@ local function api(st)
 	---@param spec table nvim-dap 的配置，额外要求 filetype 字段
 	function w.launch(spec)
 		if type(spec) ~= "table" or type(spec.filetype) ~= "string" then
-			vim.notify("工作区配置: w.launch 需要 { filetype, name, type, request, ... }", vim.log.levels.WARN)
+			vim.notify(
+				"workspace config: w.launch requires { filetype, name, type, request, ... }",
+				vim.log.levels.WARN
+			)
 			return
 		end
 		local ok, dap = pcall(require, "dap")
 		if not ok then
 			vim.notify(
-				"工作区配置: nvim-dap 未加载，跳过 w.launch " .. tostring(spec.name),
+				"workspace config: nvim-dap not loaded, skipped w.launch " .. tostring(spec.name),
 				vim.log.levels.WARN
 			)
 			return
@@ -333,11 +339,11 @@ function M._ensure_task_provider()
 	end
 	local ok, overseer = pcall(require, "overseer")
 	if not ok then
-		vim.notify_once("工作区配置: overseer 不可用，w.task 被忽略", vim.log.levels.WARN)
+		vim.notify_once("workspace config: overseer unavailable, w.task ignored", vim.log.levels.WARN)
 		return
 	end
 	overseer.register_template({
-		name = "工作区任务",
+		name = "Workspace Task",
 		generator = function()
 			local st = active
 			if not st or #st.tasks == 0 then
@@ -387,7 +393,7 @@ function M.sync(tab)
 	-- 预置一个局部 w，让 .nvim.lua 里直接写 w.opt(...) / w.cmd(...)
 	local fn, err = loadstring("local w = ...\n" .. chunk, "@" .. path)
 	if not fn then
-		vim.notify(string.format("工作区配置 %s: %s", path, err), vim.log.levels.ERROR)
+		vim.notify(string.format("workspace config %s: %s", path, err), vim.log.levels.ERROR)
 		return
 	end
 
@@ -407,7 +413,7 @@ function M.sync(tab)
 
 	local ok, run_err = pcall(fn, api(st))
 	if not ok then
-		vim.notify(string.format("工作区配置 %s: %s", path, run_err), vim.log.levels.ERROR)
+		vim.notify(string.format("workspace config %s: %s", path, run_err), vim.log.levels.ERROR)
 	end
 
 	if #st.tasks > 0 then
@@ -435,17 +441,17 @@ function M.edit()
 	local path = dir:gsub("/+$", "") .. "/" .. FILE
 	if vim.fn.filereadable(path) ~= 1 then
 		vim.fn.writefile({
-			"-- 工作区本地配置：仅在 " .. dir .. " 下生效，离开工作区时逐项回滚。",
-			"-- 通过 w.* 登记的改动才会被追踪，其余代码不受回滚保护。",
-			"-- 完整说明：~/.config/nvim/lua/feat/tab_workspace/nvim-lua.md",
+			"-- Workspace-local config: applies only under " .. dir .. ", rolled back on leave.",
+			"-- Only changes registered through w.* are tracked; anything else is not reverted.",
+			"-- Full reference: ~/.config/nvim/lua/feat/tab_workspace/nvim-lua.md",
 			"",
 			"-- w.opt({ tabstop = 4, shiftwidth = 4 })",
 			'-- w.global_opt({ spelllang = { "cjk", "en" } })',
 			'-- w.au("BufWritePre", { pattern = "*.rs" }, function(args) end)',
-			'-- w.cmd("Build", function(args) end, { desc = "构建" })',
-			'-- w.map("n", "<leader>B", "<cmd>Build<cr>", { desc = "构建" })',
-			'-- w.task({ name = "构建", cmd = { "make" }, cwd = "${workspaceFolder}" })',
-			'-- w.launch({ name = "调试", filetype = "rust", type = "codelldb", request = "launch" })',
+			'-- w.cmd("Build", function(args) end, { desc = "Build" })',
+			'-- w.map("n", "<leader>B", "<cmd>Build<cr>", { desc = "Build" })',
+			'-- w.task({ name = "Build", cmd = { "make" }, cwd = "${workspaceFolder}" })',
+			'-- w.launch({ name = "Debug", filetype = "rust", type = "codelldb", request = "launch" })',
 		}, path)
 	end
 	vim.cmd.edit(vim.fn.fnameescape(path))

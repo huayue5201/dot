@@ -141,10 +141,13 @@ return {
 					mappings = fs_maps,
 				},
 				renderers = {
-					directory = vim.list_extend(
-						{ { "indent" }, { "workspace_badge" } },
-						require("neo-tree.defaults").renderers.directory
-					),
+					-- defaults.renderers.directory 本来就含 indent 列（折叠箭头在里面），
+					-- 只能在它后面插入标记列；再自己加一个 indent 会多出一列折叠图标
+					directory = (function()
+						local components = vim.deepcopy(require("neo-tree.defaults").renderers.directory)
+						table.insert(components, 2, { "workspace_badge" })
+						return components
+					end)(),
 				},
 			},
 

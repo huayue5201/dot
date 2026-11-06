@@ -67,7 +67,7 @@ end
 
 local function switched()
 	for _, n in ipairs(notes) do
-		if n.msg:find("^工作区根 → ") then
+		if n.msg:find("^workspace root → ") then
 			return true
 		end
 	end
@@ -137,7 +137,7 @@ check(
 reset(plain)
 edit(repo .. "/b.lua")
 check(cwd() == real(repo), "打开根外的文件应把 tab 根切到它的项目根（repo），实际 " .. cwd())
-check(switched(), "切根后应有一条「工作区根 → 」通知")
+check(switched(), "切根后应有一条「workspace root → 」通知")
 
 ----------------------------------------------------------------------
 -- 3. 文件已在根内 → 完全不动（没有通知）

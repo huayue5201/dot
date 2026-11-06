@@ -111,18 +111,18 @@ function M.attach(tab, dir)
 	local key = tabkey(tab)
 	local target = norm(dir)
 	if not target then
-		return false, "空路径"
+		return false, "empty path"
 	end
 	if vim.fn.isdirectory(target) == 0 then
-		return false, "目录不存在: " .. target
+		return false, "no such directory: " .. target
 	end
 	if target == M.primary(key) then
-		return false, "已经是主根"
+		return false, "already the primary root"
 	end
 	entries[key] = entries[key] or {}
 	order[key] = order[key] or {}
 	if entries[key][target] then
-		return false, "已经添加"
+		return false, "already attached"
 	end
 	entries[key][target] = true
 	order[key][#order[key] + 1] = target

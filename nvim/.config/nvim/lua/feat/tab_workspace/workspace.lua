@@ -14,13 +14,13 @@ function M.set_root(dir)
 	dir = vim.fn.fnamemodify(vim.fn.expand(dir), ":p")
 	-- 末尾的 / 让 :tcd 之后的显示更好看，同时 isdirectory 也接受它
 	if vim.fn.isdirectory(dir) == 0 then
-		vim.notify(string.format("工作区根目录不存在: %s", dir), vim.log.levels.WARN)
+		vim.notify(string.format("workspace root does not exist: %s", dir), vim.log.levels.WARN)
 		return false
 	end
 	-- 用表形式传参：目录里带空格/特殊字符也不需要手动 fnameescape
 	local ok, err = pcall(vim.cmd.tcd, { args = { dir } })
 	if not ok then
-		vim.notify(string.format("切换工作区根目录失败: %s", tostring(err)), vim.log.levels.ERROR)
+		vim.notify(string.format("failed to switch workspace root: %s", tostring(err)), vim.log.levels.ERROR)
 	else
 		-- 显式设根 = 锁定：自动跟随不再覆盖它（<leader>lwR 解除）
 		require("feat.tab_workspace.root").set_pin(vim.api.nvim_get_current_tabpage(), dir)
@@ -31,7 +31,7 @@ end
 --- 交互式设置当前 tab 根目录
 ---@param on_done? fun(ok: boolean)
 function M.prompt_root(on_done)
-	vim.ui.input({ prompt = "工作区根目录: ", default = vim.fn.getcwd(), completion = "dir" }, function(input)
+	vim.ui.input({ prompt = "Workspace root: ", default = vim.fn.getcwd(), completion = "dir" }, function(input)
 		if not input or input == "" then
 			return
 		end
@@ -55,7 +55,10 @@ function M.save_session()
 		local ok_guard, guard = pcall(require, "feat.tab_workspace.session_guard")
 		if ok_guard and not guard.fits(current) then
 			vim.notify(
-				string.format("会话 %s 属于其它项目，当前工作区未保存（未覆盖）", current),
+				string.format(
+					"session %s belongs to another project; current workspace not saved (kept intact)",
+					current
+				),
 				vim.log.levels.WARN
 			)
 			return
@@ -141,7 +144,7 @@ function M.picker(opts)
 	---@return string
 	local function format_item(item)
 		if item.kind == "new" then
-			return "+ 打开目录…"
+			return "+ Open directory…"
 		end
 		if item.kind == "tab" then
 			return string.format(
@@ -157,7 +160,7 @@ function M.picker(opts)
 	end
 
 	vim.ui.select(items, {
-		prompt = "工作区",
+		prompt = "Workspace",
 		format_item = format_item,
 	}, function(item)
 		if not item then
@@ -209,20 +212,17 @@ end
 function M.new_workspace(dir)
 	if not dir or dir == "" then
 		-- 先问目录再建 tab：取消就什么都不做
-		vim.ui.input(
-			{ prompt = "新工作区根目录: ", default = vim.fn.getcwd(), completion = "dir" },
-			function(input)
-				if input and input ~= "" then
-					M.new_workspace(input)
-				end
+		vim.ui.input({ prompt = "New workspace root: ", default = vim.fn.getcwd(), completion = "dir" }, function(input)
+			if input and input ~= "" then
+				M.new_workspace(input)
 			end
-		)
+		end)
 		return
 	end
 	-- 先校验再建 tab：目录不对时不要留下一个没有根目录的空 tab
 	local root = vim.fn.fnamemodify(vim.fn.expand(dir), ":p")
 	if vim.fn.isdirectory(root) == 0 then
-		vim.notify(string.format("工作区根目录不存在: %s", root), vim.log.levels.WARN)
+		vim.notify(string.format("workspace root does not exist: %s", root), vim.log.levels.WARN)
 		return false
 	end
 	M.save_session()
@@ -261,18 +261,21 @@ function M.attach_root(dir)
 	local function run(input)
 		local ok, err = roots.attach(vim.api.nvim_get_current_tabpage(), input)
 		if not ok then
-			vim.notify("未附加: " .. tostring(err), vim.log.levels.WARN)
+			vim.notify("not attached: " .. tostring(err), vim.log.levels.WARN)
 		end
 		return ok
 	end
 	if dir then
 		return run(dir)
 	end
-	vim.ui.input({ prompt = "附加根目录: ", default = vim.fn.getcwd() .. "/", completion = "dir" }, function(input)
-		if input and input ~= "" then
-			run(input)
+	vim.ui.input(
+		{ prompt = "Attach root directory: ", default = vim.fn.getcwd() .. "/", completion = "dir" },
+		function(input)
+			if input and input ~= "" then
+				run(input)
+			end
 		end
-	end)
+	)
 end
 
 --- 移除辅助根（<leader>lw-）：无参数时在当前辅助根里选
@@ -282,17 +285,17 @@ function M.detach_root(dir)
 	local tab = vim.api.nvim_get_current_tabpage()
 	if dir then
 		if not roots.detach(tab, dir) then
-			vim.notify("不是辅助根: " .. dir, vim.log.levels.WARN)
+			vim.notify("not an extra root: " .. dir, vim.log.levels.WARN)
 		end
 		return
 	end
 	local list = roots.aux(tab)
 	if #list == 0 then
-		vim.notify("当前工作区没有辅助根", vim.log.levels.INFO)
+		vim.notify("no extra roots in this workspace", vim.log.levels.INFO)
 		return
 	end
 	vim.ui.select(list, {
-		prompt = "移除辅助根: ",
+		prompt = "Remove extra root: ",
 		format_item = function(d)
 			return vim.fn.fnamemodify(d, ":~")
 		end,

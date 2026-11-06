@@ -49,10 +49,7 @@ function M.prune()
 		end
 	end
 	if rehomed > 0 then
-		vim.notify(
-			string.format("关闭工作区后有 %d 个未保存 buffer 已收编到当前工作区", rehomed),
-			vim.log.levels.WARN
-		)
+		vim.notify(string.format("%d unsaved buffer(s) moved into the current workspace", rehomed), vim.log.levels.WARN)
 	end
 
 	listed.relist()
@@ -88,7 +85,7 @@ function M.close_buffer(bufnr)
 		local name = vim.api.nvim_buf_get_name(bufnr)
 		name = name == "" and "[No Name]" or vim.fn.fnamemodify(name, ":t")
 		local choice =
-			vim.fn.confirm(string.format("%s 有未保存的修改，仍要关闭？", name), "&关闭\n&取消", 2)
+			vim.fn.confirm(string.format("%s has unsaved changes. Close anyway?", name), "&Close\n&Cancel", 2)
 		if choice ~= 1 then
 			return
 		end

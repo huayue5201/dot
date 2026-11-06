@@ -166,7 +166,7 @@ check(vim.fn.exists(":WsBuild") == 2, "回到 proj-a: :WsBuild 应重新存在")
 vim.fn.writefile({ "w.opt({ tabstop = 9 })", "w.opt({" }, A .. "/.nvim.lua")
 local notified = false
 vim.notify = function(msg, level)
-	if level == vim.log.levels.ERROR and tostring(msg):find("工作区配置", 1, true) then
+	if level == vim.log.levels.ERROR and tostring(msg):find("workspace config", 1, true) then
 		notified = true
 	end
 end
