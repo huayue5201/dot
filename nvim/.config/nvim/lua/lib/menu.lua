@@ -136,9 +136,13 @@ end
 ---@return { row: integer, col: integer }
 local function anchor()
 	local win = api.nvim_get_current_win()
-	local row = fn.screenpos(win, fn.line("."), 1).row
-	local col = fn.screenpos(win, fn.line("."), 1).col
-	return { row = math.max(1, row), col = math.max(1, col - 1) }
+	local pos = fn.screenpos(win, fn.line("."), 1)
+	-- 文本区（越过 statuscolumn / number / sign 列）的起始屏幕列：
+	-- 浮窗绝不能压到那里，否则 statuscolumn 上会留下残影
+	local info = fn.getwininfo(win)[1]
+	local textoff = info and info.textoff or 0
+	local left = (fn.win_screenpos(win)[2] or 1) + textoff
+	return { row = math.max(1, pos.row), col = math.max(left, pos.col) }
 end
 
 ---@param state table
@@ -177,12 +181,7 @@ local function render(state)
 	}
 	if state.win == nil or not api.nvim_win_is_valid(state.win) then
 		state.win = api.nvim_open_win(state.buf, false, win_opts)
-		api.nvim_set_option_value(
-			"winhl",
-			"Normal:Pmenu,FloatBorder:FloatBorder,CursorLine:PmenuSel,FloatTitle:Title",
-			{ win = state.win }
-		)
-		api.nvim_set_option_value("cursorline", true, { win = state.win })
+		api.nvim_set_option_value("winhl", "Normal:Pmenu,FloatBorder:FloatBorder,FloatTitle:Title", { win = state.win })
 		api.nvim_set_option_value("wrap", false, { win = state.win })
 	else
 		api.nvim_win_set_config(state.win, win_opts)
@@ -210,6 +209,16 @@ local function render(state)
 			end
 		end
 	end
+	-- 选中行用 extmark 铺满整行（不再依赖 'cursorline'：它会让浮窗参与
+	-- 下面窗口 statuscolumn 的重绘，留下残影）
+	if cursor_line <= #lines and lines[cursor_line] then
+		api.nvim_buf_set_extmark(state.buf, ns, cursor_line - 1, 0, {
+			end_col = #lines[cursor_line],
+			hl_group = "PmenuSel",
+			hl_eol = true,
+			priority = 50,
+		})
+	end
 	pcall(api.nvim_win_set_cursor, state.win, { cursor_line, 0 })
 	-- 阻塞读键前必须显式刷一次：nvim 在等待输入时不会自动 flush 待处理的浮窗重绘，
 	-- 少了这一句表现为「按了快捷键什么都没弹出」。
@@ -236,6 +245,10 @@ local function close(state)
 	-- 会留下深色竖纹残影，直到下一次整屏重绘（比如另一个浮窗弹出）才消失。
 	if vim.go.columns > 0 then
 		pcall(vim.cmd, "redraw!")
+		-- 再排一次：nvim 自己那一轮重绘可能在我们之后，会把 statuscolumn 画回旧内容
+		vim.schedule(function()
+			pcall(vim.cmd, "redraw!")
+		end)
 	end
 end
 
@@ -283,7 +296,11 @@ function M.select(items, opts, on_choice)
 	M._busy = true
 
 	-- 先画一次（建窗失败就直接退回原始实现，别静默吞掉请求）
-	if not pcall(render, state) then
+	local rendered, render_err = pcall(render, state)
+	if not rendered then
+		if os.getenv("MENU_DEBUG") then
+			print("menu render failed: " .. tostring(render_err))
+		end
 		M._busy = false
 		close(state)
 		if M.builtin then
