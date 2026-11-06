@@ -127,6 +127,34 @@ check(reentry_cancelled, "被拒的请求应收到 nil 回调，调用方不会�
 check(menu._busy == false, "菜单结束后 _busy 应复位")
 
 ----------------------------------------------------------------------
+-- 6b. 浮窗被外部关掉：循环必须立刻结束，不能变成"看不见的菜单"继续吃键
+----------------------------------------------------------------------
+
+local ext = { n = 0 }
+local orig_read_key_6b = menu._read_key
+menu._read_key = function()
+	-- 模拟"读键期间浮窗被 :q / 切 tab / 别的插件关掉"，同时手上还有键要继续消费
+	for _, w in ipairs(vim.api.nvim_list_wins()) do
+		local b = vim.api.nvim_win_get_buf(w)
+		local first = vim.api.nvim_buf_get_lines(b, 0, 1, false)[1]
+		if first and first:find("External: ", 1, true) then
+			vim.api.nvim_win_close(w, true)
+		end
+	end
+	return "1" -- 本来会选中第 1 项，但窗口已经没了
+end
+menu.select({ "a", "b" }, { prompt = "External: " }, function(item)
+	ext.n = ext.n + 1
+	ext.item = item
+end)
+menu._read_key = orig_read_key_6b
+-- WinClosed 会往队列里塞一个 Esc 用来解除阻塞；这里是模拟关闭，Esc 没人消费，先冲掉
+pcall(vim.fn.feedkeys, "", "x")
+check(ext.n == 1, "浮窗被外部关闭后应结束并回调一次，实际回调 " .. ext.n .. " 次")
+check(ext.item == nil, "外部关闭应视为取消（回调 nil）")
+check(menu._busy == false, "外部关闭后 _busy 应复位")
+
+----------------------------------------------------------------------
 -- 7. 接管 vim.ui.select
 ----------------------------------------------------------------------
 

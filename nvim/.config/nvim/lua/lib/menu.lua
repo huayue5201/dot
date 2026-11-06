@@ -202,10 +202,19 @@ local function render(state)
 		end
 	end
 	api.nvim_win_set_cursor(state.win, { cursor_line, 0 })
+	-- 阻塞读键前把浮窗真正刷到屏幕上（否则某些情况下界面上什么都看不到）
+	if vim.go.columns > 0 then
+		pcall(vim.cmd, "redraw")
+	end
 end
 
 ---@param state table
 local function close(state)
+	state.closing = true
+	if state.aug then
+		pcall(api.nvim_del_augroup_by_id, state.aug)
+		state.aug = nil
+	end
 	if state.win and api.nvim_win_is_valid(state.win) then
 		api.nvim_win_close(state.win, true)
 	end
@@ -256,11 +265,51 @@ function M.select(items, opts, on_choice)
 	state.view = M.filter(items, state.query, state.formatted)
 
 	M._busy = true
+	if state.win == nil then
+		local ok_win = pcall(render, state)
+		if not ok_win then
+			M._busy = false
+			if M.builtin then
+				return M.builtin(items, opts, on_choice)
+			end
+			if on_choice then
+				on_choice(nil, nil)
+			end
+			return false
+		end
+	end
+
+	-- 浮窗被外部关掉（:q、切 tab、别的插件关浮窗）时，循环还阻塞在读键上，
+	-- 会变成"看不见的菜单"继续吃按键。这里监听 WinClosed 并塞一个 Esc 解除阻塞。
+	state.aug = api.nvim_create_augroup("lib_menu_" .. tostring(state.win), { clear = true })
+	api.nvim_create_autocmd("WinClosed", {
+		group = state.aug,
+		pattern = tostring(state.win),
+		callback = function()
+			if state.closing then
+				return
+			end
+			state.closed_externally = true
+			pcall(api.nvim_feedkeys, "\27", "n", false)
+		end,
+	})
+
 	local ok, err = pcall(function()
 		while true do
+			-- 窗口没了就别再画、也别再吃键
+			if state.closed_externally or state.win == nil or not api.nvim_win_is_valid(state.win) then
+				break
+			end
 			render(state)
 			local key = M._read_key()
 			if key == nil then
+				break
+			end
+			-- 读键期间窗口可能已经被关掉（WinClosed 会塞一个 Esc 解除阻塞），此时一律按取消处理
+			if state.closed_externally or state.win == nil or not api.nvim_win_is_valid(state.win) then
+				break
+			end
+			if key == "\27" then
 				break
 			end
 			local k = fn.keytrans(key)
