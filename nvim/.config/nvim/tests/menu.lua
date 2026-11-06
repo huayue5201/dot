@@ -142,12 +142,12 @@ check(titles[1] and titles[1].pos == "center", "标题应居中（title_pos = ce
 -- 查询文本现在是 buffer 第一行（真光标停在末尾），标题只放提示词
 local last_body, last_cursor = bodies[#bodies], cursors[#cursors]
 check(
-	last_body and last_body[1] == "g ",
+	last_body and last_body[1] == " g ",
 	"输入模式下查询应是第一行，实际 " .. tostring(last_body and last_body[1])
 )
 check(
-	last_cursor and last_cursor[1] == 1 and last_cursor[2] == 1,
-	"输入模式下光标应停在查询末尾（1,1），实际 " .. vim.inspect(last_cursor)
+	last_cursor and last_cursor[1] == 1 and last_cursor[2] == 2,
+	"输入模式下光标应停在查询末尾（1,2），实际 " .. vim.inspect(last_cursor)
 )
 check(bodies[1] and bodies[1][1] == " 1 alpha", "导航模式下没有查询行")
 

@@ -242,9 +242,9 @@ local function render(state)
 	local query_row = state.mode == "input" or state.query ~= ""
 	local base = query_row and 1 or 0
 	if query_row then
-		-- 末尾留一个空格：normal 模式下光标不能停在行尾之后，真光标就落在这一格上
-		-- （看起来就是紧贴查询文本的块状光标，跟终端命令行里一样）
-		lines[1] = state.query .. " "
+		-- 行首留一格：菜单从光标下方一行开始画，光标落在查询文本之后，
+		-- 末尾再留一格（normal 模式下光标不能停在行尾之后），看起来就是紧贴文本的块状光标
+		lines[1] = " " .. state.query .. " "
 	end
 	if #view == 0 then
 		lines[base + 1] = state.query == "" and "  (empty)" or "  (no match)"
@@ -272,9 +272,16 @@ local function render(state)
 
 	local height = #lines
 
+	-- 从光标所在行的下一行开始画：浮窗若压在光标格上，真光标画在浮窗第一格，
+	-- 屏幕上看就是"光标还在原来那个位置，没有进菜单"。
+	local row = state.pos.row + 1
+	if row + height > vim.go.lines - 1 then
+		row = math.max(1, state.pos.row - height - 1)
+	end
+
 	local win_opts = {
 		relative = "editor",
-		row = state.pos.row,
+		row = row,
 		col = state.pos.col,
 		width = M.config.width,
 		height = height,
@@ -338,9 +345,9 @@ local function render(state)
 			priority = 50,
 		})
 	end
-	local cursor_col = 0
+	local cursor_col = 1
 	if query_row and state.mode == "input" then
-		cursor_col = #state.query
+		cursor_col = 1 + #state.query
 	end
 	pcall(api.nvim_win_set_cursor, state.win, { cursor_line, cursor_col })
 	render_help(state)
