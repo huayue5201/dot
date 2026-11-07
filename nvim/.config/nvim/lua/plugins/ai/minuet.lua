@@ -64,9 +64,7 @@ return {
 					"yaml",
 					"toml",
 					"sql",
-					-- markdown 不自动触发：写 prose 时 AI 建议用处不大，而 ghost text 出现和
-					-- 擦除都会重画 10~20 行（prose 的建议是多行的），视觉上就是闪一下。
-					-- 需要时仍可用 <A-]> 手动触发。
+					"markdown",
 					"tex",
 					"nix",
 					"haskell",

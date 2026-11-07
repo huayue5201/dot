@@ -17,9 +17,6 @@ return {
 			smear_between_neighbor_lines = true, -- 相邻行/同行移动也拖影
 			scroll_buffer_space = true, -- 滚动时按 buffer 空间画，避免拖影停在屏幕上
 			smear_to_cmd = true, -- 进出命令行模式也拖影
-			-- 插入模式不拖影：ModeChanged 时它会先 hide_real_cursor() 再自己画一个光标，
-			-- 进/出插入都要闪一下（实测每次多出 2 帧输出）；普通模式的方块拖影不受影响。
-			smear_insert_mode = false,
 			vertical_bar_cursor = false, -- 普通模式是方块光标
 			-- 字体没有 legacy computing symbols（方块/半块 Unicode）时保持 false，
 			-- 有的话（如 Cascadia Code）改 true 会细腻很多

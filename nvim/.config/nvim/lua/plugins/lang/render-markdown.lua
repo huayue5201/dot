@@ -52,12 +52,6 @@ return {
 			-- 这里把它加进来才会渲染。
 			file_types = { "markdown", "codecompanion" },
 			ignore = should_ignore,
-			-- 上游默认 { 'n', 'c', 't' }：一进插入模式就把 conceallevel 退回默认值、
-			-- 清掉全部 extmark（Updater:run() → clear()），退出插入再整体重渲染，
-			-- 于是 InsertEnter/InsertLeave 各闪一下。把 'i'/'ic' 加进来，模式切换
-			-- 不再是「渲染状态变化」，什么都不用重画。光标行的标记由 anti_conceal
-			-- 负责临时显形（默认 enabled=true，只作用于光标行），编辑不受影响。
-			render_modes = { "n", "c", "t", "i", "ic" },
 		})
 
 		-- <leader>z = 工具分组（zm 是 mdkite 浏览器预览、zt 是 tirenvi 表格视图）
