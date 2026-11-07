@@ -17,27 +17,144 @@ local function sync_after_set()
 	end, 10)
 end
 
+--- 用新的条件重建 dap-extensions 自定义断点
+--- 自定义断点只存在 dap-extensions 的注册表里，manager 没有 update API，
+--- 只能按原参数删掉重建（先建后删，避免创建失败时连原断点一起丢掉）。
+---@param bp table list_breakpoints() 返回的断点
+---@param condition string?
+---@param hit string? 命中次数（DAP 协议是字符串）
+---@return boolean ok
+local function recreate_custom_breakpoint(bp, condition, hit)
+	local manager = require("dap-extensions.manager")
+	local cfg = bp.config or {}
+	local new_bp
+
+	if bp.type == "function" then
+		new_bp = manager.add_function_breakpoint(cfg.function_name, {
+			condition = condition,
+			hitCondition = hit,
+			bufnr = cfg.bufnr,
+			line = cfg.line,
+		})
+	elseif bp.type == "data" then
+		new_bp = manager.add_data_breakpoint(cfg.expression, {
+			accessType = cfg.accessType,
+			condition = condition,
+			hitCondition = hit,
+			bufnr = cfg.bufnr,
+			line = cfg.line,
+		})
+	elseif bp.type == "instruction" then
+		local access = cfg.accessType or "execute"
+		local addr = cfg.instruction_reference
+		local opts = { condition = condition, hitCondition = hit, offset = cfg.offset }
+		if access == "execute" then
+			new_bp = manager.add_hardware_execute_breakpoint(addr, opts)
+		elseif access == "read" then
+			new_bp = manager.add_hardware_read_breakpoint(addr, cfg.size or 1, opts)
+		elseif access == "write" then
+			new_bp = manager.add_hardware_write_breakpoint(addr, cfg.size or 1, opts)
+		elseif access == "readWrite" then
+			new_bp = manager.add_hardware_access_breakpoint(addr, cfg.size or 1, opts)
+		end
+	elseif bp.type == "column" then
+		new_bp = manager.add_column_breakpoint(cfg.line, cfg.column, {
+			condition = condition,
+			hitCondition = hit,
+			bufnr = cfg.bufnr,
+		})
+	end
+
+	if not new_bp then
+		return false
+	end
+
+	manager.remove_breakpoint(bp.id)
+	if bp.enabled == false then
+		manager.set_breakpoint_enabled(new_bp.id, false)
+	end
+	return true
+end
+
 --- 条件/命中次数/日志断点输入面板（dap-extensions popup）
+--- 光标行上已有断点时预填其现有配置；原生断点直接改写，自定义断点则重建。
 local function set_conditional_breakpoint()
-	local dap = require("dap")
 	local popup = require("dap-extensions.ui.popup")
+
+	-- 必须在打开弹窗之前捕获目标位置：popup.open 会创建浮窗并把当前 buffer/光标
+	-- 切到输入框上，之后再取 nvim_get_current_buf() 拿到的是弹窗的缓冲区。
+	local bufnr = vim.api.nvim_get_current_buf()
+	local lnum = vim.api.nvim_win_get_cursor(0)[1]
+
+	-- 原生断点在 nvim-dap 的 sign group 里，自定义断点在 dap-extensions 里，两边都要查
+	local existing = require("dap_ext.breakpoint_state").breakpoint_at_line(bufnr, lnum)
+	local defaults = { condition = "", hit = "", log = "" }
+	local custom_bp = nil
+
+	if existing and existing.kind == "native" then
+		local bp = existing.bp
+		-- get() 返回的是 camelCase：logMessage / hitCondition
+		defaults.condition = bp.condition or ""
+		defaults.hit = bp.hitCondition or ""
+		defaults.log = bp.logMessage or ""
+	elseif existing and existing.kind == "custom" then
+		custom_bp = existing.bp
+		local cfg = custom_bp.config or {}
+		defaults.condition = cfg.condition or ""
+		defaults.hit = cfg.hitCondition or ""
+	end
+
 	popup.open({
 		fields = {
-			{ key = "condition", label = "条件(可选)" },
-			{ key = "hit", label = "命中次数(可选)" },
-			{ key = "log", label = "日志消息(可选)" },
+			{ key = "condition", label = "条件(可选)", default = defaults.condition },
+			{ key = "hit", label = "命中次数(可选)", default = defaults.hit },
+			{ key = "log", label = "日志消息(可选)", default = defaults.log },
 		},
 		on_submit = function(values)
 			local condition = values.condition ~= "" and values.condition or nil
-			local hit = values.hit ~= "" and tonumber(values.hit) or nil
+			-- 注意：dap.toggle_breakpoint 的 hit_condition 必须是字符串（内部有 assert），
+			-- 这里保留原始字符串，tonumber 的数值只用于校验和展示。
+			local hit_str = values.hit ~= "" and values.hit or nil
+			local hit = hit_str and tonumber(hit_str) or nil
 			local log = values.log ~= "" and values.log or nil
 
-			if values.hit ~= "" and not tonumber(values.hit) then
+			if hit_str and not hit then
 				vim.notify("⚠️ 命中次数必须为数字！", vim.log.levels.ERROR)
 				return
 			end
 
-			dap.toggle_breakpoint(condition, hit, log)
+			if custom_bp then
+				-- 自定义断点（函数/数据/硬件/列）不支持日志消息，只有条件与命中次数
+				if log then
+					vim.notify(
+						("ℹ️ %s 断点不支持日志消息，已忽略"):format(custom_bp.type),
+						vim.log.levels.WARN
+					)
+				end
+				if not recreate_custom_breakpoint(custom_bp, condition, hit_str) then
+					vim.notify("❌ 自定义断点重建失败，原断点未修改", vim.log.levels.ERROR)
+					return
+				end
+				print(
+					("✔️ %s 断点已更新：条件=%s 次数=%s"):format(
+						custom_bp.type,
+						condition or "无",
+						hit or "无"
+					)
+				)
+				sync_after_set()
+				return
+			end
+
+			-- 用 breakpoints.toggle 而不是 dap.toggle_breakpoint：后者没有 bufnr/lnum
+			-- 参数，会作用在当前缓冲区（即弹窗）上。
+			-- replace：不加的话 toggle 语义是「已有断点就删掉」，不会写入新条件。
+			require("dap.breakpoints").toggle({
+				condition = condition,
+				hit_condition = hit_str,
+				log_message = log,
+				replace = existing ~= nil and existing.kind == "native" or false,
+			}, bufnr, lnum)
 			print(
 				("✔️ 断点已设置：条件=%s 次数=%s 日志=%s"):format(
 					condition or "无",

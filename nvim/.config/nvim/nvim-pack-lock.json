@@ -301,7 +301,7 @@
       "src": "https://github.com/docker/nvim-dap-docker"
     },
     "nvim-dap-extensions": {
-      "rev": "16cde7892a6d5a04667d7da0f24e0a51d4129c66",
+      "rev": "6d9449e35b4d12515c00780204f5a6d64415ff47",
       "src": "/Users/lijia/neovim-plugins/nvim-dap-extensions"
     },
     "nvim-dap-go": {
@@ -321,7 +321,7 @@
       "src": "https://github.com/LiadOz/nvim-dap-repl-highlights"
     },
     "nvim-dap-view": {
-      "rev": "c178054222b059c92c49b1b05b75bd84dda3f57b",
+      "rev": "728289e6476fde58a8dc78ddb4d1e12626179359",
       "src": "/Users/lijia/neovim-plugins/nvim-dap-view"
     },
     "nvim-dev-container": {

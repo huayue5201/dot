@@ -64,12 +64,15 @@ end
 ---------------------------------------------------------------------
 -- 安全的断点数据提取（原生断点）
 ---------------------------------------------------------------------
+-- 注意字段命名：dap.breakpoints.get() 返回的是 camelCase（logMessage / hitCondition），
+-- 而 breakpoints.set() 接受的是 snake_case（log_message / hit_condition）。
+-- 这里从 get() 的结果里取，必须读 camelCase，否则日志断点/命中次数会静默丢失。
 local function safe_breakpoint_data(bp)
 	return {
 		line = type(bp.line) == "number" and bp.line or nil,
 		condition = type(bp.condition) == "string" and bp.condition or nil,
-		log_message = type(bp.log_message) == "string" and bp.log_message or nil,
-		hit_condition = type(bp.hit_condition) == "string" and bp.hit_condition or nil,
+		log_message = type(bp.logMessage) == "string" and bp.logMessage or nil,
+		hit_condition = type(bp.hitCondition) == "string" and bp.hitCondition or nil,
 		status = bp.status, -- 尽量保留状态信息
 	}
 end
@@ -475,6 +478,41 @@ function M.setup()
 	M.setup_autoload()
 	-- 不在这里调用 load_all，避免与 BufReadPost 重复
 	return M
+end
+
+--- 查询某行上的断点（同时覆盖原生断点与 dap-extensions 自定义断点）
+--- 原生断点存在 nvim-dap 的 sign group 里，自定义断点只存在 dap-extensions.manager，
+--- 所以 `require("dap.breakpoints").get()` 看不到后者，必须两边都查。
+---@param bufnr? integer 默认当前 buffer
+---@param lnum? integer 默认光标行
+---@return { kind: "native"|"custom", bp: table }?
+function M.breakpoint_at_line(bufnr, lnum)
+	bufnr = bufnr or vim.api.nvim_get_current_buf()
+	lnum = lnum or vim.api.nvim_win_get_cursor(0)[1]
+
+	local by_buf = breakpoints.get(bufnr)
+	if by_buf and by_buf[bufnr] then
+		for _, bp in ipairs(by_buf[bufnr]) do
+			if bp.line == lnum then
+				return { kind = "native", bp = bp }
+			end
+		end
+	end
+
+	local ok, manager = pcall(require, "dap-extensions.manager")
+	if ok and manager.list_breakpoints then
+		local ok_list, bps = pcall(manager.list_breakpoints)
+		if ok_list and type(bps) == "table" then
+			for _, bp in ipairs(bps) do
+				local cfg = bp.config or {}
+				if cfg.bufnr == bufnr and cfg.line == lnum then
+					return { kind = "custom", bp = bp }
+				end
+			end
+		end
+	end
+
+	return nil
 end
 
 -- 导出内部函数供测试
