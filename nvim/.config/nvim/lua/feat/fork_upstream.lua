@@ -245,12 +245,13 @@ local function hl(name, opts)
 end
 
 local function define_highlights()
-	local p = require("ui.colors").palette
-	hl("ForkUpstreamOK", { fg = p.green, bold = true })
-	hl("ForkUpstreamBehind", { fg = p.yellow, bold = true })
-	hl("ForkUpstreamBehindMany", { fg = p.red, bold = true })
-	hl("ForkUpstreamAhead", { fg = p.gray })
-	hl("ForkUpstreamError", { fg = p.red, bold = true })
+	-- 图标在 lua/ui/icons.lua，配色在 lua/ui/colors.lua
+	local c = require("ui.colors").color
+	hl("ForkUpstreamOK", { fg = c.upstream_ok, bold = true })
+	hl("ForkUpstreamBehind", { fg = c.upstream_behind, bold = true })
+	hl("ForkUpstreamBehindMany", { fg = c.upstream_behind_many, bold = true })
+	hl("ForkUpstreamAhead", { fg = c.upstream_ahead })
+	hl("ForkUpstreamError", { fg = c.upstream_error, bold = true })
 end
 
 --- 状态栏字符串（纯读缓存，绝不阻塞）
@@ -266,19 +267,20 @@ function M.component(win)
 	end
 
 	local parts = {}
+	local ic = require("ui.icons").icon
 	if (data.behind or 0) > 0 then
 		local group = data.behind >= 10 and "ForkUpstreamBehindMany" or "ForkUpstreamBehind"
-		table.insert(parts, ("%%#%s#↑%d%%*"):format(group, data.behind))
+		table.insert(parts, ("%%#%s#%s%d%%*"):format(group, ic.upstream_behind, data.behind))
 	end
 	if (data.ahead or 0) > 0 then
-		table.insert(parts, ("%%#ForkUpstreamAhead#↓%d%%*"):format(data.ahead))
+		table.insert(parts, ("%%#ForkUpstreamAhead#%s%d%%*"):format(ic.upstream_ahead, data.ahead))
 	end
 	if #parts == 0 then
 		-- 没有 upstream 的仓库（自己的项目）不显示同步标记，避免误导
 		if not data.has_upstream then
 			return ""
 		end
-		return "%#ForkUpstreamOK#✓%*"
+		return "%#ForkUpstreamOK#" .. ic.upstream_ok_mark .. "%*"
 	end
 	return table.concat(parts, " ")
 end

@@ -64,7 +64,8 @@
 | `listed.lua` | `buflisted` 同步（"listed = 当前 tab 可见"的唯一实现） |
 | `lifecycle.lua` | 关闭 buffer、清理已关闭 tab 的孤儿 buffer |
 | `session.lua` | resession 扩展：导出/恢复归属 |
-| `session_guard.lua` | 会话归属校验（防止"存 A 打开成 B"）、autosave、载入后修 cwd |
+| `session_guard.lua` | 会话归属校验（防止"存 A 打开成 B"）、autosave 策略 |
+| `store.lua` | 唯一一处 resession 适配层：setup/读写/list/delete/load 侧修正 |
 | `lsp.lua` | 每 tab 的 LSP 生命周期 |
 | `root.lua` | 按当前文件判定项目根（marker / LSP），自动切 tab 根；锁定与回退 |
 | `workspace.lua` | 切根、新建/关闭/切换工作区、保存/载入会话、统一 picker、辅助根增删 |
@@ -105,12 +106,12 @@ ws.visible_buffers()     ws.close_buffer(buf)   ws.is_managed_buf(buf)
 | `<leader>lwn` | 新建工作区（新 tab + 选目录） |
 | `<leader>lwc` | 关闭工作区 |
 | `<leader>lwa` | 在最近两个工作区之间来回 |
-| `<leader>lwl` | 工作区列表（打开中的 tab + 已保存会话 + 新目录） |
+| `<leader>lwl` | 工作区/会话统一列表（打开中的 tab + 已保存会话 + 新目录，也是唯一的“加载会话”入口） |
+| `<leader>lst` / `<leader>lss` / `<leader>lsd` | 会话：保存 / 保存 tab / 删除（带确认，跳过当前会话） |
 | `<leader>lws` / `<leader>lwr` / `<leader>lwR` | 锁定根 / 回退到上一个根并锁定 / 解除锁定 |
 | `<leader>lwe` | 编辑当前工作区的 `.nvim.lua` |
 | `<leader>lw+` / `<leader>lw-` | 附加辅助根 / 移除辅助根（主根仍是 cwd） |
 | `<leader>lwt` / `<leader>ew` | 多根树（neo-tree `workspace` 源，面板名 Workspace） |
-| `<leader>lsl` / `<leader>lst` / `<leader>lss` / `<leader>lsd` | 会话：加载（与 lwl 同一 picker）/ 保存 / 保存 tab / 删除 |
 
 ## `.nvim.lua`（工作区本地配置）
 

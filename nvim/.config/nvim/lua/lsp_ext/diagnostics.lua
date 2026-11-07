@@ -6,7 +6,7 @@ local M = {}
 
 function M.setup()
 	vim.diagnostic.config({
-		-- 行内提示交给 tiny-inline-diagnostic.nvim（见 lua/plugins/tiny-inline-diagnostic.lua）
+		-- 行内提示交给 tiny-inline-diagnostic.nvim（见 lua/plugins/lsp/tiny-inline-diagnostic.lua）
 		-- 必须关闭内置的 virtual_text / virtual_lines，否则会与插件重复渲染
 		virtual_text = false,
 		virtual_lines = false,

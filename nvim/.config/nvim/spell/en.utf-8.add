@@ -33,3 +33,8 @@ worktrees
 cwd
 cmd
 github
+OBD
+SOH
+BMS
+DV
+statusline

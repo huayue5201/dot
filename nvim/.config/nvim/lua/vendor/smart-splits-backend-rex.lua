@@ -4,7 +4,7 @@
 -- 协议：smart-splits.nvim 仓库的 PROTOCOL.md。参照同目录
 -- vendor/smart-splits-backend-herdr.lua 的结构写。
 --
--- 由 lua/plugins/smart-splits.lua 里的
+-- 由 lua/plugins/ui/smart-splits.lua 里的
 --   mux = { backend = { "vendor.smart-splits-backend-rex" } }
 -- 按模块名加载。
 --

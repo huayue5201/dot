@@ -15,7 +15,7 @@ return {
 	keys = {
 		-- 只写带实际 rhs 的按键：加载器把 keys 注册成普通映射，纯 lhs 条目会
 		-- 退化成 lhs→lhs 的空映射（还会覆盖 config 里定义的真实映射）。
-		-- 分组标签统一写在 lua/plugins/which-key.lua 的 wk.add 里。
+		-- 分组标签统一写在 lua/plugins/ui/which-key.lua 的 wk.add 里。
 		{ "<leader>go", "<cmd>Sqmeow<cr>", desc = "打开工作区" },
 		{ "<leader>gt", "<cmd>Sqmeow toggle<cr>", desc = "显示/隐藏窗口" },
 		{ "<leader>gc", "<cmd>Sqmeow add<cr>", desc = "添加连接" },

@@ -1,5 +1,8 @@
 local M = {}
 
+-- 图标在 lua/ui/icons.lua，配色在 lua/ui/colors.lua
+local ui = require("ui.icons")
+local colors = require("ui.colors").color
 local icons = require("lsp_ext.icons")
 
 -- =========================================================
@@ -7,7 +10,7 @@ local icons = require("lsp_ext.icons")
 -- =========================================================
 M.config = {
 	-- Spinner 配置
-	spinner_frames = { "", "", "", "", "", "" },
+	spinner_frames = ui.icon.spinner_frames,
 	-- spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
 	spinner_interval = 150, -- 毫秒
 	spinner_width = 2, -- 固定宽度
@@ -22,7 +25,7 @@ M.config = {
 -- =========================================================
 -- 初始化高亮组
 -- =========================================================
-vim.api.nvim_set_hl(0, "LspHighlight", { fg = "#fffff0", bold = true })
+vim.api.nvim_set_hl(0, "LspHighlight", { fg = colors.lsp, bold = true })
 
 -- =========================================================
 -- 动态 LSP Spinner
@@ -170,7 +173,7 @@ function M.lsp_clients()
 	local ok, buf_clients = pcall(vim.lsp.get_clients, { bufnr = vim.api.nvim_get_current_buf() })
 
 	if not ok or next(buf_clients) == nil then
-		return "%#" .. M.config.highlight_group .. "# " .. "%*"
+		return "%#" .. M.config.highlight_group .. "#" .. ui.icon.lsp_idle .. " " .. "%*"
 	end
 
 	-- 客户端优先级配置
@@ -241,9 +244,10 @@ function M.lsp_clients()
 	local spin = spinner_icon()
 
 	return string.format(
-		"%s.%s. %s",
+		"%s.%s.%s %s",
 		"%#" .. M.config.highlight_group .. "#" .. client_count .. "%*",
 		main_client.name,
+		ui.icon.lsp_suffix,
 		spin
 	)
 end

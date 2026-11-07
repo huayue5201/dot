@@ -22,14 +22,11 @@ local pending = false
 --   aux（可选）= 这个工作区的辅助根；缺省表示单根（兼容旧文件）。
 local FORMAT = 2
 
+--- tab 的根目录（统一走 root.cwd，避免多份 getcwd 实现）
 ---@param tab integer
----@return string?
+---@return string
 local function tab_root(tab)
-	local ok, dir = pcall(vim.fn.getcwd, -1, vim.api.nvim_tabpage_get_number(tab))
-	if ok and type(dir) == "string" and dir ~= "" then
-		return dir
-	end
-	return nil
+	return require("feat.tab_workspace.root").cwd(tab)
 end
 
 --- 某个 tab 的 buffer 名（已过滤终端/面板/无名 buffer）
@@ -182,9 +179,9 @@ end
 ---
 --- 为什么要做：resession 载入时会对每个存下的 buffer 做 bufadd + bufload，而 bufload 一个
 --- `term://` 名字的 buffer 是会把 shell 真拉起来的。旧会话（以及带僵尸 term:// buffer 的会话）
---- 里有这类条目，表现就是「<leader>lsl 加载会话时凭空打开一个终端」。
+--- 里有这类条目，表现就是「加载会话时凭空打开一个终端」。
 --- resession 只给 save 提供了 buf_filter，load 没有对应钩子，所以在唯一的读入口
---- （files.load_json_file 的包装，见 lua/plugins/resession.lua）上洗一遍。
+--- （files.load_json_file 的包装，见 lua/feat/tab_workspace/store.lua）上洗一遍。
 ---@param data table
 ---@return table
 function M.strip_terminal_bufs(data)

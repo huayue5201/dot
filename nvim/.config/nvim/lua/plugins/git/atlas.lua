@@ -5,7 +5,7 @@ return {
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
 		-- 不需要 codediff：atlas 用自己的 AtlasDiff（见下面 pulls.diff.open_cmd）
-		-- 全局 diff 走 diffbandit.nvim（lua/plugins/diffbandit.lua）
+		-- 全局 diff 走 diffbandit.nvim（lua/plugins/git/diffbandit.lua）
 	},
 	config = function()
 		require("atlas").setup({

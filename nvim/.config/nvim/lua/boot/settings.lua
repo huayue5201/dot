@@ -45,7 +45,7 @@ vim.opt.scrolloff = 8 -- 光标上下至少保留 8 行
 vim.opt.scrolloffpad = 1
 vim.o.sidescrolloff = 5 -- 光标左右至少保留 5 列
 vim.o.sidescroll = 5 -- 水平滚动步长
-vim.o.smoothscroll = true -- 平滑滚动
+vim.o.smoothscroll = false -- 平滑滚动
 vim.o.cursorline = true -- 高亮当前行
 -- cursorcolumn 关掉：实测每次移动+重绘从 0.45ms 涨到 1.14ms（2700 行，真 TTY），
 -- 它一个就占了全部显示类额外开销的 84%，而体验收益远不如 cursorline。
@@ -105,7 +105,7 @@ vim.o.showmode = false -- 不在命令行显示模式
 vim.o.laststatus = 3 -- 全局状态栏
 vim.o.cmdheight = 0 -- 命令行高度；ui2 下为 0 可避免跳动
 vim.o.showtabline = 2 -- 始终显示标签页栏
--- statuscolumn / signcolumn 由 luukvbaal/statuscol.nvim 接管（见 lua/plugins/statuscol.lua）：
+-- statuscolumn / signcolumn 由 luukvbaal/statuscol.nvim 接管（见 lua/plugins/ui/statuscol.lua）：
 -- 下列两行是插件加载前的回退值。
 vim.o.statuscolumn = "%s%=%l%=%C "
 vim.o.signcolumn = "yes:3"

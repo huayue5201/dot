@@ -4,7 +4,7 @@
 -- 协议：smart-splits.nvim 仓库的 PROTOCOL.md；逻辑移植自上游 v2 的
 -- lua/smart-splits/mux/herdr.lua，去掉核心已负责的 window 操作。
 --
--- 由 lua/plugins/smart-splits.lua 里的
+-- 由 lua/plugins/ui/smart-splits.lua 里的
 --   mux = { backend = { "vendor.smart-splits-backend-herdr", ... } }
 -- 按模块名加载。
 

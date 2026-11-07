@@ -7,7 +7,7 @@
 -- 需要 Neovim >= 0.12.5（本机 0.13.0-dev），queries 已随插件打包，无需 async.nvim。
 --
 -- 只映射「重构」部分。debug print 系列（print_var / print_exp / cleanup）不映射：
--- 打印插入已由 nvim-chainsaw 的 `g?` 家族统一负责（见 lua/plugins/chainsaw.lua），
+-- 打印插入已由 nvim-chainsaw 的 `g?` 家族统一负责（见 lua/plugins/editor/chainsaw.lua），
 -- 两套同时上同一件事会互相打架。
 --
 -- 键位沿用 `<leader>r` 分组（重构 / 运行），字母遵循 README 的语义缩写：

@@ -237,7 +237,7 @@ local function open_diff(it)
 	end
 	local ok_mod, diffbandit = pcall(require, "diffbandit")
 	if not (ok_mod and type(diffbandit.files) == "function") then
-		notify("diffbandit 不可用（检查 lua/plugins/diffbandit.lua 是否加载）", vim.log.levels.ERROR)
+		notify("diffbandit 不可用（检查 lua/plugins/git/diffbandit.lua 是否加载）", vim.log.levels.ERROR)
 		return
 	end
 

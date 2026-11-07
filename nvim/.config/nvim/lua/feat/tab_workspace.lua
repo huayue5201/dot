@@ -10,7 +10,8 @@
 --   lsp.lua       —— 每 tab 的 LSP 生命周期
 --   root.lua      —— 按当前文件判定项目根（marker / LSP）并自动切 tab 根目录
 --   workspace.lua —— 切根目录、新建/关闭/切换工作区、保存/载入会话
---   session_guard.lua —— 会话归属校验、autosave、载入后 cwd 修正
+--   session_guard.lua —— 会话归属校验与 autosave 策略
+--   store.lua     —— 唯一一处 resession 适配层（setup/读写/load 侧修正）
 --   local_settings.lua —— 工作区本地配置（<根>/.nvim.lua）的加载与回滚
 -- 本文件只留公共 API 与 setup/autocmd/resession 挂接。
 local util = require("feat.tab_workspace.util")
@@ -45,6 +46,7 @@ M.load_session = workspace.load_session
 M.new_workspace = workspace.new_workspace
 M.close_workspace = workspace.close_workspace
 M.picker = workspace.picker
+M.delete_session = workspace.delete_session
 M.edit_local_settings = local_settings.edit
 M.reload_local_settings = local_settings.reload
 M.alternate = workspace.alternate

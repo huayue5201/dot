@@ -93,16 +93,8 @@ local function read_raw(name)
 	return ok and data or nil
 end
 
--- 安装和 lua/plugins/resession.lua 同款的 load 侧清洗，测试才走真实路径
-local load_json_file = files.load_json_file
-files.load_json_file = function(path)
-	local data = load_json_file(path)
-	if type(data) == "table" then
-		pcall(require("feat.tab_workspace.session").strip_terminal_bufs, data)
-		pcall(require("feat.tab_workspace.session_guard").sanitize_cwd, data)
-	end
-	return data
-end
+-- 安装和运行期同款的 load 侧清洗（store 唯一实现），测试才走真实路径
+require("feat.tab_workspace.store").install_load_filter()
 
 resession.setup({
 	dir = "session",

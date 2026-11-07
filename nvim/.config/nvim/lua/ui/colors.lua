@@ -21,4 +21,50 @@ M.palette = {
 	hint = "#74c7ec", -- 语义：提示
 }
 
+-- ============================
+-- 状态栏 / UI 强调色
+-- ============================
+-- 纯色字面量放这里，随主题走的一律引用上面的 palette。
+M.color = {
+	-- 保存状态
+	save_dirty = "#E4080A", -- 未保存数量红字 + 未保存红点
+	save_clean = "#50fa7b", -- 已保存绿点
+
+	-- 各段图标/强调色
+	pink = "#ffde7d", -- 滚动条
+	icon = "#ffc125", -- TODO2 计数
+	dap = "#FF0000",
+	git = "#FF8C00",
+	lsp = "#fffff0",
+
+	-- git 变更计数
+	git_added = M.palette.green,
+	git_removed = M.palette.red,
+	git_changed = M.palette.yellow,
+
+	-- 段间分隔符
+	sep = M.palette.darkgray,
+
+	-- 数据库工作台（sqmeow）窗口角色
+	db_icon = M.palette.cyan,
+	db_locked = M.palette.gray,
+
+	-- 上游同步
+	upstream_ok = M.palette.green,
+	upstream_behind = M.palette.yellow,
+	upstream_behind_many = M.palette.red,
+	upstream_ahead = M.palette.gray,
+	upstream_error = M.palette.red,
+
+	-- 工作区锚点槽位 StlWs1..6：同一个根目录永远同一个颜色
+	ws = {
+		M.palette.blue,
+		M.palette.magenta,
+		M.palette.cyan,
+		M.palette.green,
+		M.palette.yellow,
+		M.palette.red,
+	},
+}
+
 return M

@@ -1,4 +1,4 @@
--- 会话覆盖保护。
+-- 会话归属策略。
 --
 -- resession 的 current_session 只记住「上次 load 的名字」，跟目录无关；
 -- 载入 A 之后在 B 里干活，autosave（定时器 / VimLeavePre）会走
@@ -8,17 +8,16 @@
 -- 这里在写入前比对「当前各 tab 的根」和「会话文件里记录的根」：没有交集
 -- 就拒绝覆盖（属于别的项目），而不是静默写坏。同一会话里新开一个别的项目的
 -- tab 不会被误判——只要还有一个当前 tab 的根与会话里的根重合就允许保存。
+--
+-- 本模块只做策略；读写会话文件、载入后的 cwd 修正、干净 tab 复用都在 store.lua。
 local M = {}
+
+local store = require("feat.tab_workspace.store")
 
 ---@param path string?
 ---@return string?
 local function norm(path)
-	if type(path) ~= "string" or path == "" then
-		return nil
-	end
-	path = path:gsub("/+$", "")
-	local ok, real = pcall(vim.uv.fs_realpath, path)
-	return (ok and real) or path
+	return store.norm(path)
 end
 
 --- 会话文件里记录的根目录集合
@@ -46,12 +45,13 @@ function M.roots_of_data(data)
 	return roots
 end
 
---- 当前每个 tab 的根目录集合
+--- 当前每个 tab 的根目录集合（统一走 root.cwd，避免三份 getcwd 实现）
 ---@return table<string, true>
 function M.current_roots()
+	local root = require("feat.tab_workspace.root")
 	local roots = {}
 	for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
-		local dir = norm(vim.fn.getcwd(-1, vim.api.nvim_tabpage_get_number(tab)))
+		local dir = norm(root.cwd(tab))
 		if dir then
 			roots[dir] = true
 		end
@@ -59,25 +59,12 @@ function M.current_roots()
 	return roots
 end
 
---- 读会话文件（走 resession 自己的读入口，已含 terminal 清洗与 cwd 兜底）
+--- 读会话文件（走 store，已含 terminal 清洗与 cwd 兜底）
 ---@param name string
 ---@param opts? table
 ---@return table?
 function M.read(name, opts)
-	local ok, resession = pcall(require, "resession")
-	if not ok then
-		return nil
-	end
-	local ok_files, files = pcall(require, "resession.files")
-	local ok_util, util = pcall(require, "resession.util")
-	if not (ok_files and ok_util) then
-		return nil
-	end
-	local ok_path, path = pcall(util.get_session_file, name, (opts or {}).dir)
-	if not ok_path then
-		return nil
-	end
-	return files.load_json_file(path)
+	return store.read(name, opts)
 end
 
 --- 当前工作区是否能覆盖这个会话
@@ -103,91 +90,14 @@ function M.fits(name, opts)
 	return false
 end
 
---- 载入后把「全局 cwd」归位到当前 tab 的根。
---
--- resession 保存的 global.cwd 其实是「保存时活动 tab 的根」（getcwd(-1, -1)），
--- 载入时却用它 :cd 整个实例；之后 :tabnew 或没有 tab-local 的窗口就会继承
--- 那个上一个项目的目录，表现为「切回来却落在别的项目」。
-function M.fix_global_cwd()
-	local ok, dir = pcall(vim.fn.getcwd)
-	if ok and type(dir) == "string" and dir ~= "" and vim.fn.isdirectory(dir) == 1 then
-		pcall(vim.api.nvim_set_current_dir, dir)
-	end
-end
-
---- 修会话数据里的失效目录。
---
--- global.cwd / tab.cwd 指向已删除/改名的目录时，resession 的 nvim_set_current_dir
--- 会抛 E344，整次加载中断（只剩一个空 tab）。这里换成有效的目录或清掉 tab.cwd。
----@param data table
----@return table
-function M.sanitize_cwd(data)
-	if type(data) ~= "table" then
-		return data
-	end
-	local function valid(dir)
-		return type(dir) == "string" and dir ~= "" and vim.fn.isdirectory(dir) == 1
-	end
-
-	local fallback
-	for _, tab in ipairs(data.tabs or {}) do
-		if type(tab) == "table" and valid(tab.cwd) then
-			fallback = tab.cwd
-			break
-		end
-	end
-	fallback = fallback or vim.fn.getcwd()
-
-	for _, tab in ipairs(data.tabs or {}) do
-		if type(tab) == "table" and type(tab.cwd) == "string" and not valid(tab.cwd) then
-			tab.cwd = nil
-		end
-	end
-
-	if type(data.global) == "table" then
-		if not valid(data.global.cwd) then
-			data.global.cwd = fallback
-		end
-	elseif fallback then
-		data.global = { cwd = fallback }
-	end
-	return data
-end
-
---- tab 作用域会话载入前：把当前 tab 变成 resession 眼中的「干净 tab」。
---
--- resession 对 tab 作用域会话走 open_clean_tab()：当前 tab 不是
--- 「单窗口 + 无名空 buffer」就 :tabnew，于是每载一次多一个 tab。
--- 这里先 only + :enew!，让 load 复用当前 tab；原有 buffer 仍留在 buffer 列表里，
--- 不删除、不丢改动（只是不再显示）。
-function M.reuse_current_tab()
-	if #vim.api.nvim_tabpage_list_wins(0) > 1 then
-		pcall(vim.cmd.only, { mods = { emsg_silent = true } })
-	end
-	local buf = vim.api.nvim_get_current_buf()
-	local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-	local is_clean = vim.api.nvim_buf_get_name(buf) == ""
-		and vim.bo[buf].buftype == ""
-		and #lines == 1
-		and lines[1] == ""
-	if is_clean then
-		return
-	end
-	pcall(vim.cmd.enew, { bang = true })
-end
-
 --- 带保护的自动保存（替代 resession 自带的 autosave）
 ---@param opts? table
 function M.autosave(opts)
-	local ok, resession = pcall(require, "resession")
-	if not ok then
-		return
-	end
-	local current = resession.get_current()
+	local current = store.current()
 	if current and not M.fits(current) then
 		return
 	end
-	resession.save_all(opts)
+	store.save_all(opts)
 end
 
 --- 注册带保护的 autosave：定时器 + 退出时各一次

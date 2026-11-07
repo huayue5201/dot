@@ -23,9 +23,24 @@ local M = {}
 local KEYS = {
 	["<C-n>"] = { scroll = "\5", native = "\14" }, -- <C-n> 原生 = 下移一行
 	["<C-p>"] = { scroll = "\25", native = "\16" }, -- <C-p> 原生 = 上移一行
-	["<C-d>"] = { scroll = "\4", native = "\4" },
-	["<C-u>"] = { scroll = "\21", native = "\21" },
+	["<C-d>"] = { scroll = "\4", native = "\4", ns = "ctrl_d" },
+	["<C-u>"] = { scroll = "\21", native = "\21", ns = "ctrl_u" },
 }
+
+--- 没有 hover 时的原生滚动：优先交给 neoscroll 做动画（它自己的 <C-d>/<C-u> 映射被
+--- 本文件覆盖了，不委托回去就等于禁用动画）。neoscroll 的默认映射没有内置时长，
+--- 这里用和它 function_mappings 一致的 250ms。
+---@param keys table
+local function native_scroll(keys)
+	if keys.ns then
+		local ok, neoscroll = pcall(require, "neoscroll")
+		if ok then
+			neoscroll[keys.ns]({ duration = 250 })
+			return
+		end
+	end
+	vim.cmd.normal({ args = { keys.native }, bang = true })
+end
 
 --- 当前 buffer 上是否开着 LSP hover 浮窗
 ---@param buf integer
@@ -47,7 +62,7 @@ function M.setup()
 		vim.keymap.set("n", lhs, function()
 			local win = hover_win(0)
 			if not win then
-				vim.cmd.normal({ args = { keys.native }, bang = true })
+				native_scroll(keys)
 				return
 			end
 			vim.api.nvim_win_call(win, function()

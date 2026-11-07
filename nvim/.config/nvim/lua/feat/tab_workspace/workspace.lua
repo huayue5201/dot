@@ -46,11 +46,8 @@ end
 --- 覆盖前先确认当前工作区确实属于该会话：resession 的 current_session 只记住
 --- 「上次 load 的名字」，载入 A 后在 B 里干活会把 B 写进 A.json（存 A 打开成 B）。
 function M.save_session()
-	local ok, resession = pcall(require, "resession")
-	if not ok then
-		return
-	end
-	local current = resession.get_current()
+	local store = require("feat.tab_workspace.store")
+	local current = store.current()
 	if current then
 		local ok_guard, guard = pcall(require, "feat.tab_workspace.session_guard")
 		if ok_guard and not guard.fits(current) then
@@ -65,7 +62,7 @@ function M.save_session()
 		end
 	end
 	-- save_all 会带上 session_configs 里记录的 dir（自定义会话目录也不会写错地方）
-	resession.save_all({ notify = false })
+	store.save_all({ notify = false })
 end
 
 --- 工作区 / 会话统一选择器
@@ -100,43 +97,40 @@ function M.picker(opts)
 	end
 
 	-- 2. 已保存、但根目录还没被任何 tab 打开的会话（最近的在前）
-	local ok_resession, resession = pcall(require, "resession")
-	if ok_resession then
-		local ok_list, sessions = pcall(resession.list, { dir = opts.dir })
-		local ok_util, util = pcall(require, "resession.util")
-		local saved = {}
-		for _, name in ipairs(type(sessions) == "table" and sessions or {}) do
-			local data = ok_guard and guard.read(name, opts) or nil
-			local opened = false
-			if ok_guard and type(data) == "table" then
-				for path in pairs(guard.roots_of_data(data)) do
-					if open_roots[path] then
-						opened = true
-						break
-					end
+	local store = require("feat.tab_workspace.store")
+	local sessions = store.list({ dir = opts.dir })
+	local saved = {}
+	for _, name in ipairs(sessions) do
+		local data = ok_guard and guard.read(name, opts) or nil
+		local opened = false
+		if ok_guard and type(data) == "table" then
+			for path in pairs(guard.roots_of_data(data)) do
+				if open_roots[path] then
+					opened = true
+					break
 				end
-			end
-			if not opened then
-				local dir
-				if type(data) == "table" then
-					local first_tab = data.tabs and data.tabs[1]
-					dir = type(first_tab) == "table" and first_tab.cwd or data.global and data.global.cwd
-				end
-				-- 与 load_order = "modification_time" 一致：最近的在前
-				local path = ok_util and util.get_session_file(name, opts.dir)
-				saved[#saved + 1] = {
-					kind = "session",
-					name = name,
-					dir = type(dir) == "string" and dir ~= "" and vim.fn.fnamemodify(dir, ":~") or "",
-					mtime = path and vim.fn.getftime(path) or 0,
-				}
 			end
 		end
-		table.sort(saved, function(a, b)
-			return a.mtime > b.mtime
-		end)
-		vim.list_extend(items, saved)
+		if not opened then
+			local dir
+			if type(data) == "table" then
+				local first_tab = data.tabs and data.tabs[1]
+				dir = type(first_tab) == "table" and first_tab.cwd or data.global and data.global.cwd
+			end
+			-- 与 load_order = "modification_time" 一致：最近的在前
+			local path = store.session_file(name, opts.dir)
+			saved[#saved + 1] = {
+				kind = "session",
+				name = name,
+				dir = type(dir) == "string" and dir ~= "" and vim.fn.fnamemodify(dir, ":~") or "",
+				mtime = path and vim.fn.getftime(path) or 0,
+			}
+		end
 	end
+	table.sort(saved, function(a, b)
+		return a.mtime > b.mtime
+	end)
+	vim.list_extend(items, saved)
 
 	items[#items + 1] = { kind = "new" }
 
@@ -182,27 +176,66 @@ function M.picker(opts)
 	end)
 end
 
+--- 删除已保存的会话（只列磁盘上的会话文件，已打开的 tab 不在其中）。
+--- 当前会话不列出：删掉后 autosave / VimLeavePre 会把它重新写回，看起来像没删掉。
+function M.delete_session()
+	local store = require("feat.tab_workspace.store")
+
+	local current = store.current()
+	local sessions = store.list()
+	local ok_guard, guard = pcall(require, "feat.tab_workspace.session_guard")
+
+	local items = {}
+	for _, name in ipairs(sessions) do
+		if name ~= current then
+			local dir
+			local data = ok_guard and guard.read(name) or nil
+			if type(data) == "table" then
+				for root in pairs(guard.roots_of_data(data)) do
+					dir = vim.fn.fnamemodify(root, ":~")
+					break
+				end
+			end
+			items[#items + 1] = { name = name, dir = dir }
+		end
+	end
+
+	if #items == 0 then
+		vim.notify("没有可删除的已保存会话", vim.log.levels.INFO)
+		return
+	end
+
+	vim.ui.select(items, {
+		prompt = "Delete session",
+		format_item = function(item)
+			return item.dir and string.format("%s  %s", item.name, item.dir) or item.name
+		end,
+	}, function(item)
+		if not item then
+			return
+		end
+		local choice = vim.fn.confirm(string.format('删除会话 "%s"？', item.name), "&Yes\n&No", 2)
+		if choice ~= 1 then
+			return
+		end
+		local ok_del, err = store.delete(item.name)
+		if ok_del then
+			vim.notify(string.format('已删除会话 "%s"', item.name))
+		else
+			vim.notify(string.format("删除会话失败: %s", tostring(err)), vim.log.levels.ERROR)
+		end
+	end)
+end
+
 --- 载入会话（tab 作用域会话会复用当前 tab，而不是每载一次多一个 tab）
 ---@param name? string
 ---@param opts? table
 function M.load_session(name, opts)
-	local ok, resession = pcall(require, "resession")
-	if not ok then
-		return
-	end
-	opts = vim.tbl_extend("keep", opts or {}, { attach = true })
 	if not name then
 		-- 无参 = 交互选择：统一到 picker（同一个入口管「打开中的 / 已保存的 / 新目录」）
 		return M.picker(opts)
 	end
-	local ok_guard, guard = pcall(require, "feat.tab_workspace.session_guard")
-	local data = ok_guard and guard.read(name, opts) or nil
-	if type(data) == "table" and data.tab_scoped then
-		if ok_guard then
-			guard.reuse_current_tab()
-		end
-	end
-	resession.load(name, opts)
+	require("feat.tab_workspace.store").load(name, opts)
 end
 
 --- 新建工作区：保存当前会话 + 开新 tab + 设置根目录。

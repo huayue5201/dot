@@ -2,7 +2,7 @@
 -- FIX:(spellwand.nvim: 多行 @spell 节点列号越界)
 -- ============================================================================
 -- 这是一个「临时修复」，不是插件功能。上游修好后整份删掉即可（含
--- lua/plugins/spellwand.lua 里带 FIX 标记的一行 require/install 调用）。
+-- lua/plugins/lang/spellwand.lua 里带 FIX 标记的一行 require/install 调用）。
 --
 -- 问题（上游 lua/spellwand/spelling.lua:60-72）：
 --   vim.spell.check(text) 返回的第三个值是**在 text 内的字节偏移**，而 text 是
@@ -29,7 +29,7 @@ M.meta = {
 	buggy = {
 		{ file = "lua/spellwand/spelling.lua", contains = "local abs_col = start_col + col_offset" },
 	},
-	cleanup = { "同时删掉 plugins/spellwand.lua 里带 FIX 标记的 require/install 那一行" },
+	cleanup = { "同时删掉 plugins/lang/spellwand.lua 里带 FIX 标记的 require/install 那一行" },
 }
 
 local ERROR_TYPES = {

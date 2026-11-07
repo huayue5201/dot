@@ -7,7 +7,9 @@
 -- （首次按键只加载不执行、命令代理丢 register/range、module 懒加载走 :packadd!
 -- 不 source plugin/ 于是命令根本不存在）。eager 之后这些问题从根上不存在。
 --
--- spec 写在 lua/plugins/*.lua，沿用 lazy.nvim 的写法（旧的懒加载字段已清理干净）：
+-- spec 写在 lua/plugins/ 下，沿用 lazy.nvim 的写法（旧的懒加载字段已清理干净）：
+--   * 分类子目录只是给人看的标签（ai / lsp / dap / git / ui / editor / lang / tools），
+--     加载器递归扫描，插件的 find/dir 行为不受影响；清单见 lua/plugins/README.md
 --   * 生效的字段：src(第 1 位) / dir / url / name / main / version / branch / tag
 --                / sem_version / dependencies / init / config / opts / build / priority / enabled
 --   * keys：注册成普通映射（不要写纯 lhs 的分组标签，那会变成空映射）
@@ -189,19 +191,45 @@ local function is_single_spec(t)
 	return false
 end
 
+--- 收集 spec 模块，支持任意层级的分类子目录（lua/plugins/<类>/<插件>.lua）。
+---
+--- 目录名只是给人看的标签，不参与加载排序：仍按「文件名」排序，因此 priority
+--- 相同时的声明次序与全部平铺时代完全一致（路径仅作同名文件的次级排序键）。
+--- 例外：某目录下存在 init.lua 时，该目录本身视为一个 spec 模块（与顶层一致），
+--- 不再递归进去，避免把它的内部辅助 lua 文件误当 spec。
+---@return string[] 相对 spec_dir 的路径，如 { "ui/colorscheme.lua", "dap/nvim-dap.lua" }
 local function collect()
 	local files = {}
-	for entry, kind in vim.fs.dir(spec_dir) do
-		if kind == "file" and entry:match("%.lua$") then
-			files[#files + 1] = entry
-		elseif kind == "directory" and vim.fn.filereadable(vim.fs.joinpath(spec_dir, entry, "init.lua")) == 1 then
-			files[#files + 1] = entry
+	---@param rel string 相对 spec_dir 的子目录（"" 表示根）
+	local function walk(rel)
+		local dir = rel == "" and spec_dir or vim.fs.joinpath(spec_dir, rel)
+		for entry, kind in vim.fs.dir(dir) do
+			local relpath = rel == "" and entry or (rel .. "/" .. entry)
+			if kind == "file" and entry:match("%.lua$") then
+				-- init.lua 是包入口/辅助，不是 spec
+				if entry ~= "init.lua" then
+					files[#files + 1] = relpath
+				end
+			elseif kind == "directory" then
+				if vim.fn.filereadable(vim.fs.joinpath(spec_dir, relpath, "init.lua")) == 1 then
+					files[#files + 1] = relpath
+				else
+					walk(relpath)
+				end
+			end
 		end
 	end
-	table.sort(files)
+	walk("")
+	table.sort(files, function(a, b)
+		local an, bn = a:match("[^/]+$"), b:match("[^/]+$")
+		if an ~= bn then
+			return an < bn
+		end
+		return a < b
+	end)
 
 	for i, file in ipairs(files) do
-		local mod = "plugins." .. file:gsub("%.lua$", "")
+		local mod = "plugins." .. file:gsub("%.lua$", ""):gsub("/", ".")
 		local ok, ret = pcall(require, mod)
 		if not ok then
 			fail("spec %s 加载失败: %s", mod, ret)
@@ -529,7 +557,7 @@ local function apply_keys(spec)
 		if type(lhs) ~= "string" or rhs == nil then
 			-- 纯 lhs 条目在 lazy.nvim 里是"分组标签"，在这里只会变成 lhs→lhs 的空映射，
 			-- 还会覆盖 config 里定义的真实映射（rustowl 就这么坏过）。分组请写进
-			-- lua/plugins/which-key.lua 的 wk.add。
+			-- lua/plugins/ui/which-key.lua 的 wk.add。
 			fail("keys %s: 缺少 lhs/rhs，已跳过（分组标签请写进 which-key.lua）", tostring(lhs))
 		elseif not key_owner[lhs] then
 			key_owner[lhs] = spec.name

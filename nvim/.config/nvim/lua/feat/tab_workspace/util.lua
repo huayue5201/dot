@@ -113,8 +113,7 @@ function M.resession_loading()
 	if vim.g.SessionLoad == 1 then
 		return true
 	end
-	local ok, resession = pcall(require, "resession")
-	return ok and resession.is_loading()
+	return require("feat.tab_workspace.store").is_loading()
 end
 
 return M

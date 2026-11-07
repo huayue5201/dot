@@ -80,7 +80,7 @@ return {
 			},
 		})
 
-		-- <leader>n = 笔记（which-key 里已有这个分组，见 lua/plugins/which-key.lua:28）
+		-- <leader>n = 笔记（which-key 里已有这个分组，见 lua/plugins/ui/which-key.lua:28）
 		-- 两档：
 		--   全局档  —— 不依赖当前 buffer 的命令（新建/日记/快切/全库搜索/tag/切 vault），
 		--               写代码时也能直接 <leader>nq 跳进笔记，这是插件本来就支持的行为

@@ -19,7 +19,7 @@
 --
 -- 清理方式（上游修复后）：
 --   1. 删除 lua/fix/neotest_golang_table_tests.lua
---   2. 删除 lua/plugins/neotest.lua 里带 FIX(neotest-golang#599) 注释的那一行
+--   2. 删除 lua/plugins/tools/neotest.lua 里带 FIX(neotest-golang#599) 注释的那一行
 -- ============================================================================
 local M = {}
 
@@ -35,7 +35,7 @@ M.meta = {
 		{ file = "lua/neotest-golang/queries/go/table_tests_list.scm", contains = "(for_statement" },
 		{ file = "lua/neotest-golang/queries/go/table_tests_unkeyed.scm", contains = "(for_statement" },
 	},
-	cleanup = { "同时删掉 lua/fix/neotest_golang_table_tests.lua 和 plugins/neotest.lua 里的 require" },
+	cleanup = { "同时删掉 lua/fix/neotest_golang_table_tests.lua 和 plugins/tools/neotest.lua 里的 require" },
 }
 
 local DECL_LIST = [[

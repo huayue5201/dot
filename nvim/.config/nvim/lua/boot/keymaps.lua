@@ -24,7 +24,7 @@ vim.keymap.set("x", "i", function()
 	end
 end, { expr = true })
 
--- p / P / gp / gP / ]p / [p 由 smart-paste.nvim 接管（更聪明的缩进对齐，见 lua/plugins/smart-paste.lua）。
+-- p / P / gp / gP / ]p / [p 由 smart-paste.nvim 接管（更聪明的缩进对齐，见 lua/plugins/editor/smart-paste.lua）。
 -- 这里不要再映射 p：boot.keymaps 在 boot.pack 之后执行，会覆盖插件的映射。
 -- vim.keymap.set("n", "p", "p`[v`]=")
 

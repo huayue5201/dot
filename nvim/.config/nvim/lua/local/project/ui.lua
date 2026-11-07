@@ -197,7 +197,7 @@ function M.open(opts)
 	end
 	vim.api.nvim_buf_set_name(buf, name)
 	-- 不需要在这里禁用原地渲染：render-markdown 的 ignore() 对 "project://" 开头的
-	-- buffer 名直接返回 true（见 lua/plugins/render-markdown.lua），压根不会 attach。
+	-- buffer 名直接返回 true（见 lua/plugins/lang/render-markdown.lua），压根不会 attach。
 
 	attach(buf, origin_win, origin_buf)
 

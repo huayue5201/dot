@@ -6,6 +6,8 @@ local state = require("lsp_ext.state")
 
 local d = vim.diagnostic
 
+local live = require("lsp_ext.live_list")
+
 local severity_order = {
 	d.severity.ERROR,
 	d.severity.WARN,
@@ -56,49 +58,63 @@ local function show_project_qflist(open)
 	})
 end
 
+local function project_qf_win()
+	local winid = vim.fn.getqflist({ winid = 1 }).winid
+	if winid and winid > 0 and vim.api.nvim_win_is_valid(winid) then
+		return winid
+	end
+end
+
+local function project_qf_ours()
+	return vim.fn.getqflist({ title = 1 }).title == WORKSPACE_QF_TITLE
+end
+
+--- 在列表窗口里再按 grd/grD 时，别拿 qf buffer 当目标（它没有诊断）
+--- @return integer? win 一个普通文件窗口
+local function resolve_file_win()
+	local win = vim.api.nvim_get_current_win()
+	if vim.bo[vim.api.nvim_win_get_buf(win)].buftype ~= "quickfix" then
+		return win
+	end
+	for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+		if vim.bo[vim.api.nvim_win_get_buf(w)].buftype ~= "quickfix" then
+			return w
+		end
+	end
+end
+
 --- 显式请求 workspace 级诊断（默认不再于 LspAttach 时扫描）
 --- rust-analyzer 的 workspace/diagnostic 会触发全项目检查，代价很高，
---- 所以改成只由 `grD` 触发；结果分批返回，在 8 秒窗口内随诊断变化刷新 quickfix，
+--- 所以改成只由 `grD` 触发；结果分批返回，只要 qf 窗口开着就随诊断变化刷新。
 --- 这样仍然是「一键看到项目诊断」，只是不再每次打开文件都扫一遍。
 function M.open_all_diagnostics()
+	local win = resolve_file_win()
+	if not win then
+		return
+	end
+	vim.api.nvim_set_current_win(win)
 	local bufnr = vim.api.nvim_get_current_buf()
 	local clients = vim.lsp.get_clients({ bufnr = bufnr, method = "workspace/diagnostic" })
 
 	if #clients == 0 then
 		show_project_qflist(true)
-		return
-	end
-
-	for _, client in ipairs(clients) do
-		vim.lsp.buf.workspace_diagnostics({ client_id = client.id })
-	end
-
-	local group = vim.api.nvim_create_augroup("UserWorkspaceDiagnosticsQf", { clear = true })
-	local timer = vim.uv.new_timer()
-
-	local function stop()
-		if timer then
-			timer:stop()
-			if not timer:is_closing() then
-				timer:close()
-			end
-			timer = nil
+	else
+		for _, client in ipairs(clients) do
+			vim.lsp.buf.workspace_diagnostics({ client_id = client.id })
 		end
-		pcall(vim.api.nvim_del_augroup_by_id, group)
+		show_project_qflist(true)
+		vim.notify("workspace diagnostics: scanning...", vim.log.levels.INFO)
 	end
 
-	vim.api.nvim_create_autocmd("DiagnosticChanged", {
-		group = group,
-		callback = function()
-			vim.schedule(function()
-				show_project_qflist(false)
-			end)
+	live.attach({
+		kind = "quickfix",
+		title = WORKSPACE_QF_TITLE,
+		find_win = project_qf_win,
+		is_ours = project_qf_ours,
+		build = function()
+			return vim.diagnostic.toqflist(vim.diagnostic.get(nil, { severity = { min = vim.diagnostic.severity.WARN } }))
 		end,
 	})
-
-	timer:start(8000, 0, vim.schedule_wrap(stop))
-	show_project_qflist(true)
-	vim.notify("workspace diagnostics: scanning...", vim.log.levels.INFO)
 end
 
 local BUF_LOC_TITLE = "Buffer Diagnostics"
@@ -106,8 +122,6 @@ local BUF_LOC_SEVERITY = { min = vim.diagnostic.severity.HINT }
 
 ---@brief `grd` 打开的 buffer 诊断 loclist 会随诊断变化就地刷新（不重开窗口、不抢焦点）。
 --- 只维护一份：再次 grd 会重建状态；loclist 窗口或文件窗口关掉后自动注销。
-local live_loc = { group = nil, file_win = nil, buf = nil, timer = nil }
-
 local function find_buf_loc_window()
 	for _, win in ipairs(vim.api.nvim_list_wins()) do
 		local info = vim.fn.getwininfo(win)[1]
@@ -117,143 +131,36 @@ local function find_buf_loc_window()
 	end
 end
 
-local function stop_live_loclist()
-	local s = live_loc
-	if s.timer then
-		s.timer:stop()
-		if not s.timer:is_closing() then
-			s.timer:close()
-		end
-	end
-	s.timer = nil
-	if s.group then
-		pcall(vim.api.nvim_del_augroup_by_id, s.group)
-	end
-	s.group, s.file_win, s.buf = nil, nil, nil
-end
-
-local function refresh_live_loclist()
-	local s = live_loc
-	if not s.group then
-		return
-	end
-	if not (s.file_win and vim.api.nvim_win_is_valid(s.file_win)) then
-		return stop_live_loclist()
-	end
-	if not (s.buf and vim.api.nvim_buf_is_valid(s.buf)) then
-		return stop_live_loclist()
-	end
-
-	local list_win = find_buf_loc_window()
-	if not list_win then
-		return stop_live_loclist()
-	end
-
-	-- 记住光标下的条目，刷新后按 (bufnr, lnum) 找回，避免条目增删导致漂移
-	local old_items = vim.fn.getloclist(list_win, { items = 1 }).items or {}
-	local line = vim.api.nvim_win_get_cursor(list_win)[1]
-	local anchor = old_items[line]
-
-	local items = vim.diagnostic.toqflist(vim.diagnostic.get(s.buf, { severity = BUF_LOC_SEVERITY }))
-	vim.fn.setloclist(s.file_win, {}, "r", { items = items, title = BUF_LOC_TITLE })
-
-	if not vim.api.nvim_win_is_valid(list_win) then
-		return
-	end
-	local target
-	if anchor then
-		for i, item in ipairs(items) do
-			if item.bufnr == anchor.bufnr and item.lnum == anchor.lnum then
-				target = i
-				break
-			end
-		end
-	end
-	target = target or math.min(line, #items)
-	if target >= 1 then
-		pcall(vim.api.nvim_win_set_cursor, list_win, { target, 0 })
-	end
-end
-
-local function schedule_live_refresh()
-	local s = live_loc
-	if not s.group then
-		return
-	end
-	if not s.timer then
-		s.timer = vim.uv.new_timer()
-	end
-	s.timer:stop()
-	s.timer:start(
-		150,
-		0,
-		vim.schedule_wrap(function()
-			if live_loc.group then
-				refresh_live_loclist()
-			end
-		end)
-	)
-end
-
-local function start_live_loclist(file_win, bufnr)
-	stop_live_loclist()
-	if not find_buf_loc_window() then
-		return -- 没有诊断，loclist 窗口没开，不用挂监听
-	end
-
-	live_loc.file_win, live_loc.buf = file_win, bufnr
-	local group = vim.api.nvim_create_augroup("UserLiveBufferDiagnostics", { clear = true })
-	live_loc.group = group
-
-	vim.api.nvim_create_autocmd("DiagnosticChanged", {
-		group = group,
-		callback = function(ev)
-			if ev.buf == live_loc.buf then
-				schedule_live_refresh()
-			end
-		end,
-	})
-
-	-- 文件窗口里换 buffer 时，loclist 跟着换成新 buffer 的诊断
-	vim.api.nvim_create_autocmd("BufEnter", {
-		group = group,
-		callback = function(ev)
-			if vim.api.nvim_get_current_win() ~= live_loc.file_win then
-				return
-			end
-			live_loc.buf = ev.buf
-			schedule_live_refresh()
-		end,
-	})
-
-	vim.api.nvim_create_autocmd("WinClosed", {
-		group = group,
-		callback = function()
-			vim.schedule(function()
-				if not live_loc.group then
-					return
-				end
-				if not (live_loc.file_win and vim.api.nvim_win_is_valid(live_loc.file_win)) then
-					return stop_live_loclist()
-				end
-				if not find_buf_loc_window() then
-					stop_live_loclist()
-				end
-			end)
-		end,
-	})
-end
-
 function M.open_buffer_diagnostics()
 	local file_win = vim.api.nvim_get_current_win()
-	local bufnr = vim.api.nvim_get_current_buf()
+	if vim.bo.buftype == "quickfix" then
+		-- 从列表窗口发起：用 loclist 记的来源窗口，而不是 qf buffer
+		local src = vim.fn.getloclist(0, { filewinid = 1 }).filewinid
+		if src and src > 0 and vim.api.nvim_win_is_valid(src) then
+			file_win = src
+		end
+	end
+	vim.api.nvim_set_current_win(file_win)
+	local bufnr = vim.api.nvim_win_get_buf(file_win)
 
 	vim.diagnostic.setloclist({
 		open = true,
 		title = BUF_LOC_TITLE,
 		severity = BUF_LOC_SEVERITY,
 	})
-	start_live_loclist(file_win, bufnr)
+	live.attach({
+		kind = "loclist",
+		title = BUF_LOC_TITLE,
+		srcwin = file_win,
+		srcbuf = bufnr,
+		find_win = find_buf_loc_window,
+		is_ours = function()
+			return find_buf_loc_window() ~= nil
+		end,
+		build = function(s)
+			return vim.diagnostic.toqflist(vim.diagnostic.get(s.srcbuf, { severity = BUF_LOC_SEVERITY }))
+		end,
+	})
 end
 
 ---------------------------------------------------------
