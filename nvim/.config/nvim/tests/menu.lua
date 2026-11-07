@@ -11,6 +11,11 @@
 --   6. 单飞：菜单开着时第二次调用只返回 false，不叠第二层；结束后能再开
 --   6c. 输入模式下 Esc 只退回导航模式，不关菜单；再按 Esc 才取消
 --   6d. ? 打开按键帮助浮窗，任意键收起
+--   8. 大写查询走大小写不敏感的兜底，命中位置必须 0-based（高亮不偏格）；中文位置正确
+--   9. 输入模式的数字是查询字符（不是直接选中）；中文可输入、<BS> 多字节安全
+--   10. 列表超过 max_height 时滚动，选中项始终在视口内
+--   11. 锚点贴光标所在的屏幕行列（长行折行时不跑到行首），且始终钳制在屏幕内
+--   12. 没有标签的行（第 19 项以后）高亮不偏列；input/help 关掉后 buffer 全部释放
 --   7. setup() 之后 vim.ui.select 走的是这个菜单；M.builtin 保留原实现
 --
 -- 退出码：有失败 1，全通过 0。
@@ -309,6 +314,242 @@ check(hl:find("<Esc>", 1, true) ~= nil and hl:find("<CR>", 1, true) ~= nil, "帮
 check(#vim.api.nvim_list_wins() >= 1, "帮助收起后不应残留窗口")
 
 ----------------------------------------------------------------------
+-- 8. 大小写 / 多字节：兜底位置也必须跟 matchfuzzypos 一样是 0-based
+----------------------------------------------------------------------
+
+-- matchfuzzypos 是大小写敏感的（"FOO" 匹配不到 "foo bar"），所以大写查询走兜底；
+-- 兜底曾经把 find 的 1-based 位置塞进 positions，高亮整体偏一格。
+local up = menu.filter({ "foo bar" }, "FOO", tostring)
+check(#up == 1, "大写查询应命中 foo bar，实际 " .. #up .. " 个")
+local up_pos = up[1] and table.concat(up[1].positions or {}, ",") or ""
+check(up_pos == "0,1,2", "兜底命中位置应为 0-based 字节偏移 0,1,2，实际 " .. up_pos)
+
+local cjk = menu.filter({ "zhong 中文" }, "中文", tostring)
+check(
+	#cjk == 1 and cjk[1].positions[1] == 6,
+	"中文查询应命中并给出字符起始字节，实际 " .. vim.inspect(cjk[1] and cjk[1].positions)
+)
+check(
+	#(cjk[1] and cjk[1].positions or {}) == 2,
+	"中文命中不应把字符拆成字节，实际 " .. vim.inspect(cjk[1] and cjk[1].positions)
+)
+
+----------------------------------------------------------------------
+-- 9. 输入模式下的数字是查询字符；中文可输入、退格安全
+----------------------------------------------------------------------
+
+-- 导航模式按 1 选第 1 项（"b2"）；输入模式按 1 应过滤出 "a1"
+r = run("1", { "b2", "a1" })
+check(r.item == "b2", "导航模式按 1 应选中第 1 项，实际 " .. tostring(r.item))
+r = run("i" .. "1" .. kc("<CR>"), { "b2", "a1" })
+check(r.item == "a1", "输入模式按 1 应作为查询过滤而不是选中第 1 项，实际 " .. tostring(r.item))
+
+r = run("i" .. "中" .. kc("<BS>") .. "英" .. kc("<CR>"), { "中文", "英文" })
+check(r.item == "英文", "中文输入与 <BS> 退格应可用，实际 " .. tostring(r.item))
+
+----------------------------------------------------------------------
+-- 10. 超过 max_height 时滚动，选中项始终可见
+----------------------------------------------------------------------
+
+local many = {}
+for i = 1, 40 do
+	many[i] = ("item%02d"):format(i)
+end
+local seen = {}
+local orig_rk_scroll = menu._read_key
+local reads = 0
+local old_max = menu.config.max_height
+menu.config.max_height = 5
+menu._read_key = function()
+	reads = reads + 1
+	for _, w in ipairs(vim.api.nvim_list_wins()) do
+		local cfg = vim.api.nvim_win_get_config(w)
+		local text = ""
+		if cfg.title then
+			for _, chunk in ipairs(cfg.title) do
+				text = text .. chunk[1]
+			end
+		end
+		if text == "Many: " then
+			seen[#seen + 1] = {
+				height = vim.api.nvim_win_get_height(w),
+				lines = vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(w), 0, -1, false),
+				cursor = vim.api.nvim_win_get_cursor(w),
+			}
+		end
+	end
+	if reads <= 20 then
+		return kc("<C-n>")
+	end
+	return kc("<Esc>")
+end
+menu.select(many, { prompt = "Many: ", format_item = tostring }, function() end)
+menu._read_key = orig_rk_scroll
+menu.config.max_height = old_max
+
+local tall = false
+for _, s in ipairs(seen) do
+	if s.height > 5 then
+		tall = true
+	end
+end
+check(#seen > 0, "应能采样到菜单浮窗")
+check(not tall, "浮窗高度不应超过 max_height=5")
+local last_seen = seen[#seen]
+check(
+	last_seen and #last_seen.lines == 5,
+	"视口应只有 5 行，实际 " .. tostring(last_seen and #last_seen.lines)
+)
+check(
+	last_seen and last_seen.lines[5] and last_seen.lines[5]:find("item21", 1, true) ~= nil,
+	"第 21 项应滚入视口底部，实际 " .. tostring(last_seen and last_seen.lines[5])
+)
+check(
+	last_seen and last_seen.cursor[1] == 5,
+	"选中项应落在视口最后一行，实际 " .. vim.inspect(last_seen and last_seen.cursor)
+)
+
+----------------------------------------------------------------------
+-- 11. 锚点用光标所在屏幕行列（长行折行时不能跑到行首）
+----------------------------------------------------------------------
+
+local anchor = {}
+vim.wo.wrap = true
+vim.api.nvim_buf_set_lines(0, 0, -1, false, { string.rep("abcdefghij", 20) })
+vim.api.nvim_win_set_cursor(0, { 1, 95 })
+vim.cmd("redraw")
+-- 期望值用 screenpos 独立算：光标在第 1 个屏幕行的后面几行，行首则在第 1 行
+local want = vim.fn.screenpos(0, 1, 96)
+local line_start = vim.fn.screenpos(0, 1, 1)
+local orig_rk_anchor = menu._read_key
+menu._read_key = function()
+	for _, w in ipairs(vim.api.nvim_list_wins()) do
+		local cfg = vim.api.nvim_win_get_config(w)
+		local text = ""
+		if cfg.title then
+			for _, chunk in ipairs(cfg.title) do
+				text = text .. chunk[1]
+			end
+		end
+		if text == "Anchor: " then
+			anchor = vim.tbl_extend("force", anchor, {
+				win = w,
+				row = cfg.row,
+				col = cfg.col,
+				width = cfg.width,
+			})
+		end
+	end
+	return kc("<Esc>")
+end
+menu.select({ "a", "b" }, { prompt = "Anchor: " }, function() end)
+menu._read_key = orig_rk_anchor
+
+check(anchor.win ~= nil, "应打开菜单浮窗")
+check(want.row > line_start.row, "测试预设：光标应在折行后的屏幕行，实际 " .. vim.inspect(want))
+check(
+	anchor.row == want.row,
+	("菜单应贴光标屏幕行 %d，实际 %s（行首在第 %d 行）"):format(
+		want.row,
+		tostring(anchor.row),
+		line_start.row
+	)
+)
+check(anchor.col == want.col, ("菜单应贴光标屏幕列 %d，实际 %s"):format(want.col, tostring(anchor.col)))
+-- 宽度是自适应的（config.width 只是上限），比的是浮窗实际宽度
+check(
+	anchor.col + anchor.width <= vim.go.columns + 1,
+	("菜单不应超出右边界（col=%s, width=%d, columns=%d）"):format(
+		tostring(anchor.col),
+		tostring(anchor.width),
+		vim.go.columns
+	)
+)
+
+----------------------------------------------------------------------
+-- 12. 没有标签的行（第 19 项以后）高亮列不能偏；关菜单后 buffer 全部释放
+----------------------------------------------------------------------
+
+local many3 = {}
+for i = 1, 30 do
+	many3[i] = ("abc%02d"):format(i)
+end
+local snap = {}
+local old_max3 = menu.config.max_height
+menu.config.max_height = 40
+local orig_rk_label = menu._read_key
+local step = 0
+menu._read_key = function()
+	step = step + 1
+	if step == 5 then
+		for _, w in ipairs(vim.api.nvim_list_wins()) do
+			local cfg = vim.api.nvim_win_get_config(w)
+			local text = ""
+			if cfg.title then
+				for _, chunk in ipairs(cfg.title) do
+					text = text .. chunk[1]
+				end
+			end
+			if text == "Lbl: " then
+				local buf = vim.api.nvim_win_get_buf(w)
+				snap.lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+				snap.marks = {}
+				for _, m in ipairs(vim.api.nvim_buf_get_extmarks(buf, -1, 0, -1, { details = true })) do
+					if m[4].hl_group == "lib-menu-match" then
+						snap.marks[#snap.marks + 1] = { line = m[2], col = m[3] }
+					end
+				end
+			end
+		end
+	end
+	local keys = { "i", "a", "b", "c", kc("<Esc>"), kc("<Esc>") }
+	return keys[step]
+end
+local bufs_before = {}
+for _, b in ipairs(vim.api.nvim_list_bufs()) do
+	bufs_before[b] = true
+end
+menu.select(many3, { prompt = "Lbl: ", format_item = tostring }, function() end)
+menu._read_key = orig_rk_label
+menu.config.max_height = old_max3
+
+local marks_by_line = {}
+for _, m in ipairs(snap.marks or {}) do
+	marks_by_line[m.line] = marks_by_line[m.line] or {}
+	table.insert(marks_by_line[m.line], m.col)
+end
+-- 第 1 行有标签 "1": " 1 abc01"，文本从 0-based 列 3 开始，命中在 3,4,5
+local labeled = table.concat(marks_by_line[0] or {}, ",")
+-- 第 21 行无标签: " abc21"，文本从列 1 开始，命中在 1,2,3
+local unlabeled = table.concat(marks_by_line[20] or {}, ",")
+check(labeled == "3,4,5", "有标签行高亮列应为 3,4,5，实际 " .. labeled)
+check(unlabeled == "1,2,3", "无标签行高亮列应为 1,2,3，实际 " .. unlabeled)
+
+for _, b in ipairs(vim.api.nvim_list_bufs()) do
+	check(
+		bufs_before[b] or not vim.api.nvim_buf_is_valid(b),
+		"关菜单后不应遗留 scratch buffer: " .. tostring(b)
+	)
+end
+
+-- 帮助浮窗也走一遍：'?' 开、Esc 收、Esc 关，buffer 同样不能漏
+local orig_rk_help = menu._read_key
+local hstep = 0
+menu._read_key = function()
+	hstep = hstep + 1
+	local keys = { "?", kc("<Esc>"), kc("<Esc>") }
+	return keys[hstep]
+end
+menu.select({ "a" }, { prompt = "Help: " }, function() end)
+menu._read_key = orig_rk_help
+for _, b in ipairs(vim.api.nvim_list_bufs()) do
+	check(
+		bufs_before[b] or not vim.api.nvim_buf_is_valid(b),
+		"关帮助浮窗后不应遗留 scratch buffer: " .. tostring(b)
+	)
+end
+
+----------------------------------------------------------------------
 -- 7. 接管 vim.ui.select
 ----------------------------------------------------------------------
 
@@ -340,7 +581,9 @@ vim.ui.select = orig
 ----------------------------------------------------------------------
 
 if #fails == 0 then
-	print("ok: 浮窗选择菜单（过滤/标签/键位/取消/单飞/接管 vim.ui.select）符合预期")
+	print(
+		"ok: 浮窗选择菜单（过滤/标签/键位/取消/单飞/滚动/锚点/接管 vim.ui.select）符合预期"
+	)
 	vim.cmd("qall!")
 end
 

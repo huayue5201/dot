@@ -17,11 +17,14 @@
 --
 -- 两种模式（跟 dropbar 的菜单一致：打开时是导航模式，不会一上来就吃字符）：
 --   导航模式：j / <Down> / <C-n> 下移，k / <Up> / <C-p> 上移；1-9 直接选，10 项以后 M-<pivot>；
+--            （数字与 M-<pivot> 只在导航模式生效，输入模式下它们是普通查询字符）
 --            <CR> 选当前；i 或 f 或 / 进入输入模式；? 打开按键帮助；Esc / q 取消。
---   输入模式：字符进入查询（内建 matchfuzzypos），<BS> 退格，<C-u> 清空；
---            <CR> 选当前，j/k 仍然可以上下移动；
+--   输入模式：字符进入查询（内建 matchfuzzypos，任何可打印字符，含中文），<BS> 退格，<C-u> 清空；
+--            <CR> 选当前；j/k 这时是查询字符（上下移动用 <Down>/<Up> 或 <C-n>/<C-p>）；
 --            Esc 只退回导航模式（查询保留），再按 Esc 才取消。
 --   帮助浮窗：'?' 打开，任意键（含 Esc）收起；关菜单时一并关掉。
+-- 列表超过 config.max_height 时只画一个视口，选中项始终在视口内（不做平滑滚动）。
+-- 浮窗位置锚在**光标所在的屏幕行列**（不是行首）：长行折行 / 水平滚动时也不会错位。
 -- 提示文本（prompt）显示在浮窗上边框中间；输入模式时列表下方**单独浮一个输入框**
 -- （" ❯ " + 查询），跟 dropbar 的菜单一致。输入位置用一个 Cursor 高亮的格子画出来：
 -- 浮窗里的真光标在部分终端/配置下根本不显示，不能只依赖它。
@@ -33,7 +36,7 @@ local M = {}
 
 M.config = {
 	width = 64, -- 浮窗最大宽度（列）
-	max_height = 14, -- 最多显示多少项
+	max_height = 14, -- 视口最多显示多少项（超出后滚动）
 	border = "rounded",
 	pivots = "asdfghjkl", -- 第 10 项起用 M-<pivot> 标签（与 dropbar 的肌肉记忆一致）
 }
@@ -43,8 +46,27 @@ M._busy = false
 
 local ns = api.nvim_create_namespace("lib-menu")
 
--- 输入框前缀 " ❯ " 的字节长度（❯ 是 3 字节，光标列按字节算）
-local INPUT_PREFIX_BYTES = 5
+-- 输入框前缀：❯ 是 3 字节，光标列按字节算
+local INPUT_PREFIX = " ❯ "
+local INPUT_PREFIX_BYTES = #INPUT_PREFIX
+
+---keytrans 之后的特殊键（<CR>/<C-n>/<M-x> …）
+---@param k string
+---@return boolean
+local function is_special(k)
+	return #k > 2 and k:sub(1, 1) == "<" and k:sub(-1) == ">"
+end
+
+---删掉最后一个字符（多字节安全，不会把中文劈成非法 UTF-8）
+---@param s string
+---@return string
+local function drop_last_char(s)
+	local n = fn.strchars(s)
+	if n <= 1 then
+		return ""
+	end
+	return s:sub(1, fn.byteidx(s, n - 1))
+end
 
 ---第 idx 项的标签
 ---@param idx integer
@@ -100,15 +122,19 @@ function M.filter(items, query, format_item)
 			return out
 		end
 	end
-	-- 兜底：大小写不敏感的子串匹配（matchfuzzypos 对中文/符号不总是友好）
+	-- 兜底：大小写不敏感的子串匹配（matchfuzzypos 是大小写敏感的，查询里含大写时基本都会落到这里）
+	-- positions 统一成 0-based 字节偏移（与 matchfuzzypos 一致），且只标字符起点——
+	-- 逐字节标会把多字节字符切成半个字。
 	local needle = query:lower()
+	local needle_chars = fn.strchars(needle)
 	for i, item in ipairs(items) do
 		local text = texts[i]
 		local s = text:lower():find(needle, 1, true)
 		if s then
 			local pos = {}
-			for k = s, s + #needle - 1 do
-				pos[#pos + 1] = k
+			local first = fn.strchars(text:sub(1, s - 1))
+			for n = 0, needle_chars - 1 do
+				pos[#pos + 1] = fn.byteidx(text, first + n)
 			end
 			out[#out + 1] = { item = item, idx = i, text = text, positions = pos }
 		end
@@ -128,13 +154,6 @@ function M.line(idx, text)
 	return label .. " " .. text
 end
 
----上边框中间的标题：只放提示词（查询本身是 buffer 的第一行，光标由终端画）
----@param state table
----@return string
-function M.title(state)
-	return state.prompt
-end
-
 ---按键帮助（? 打开）
 M.help_entries = {
 	{ "j / k, <Down>/<Up>", "move" },
@@ -142,7 +161,7 @@ M.help_entries = {
 	{ "1-9", "pick by number" },
 	{ "M-<pivot>", "pick items 10+" },
 	{ "<CR>", "accept" },
-	{ "i / f / /", "type to filter" },
+	{ "i / f / /", "type to filter (j/k become text)" },
 	{ "<BS> / <C-u>", "delete char / clear query" },
 	{ "<Esc>", "leave input mode, then close" },
 	{ "?", "this help" },
@@ -182,12 +201,13 @@ local function render_help(state)
 	local height = #lines
 
 	-- 优先放菜单右边，右边放不下就放左边
-	local row, col = state.pos.row, state.pos.col + M.config.width + 2
+	local col = state.col + state.width + 2
 	if col + width > vim.go.columns then
-		col = state.pos.col - width - 2
+		col = state.col - width - 2
 	end
-	row = math.min(row, math.max(1, vim.go.lines - height - 1))
-	col = math.max(1, col)
+	local row = math.min(state.row, math.max(1, vim.go.lines - height - 1))
+	-- 左边保底：压到文本区起点左边就会盖住下面窗口的 statuscolumn
+	col = math.max(state.left or 1, col)
 
 	if state.help_buf == nil or not api.nvim_buf_is_valid(state.help_buf) then
 		state.help_buf = api.nvim_create_buf(false, true)
@@ -224,46 +244,53 @@ local function render_help(state)
 	end
 end
 
----计算浮窗位置：优先贴光标下方，放不下就往上收
+---计算浮窗锚点：贴**光标所在的屏幕行列**（不是行首——长行折行、水平滚动时行首可能在别的
+---屏幕行甚至不可见，按它摆会把菜单甩到别处）。
 ---@return { row: integer, col: integer }
 local function anchor()
 	local win = api.nvim_get_current_win()
-	local pos = fn.screenpos(win, fn.line("."), 1)
+	local cur = api.nvim_win_get_cursor(win)
+	local pos = fn.screenpos(win, cur[1], cur[2] + 1)
 	-- 文本区（越过 statuscolumn / number / sign 列）的起始屏幕列：
 	-- 浮窗绝不能压到那里，否则 statuscolumn 上会留下残影
 	local info = fn.getwininfo(win)[1]
 	local textoff = info and info.textoff or 0
-	local left = (fn.win_screenpos(win)[2] or 1) + textoff
-	return { row = math.max(1, pos.row), col = math.max(left, pos.col) }
+	local base = fn.win_screenpos(win)
+	local left = (base[2] or 1) + textoff
+	local row, col = pos.row, pos.col
+	if row < 1 or col < 1 then
+		-- 光标不在可视区（极端滚动 / 折行情况）：退回窗口文本区左上角
+		row, col = math.max(1, base[1] or 1), left
+	end
+	return { row = row, col = math.max(left, col), left = left }
 end
 
 ---输入框：独立的浮窗，贴在列表下方（跟 dropbar 的菜单一样，脱离列表单独浮着）。
 ---输入位置用 Cursor 高亮的格子画出来——浮窗里的真光标在部分终端/配置下根本不显示，
 ---只依赖它就会「看不见光标」；真光标正常时与这一格重合。
 ---@param state table
----@param menu_row integer 列表浮窗的上边（不含边框）
----@param menu_height integer 列表浮窗的行数
-local function render_input(state, menu_row, menu_height)
+local function render_input(state)
 	if not (state.mode == "input" or state.query ~= "") then
 		if state.input_win and api.nvim_win_is_valid(state.input_win) then
 			pcall(api.nvim_win_close, state.input_win, true)
 		end
 		state.input_win = nil
+		-- 关掉当前窗口后焦点可能落到别的窗口：明确回菜单（按键循环还在菜单上）
+		if state.win and api.nvim_win_is_valid(state.win) then
+			pcall(api.nvim_set_current_win, state.win)
+		end
 		return
 	end
 
-	local line = " ❯ " .. state.query .. " "
+	local line = INPUT_PREFIX .. state.query .. " "
 	-- 宽度与列表浮窗一致：两个浮窗左右边对齐，看起来是同一个面板
-	local width = M.config.width
+	local width = state.width or M.config.width
 	-- 列表带边框，下沿再留一行空；下面放不下就翻到列表上方
-	local row = menu_row + menu_height + 2
-	if row + 2 >= vim.go.lines then
-		row = math.max(1, menu_row - 3)
+	local row = state.row + state.height + 2
+	if row + 2 > vim.go.lines then
+		row = math.max(1, state.row - 3)
 	end
-	local col = state.pos.col
-	if col + width > vim.go.columns then
-		col = math.max(1, vim.go.columns - width - 1)
-	end
+	local col = state.col
 
 	if state.input_buf == nil or not api.nvim_buf_is_valid(state.input_buf) then
 		state.input_buf = api.nvim_create_buf(false, true)
@@ -295,7 +322,7 @@ local function render_input(state, menu_row, menu_height)
 	end
 
 	-- 前缀 " ❯ " 的 ❯ 在字节 1..3
-	api.nvim_buf_set_extmark(state.input_buf, ns, 0, 1, { end_col = 4, hl_group = "Identifier" })
+	api.nvim_buf_set_extmark(state.input_buf, ns, 0, 1, { end_col = 4, hl_group = "lib-menu-label" })
 	local col_byte = INPUT_PREFIX_BYTES + #state.query
 	api.nvim_buf_set_extmark(state.input_buf, ns, 0, col_byte, {
 		end_col = col_byte + 1,
@@ -310,17 +337,32 @@ end
 ---@param state table
 local function render(state)
 	local view = state.view
+	local total = #view
 	local lines = {}
-	if #view == 0 then
+	if total == 0 then
 		lines[1] = state.query == "" and "  (empty)" or "  (no match)"
 	end
-	local cursor_line = 1
-	for i, entry in ipairs(view) do
-		lines[#lines + 1] = " " .. M.line(i, entry.text)
-		if i == state.sel then
-			cursor_line = #lines
+	-- 视口：最多 max_height 行，选中项始终保持在视口内（不做平滑滚动）
+	local height = math.min(math.max(total, 1), math.max(1, M.config.max_height))
+	local top = 1
+	if total > 0 then
+		local t = state.top or 1
+		if state.sel < t then
+			t = state.sel
+		elseif state.sel >= t + height then
+			t = state.sel - height + 1
+		end
+		top = math.max(1, math.min(t, total - height + 1))
+		state.top = top
+		for i = top, top + height - 1 do
+			local entry = view[i]
+			if not entry then
+				break
+			end
+			lines[#lines + 1] = " " .. M.line(i, entry.text)
 		end
 	end
+	height = #lines
 
 	if state.buf == nil then
 		state.buf = api.nvim_create_buf(false, true)
@@ -335,19 +377,41 @@ local function render(state)
 	api.nvim_set_option_value("modifiable", false, { buf = state.buf })
 	api.nvim_buf_clear_namespace(state.buf, ns, 0, -1)
 
-	local height = #lines
-
+	-- 宽度自适应内容：lines 里已经含「行首空格 + 数字/M-<pivot> 标签 + 文本」，
+	-- M.config.width 只是上限，超宽终端上菜单也不会拉成一条长条。
+	-- 标题不算在内：prompt 往往很长（一到两行提示），拿它算会把菜单撑成满宽；
+	-- 标题放不下时由 nvim 自己截断。
+	local content_w = 0
+	for _, l in ipairs(lines) do
+		content_w = math.max(content_w, fn.strdisplaywidth(l))
+	end
+	local width = math.max(10, math.min(M.config.width, content_w + 1))
 	local row = state.pos.row
+	local col = state.pos.col
+	-- 右/下边界钳制：nvim 不会因为浮窗出屏而报错，它只会静静地画在屏幕外。
+	-- 钳制时先缩宽度、再挪列，且列不得小于文本区起点 left —— 否则浮窗会盖住下面
+	-- 窗口的 statuscolumn / 行号列，菜单开着期间那里就多出一列深色竖纹。
+	local left = state.pos.left or 1
+	if left + width > vim.go.columns then
+		width = math.max(1, vim.go.columns - left)
+	end
+	if col + width > vim.go.columns then
+		col = math.max(left, vim.go.columns - width - 1)
+	end
+	state.left = left
+	row = math.max(1, math.min(row, vim.go.lines - height - 1))
+	-- 之后 input / help 浮窗都按菜单的实际位置摆（state.pos 只是光标锚点）
+	state.row, state.col, state.height, state.width = row, col, height, width
 
 	local win_opts = {
 		relative = "editor",
 		row = row,
-		col = state.pos.col,
-		width = M.config.width,
+		col = col,
+		width = width,
 		height = height,
 		style = "minimal",
 		border = M.config.border,
-		title = M.title(state),
+		title = state.prompt,
 		title_pos = "center",
 		-- 关键：浮窗创建期间不要跑 autocmd。statuscol.nvim 的处理器用
 		-- nvim_get_current_win() 定位窗口，浮窗创建时「当前窗口」还是下面那个，
@@ -357,12 +421,10 @@ local function render(state)
 	}
 	if state.win == nil or not api.nvim_win_is_valid(state.win) then
 		state.origin_win = api.nvim_get_current_win()
-		-- 菜单开着时把原窗口的 'cursorline' 关掉：那一条当前行高亮会让人以为
-		-- 光标还留在原 buffer 里（真光标其实已经在浮窗上了）
-		pcall(function()
-			state.origin_cursorline = api.nvim_get_option_value("cursorline", { win = state.origin_win })
-			api.nvim_set_option_value("cursorline", false, { win = state.origin_win })
-		end)
+		-- 开/关菜单都**不要**动原窗口的任何窗口选项（尤其 'cursorline'）：
+		-- 改一个窗口选项会让整个窗口重画，菜单一关就是一次整屏闪烁
+		-- （实测 14 249 B / 全 30 行）。原来这里为了「别让人以为光标还在原 buffer」
+		-- 关掉 cursorline、close() 里再开回来，正是那次闪烁的来源，已删除。
 		-- enter = true：成为当前窗口，终端才会在查询行画真光标（关窗时切回 origin_win）
 		state.win = api.nvim_open_win(state.buf, true, win_opts)
 		api.nvim_set_option_value("winhl", "Normal:Pmenu,FloatBorder:FloatBorder,FloatTitle:Title", { win = state.win })
@@ -378,32 +440,35 @@ local function render(state)
 		api.nvim_win_set_config(state.win, win_opts)
 	end
 
-	-- 标签与命中位置的高亮（行首一个空格 + 标签 + 空格）
-	for i, entry in ipairs(view) do
-		local lnum = i - 1
-		local label = M.label(i)
-		local text_start = 1 + #label + 1
-		if label ~= "" then
-			api.nvim_buf_set_extmark(state.buf, ns, lnum, 1, {
-				end_col = 1 + #label,
-				hl_group = "Identifier",
-			})
-		end
-		for _, pos in ipairs(entry.positions) do
-			local col = text_start + pos
-			if col < #lines[i] then
-				api.nvim_buf_set_extmark(state.buf, ns, lnum, col, {
-					end_col = col + 1,
-					hl_group = "Special",
-					priority = 200,
+	-- 标签与命中位置的高亮（行首一个空格 + 标签 + 空格；超过 M-<pivot> 范围的项没有标签）
+	for n, text_line in ipairs(lines) do
+		local entry = view[top + n - 1]
+		if entry then
+			local lnum = n - 1
+			local label = M.label(top + n - 1)
+			local text_start = label == "" and 1 or (2 + #label)
+			if label ~= "" then
+				api.nvim_buf_set_extmark(state.buf, ns, lnum, 1, {
+					end_col = 1 + #label,
+					hl_group = "lib-menu-label",
 				})
+			end
+			for _, pos in ipairs(entry.positions) do
+				local col = text_start + pos
+				if col < #text_line then
+					api.nvim_buf_set_extmark(state.buf, ns, lnum, col, {
+						end_col = col + 1,
+						hl_group = "lib-menu-match",
+						priority = 200,
+					})
+				end
 			end
 		end
 	end
-	-- 选中行用 extmark 铺满整行（不再依赖 'cursorline'：它会让浮窗参与
-	-- 下面窗口 statuscolumn 的重绘，留下残影）
-	local sel_line = state.sel
-	if sel_line <= #lines and lines[sel_line] then
+	-- 选中行用 extmark 铺满整行，不用浮窗自己的 'cursorline'：那样每次移动
+	-- 都靠窗口选项变化来重画，且高亮行会多出一条与 extmark 不一致的竖线
+	local sel_line = math.max(1, math.min(state.sel - top + 1, height))
+	if lines[sel_line] then
 		api.nvim_buf_set_extmark(state.buf, ns, sel_line - 1, 0, {
 			end_col = #lines[sel_line],
 			hl_group = "PmenuSel",
@@ -411,15 +476,12 @@ local function render(state)
 			priority = 50,
 		})
 	end
-	local cursor_col = 1
-	pcall(api.nvim_win_set_cursor, state.win, { cursor_line, cursor_col })
-	render_input(state, row, height)
+	pcall(api.nvim_win_set_cursor, state.win, { sel_line, 1 })
+	render_input(state)
 	render_help(state)
 	-- 阻塞读键前必须显式刷一次：nvim 在等待输入时不会自动 flush 待处理的浮窗重绘，
 	-- 少了这一句表现为「按了快捷键什么都没弹出」。
-	if vim.go.columns > 0 then
-		pcall(vim.cmd, "redraw")
-	end
+	pcall(vim.cmd, "redraw")
 end
 
 ---@param state table
@@ -434,14 +496,7 @@ local function close(state)
 	end
 	-- 焦点回到原窗口：否则下面那个窗口会按「非当前窗口」渲染一帧
 	if state.origin_win and api.nvim_win_is_valid(state.origin_win) then
-		if state.origin_cursorline ~= nil and api.nvim_win_is_valid(state.origin_win) then
-			pcall(api.nvim_set_option_value, "cursorline", state.origin_cursorline, { win = state.origin_win })
-		end
-		state.origin_cursorline = nil
 		pcall(api.nvim_set_current_win, state.origin_win)
-	end
-	if state.buf and api.nvim_buf_is_valid(state.buf) then
-		pcall(api.nvim_buf_delete, state.buf, { force = true })
 	end
 	if state.input_win and api.nvim_win_is_valid(state.input_win) then
 		pcall(api.nvim_win_close, state.input_win, true)
@@ -451,16 +506,23 @@ local function close(state)
 		pcall(api.nvim_win_close, state.help_win, true)
 	end
 	state.help_win = nil
-	state.win, state.buf = nil, nil
-	-- 关掉浮窗后强制整屏重绘：浮窗占过的区域（尤其 statuscolumn）不会被自动置脏，
-	-- 会留下深色竖纹残影，直到下一次整屏重绘（比如另一个浮窗弹出）才消失。
-	if vim.go.columns > 0 then
-		pcall(vim.cmd, "redraw!")
-		-- 再排一次：nvim 自己那一轮重绘可能在我们之后，会把 statuscolumn 画回旧内容
-		vim.schedule(function()
-			pcall(vim.cmd, "redraw!")
-		end)
+	-- 三个 scratch buffer 一起释放，不然每开一次菜单就漏一个隐藏 buffer
+	-- （不能写成 ipairs({ state.buf, state.input_buf, state.help_buf })：中间有 nil 时 ipairs 会提前停）
+	for _, field in ipairs({ "buf", "input_buf", "help_buf" }) do
+		local buf = state[field]
+		if buf and api.nvim_buf_is_valid(buf) then
+			pcall(api.nvim_buf_delete, buf, { force = true })
+		end
 	end
+	state.win, state.buf = nil, nil
+	state.input_buf, state.help_buf = nil, nil
+	-- close() 里只允许关窗 + 切回原窗口：**不要**再补 redraw!，也不要动原窗口
+	-- 的任何窗口选项（'cursorline' 之类）——两者都会把整个窗口重画一遍，终端
+	-- 闪一下，而且这一步发生在 on_choice 之前，正好卡在下一个浮窗弹出的瞬间。
+	-- 历史上这两句都是「statuscolumn 留残影」的误修：真正的成因是浮窗越过 textoff
+	-- 压住 statuscolumn + 浮窗自己用 cursorline + 建窗时跑 autocmd，现在分别由
+	-- 21141dda（不越过 textoff）、选中行改成 extmark、noautocmd = true + 清空浮窗
+	-- statuscolumn/signcolumn/foldcolumn 解决；关窗本身会把占过的区域置脏。
 end
 
 ---读一个键（测试里可替换 M._read_key 来驱动菜单）
@@ -548,6 +610,18 @@ function M.select(items, opts, on_choice)
 	local function refilter()
 		state.view = M.filter(items, state.query, state.formatted)
 		state.sel = 1
+		state.top = 1
+	end
+
+	---选中第 idx 项；idx 无效时返回 false
+	local function pick(idx)
+		local entry = state.view[idx]
+		if not entry then
+			return false
+		end
+		state.sel = idx
+		state.choice = entry
+		return true
 	end
 
 	local ok, err = pcall(function()
@@ -578,21 +652,16 @@ function M.select(items, opts, on_choice)
 				end
 			elseif state.help then
 				state.help = false -- 帮助开着时任何其他键都只收帮助
-			elseif kl == "?" and state.mode == "normal" then
-				state.help = true
 			elseif kl == "<cr>" or kl == "<nl>" then
-				local entry = state.view[state.sel]
-				if entry then
-					state.choice = entry
-				end
+				pick(state.sel)
 				break
 			elseif kl == "<down>" or kl == "<c-n>" then
 				move(1)
 			elseif kl == "<up>" or kl == "<c-p>" then
 				move(-1)
-			elseif kl == "<bs>" then
+			elseif kl == "<bs>" or kl == "<c-h>" then
 				if state.query ~= "" then
-					state.query = state.query:sub(1, -2)
+					state.query = drop_last_char(state.query)
 					refilter()
 				end
 			elseif kl == "<c-u>" then
@@ -600,43 +669,36 @@ function M.select(items, opts, on_choice)
 					state.query = ""
 					refilter()
 				end
-			elseif kl:match("^<m%-(%a)>$") then
-				local pivot = kl:match("^<m%-(%a)>$")
-				local idx = M.config.pivots:find(pivot, 1, true)
-				if idx and state.view[idx + 9] then
-					state.sel = idx + 9
-					state.choice = state.view[state.sel]
+			elseif state.mode == "normal" then
+				-- 导航模式：只有命令键生效，其余可打印字符忽略（免得一按普通字母就进查询）
+				if kl == "j" then
+					move(1)
+				elseif kl == "k" then
+					move(-1)
+				elseif kl == "q" then
 					break
+				elseif kl == "i" or kl == "f" or kl == "/" then
+					state.mode = "input"
+				elseif kl == "?" then
+					state.help = true
+				elseif kl:match("^%d$") then
+					if pick(tonumber(kl)) then
+						break
+					end
+				elseif kl:match("^<m%-(%a)>$") then
+					local slot = M.config.pivots:find(kl:match("^<m%-(%a)>$"), 1, true)
+					if slot and pick(slot + 9) then
+						break
+					end
 				end
-			elseif kl:match("^%d$") then
-				local idx = tonumber(kl)
-				if state.view[idx] then
-					state.sel = idx
-					state.choice = state.view[state.sel]
-					break
-				end
-			elseif kl == "j" or kl == "k" then
-				-- 导航模式下 j/k 上下移动；输入模式下 j/k 是查询字符
-				if state.mode == "normal" then
-					move(kl == "j" and 1 or -1)
-				else
-					state.query = state.query .. kl
-					refilter()
-				end
-			elseif state.mode == "normal" and (kl == "q") then
-				break
-			elseif #k == 1 and (k == "i" or k == "f" or k == "/") and state.mode == "normal" then
-				state.mode = "input"
-			elseif #k == 1 and k:byte() >= 32 and k:byte() < 127 then
-				-- 输入模式下才吃掉可打印字符
-				if state.mode == "input" then
-					state.query = state.query .. k
-					refilter()
-				end
+			elseif not is_special(k) then
+				-- 输入模式：任何可打印字符（含中文等多字节）都进查询
+				state.query = state.query .. k
+				refilter()
 			end
 		end
 	end)
-	close(state)
+	pcall(close, state)
 	M._busy = false
 	if not ok then
 		error(err, 0)
