@@ -11,7 +11,7 @@ return {
 		require("neoscroll").setup({
 			-- 只接管这些键，其余移动/滚动保持原生零开销
 			mappings = { "<C-u>", "<C-d>", "<C-b>", "<C-f>", "<C-y>", "<C-e>", "zt", "zz", "zb" },
-			hide_cursor = true, -- 交给 smear-cursor.nvim：两者都写 'guicursor'，同时开会打架
+			hide_cursor = false, -- 交给 smear-cursor.nvim：两者都写 'guicursor'，同时开会打架
 			stop_eof = true, -- 到文件尾就停，不空转
 			respect_scrolloff = true, -- 尊重全局 scrolloff=8，滚到边界仍留 8 行
 			cursor_scrolls_alone = true, -- 窗口滚到头时光标继续走
