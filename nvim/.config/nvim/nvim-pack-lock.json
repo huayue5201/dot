@@ -333,7 +333,7 @@
       "src": "https://github.com/kevinhwang91/nvim-hlslens"
     },
     "nvim-jump": {
-      "rev": "045b67c961378205ba1eaa54bb294519552d480f",
+      "rev": "9ec108fbf9ccdf73d10c20e095a03b47490748f5",
       "src": "/Users/lijia/neovim-plugins/nvim-jump"
     },
     "nvim-lastplace": {
