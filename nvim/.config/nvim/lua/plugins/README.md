@@ -147,6 +147,7 @@
 | [lang/spellwand.lua](lang/spellwand.lua) | chaneyzorn/spellwand.nvim | 把原生 spell 包成进程内 LSP |
 | [lang/dirtytalk.lua](lang/dirtytalk.lua) | psliwka/vim-dirtytalk | 代码词表（给 spell 用） |
 | [lang/nvim-translator.lua](lang/nvim-translator.lua) | huayue5201/nvim-translator | 翻译（本地 fork） |
+| [lang/sniprun.lua](lang/sniprun.lua) | michaelb/sniprun | 行 / 选区级多语言运行 |
 | [lang/markmap.lua](lang/markmap.lua) | Zeioth/markmap.nvim | Markdown → 思维导图 |
 | [lang/mdkite.lua](lang/mdkite.lua) | selimacerbas/mdkite.nvim | Markdown 预览（mermaid，`<leader>zm`） |
 | [lang/obsidian.lua](lang/obsidian.lua) | obsidian-nvim/obsidian.nvim | Obsidian vault 前端 |

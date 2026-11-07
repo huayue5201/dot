@@ -444,6 +444,10 @@
       "rev": "5fd4fe53c2df2009e689f61511e3c474a9eccbaf",
       "src": "https://github.com/smart-splits-nvim/smart-splits.nvim"
     },
+    "sniprun": {
+      "rev": "647995168a0682b359dfbf49bd3b0e8b9f2026dc",
+      "src": "https://github.com/michaelb/sniprun"
+    },
     "spellwand.nvim": {
       "rev": "608a3b4717525d4cf4e3d8dbad70cfb7d6167ef7",
       "src": "https://github.com/chaneyzorn/spellwand.nvim"
