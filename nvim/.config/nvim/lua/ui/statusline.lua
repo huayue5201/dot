@@ -242,7 +242,8 @@ local function workspace()
 		local dir = (root.cwd(tab):gsub("/+$", ""))
 		local name = (root.name(tab):gsub("%%", "%%%%"))
 
-		local parts = { string.format("%%#StlWs%d#%s %s%%*", ws_slot(dir), ICONS.ws, name) }
+		-- 只高亮图标，名字用普通文本（避免整段彩色块）
+		local parts = { string.format("%%#StlWs%d#%s%%* %s", ws_slot(dir), ICONS.ws, name) }
 
 		-- 已锁定（<leader>lws 显式设根 / <leader>lwr 回退）：自动跟随不再改它
 		if root.pin_of(tab) ~= nil then
@@ -440,7 +441,7 @@ vim.api.nvim_create_autocmd({ "TabEnter", "DirChanged" }, {
 
 -- pin / 辅助根的增减不一定伴随 :tcd（例如 <leader>lw+ 只是加了个附加根）
 vim.api.nvim_create_autocmd("User", {
-	pattern = { "TabWorkspaceRoot", "TabWorkspaceRoots" },
+	pattern = { "TabWorkspaceRoot", "TabWorkspaceRoots", "TabWorkspaceName" },
 	group = statusline_group,
 	callback = function()
 		enqueue("ws")

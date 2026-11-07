@@ -42,6 +42,34 @@ function M.prompt_root(on_done)
 	end)
 end
 
+--- 重命名当前工作区（按根目录存别名；传空串 = 恢复默认 basename）
+---@param name string
+---@return boolean
+function M.set_workspace_name(name)
+	local root = require("feat.tab_workspace.root")
+	root.set_alias(root.cwd(), name)
+	local label = root.name()
+	if (name or "") == "" then
+		vim.notify(string.format("workspace name reset → %s", label), vim.log.levels.INFO)
+	else
+		vim.notify(string.format("workspace renamed → %s", label), vim.log.levels.INFO)
+	end
+	return true
+end
+
+--- 交互式重命名当前工作区：留空回车 = 恢复默认名
+function M.rename_workspace()
+	local root = require("feat.tab_workspace.root")
+	local dir = root.cwd()
+	local current = root.alias(dir) or root.name()
+	vim.ui.input({ prompt = string.format("Workspace name (%s): ", dir), default = current }, function(input)
+		if input == nil then
+			return -- 取消
+		end
+		M.set_workspace_name(input)
+	end)
+end
+
 --- 保存当前会话（若有）
 --- 覆盖前先确认当前工作区确实属于该会话：resession 的 current_session 只记住
 --- 「上次 load 的名字」，载入 A 后在 B 里干活会把 B 写进 A.json（存 A 打开成 B）。

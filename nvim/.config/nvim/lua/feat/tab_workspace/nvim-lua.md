@@ -36,6 +36,7 @@
 | `TabEnter` | 切 tab → 卸载旧工作区配置、加载新工作区的 |
 | `DirChanged` | `:tcd` / `:cd` 换了根 → 同上 |
 | `User TabWorkspaceRoot` | `<leader>lws` / `lwr` / `lwR` 改了根 → 同上 |
+| `User TabWorkspaceName` | `<leader>lwN` 改了工作区别名 → 只刷新状态栏名字，不重扫根 |
 | 会话恢复 `post_load` | 恢复完各 tab 的根之后同步一次 |
 | `BufReadPost` / `FileType` | 新打开的文件若在根下，自动套用 `w.opt` 与 `w.map` |
 

@@ -62,6 +62,99 @@ local pinned = {}
 -- tab -> 自动切换前的根（<leader>lwr 用）
 local prev = {}
 
+-- ================================
+-- 自定义工作区名（别名）
+-- ================================
+-- 按根目录（realpath）存别名，而不是按 tab：同一个目录在任何 tab / 重启后
+-- 都显示同一个名字。落盘到 state 目录，与 session 无关（会话没了名字还在）。
+local NAMES_FILENAME = "tab_workspace_names.json"
+local names_file
+
+---@type table<string, string>?
+local aliases = nil
+
+--- 别名文件路径（测试可覆盖）
+---@param path? string
+---@return string
+function M.names_file(path)
+	if path then
+		names_file = path
+		aliases = nil
+	end
+	names_file = names_file or vim.fs.joinpath(vim.fn.stdpath("state"), NAMES_FILENAME)
+	return names_file
+end
+
+---@param dir string
+---@return string
+local function alias_key(dir)
+	local ok, res = pcall(vim.uv.fs_realpath, dir)
+	dir = ok and res or dir
+	return (dir:gsub("/+$", ""))
+end
+
+---@return table<string, string>
+local function load_aliases()
+	if aliases then
+		return aliases
+	end
+	aliases = {}
+	if vim.fn.filereadable(M.names_file()) == 1 then
+		local ok, lines = pcall(vim.fn.readfile, M.names_file())
+		if ok then
+			local decoded_ok, data = pcall(vim.json.decode, table.concat(lines, "\n"))
+			if decoded_ok and type(data) == "table" then
+				for k, v in pairs(data) do
+					if type(k) == "string" and type(v) == "string" and v ~= "" then
+						aliases[k] = v
+					end
+				end
+			end
+		end
+	end
+	return aliases
+end
+
+local function save_aliases()
+	local ok, encoded = pcall(vim.json.encode, load_aliases())
+	if not ok then
+		return
+	end
+	vim.fn.mkdir(vim.fs.dirname(M.names_file()), "p")
+	pcall(vim.fn.writefile, { encoded }, M.names_file())
+end
+
+--- 当前（或指定目录的）工作区别名
+---@param dir? string
+---@return string|nil
+function M.alias(dir)
+	dir = dir or M.cwd()
+	return load_aliases()[alias_key(dir)]
+end
+
+--- 设置 / 清除工作区别名（name 为空 = 恢复默认 basename）
+---@param dir? string
+---@param name? string
+function M.set_alias(dir, name)
+	dir = dir or M.cwd()
+	local key = alias_key(dir)
+	local map = load_aliases()
+	name = (name or ""):gsub("^%s+", ""):gsub("%s+$", "")
+	if name == "" then
+		map[key] = nil
+	else
+		map[key] = name
+	end
+	save_aliases()
+	-- 不含 :tcd，所以不能复用 TabWorkspaceRoot（那个会让 neo-tree 重扫整棵树）
+	vim.api.nvim_exec_autocmds("User", { pattern = "TabWorkspaceName" })
+end
+
+--- 测试与重置用：丢掉内存里的别名表（下次访问会重新读文件）
+function M.forget_aliases()
+	aliases = nil
+end
+
 ---@param dir string
 ---@return string
 local function real(dir)
@@ -176,12 +269,20 @@ function M.cwd(tab)
 	return vim.fn.getcwd()
 end
 
---- 工作区展示名：根目录末段；家目录 / 文件系统根用 ~ 与 /（末段没有信息量）
+--- 工作区展示名：别名 > 根目录末段；家目录 / 文件系统根用 ~ 与 /（末段没有信息量）
 ---@param tab? integer
 ---@return string
 function M.name(tab)
 	tab = tab or vim.api.nvim_get_current_tabpage()
-	local pretty = vim.fn.fnamemodify(M.cwd(tab), ":~"):gsub("/+$", "")
+	local dir = M.cwd(tab)
+	local alias
+	local ok_map = pcall(function()
+		alias = M.alias(dir)
+	end)
+	if ok_map and alias then
+		return alias
+	end
+	local pretty = vim.fn.fnamemodify(dir, ":~"):gsub("/+$", "")
 	if pretty == "~" or pretty == "" then
 		return pretty == "" and "/" or "~"
 	end

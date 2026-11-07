@@ -107,6 +107,7 @@ ws.visible_buffers()     ws.close_buffer(buf)   ws.is_managed_buf(buf)
 | `<leader>lwc` | 关闭工作区 |
 | `<leader>lwa` | 在最近两个工作区之间来回 |
 | `<leader>lwl` | 工作区/会话统一列表（打开中的 tab + 已保存会话 + 新目录，也是唯一的“加载会话”入口） |
+| `<leader>lwN` | 重命名工作区（按根目录存别名，落盘；留空回车 = 恢复默认 basename） |
 | `<leader>lst` / `<leader>lss` / `<leader>lsd` | 会话：保存 / 保存 tab / 删除（带确认，跳过当前会话） |
 | `<leader>lws` / `<leader>lwr` / `<leader>lwR` | 锁定根 / 回退到上一个根并锁定 / 解除锁定 |
 | `<leader>lwe` | 编辑当前工作区的 `.nvim.lua` |
