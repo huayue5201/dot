@@ -60,7 +60,6 @@ return {
 			{ "<leader>ml", group = "双链标记" },
 			{ "<leader>mt", group = "任务操作" },
 			{ "<leader>mv", group = "查看 / 打开" },
-			{ "<leader>rS", group = "SnipRun 运行" },
 			{ "<leader>rt", group = "切换 / 重载" },
 			{ "<leader>sa", group = "LSP 符号" },
 			{ "<leader>sc", group = "LSP 调用 / ctags" },
