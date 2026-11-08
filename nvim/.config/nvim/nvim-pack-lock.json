@@ -1,5 +1,9 @@
 {
   "plugins": {
+    "eagle.nvim": {
+      "rev": "e99f4e36eaf2b5da076ff4e3e8ee7559127aa9e2",
+      "src": "https://github.com/soulis-1256/eagle.nvim"
+    },
     "FixCursorHold.nvim": {
       "rev": "1900f89dc17c603eec29960f57c00bd9ae696495",
       "src": "https://github.com/antoinemadec/FixCursorHold.nvim"
