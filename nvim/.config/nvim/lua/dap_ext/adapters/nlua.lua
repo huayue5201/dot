@@ -20,6 +20,6 @@ return {
 
 		vim.keymap.set("n", "<leader>dR", function()
 			require("osv").launch({ port = 8086 })
-		end, { noremap = true, desc = "Start osv" })
+		end, { noremap = true, desc = "启动 osv" })
 	end,
 }

@@ -50,7 +50,7 @@ function M.load_win(winid, config)
 	end
 	if not ok then
 		-- 恢复失败就让 resession 保留这个空窗口（与没有扩展时的降级一致），不打断整个 load
-		vim.notify("[tw_terminal] terminal window restore failed", vim.log.levels.WARN)
+		vim.notify("[tw_terminal] 终端窗口恢复失败", vim.log.levels.WARN)
 	end
 	return winid
 end

@@ -32,7 +32,7 @@ vim.keymap.set("x", "y", function()
 	local save = vim.fn.getpos(".")
 	vim.cmd("normal! y")
 	vim.fn.setpos(".", save)
-end, { desc = "Yank: keep cursor position" })
+end, { desc = "Yank: 保持光标位置" })
 
 -- 保存键统一收纳在 <localleader>s 分组下（s 本身不映射，避免成为子映射前缀而拖慢触发）
 vim.keymap.set("n", "<localleader>sw", "<cmd>w<cr>", { silent = true, desc = "Save: write buffer" })
@@ -61,17 +61,17 @@ require("ui.qf").setup()
 -- quicker 的 quickfix/loclist 切换已挪到 <localleader>xq / <localleader>xl，leader x 归执行流
 local exec_flow = require("feat.exec_flow")
 exec_flow.setup() -- :ExecFlowAdd / List / Clear / Qf
-vim.keymap.set("n", "<leader>xa", exec_flow.add, { silent = true, desc = "ExecFlow: mark execution order" })
-vim.keymap.set("n", "<leader>xl", exec_flow.panel, { silent = true, desc = "ExecFlow: list" })
-vim.keymap.set("n", "<leader>xd", exec_flow.delete, { silent = true, desc = "ExecFlow: delete anchor on current line" })
-vim.keymap.set("n", "<leader>xc", exec_flow.clear, { silent = true, desc = "ExecFlow: clear" })
-vim.keymap.set("n", "<leader>xq", exec_flow.qf, { silent = true, desc = "ExecFlow: export to quickfix" })
+vim.keymap.set("n", "<leader>xa", exec_flow.add, { silent = true, desc = "ExecFlow: 标记执行顺序" })
+vim.keymap.set("n", "<leader>xl", exec_flow.panel, { silent = true, desc = "ExecFlow: 列表" })
+vim.keymap.set("n", "<leader>xd", exec_flow.delete, { silent = true, desc = "ExecFlow: 删除当前行锚点" })
+vim.keymap.set("n", "<leader>xc", exec_flow.clear, { silent = true, desc = "ExecFlow: 清空" })
+vim.keymap.set("n", "<leader>xq", exec_flow.qf, { silent = true, desc = "ExecFlow: 导出 quickfix" })
 vim.keymap.set("n", "]x", function()
 	exec_flow.jump(1)
-end, { silent = true, desc = "ExecFlow: next anchor" })
+end, { silent = true, desc = "ExecFlow: 下一个锚点" })
 vim.keymap.set("n", "[x", function()
 	exec_flow.jump(-1)
-end, { silent = true, desc = "ExecFlow: previous anchor" })
+end, { silent = true, desc = "ExecFlow: 上一个锚点" })
 
 -- 关闭当前 buffer：有分屏时先收掉当前窗口（不动其它分屏），
 -- buffer 不再被任何窗口显示后再交给 tab_workspace 删除（含共享归属 / 未保存确认）。
@@ -195,57 +195,57 @@ end, { desc = "Toggle line wrap" })
 -- 🏷 Tab operaions
 vim.keymap.set("n", "<leader>ltn", "<cmd>$tabnew<cr>", {
 	silent = true,
-	desc = "Tab: new (no root set; workspace version at <leader>lwn)",
+	desc = "Tab: 新建（不设根目录，工作区版见 <leader>lwn）",
 })
 vim.keymap.set("n", "<leader>lth", ":-tabmove<CR>", {
 	silent = true,
-	desc = "Tab: move left",
+	desc = "Tab: 左移",
 })
 vim.keymap.set("n", "<leader>ltl", ":+tabmove<CR>", {
 	silent = true,
-	desc = "Tab: move right",
+	desc = "Tab: 右移",
 })
 
 vim.keymap.set("n", "<leader>ltc", "<cmd>tabclose<cr>", {
 	silent = true,
-	desc = "Tab: close (no session saved; workspace version at <leader>lwc)",
+	desc = "Tab: 关闭（不保存会话，工作区版见 <leader>lwc）",
 })
 vim.keymap.set("n", "<leader>lws", function()
 	require("feat.tab_workspace").prompt_root()
-end, { silent = true, desc = "Tab: set workspace root" })
+end, { silent = true, desc = "Tab: 设置工作区根目录" })
 vim.keymap.set("n", "<leader>lwn", function()
 	require("feat.tab_workspace").new_workspace()
-end, { silent = true, desc = "Workspace: new (save session + new tab + set root)" })
+end, { silent = true, desc = "工作区: 新建（保存会话 + 新 tab + 设置根目录）" })
 vim.keymap.set("n", "<leader>lwc", function()
 	require("feat.tab_workspace").close_workspace()
-end, { silent = true, desc = "Workspace: close (save session + close tab)" })
+end, { silent = true, desc = "工作区: 关闭（保存会话 + 关闭 tab）" })
 vim.keymap.set("n", "<leader>lwa", function()
 	require("feat.tab_workspace").alternate()
-end, { silent = true, desc = "Workspace: switch to previous tab" })
+end, { silent = true, desc = "工作区: 切换到上一个 tab" })
 vim.keymap.set("n", "<leader>lwe", function()
 	require("feat.tab_workspace").edit_local_settings()
-end, { silent = true, desc = "Workspace: edit local config (.nvim.lua)" })
+end, { silent = true, desc = "工作区: 编辑本地配置 (.nvim.lua)" })
 vim.keymap.set("n", "<leader>lwN", function()
 	require("feat.tab_workspace").rename_workspace()
-end, { silent = true, desc = "Workspace: rename (empty + Enter = restore default)" })
+end, { silent = true, desc = "工作区: 重命名（留空回车 = 恢复默认）" })
 vim.keymap.set("n", "<leader>lwl", function()
 	require("feat.tab_workspace").picker()
-end, { silent = true, desc = "Workspace: list/switch (open + saved + new dir)" })
+end, { silent = true, desc = "工作区: 列表/切换（打开中 + 已保存 + 新目录）" })
 vim.keymap.set("n", "<leader>lw+", function()
 	require("feat.tab_workspace").attach_root()
-end, { silent = true, desc = "Workspace: attach auxiliary root (multi-root; cwd stays primary)" })
+end, { silent = true, desc = "工作区: 附加辅助根（多根，cwd 仍是主根）" })
 vim.keymap.set("n", "<leader>lw-", function()
 	require("feat.tab_workspace").detach_root()
-end, { silent = true, desc = "Workspace: remove auxiliary root" })
+end, { silent = true, desc = "工作区: 移除辅助根" })
 vim.keymap.set("n", "<leader>lwt", function()
 	require("feat.tab_workspace").workspace_tree()
-end, { silent = true, desc = "Workspace: multi-root tree (primary + auxiliary)" })
+end, { silent = true, desc = "工作区: 多根树（主根 + 辅助根）" })
 vim.keymap.set("n", "<leader>lwr", function()
 	require("feat.tab_workspace").root_back()
-end, { silent = true, desc = "Workspace: revert root to previous (and lock)" })
+end, { silent = true, desc = "工作区: 根目录回到上一个（并锁定）" })
 vim.keymap.set("n", "<leader>lwR", function()
 	require("feat.tab_workspace").root_unpin()
-end, { silent = true, desc = "Workspace: unlock root (resume auto-follow)" })
+end, { silent = true, desc = "工作区: 解除根目录锁定（恢复自动跟随）" })
 vim.keymap.set("n", "<leader>lta", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
 -- 🌐 Upstream 状态（feat.fork_upstream，属于 <leader>h git 分组）
@@ -253,13 +253,13 @@ vim.keymap.set(
 	"n",
 	"<leader>hu",
 	"<cmd>ForkUpstream<cr>",
-	{ silent = true, desc = "Upstream: check upstream updates (fetch + details)" }
+	{ silent = true, desc = "Upstream: 检查上游更新（fetch + 详情）" }
 )
 vim.keymap.set(
 	"n",
 	"<leader>hU",
 	"<cmd>ForkUpstreamFix<cr>",
-	{ silent = true, desc = "Upstream: auto-add upstream remote" }
+	{ silent = true, desc = "Upstream: 自动补 upstream 远端" }
 )
 
 -- 📜 Messages & reload
@@ -333,7 +333,7 @@ end
 local function delete_current_swap()
 	local current_file = vim.fn.expand("%:p")
 	if current_file == "" then
-		vim.notify("No file path under cursor", vim.log.levels.WARN)
+		vim.notify("没有对应的文件路径。", vim.log.levels.WARN)
 		return
 	end
 	local dir = swap_dir()
@@ -341,31 +341,31 @@ local function delete_current_swap()
 	local swap_file = dir .. "/" .. escaped .. ".swp"
 	if vim.fn.filereadable(swap_file) == 1 then
 		if vim.fn.delete(swap_file) == 0 then
-			vim.notify("Deleted swap file: " .. swap_file)
+			vim.notify("已删除交换文件: " .. swap_file)
 			return
 		end
-		vim.notify("Delete failed: " .. swap_file, vim.log.levels.ERROR)
+		vim.notify("删除失败: " .. swap_file, vim.log.levels.ERROR)
 	end
 	for _, suffix in ipairs({ ".swo", ".swn", ".swm" }) do
 		local try_file = dir .. "/" .. escaped .. suffix
 		if vim.fn.filereadable(try_file) == 1 and vim.fn.delete(try_file) == 0 then
-			vim.notify("Deleted: " .. try_file)
+			vim.notify("已删除: " .. try_file)
 			return
 		end
 	end
 	local actual_swap = vim.v.swapname
 	if actual_swap ~= "" and vim.fn.filereadable(actual_swap) == 1 and vim.fn.delete(actual_swap) == 0 then
-		vim.notify("Deleted: " .. actual_swap)
+		vim.notify("已删除: " .. actual_swap)
 		return
 	end
-	vim.notify("Swap file not found: " .. swap_file, vim.log.levels.WARN)
+	vim.notify("未找到交换文件: " .. swap_file, vim.log.levels.WARN)
 end
 
 -- 删除所有交换文件
 local function delete_all_swaps()
 	local dir = swap_dir()
 	if vim.fn.isdirectory(dir) == 0 then
-		vim.notify("Swap file directory does not exist: " .. dir, vim.log.levels.WARN)
+		vim.notify("交换文件目录不存在: " .. dir, vim.log.levels.WARN)
 		return
 	end
 	local files = {}
@@ -373,7 +373,7 @@ local function delete_all_swaps()
 		vim.list_extend(files, vim.fn.globpath(dir, pat, false, true))
 	end
 	if #files == 0 then
-		vim.notify("No swap files found")
+		vim.notify("未找到交换文件")
 		return
 	end
 	table.sort(files)
@@ -384,13 +384,13 @@ local function delete_all_swaps()
 			count = count + 1
 		end
 	end
-	vim.notify("Deleted " .. count .. " swap files")
+	vim.notify("已删除 " .. count .. " 个交换文件")
 end
 
 vim.keymap.set(
 	"n",
 	"<leader>csw",
 	delete_current_swap,
-	{ silent = true, desc = "Swap: delete swap file for current file" }
+	{ silent = true, desc = "Swap: 删除当前文件交换文件" }
 )
-vim.keymap.set("n", "<leader>csW", delete_all_swaps, { silent = true, desc = "Swap: delete all swap files" })
+vim.keymap.set("n", "<leader>csW", delete_all_swaps, { silent = true, desc = "Swap: 删除所有交换文件" })

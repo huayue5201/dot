@@ -231,106 +231,101 @@ return {
 		--   全局 = <leader>m<组><动作>，抽屉单键 == 这个动作字母（大小写一致）。
 		--   组字母 = 语义域：t 任务 / f 文件 / v 视图 / a 归档 / l 链接 / g git。
 		--   例：抽屉里 D 设到期日  ↔  <leader>mtD；抽屉里 o 预览  ↔  <leader>mvo。
-		vim.keymap.set("n", "<leader>md", "<cmd>Todo<cr>", { desc = "TODO: entry (task drawer)" })
-		vim.keymap.set("n", "<leader>mh", "<cmd>Todo help<cr>", { desc = "TODO: full help :h todo2" })
-		vim.keymap.set("n", "<leader>mc", "<cmd>TodoAdd<cr>", { desc = "TODO: create task from current code line" })
+		vim.keymap.set("n", "<leader>md", "<cmd>Todo<cr>", { desc = "TODO: 入口（任务抽屉）" })
+		vim.keymap.set("n", "<leader>mh", "<cmd>Todo help<cr>", { desc = "TODO: 完整帮助 :h todo2" })
+		vim.keymap.set("n", "<leader>mc", "<cmd>TodoAdd<cr>", { desc = "TODO: 从当前代码行建任务" })
 
 		-- ── 任务组 mt-（末位 == 抽屉键）────────────────────────────
-		vim.keymap.set("n", "<leader>mts", "<cmd>TodoStatus<cr>", { desc = "Select task status (drawer s)" })
-		vim.keymap.set("n", "<leader>mtt", "<cmd>TodoTag<cr>", { desc = "Edit tags (drawer t)" })
-		vim.keymap.set("n", "<leader>mtD", "<cmd>TodoDue<cr>", { desc = "Set/clear due date (drawer D)" })
-		vim.keymap.set("n", "<leader>mtS", "<cmd>TodoStart<cr>", { desc = "Set/clear start date (drawer S)" })
+		vim.keymap.set("n", "<leader>mts", "<cmd>TodoStatus<cr>", { desc = "选择任务状态（抽屉 s）" })
+		vim.keymap.set("n", "<leader>mtt", "<cmd>TodoTag<cr>", { desc = "编辑标签（抽屉 t）" })
+		vim.keymap.set("n", "<leader>mtD", "<cmd>TodoDue<cr>", { desc = "设/清到期日（抽屉 D）" })
+		vim.keymap.set("n", "<leader>mtS", "<cmd>TodoStart<cr>", { desc = "设/清开始日（抽屉 S）" })
 		vim.keymap.set(
 			"n",
 			"<leader>mtC",
 			"<cmd>TodoCalendar<cr>",
-			{ desc = "Open project calendar (pick date in drawer C)" }
+			{ desc = "打开项目月历（抽屉 C 里点选日期）" }
 		)
 		vim.keymap.set(
 			"n",
 			"<leader>mti",
 			"<cmd>TodoSet<cr>",
-			{ desc = "Properties panel: status/tags/start/due (drawer i)" }
+			{ desc = "属性面板 状态/标签/开始/到期（抽屉 i）" }
 		)
-		vim.keymap.set("n", "<leader>mte", "<cmd>TodoTask rename<cr>", { desc = "Rename task title (drawer e)" })
-		vim.keymap.set("n", "<leader>mtE", "<cmd>TodoTask desc<cr>", { desc = "Edit task body (drawer E)" })
-		vim.keymap.set("n", "<leader>mtc", "<cmd>TodoContext<cr>", { desc = "Copy task context Markdown (drawer c)" })
-		vim.keymap.set("n", "<leader>mtl", "<cmd>TodoLink<cr>", { desc = "Link code location to task" })
-		vim.keymap.set("n", "<leader>mtf", "<cmd>TodoFilter<cr>", { desc = "Filter (drawer f)" })
-		vim.keymap.set("n", "<leader>mtF", "<cmd>TodoFilter!<cr>", { desc = "Clear filter (drawer F)" })
-		vim.keymap.set("n", "<leader>mtO", "<cmd>TodoSort<cr>", { desc = "Sort siblings by status (drawer O)" })
-		vim.keymap.set("n", "<leader>mtw", "<cmd>TodoFilter due:week<cr>", { desc = "Preset filter: due this week" })
-		vim.keymap.set("n", "<leader>mto", "<cmd>TodoFilter due:overdue<cr>", { desc = "Preset filter: overdue" })
+		vim.keymap.set("n", "<leader>mte", "<cmd>TodoTask rename<cr>", { desc = "改任务标题（抽屉 e）" })
+		vim.keymap.set("n", "<leader>mtE", "<cmd>TodoTask desc<cr>", { desc = "编辑任务正文（抽屉 E）" })
+		vim.keymap.set(
+			"n",
+			"<leader>mtc",
+			"<cmd>TodoContext<cr>",
+			{ desc = "复制任务上下文 Markdown（抽屉 c）" }
+		)
+		vim.keymap.set("n", "<leader>mtl", "<cmd>TodoLink<cr>", { desc = "把代码位置关联到任务" })
+		vim.keymap.set("n", "<leader>mtf", "<cmd>TodoFilter<cr>", { desc = "筛选（抽屉 f）" })
+		vim.keymap.set("n", "<leader>mtF", "<cmd>TodoFilter!<cr>", { desc = "清除筛选（抽屉 F）" })
+		vim.keymap.set("n", "<leader>mtO", "<cmd>TodoSort<cr>", { desc = "同级按状态排序（抽屉 O）" })
+		vim.keymap.set("n", "<leader>mtw", "<cmd>TodoFilter due:week<cr>", { desc = "预设筛选：本周到期" })
+		vim.keymap.set("n", "<leader>mto", "<cmd>TodoFilter due:overdue<cr>", { desc = "预设筛选：已过期" })
 
 		-- ── 视图组 mv-（末位 == 抽屉键）────────────────────────────
 		vim.keymap.set(
 			"n",
 			"<leader>mvo",
 			"<cmd>TodoView float<cr>",
-			{ desc = "Float preview of TODO file (drawer o)" }
+			{ desc = "浮窗预览 TODO 文件（抽屉 o）" }
 		)
 		vim.keymap.set(
 			"n",
 			"<leader>mvP",
 			"<cmd>TodoView preview<cr>",
-			{ desc = "Smart preview of TODO/code (drawer P previews linked code)" }
+			{ desc = "智能预览 TODO/代码（抽屉 P 预览关联代码）" }
 		)
-		vim.keymap.set("n", "<leader>mvs", "<cmd>TodoView split<cr>", { desc = "Open in horizontal split" })
-		vim.keymap.set("n", "<leader>mvv", "<cmd>TodoView vsplit<cr>", { desc = "Open in vertical split" })
-		vim.keymap.set("n", "<leader>mve", "<cmd>TodoView edit<cr>", { desc = "Open in edit mode" })
-		vim.keymap.set("n", "<leader>mvc", "<cmd>TodoCalendar<cr>", { desc = "Project calendar (time-based view)" })
-		vim.keymap.set(
-			"n",
-			"<leader>mvg",
-			"<cmd>TodoGlobal<cr>",
-			{ desc = "Global view: active tasks across projects" }
-		)
+		vim.keymap.set("n", "<leader>mvs", "<cmd>TodoView split<cr>", { desc = "水平分割打开" })
+		vim.keymap.set("n", "<leader>mvv", "<cmd>TodoView vsplit<cr>", { desc = "垂直分割打开" })
+		vim.keymap.set("n", "<leader>mve", "<cmd>TodoView edit<cr>", { desc = "编辑模式打开" })
+		vim.keymap.set("n", "<leader>mvc", "<cmd>TodoCalendar<cr>", { desc = "项目月历（时间维度视图）" })
+		vim.keymap.set("n", "<leader>mvg", "<cmd>TodoGlobal<cr>", { desc = "全局视图：跨项目活跃任务" })
 
 		-- ── 文件组 mf-（末位 == 抽屉键；文件头上的 a/r/d）──────────
-		vim.keymap.set("n", "<leader>mfa", "<cmd>TodoFile new<cr>", { desc = "New TODO file (drawer a)" })
-		vim.keymap.set("n", "<leader>mfr", "<cmd>TodoFile rename<cr>", { desc = "Rename file (drawer r)" })
+		vim.keymap.set("n", "<leader>mfa", "<cmd>TodoFile new<cr>", { desc = "新建 TODO 文件（抽屉 a）" })
+		vim.keymap.set("n", "<leader>mfr", "<cmd>TodoFile rename<cr>", { desc = "重命名文件（抽屉 r）" })
 		vim.keymap.set(
 			"n",
 			"<leader>mfd",
 			"<cmd>TodoFile delete<cr>",
-			{ desc = "Delete file (press d on file header in drawer)" }
+			{ desc = "删除文件（抽屉在文件头按 d）" }
 		)
 
 		-- ── 归档组 ma- ────────────────────────────────────────────
-		vim.keymap.set("n", "<leader>max", "<cmd>TodoArchive<cr>", { desc = "Archive task group (drawer x)" })
-		vim.keymap.set("n", "<leader>mau", "<cmd>TodoUnarchive<cr>", { desc = "Restore archived task" })
-		vim.keymap.set("n", "<leader>mav", "<cmd>TodoArchiveView<cr>", { desc = "Archived task tree (QF)" })
-		vim.keymap.set("n", "<leader>maq", "<cmd>TodoArchiveView!<cr>", { desc = "Archived task flat list (QF)" })
+		vim.keymap.set("n", "<leader>max", "<cmd>TodoArchive<cr>", { desc = "归档任务组（抽屉 x）" })
+		vim.keymap.set("n", "<leader>mau", "<cmd>TodoUnarchive<cr>", { desc = "恢复归档任务" })
+		vim.keymap.set("n", "<leader>mav", "<cmd>TodoArchiveView<cr>", { desc = "归档任务树 (QF)" })
+		vim.keymap.set("n", "<leader>maq", "<cmd>TodoArchiveView!<cr>", { desc = "归档任务平铺 (QF)" })
 
 		-- ── 链接组 ml- ────────────────────────────────────────────
-		vim.keymap.set("n", "<leader>mla", "<cmd>TodoLinks<cr>", { desc = "All backlink marks (QF)" })
-		vim.keymap.set(
-			"n",
-			"<leader>mlb",
-			"<cmd>TodoLinks!<cr>",
-			{ desc = "Backlink marks in current buffer (LocList)" }
-		)
+		vim.keymap.set("n", "<leader>mla", "<cmd>TodoLinks<cr>", { desc = "全部双链标记 (QF)" })
+		vim.keymap.set("n", "<leader>mlb", "<cmd>TodoLinks!<cr>", { desc = "当前缓冲区双链标记 (LocList)" })
 		-- 跨项目：挑选目标而不是输入 id（抽屉 L 同一入口）
-		vim.keymap.set("n", "<leader>mlL", "<cmd>TodoRel<cr>", { desc = "Link tasks from other projects (drawer L)" })
+		vim.keymap.set("n", "<leader>mlL", "<cmd>TodoRel<cr>", { desc = "关联其它项目的任务（抽屉 L）" })
 
 		-- ── git 组 mg-（抽屉内 gs/gr/gb 同字母）───────────────────
 		vim.keymap.set(
 			"n",
 			"<leader>mgs",
 			"<cmd>TodoGit sync<cr>",
-			{ desc = "Incrementally sync task refs in commits (drawer gs)" }
+			{ desc = "增量同步提交里的任务引用（抽屉 gs）" }
 		)
 		vim.keymap.set(
 			"n",
 			"<leader>mgr",
 			"<cmd>TodoGit review<cr>",
-			{ desc = "Pre-commit check anchors in dirty files (drawer gr)" }
+			{ desc = "提交前自查脏文件里的锚点（抽屉 gr）" }
 		)
 		vim.keymap.set(
 			"n",
 			"<leader>mgb",
 			"<cmd>TodoGit blame<cr>",
-			{ desc = "Show commit history of task anchors (drawer gb)" }
+			{ desc = "查任务锚点的提交历史（抽屉 gb）" }
 		)
 	end,
 }

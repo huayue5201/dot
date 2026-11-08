@@ -34,19 +34,9 @@ return {
 			end
 		end
 
-		vim.keymap.set("n", "grP", glance("definitions"), { silent = true, desc = "Glance: preview definitions" })
-		vim.keymap.set("n", "grR", glance("references"), { silent = true, desc = "Glance: preview references" })
-		vim.keymap.set(
-			"n",
-			"grI",
-			glance("implementations"),
-			{ silent = true, desc = "Glance: preview implementations" }
-		)
-		vim.keymap.set(
-			"n",
-			"grT",
-			glance("type_definitions"),
-			{ silent = true, desc = "Glance: preview type definitions" }
-		)
+		vim.keymap.set("n", "grP", glance("definitions"), { silent = true, desc = "Glance: 预览定义" })
+		vim.keymap.set("n", "grR", glance("references"), { silent = true, desc = "Glance: 预览引用" })
+		vim.keymap.set("n", "grI", glance("implementations"), { silent = true, desc = "Glance: 预览实现" })
+		vim.keymap.set("n", "grT", glance("type_definitions"), { silent = true, desc = "Glance: 预览类型定义" })
 	end,
 }

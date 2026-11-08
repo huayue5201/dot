@@ -42,7 +42,7 @@ local function ensure_command()
 	command_created = true
 	vim.api.nvim_create_user_command("ToolLog", function()
 		M.open_log()
-	end, { desc = "Show raw output from recent external tool runs" })
+	end, { desc = "查看最近几次外部工具的原始输出" })
 end
 
 --- 原始输出只进这里，不进 UI
@@ -139,7 +139,7 @@ function M.report(res, label)
 	end
 	if #res.diagnostics == 0 then
 		vim.notify(
-			("%s failed (exit %d); no structured diagnostics (raw output: :ToolLog)"):format(label, res.code),
+			("%s 失败（exit %d），没有结构化诊断（原始输出 :ToolLog）"):format(label, res.code),
 			vim.log.levels.ERROR
 		)
 		return
@@ -152,7 +152,7 @@ function M.report(res, label)
 		end
 	end
 	vim.notify(
-		("%s failed: %d errors, %d diagnostics (raw output: :ToolLog)"):format(label, nerr, #res.diagnostics),
+		("%s 失败：%d 个错误、%d 条诊断（原始输出 :ToolLog）"):format(label, nerr, #res.diagnostics),
 		vim.log.levels.ERROR
 	)
 end

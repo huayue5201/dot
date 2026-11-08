@@ -20,17 +20,17 @@ return {
 
 		if vim.fn.executable("markmap") == 0 then
 			vim.notify(
-				"markmap: markmap executable not found (npm i -g markmap-cli); related keymaps not registered",
+				"markmap: 未找到 markmap 可执行文件（npm i -g markmap-cli），相关键位不注册",
 				vim.log.levels.WARN
 			)
 			return
 		end
 
 		local maps = {
-			{ key = "<localleader>mm", cmd = "MarkmapOpen", desc = "Markmap: open mind map" },
-			{ key = "<localleader>mw", cmd = "MarkmapWatch", desc = "Markmap: open and live refresh" },
-			{ key = "<localleader>ms", cmd = "MarkmapSave", desc = "Markmap: save html only" },
-			{ key = "<localleader>mS", cmd = "MarkmapWatchStop", desc = "Markmap: stop refresh" },
+			{ key = "<localleader>mm", cmd = "MarkmapOpen", desc = "Markmap: 打开思维导图" },
+			{ key = "<localleader>mw", cmd = "MarkmapWatch", desc = "Markmap: 打开并实时刷新" },
+			{ key = "<localleader>ms", cmd = "MarkmapSave", desc = "Markmap: 只保存 html" },
+			{ key = "<localleader>mS", cmd = "MarkmapWatchStop", desc = "Markmap: 停止刷新" },
 		}
 
 		local function install(buf)

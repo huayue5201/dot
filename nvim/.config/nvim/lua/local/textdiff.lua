@@ -76,9 +76,9 @@ local function target_lines(arg)
 		local reg = default_reg()
 		local lines = reg_lines(reg)
 		if not lines then
-			return nil, nil, "Default register is empty (yank a range first, or use :Diff @r / :Diff <file>)"
+			return nil, nil, "默认寄存器为空（先 y 一段，或 :Diff @r / :Diff 文件）"
 		end
-		return lines, "Register @" .. reg
+		return lines, "寄存器 @" .. reg
 	end
 
 	local first = arg:sub(1, 1)
@@ -90,30 +90,30 @@ local function target_lines(arg)
 		end
 		local lines = reg_lines(reg)
 		if not lines then
-			return nil, nil, "Register @" .. reg .. " is empty"
+			return nil, nil, "寄存器 @" .. reg .. " 为空"
 		end
-		return lines, "Register @" .. reg
+		return lines, "寄存器 @" .. reg
 	end
 
 	if first == "!" then
 		local cmd = arg:sub(2)
 		local out = vim.fn.systemlist(cmd)
 		if vim.v.shell_error ~= 0 then
-			return nil, nil, ("Command failed (%d): %s"):format(vim.v.shell_error, cmd)
+			return nil, nil, ("命令失败（%d）: %s"):format(vim.v.shell_error, cmd)
 		end
 		if #out == 0 then
-			return nil, nil, "Command produced no output: " .. cmd
+			return nil, nil, "命令无输出: " .. cmd
 		end
 		return out, "$ " .. cmd
 	end
 
 	local path = vim.fn.expand(arg)
 	if vim.fn.filereadable(path) ~= 1 then
-		return nil, nil, "File not readable: " .. path
+		return nil, nil, "文件不可读: " .. path
 	end
 	local lines = vim.fn.readfile(path)
 	if vim.fn.getline(1) == "" and #lines == 0 then
-		return nil, nil, "File is empty: " .. path
+		return nil, nil, "文件为空: " .. path
 	end
 	return lines, vim.fn.fnamemodify(path, ":~:.")
 end
@@ -241,7 +241,7 @@ local function open_float(lines, title)
 	end
 
 	for _, lhs in ipairs({ "q", "<Esc>" }) do
-		vim.keymap.set("n", lhs, close, { buffer = buf, nowait = true, desc = "Diff: close" })
+		vim.keymap.set("n", lhs, close, { buffer = buf, nowait = true, desc = "Diff: 关闭" })
 	end
 
 	mark_unified(buf, lines)
@@ -272,7 +272,7 @@ local function open_tab(a, b, label_a, label_b)
 
 	local bufs, wins = {}, {}
 	local sides = {
-		{ a, label_a, "Diff (selection)" },
+		{ a, label_a, "Diff (选区)" },
 		{ b, label_b, "Diff (" .. label_b .. ")" },
 	}
 	for i, side in ipairs(sides) do
@@ -318,7 +318,7 @@ local function open_tab(a, b, label_a, label_b)
 
 	for i = 1, 2 do
 		for _, lhs in ipairs({ "q", "<Esc>" }) do
-			vim.keymap.set("n", lhs, close, { buffer = bufs[i], nowait = true, desc = "Diff: close" })
+			vim.keymap.set("n", lhs, close, { buffer = bufs[i], nowait = true, desc = "Diff: 关闭" })
 		end
 	end
 
@@ -361,27 +361,27 @@ end
 function M.run(args)
 	local a = vim.api.nvim_buf_get_lines(0, args.line1 - 1, args.line2, true)
 	if #a == 0 then
-		notify("Selection is empty", vim.log.levels.WARN)
+		notify("选区为空", vim.log.levels.WARN)
 		return
 	end
 
 	local b, label, err = target_lines(args.args)
 	if not b then
-		notify(err or "Cannot get comparison content", vim.log.levels.ERROR)
+		notify(err or "无法取得对比内容", vim.log.levels.ERROR)
 		return
 	end
 
 	local text_a = table.concat(a, "\n")
 	local text_b = table.concat(b, "\n")
 	if text_a == text_b then
-		notify("Both sides are identical")
+		notify("两侧内容完全相同")
 		return
 	end
 
 	local opts = vim.tbl_extend("force", DIFF_OPTS, { result_type = "unified", ctxlen = 3, interhunkctxlen = 3 })
 	local unified = vim.diff(text_a .. "\n", text_b .. "\n", opts)
 	if not unified or unified == "" then
-		notify("Both sides are identical (only whitespace differences ignored)")
+		notify("两侧内容完全相同（仅空白差异被忽略）")
 		return
 	end
 
@@ -392,9 +392,9 @@ function M.run(args)
 	end
 
 	if args.bang then
-		open_tab(a, b, "selection", label or "compare")
+		open_tab(a, b, "选区", label or "对比")
 	else
-		open_float(lines, ("Diff  %s  ⇄  selection"):format(label or "compare"))
+		open_float(lines, ("Diff  %s  ⇄  选区"):format(label or "对比"))
 	end
 end
 
@@ -406,7 +406,7 @@ function M.setup()
 		bang = true,
 		nargs = "?",
 		complete = "file",
-		desc = "Diff selection against register/file/command output (! = two-pane temp tab)",
+		desc = "对比选区与寄存器/文件/命令输出（! = 双栏临时 tab）",
 	})
 
 	local function visual(command)
@@ -418,8 +418,8 @@ function M.setup()
 		end
 	end
 
-	vim.keymap.set("x", "D", visual(":Diff"), { expr = true, desc = "Diff: selection vs register (float)" })
-	vim.keymap.set("x", "gD", visual(":Diff!"), { expr = true, desc = "Diff: selection vs register (two-pane tab)" })
+	vim.keymap.set("x", "D", visual(":Diff"), { expr = true, desc = "Diff: 选区对比寄存器（浮窗）" })
+	vim.keymap.set("x", "gD", visual(":Diff!"), { expr = true, desc = "Diff: 选区对比寄存器（双栏 tab）" })
 end
 
 return M

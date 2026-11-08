@@ -60,13 +60,13 @@ return {
 			"n",
 			"<leader>zM",
 			"<cmd>RenderMarkdown toggle<cr>",
-			{ silent = true, desc = "Render-Markdown: toggle in-place render (global)" }
+			{ silent = true, desc = "Render-Markdown: 切换原地渲染（全局）" }
 		)
 		vim.keymap.set(
 			"n",
 			"<leader>zV",
 			"<cmd>RenderMarkdown preview<cr>",
-			{ silent = true, desc = "Render-Markdown: side render preview" }
+			{ silent = true, desc = "Render-Markdown: 侧边渲染预览" }
 		)
 	end,
 }

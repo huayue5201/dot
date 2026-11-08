@@ -87,7 +87,7 @@ function M.run_runnable(runnable)
 	end
 	local cmd, cwd, env = build_command(runnable)
 	if not cmd or #cmd == 0 then
-		notify("Cannot build run command (runnable has no executable)", vim.log.levels.ERROR)
+		notify("无法构建运行命令（runnable 缺少可执行程序）", vim.log.levels.ERROR)
 		return
 	end
 	open_terminal(cmd, cwd, env)
@@ -134,13 +134,13 @@ local function resolve_executable(cargo_args, extra_args, cwd, env, cb)
 		end
 
 		if #exes == 0 then
-			notify("No executable found", vim.log.levels.WARN)
+			notify("未找到可执行文件", vim.log.levels.WARN)
 			cb(nil)
 		elseif #exes == 1 then
 			cb(exes[1])
 		else
 			vim.ui.select(exes, {
-				prompt = "Select debug target",
+				prompt = "选择调试目标",
 				format_item = vim.fs.basename,
 			}, function(choice)
 				cb(choice)
@@ -158,7 +158,7 @@ end
 local function start_debug(exe, args, cwd, env, bufnr)
 	local ok, dap = pcall(require, "dap")
 	if not ok then
-		notify("nvim-dap not installed, cannot debug", vim.log.levels.ERROR)
+		notify("未安装 nvim-dap，无法调试", vim.log.levels.ERROR)
 		return
 	end
 
@@ -168,7 +168,7 @@ local function start_debug(exe, args, cwd, env, bufnr)
 		local configs = provider(bufnr)
 		if configs and #configs == 0 then
 			notify(
-				"Current project is not a desktop project; use <leader>dr to select an embedded debug config",
+				"当前项目不是桌面项目，请用 <leader>dr 选择嵌入式调试配置",
 				vim.log.levels.WARN
 			)
 			return
@@ -202,7 +202,7 @@ end
 ---@param bufnr integer
 function M.debug_runnable(runnable, bufnr)
 	if not is_cargo(runnable) then
-		notify("Only cargo targets can be debugged", vim.log.levels.WARN)
+		notify("仅支持调试 cargo 目标", vim.log.levels.WARN)
 		return
 	end
 
@@ -234,12 +234,12 @@ local function request_runnables(client, bufnr, cb)
 	lsp_request.request(client, "experimental/runnables", {
 		textDocument = vim.lsp.util.make_text_document_params(bufnr),
 		position = nil, -- 取全部
-	}, { bufnr = bufnr, what = "fetching runnables", notify = true }, function(result, err)
+	}, { bufnr = bufnr, what = "获取 runnables", notify = true }, function(result, err)
 		if err then
 			return
 		end
 		if not result or #result == 0 then
-			notify("No runnable target", vim.log.levels.INFO)
+			notify("没有可运行目标", vim.log.levels.INFO)
 			return
 		end
 		cb(result)
@@ -319,7 +319,7 @@ end
 local function show_references(command)
 	local locations, target_uri = location_util.extract(command.arguments)
 	if #locations == 0 then
-		notify("No references", vim.log.levels.INFO)
+		notify("没有引用", vim.log.levels.INFO)
 		return
 	end
 	local title = "References"
@@ -347,10 +347,10 @@ M.commands = {
 
 -- 该语言 buffer 的键位
 M.keymaps = {
-	{ lhs = "<leader>rr", fn = M.run_at_cursor, desc = "Rust: run target at cursor" },
-	{ lhs = "<leader>rR", fn = M.runnables, desc = "Rust: select and run" },
-	{ lhs = "<leader>rd", fn = M.debug_at_cursor, desc = "Rust: debug target at cursor" },
-	{ lhs = "<leader>rD", fn = M.debuggables, desc = "Rust: select and debug" },
+	{ lhs = "<leader>rr", fn = M.run_at_cursor, desc = "Rust: 运行光标处目标" },
+	{ lhs = "<leader>rR", fn = M.runnables, desc = "Rust: 选择并运行" },
+	{ lhs = "<leader>rd", fn = M.debug_at_cursor, desc = "Rust: 调试光标处目标" },
+	{ lhs = "<leader>rD", fn = M.debuggables, desc = "Rust: 选择并调试" },
 }
 
 -- 导出内部函数供测试

@@ -26,7 +26,7 @@ local M = {}
 -- 守卫元数据：见 lua/fix/init.lua 顶部说明；:FixStatus 查看状态
 M.meta = {
 	id = "neotest-golang#599",
-	title = "Table-driven test discovery is O(N²) (enumerating literal_value + for_statement backtracking blows up in one query)",
+	title = "表驱动测试发现是 O(N²)（同一 query 里枚举 literal_value + for_statement 回溯爆炸）",
 	plugin = "neotest-golang",
 	issue = "https://github.com/fredrikaverpil/neotest-golang/issues/599",
 	baseline_rev = "65b2be6",
@@ -35,7 +35,7 @@ M.meta = {
 		{ file = "lua/neotest-golang/queries/go/table_tests_list.scm", contains = "(for_statement" },
 		{ file = "lua/neotest-golang/queries/go/table_tests_unkeyed.scm", contains = "(for_statement" },
 	},
-	cleanup = { "Also delete lua/fix/neotest_golang_table_tests.lua and the require in plugins/tools/neotest.lua" },
+	cleanup = { "同时删掉 lua/fix/neotest_golang_table_tests.lua 和 plugins/tools/neotest.lua 里的 require" },
 }
 
 local DECL_LIST = [[
@@ -286,10 +286,7 @@ function M.install()
 		if good then
 			return tree
 		end
-		vim.notify(
-			("neotest-golang: fast discovery failed, falling back to upstream (%s)"):format(tree),
-			vim.log.levels.WARN
-		)
+		vim.notify(("neotest-golang: 快速发现失败，回落 upstream（%s）"):format(tree), vim.log.levels.WARN)
 		return upstream(file_path)
 	end
 	adapter.__fast_discovery = true

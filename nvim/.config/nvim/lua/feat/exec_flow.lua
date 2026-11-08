@@ -267,7 +267,7 @@ function M.panel()
 	if not M._list then
 		local float_list = require("ui.float_list")
 		M._list = float_list.new({
-			title = " Execution flow ",
+			title = " 执行流 ",
 			max_height = 20,
 			rows = entries,
 			text = panel_text,
@@ -283,7 +283,7 @@ function M.panel()
 						M.delete_at(it.seq)
 						self:refresh()
 					end,
-					"Delete",
+					"删除",
 				},
 				{
 					"J",
@@ -291,7 +291,7 @@ function M.panel()
 						M.move(self.items[self:current() or 0], 1)
 						self:refresh()
 					end,
-					"Move down",
+					"下移",
 				},
 				{
 					"K",
@@ -299,7 +299,7 @@ function M.panel()
 						M.move(self.items[self:current() or 0], -1)
 						self:refresh()
 					end,
-					"Move up",
+					"上移",
 				},
 				{
 					"c",
@@ -307,16 +307,16 @@ function M.panel()
 						M.clear()
 						self:refresh()
 					end,
-					"Clear",
+					"清空",
 				},
 			},
 			help = {
-				{ "<CR>", "Jump to anchor" },
-				{ "j/k", "Move" },
-				{ "d", "Delete anchor" },
-				{ "J/K", "Reorder execution" },
-				{ "c", "Clear all" },
-				{ "q", "Close" },
+				{ "<CR>", "跳到锚点" },
+				{ "j/k", "移动" },
+				{ "d", "删除锚点" },
+				{ "J/K", "调整执行顺序" },
+				{ "c", "清空全部" },
+				{ "q", "关闭" },
 			},
 			close_when_empty = true,
 		})
@@ -378,10 +378,10 @@ M.opts = { label = DEFAULT_LABEL }
 function M.setup(opts)
 	M.opts = vim.tbl_extend("force", M.opts, opts or {})
 	ensure_hl()
-	vim.api.nvim_create_user_command("ExecFlowAdd", M.add, { desc = "ExecFlow: mark current line" })
-	vim.api.nvim_create_user_command("ExecFlowList", M.panel, { desc = "ExecFlow: list anchors" })
-	vim.api.nvim_create_user_command("ExecFlowClear", M.clear, { desc = "ExecFlow: clear anchors" })
-	vim.api.nvim_create_user_command("ExecFlowQf", M.qf, { desc = "ExecFlow: export to quickfix" })
+	vim.api.nvim_create_user_command("ExecFlowAdd", M.add, { desc = "执行流: 标记当前行" })
+	vim.api.nvim_create_user_command("ExecFlowList", M.panel, { desc = "执行流: 列出锚点" })
+	vim.api.nvim_create_user_command("ExecFlowClear", M.clear, { desc = "执行流: 清空锚点" })
+	vim.api.nvim_create_user_command("ExecFlowQf", M.qf, { desc = "执行流: 导出到 quickfix" })
 
 	vim.api.nvim_create_autocmd("BufWipeout", {
 		group = vim.api.nvim_create_augroup("core_exec_flow", { clear = true }),

@@ -194,13 +194,13 @@ local function render(data, full)
 			k(data.branch or "?"),
 			" @ ",
 			k(data.head or "?"),
-			{ ("(%s)"):format(data.date or "unknown date"), date_hl },
+			{ ("（%s）"):format(data.date or "未知日期"), date_hl },
 		})
 	else
 		add({
 			{ ICON.struct .. " ", "ProjectDirIcon" },
 			dim(data.root),
-			"  ·  not a git repository (counted directly from directories)",
+			"  ·  不是 git 仓库（按目录直接统计）",
 		})
 	end
 
@@ -217,17 +217,17 @@ local function render(data, full)
 	if #data.tags > 0 then
 		push({
 			(
-				#data.tags > 1 and (num(#data.tags) .. " tags (latest " .. data.tags[1] .. ")")
-				or (data.tags[1] .. " (1 tag)")
+				#data.tags > 1 and (num(#data.tags) .. " 个 tag（最新 " .. data.tags[1] .. "）")
+				or (data.tags[1] .. "（1 个 tag）")
 			),
 			"ProjectKey",
 		})
 	end
 	if data.git then
 		if data.dirty > 0 then
-			push({ ("%s uncommitted changes"):format(num(data.dirty)), "ProjectWarn" })
+			push({ ("%s 个未提交改动"):format(num(data.dirty)), "ProjectWarn" })
 		else
-			push({ "workspace clean", "ProjectOk" })
+			push({ "工作区干净", "ProjectOk" })
 		end
 	end
 	if #meta > 0 then
@@ -242,15 +242,15 @@ local function render(data, full)
 
 	-- 规模
 	add("")
-	section(ICON.scale, "Scale")
+	section(ICON.scale, "规模")
 	add({
 		n(data.code),
-		dim((" lines (%s)  ·  "):format(data.source)),
+		dim((" 行（%s）  ·  "):format(data.source)),
 		n(#data.files),
-		dim(" files"),
+		dim(" 个文件"),
 	})
 	if #data.langs > 0 then
-		local line = { "- Languages: " }
+		local line = { "- 语言： " }
 		for i, lang in ipairs(vim.list_slice(data.langs, 1, 6)) do
 			if i > 1 then
 				line[#line + 1] = " · "
@@ -266,7 +266,7 @@ local function render(data, full)
 		add(line)
 	end
 	if #data.big > 0 then
-		add("- Largest files:")
+		add("- 最大文件：")
 		for _, f in ipairs(vim.list_slice(data.big, 1, 5)) do
 			local icon, hl = file_icon(f.path)
 			add({
@@ -282,18 +282,18 @@ local function render(data, full)
 	if full then
 		add({
 			{ ICON.tests .. " ", "ProjectIcon" },
-			"Test files: ",
+			"测试文件： ",
 			n(data.tests),
-			dim(" ("),
+			dim(" 个（占 "),
 			{ pct(data.tests, #data.files), "ProjectNumber" },
-			dim(")"),
+			dim("）"),
 		})
 	end
 
 	-- 结构
 	if #data.structure > 0 then
 		add("")
-		section(ICON.struct, "Structure (by lines)")
+		section(ICON.struct, "结构（按行数）")
 		local shown = 0
 		for _, d in ipairs(data.structure) do
 			if shown >= 12 then
@@ -306,16 +306,16 @@ local function render(data, full)
 				p(d.path or d.name),
 				dim("  ·  "),
 				n(d.files),
-				dim(" files  ·  "),
+				dim(" 个文件  ·  "),
 				n(d.lines),
 				dim("L"),
 			}, d.path or d.name)
 		end
 		if #data.structure > shown then
 			add({
-				dim("- …plus "),
+				dim("- …另有 "),
 				n(#data.structure - shown),
-				dim(" more directories"),
+				dim(" 个目录没展开"),
 			})
 		end
 	end
@@ -325,7 +325,7 @@ local function render(data, full)
 		-- 跳过
 	elseif #data.active > 0 then
 		add("")
-		section(ICON.active, "Active areas (changes in the last 90 days)")
+		section(ICON.active, "活跃区（最近 90 天改动次数）")
 		for _, f in ipairs(vim.list_slice(data.active, 1, full and 15 or 8)) do
 			local icon, hl = file_icon(f.path)
 			add({
@@ -338,21 +338,21 @@ local function render(data, full)
 		end
 	else
 		add("")
-		section(ICON.active, "Active areas")
-		add("- no changes in the last 90 days (or only merges / empty history)")
+		section(ICON.active, "活跃区")
+		add("- 最近 90 天没有改动（或只有 merge / 空历史）")
 	end
 
 	-- 构建
 	add("")
-	section(ICON.build, "Build / entry points")
+	section(ICON.build, "构建 / 入口")
 	if #data.build == 0 then
-		add("- no Makefile / justfile / flake / manifest found; may be a plain script or docs repo")
+		add("- 没找到 Makefile / justfile / flake / manifest，可能是纯脚本或文档仓")
 	else
 		for _, line in ipairs(data.build) do
 			-- 「工具：recipe 列表」：工具名亮，recipe 暗，方便一眼定位入口
-			local tool, rest = line:match("^(.-): (.*)$")
+			local tool, rest = line:match("^(.-)： (.*)$")
 			if tool then
-				add({ "- ", k(tool), dim(": "), dim(rest) })
+				add({ "- ", k(tool), dim("： "), dim(rest) })
 			else
 				add({ "- ", k(line) })
 			end
@@ -361,32 +361,32 @@ local function render(data, full)
 
 	if full then
 		add("")
-		section(ICON.deps, "Dependencies")
+		section(ICON.deps, "依赖")
 		if #data.deps == 0 then
-			add("- no dependencies parsed (no package.json / Cargo.toml / go.mod / requirements.txt)")
+			add("- 没解析到依赖（没有 package.json / Cargo.toml / go.mod / requirements.txt）")
 		else
 			for _, dep in ipairs(data.deps) do
 				local list = dep.list
 				local shown = table.concat(vim.list_slice(list, 1, 12), ", ")
-				local line = { "- ", k(dep.label), dim(": "), dim(shown) }
+				local line = { "- ", k(dep.label), dim("： "), dim(shown) }
 				if #list > 12 then
-					line[#line + 1] = dim(" … total ")
+					line[#line + 1] = dim(" … 共 ")
 					line[#line + 1] = n(#list)
-					line[#line + 1] = dim(" items")
+					line[#line + 1] = dim(" 项")
 				end
 				add(line)
 			end
 		end
 
 		add("")
-		section(ICON.conventions, "Conventions / tooling")
+		section(ICON.conventions, "约定 / 工程设施")
 		if #data.conventions == 0 then
-			add("- no convention files (.editorconfig / lint / CI / AGENTS.md)")
+			add("- 没有任何约定文件（.editorconfig / lint / CI / AGENTS.md）")
 		else
 			for _, line in ipairs(data.conventions) do
-				local name, rest = line:match("^(.-) %((.*)%)$")
+				local name, rest = line:match("^(.-)（(.*)）$")
 				if name then
-					add({ "- ", k(name), dim(" (" .. rest .. ")") })
+					add({ "- ", k(name), dim("（" .. rest .. "）") })
 				else
 					add("- " .. line)
 				end
@@ -395,9 +395,9 @@ local function render(data, full)
 		if data.todo > 0 then
 			add({
 				{ ICON.todo .. " ", data.todo > 20 and "ProjectWarn" or "ProjectIcon" },
-				"TODO / FIXME: ",
+				"TODO / FIXME： ",
 				n(data.todo),
-				dim(" occurrences"),
+				dim(" 处"),
 			})
 		end
 	end
@@ -405,8 +405,8 @@ local function render(data, full)
 	add("")
 	add({
 		{ ICON.hint .. " ", "ProjectIcon" },
-		{ "`t` " .. (full and "compact only" or "full version"), "ProjectDim" },
-		dim(" · `A` ask AI with it · `C` put in chat · `q` close · `gd` jump · `r` re-collect"),
+		{ "`t` " .. (full and "只看精简" or "看完整版"), "ProjectDim" },
+		dim(" · `A` 带着问 AI · `C` 放进 chat · `q` 关闭 · `gd` 跳转 · `r` 重采"),
 	})
 
 	return L, H, paths

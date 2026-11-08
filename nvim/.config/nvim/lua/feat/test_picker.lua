@@ -127,7 +127,7 @@ local scanning = false
 ---@param on_done fun(items: table[]|nil, err: string|nil)
 local function scan_async(on_done)
 	if vim.fn.executable("rg") ~= 1 then
-		on_done(nil, "requires ripgrep (rg)")
+		on_done(nil, "需要 ripgrep (rg)")
 		return
 	end
 	if scanning and scan_job then
@@ -142,7 +142,7 @@ local function scan_async(on_done)
 			scanning = false
 			scan_job = nil
 			if (res.code or 0) > 2 then
-				on_done(nil, "ripgrep failed: " .. tostring(res.stderr))
+				on_done(nil, "ripgrep 失败: " .. tostring(res.stderr))
 				return
 			end
 			on_done(parse(res.stdout, cwd), nil)
@@ -160,7 +160,7 @@ end
 ---@return table[]
 local function scan_sync()
 	if vim.fn.executable("rg") ~= 1 then
-		vim.notify("test_picker: requires ripgrep (rg)", vim.log.levels.ERROR)
+		vim.notify("test_picker: 需要 ripgrep (rg)", vim.log.levels.ERROR)
 		return {}
 	end
 	local cwd = vim.fn.getcwd()
@@ -168,7 +168,7 @@ local function scan_sync()
 		return vim.system(rg_args(cwd), { cwd = cwd, text = true }):wait(10000)
 	end)
 	if not ok or not res or (res.code or 0) > 2 then
-		vim.notify("test_picker: ripgrep failed: " .. tostring(ok and res and res.stderr or res), vim.log.levels.ERROR)
+		vim.notify("test_picker: ripgrep 失败: " .. tostring(ok and res and res.stderr or res), vim.log.levels.ERROR)
 		return {}
 	end
 	return parse(res.stdout, cwd)
@@ -209,7 +209,7 @@ local open_picker -- 前向声明（M.pick 里异步回调要用）
 function M.pick(opts)
 	opts = opts or {}
 	-- rg 扫全项目在大仓库上是秒级，必须异步，否则整个 UI 冻住
-	vim.notify("test_picker: scanning test declarations…", vim.log.levels.INFO)
+	vim.notify("test_picker: 扫描测试声明…", vim.log.levels.INFO)
 	scan_async(function(items, err)
 		if err then
 			vim.notify("test_picker: " .. err, vim.log.levels.ERROR)
@@ -217,7 +217,7 @@ function M.pick(opts)
 		end
 		if not items or #items == 0 then
 			vim.notify(
-				"test_picker: no tests found (check rg rules / whether you are in the project root)",
+				"test_picker: 没扫到测试（检查 rg 规则 / 是否在项目根目录）",
 				vim.log.levels.WARN
 			)
 			return
@@ -262,14 +262,14 @@ function open_picker(items, opts)
 		actions = {
 			{
 				key = "<C-r>",
-				desc = "Run",
+				desc = "运行",
 				fn = function(it)
 					run_after(it, "run")
 				end,
 			},
 			{
 				key = "<C-d>",
-				desc = "Debug",
+				desc = "调试",
 				fn = function(it)
 					run_after(it, "debug")
 				end,

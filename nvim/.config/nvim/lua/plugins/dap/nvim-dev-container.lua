@@ -8,21 +8,21 @@ return {
 	dependencies = { "nvim-treesitter/nvim-treesitter" },
 	-- 命令由 setup() 生成；插件 eager 加载，这里的 keys 只是把常用命令挂到键上。
 	keys = {
-		{ "<leader>Ds", "<cmd>DevcontainerStart<cr>", desc = "Docker/DevContainer: start container" },
+		{ "<leader>Ds", "<cmd>DevcontainerStart<cr>", desc = "Docker/DevContainer: 启动容器" },
 		{
 			"<leader>Da",
 			"<cmd>DevcontainerAttach<cr>",
-			desc = "Docker/DevContainer: attach to container (nvim client/server)",
+			desc = "Docker/DevContainer: 附加到容器 (nvim client/server)",
 		},
-		{ "<leader>De", "<cmd>DevcontainerExec<cr>", desc = "Docker/DevContainer: exec command in container" },
-		{ "<leader>Dx", "<cmd>DevcontainerStop<cr>", desc = "Docker/DevContainer: stop container" },
-		{ "<leader>DX", "<cmd>DevcontainerStopAll<cr>", desc = "Docker/DevContainer: stop all" },
-		{ "<leader>DR", "<cmd>DevcontainerRemoveAll<cr>", desc = "Docker/DevContainer: remove all containers/images" },
-		{ "<leader>Dl", "<cmd>DevcontainerLogs<cr>", desc = "Docker/DevContainer: show logs" },
+		{ "<leader>De", "<cmd>DevcontainerExec<cr>", desc = "Docker/DevContainer: 容器内执行命令" },
+		{ "<leader>Dx", "<cmd>DevcontainerStop<cr>", desc = "Docker/DevContainer: 停止容器" },
+		{ "<leader>DX", "<cmd>DevcontainerStopAll<cr>", desc = "Docker/DevContainer: 停止全部" },
+		{ "<leader>DR", "<cmd>DevcontainerRemoveAll<cr>", desc = "Docker/DevContainer: 移除全部容器/镜像" },
+		{ "<leader>Dl", "<cmd>DevcontainerLogs<cr>", desc = "Docker/DevContainer: 查看日志" },
 		{
 			"<leader>Dc",
 			"<cmd>DevcontainerEditNearestConfig<cr>",
-			desc = "Docker/DevContainer: edit/create devcontainer.json",
+			desc = "Docker/DevContainer: 编辑/新建 devcontainer.json",
 		},
 	},
 	opts = {

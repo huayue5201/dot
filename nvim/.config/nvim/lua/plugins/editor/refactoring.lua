@@ -49,12 +49,12 @@ local REQUIRED = {
 
 -- 按依赖顺序列出（key / 插件函数名 / 注释）
 local OPS = {
-	{ key = "e", name = "extract_func", desc = "Refactor: extract function" },
-	{ key = "E", name = "extract_func_to_file", desc = "Refactor: extract function to new file" },
-	{ key = "v", name = "extract_var", desc = "Refactor: extract variable" },
-	{ key = "i", name = "inline_var", desc = "Refactor: inline variable" },
-	{ key = "I", name = "inline_func", desc = "Refactor: inline function" },
-	{ key = "s", name = "select_refactor", desc = "Refactor: select refactoring to run" },
+	{ key = "e", name = "extract_func", desc = "重构: 提取函数" },
+	{ key = "E", name = "extract_func_to_file", desc = "重构: 提取函数到新文件" },
+	{ key = "v", name = "extract_var", desc = "重构: 提取变量" },
+	{ key = "i", name = "inline_var", desc = "重构: 内联变量" },
+	{ key = "I", name = "inline_func", desc = "重构: 内联函数" },
+	{ key = "s", name = "select_refactor", desc = "重构: 选择要执行的重构" },
 }
 
 return {

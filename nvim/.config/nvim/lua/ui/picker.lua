@@ -390,7 +390,7 @@ function M.pick(opts)
 
 		local lines = {}
 		if n == 0 then
-			lines[1] = "  (no match)"
+			lines[1] = "  (无匹配)"
 		else
 			local text_w = vim.api.nvim_win_get_width(list_win) - 2
 			for i, e in ipairs(filtered) do
@@ -553,7 +553,7 @@ function M.pick(opts)
 			end
 			local ok, err = pcall(a.fn, e.item, ctx)
 			if not ok then
-				vim.notify(("action %s failed: %s"):format(a.key, err), vim.log.levels.ERROR)
+				vim.notify(("action %s 失败: %s"):format(a.key, err), vim.log.levels.ERROR)
 			end
 		end
 		map("i", a.key, fn, prompt_buf)

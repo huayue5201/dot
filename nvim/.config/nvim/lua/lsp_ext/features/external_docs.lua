@@ -324,7 +324,7 @@ function M.open_vim_help(bufnr)
 	end
 
 	if is_vim_api then
-		notify("Built-in help tag not found: " .. expr, vim.log.levels.WARN)
+		notify("没有找到内置帮助标签: " .. expr, vim.log.levels.WARN)
 		return true -- 不回落去开网页
 	end
 	return false
@@ -341,27 +341,30 @@ function M.open_url(url)
 	if scheme == "file" then
 		local path = vim.uri_to_fname(url)
 		if not vim.uv.fs_stat(path) then
-			notify("File does not exist: " .. path, vim.log.levels.WARN)
+			notify("文件不存在: " .. path, vim.log.levels.WARN)
 			return
 		end
 		-- 服务端通常只给到文件、没有行列；m' 让 '' 能跳回原位置
 		vim.cmd("normal! m'")
 		vim.cmd("edit " .. vim.fn.fnameescape(path))
-		notify(("Opened %s (server provided no location; '' to return)"):format(short_name(path)))
+		notify(("已打开 %s（服务端未提供位置信息，'' 返回）"):format(short_name(path)))
 		return
 	end
 
 	if scheme ~= "http" and scheme ~= "https" then
-		notify(("Refusing to open non-http(s)/file link: %s"):format(url), vim.log.levels.WARN)
+		notify(("拒绝打开非 http(s)/file 的链接: %s"):format(url), vim.log.levels.WARN)
 		return
 	end
 
 	-- vim.ui.open 失败时返回 nil, msg（不抛异常），pcall 只防 handler 自己炸
 	local ok, res, msg = pcall(vim.ui.open, url)
 	if not ok then
-		notify(("Failed to open: %s (%s)"):format(url, tostring(res)), vim.log.levels.ERROR)
+		notify(("打开失败: %s（%s）"):format(url, tostring(res)), vim.log.levels.ERROR)
 	elseif res == nil or res == false then
-		notify(("Failed to open: %s (%s)"):format(url, tostring(msg or "no available opener")), vim.log.levels.ERROR)
+		notify(
+			("打开失败: %s（%s）"):format(url, tostring(msg or "没有可用的 opener")),
+			vim.log.levels.ERROR
+		)
 	end
 end
 
@@ -386,7 +389,7 @@ function M.choose_and_open_link(links, fallback)
 	end
 
 	vim.ui.select(items, {
-		prompt = "Select a link to open:",
+		prompt = "选择要打开的链接:",
 		format_item = function(item)
 			local display = item.text or ""
 			if vim.fn.strdisplaywidth(display) > 60 then
@@ -428,7 +431,7 @@ function M.open_default_docs(opts)
 		return
 	end
 
-	notify(("No docs config for `%s` (extend with external_docs.setup{})"):format(ft), vim.log.levels.WARN)
+	notify(("没有 `%s` 的文档配置（可用 external_docs.setup{} 扩展）"):format(ft), vim.log.levels.WARN)
 end
 
 --- 打开当前符号的文档（`gro`）

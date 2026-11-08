@@ -9,7 +9,7 @@ return {
 	build = function(plugin)
 		local res = vim.system({ "sh", "install.sh" }, { cwd = plugin.dir, text = true }):wait()
 		if res.code ~= 0 then
-			error("sniprun build failed:\n" .. (res.stderr or "") .. (res.stdout or ""))
+			error("sniprun 构建失败:\n" .. (res.stderr or "") .. (res.stdout or ""))
 		end
 	end,
 	config = function()
@@ -17,20 +17,15 @@ return {
 
 		-- 统一挂到 <leader>rS（运行 / SnipRun），与 <leader>rr/rd（Rust runnables）、
 		-- <leader>ru/ro（overseer）、<leader>rt*（toggle）都不冲突。
-		vim.keymap.set(
-			{ "n", "v" },
-			"<leader>rSr",
-			"<cmd>SnipRun<CR>",
-			{ desc = "SnipRun: run current line/selection" }
-		)
+		vim.keymap.set({ "n", "v" }, "<leader>rSr", "<cmd>SnipRun<CR>", { desc = "SnipRun: 运行当前行/选区" })
 		vim.keymap.set(
 			"n",
 			"<leader>rSl",
 			"<cmd>SnipLive<CR>",
-			{ desc = "SnipRun: toggle Live mode (run on every change)" }
+			{ desc = "SnipRun: 切换 Live 模式（每次改动即运行）" }
 		)
-		vim.keymap.set("n", "<leader>rSi", "<cmd>SnipInfo<CR>", { desc = "SnipRun: show interpreter/REPL status" })
-		vim.keymap.set("n", "<leader>rSc", "<cmd>SnipClose<CR>", { desc = "SnipRun: close result window" })
-		vim.keymap.set("n", "<leader>rSx", "<cmd>SnipReset<CR>", { desc = "SnipRun: reset all interpreters/REPL" })
+		vim.keymap.set("n", "<leader>rSi", "<cmd>SnipInfo<CR>", { desc = "SnipRun: 查看解释器/REPL 状态" })
+		vim.keymap.set("n", "<leader>rSc", "<cmd>SnipClose<CR>", { desc = "SnipRun: 关闭结果窗口" })
+		vim.keymap.set("n", "<leader>rSx", "<cmd>SnipReset<CR>", { desc = "SnipRun: 重置所有解释器/REPL" })
 	end,
 }

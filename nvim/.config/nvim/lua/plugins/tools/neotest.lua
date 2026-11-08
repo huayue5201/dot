@@ -75,58 +75,58 @@ return {
 
 		vim.keymap.set("n", "<leader>tr", function()
 			neotest.run.run()
-		end, { desc = "Run current file tests" })
+		end, { desc = "运行当前文件测试" })
 
 		vim.keymap.set("n", "<leader>tf", function()
 			neotest.run.run(vim.fn.expand("%"))
-		end, { desc = "Run all tests in current file" })
+		end, { desc = "运行当前文件全部测试" })
 
 		vim.keymap.set("n", "<leader>tT", function()
 			neotest.run.run({ suite = true })
-		end, { desc = "Run entire test suite" })
+		end, { desc = "运行整个测试套件" })
 
 		vim.keymap.set("n", "<leader>tl", function()
 			neotest.run.run_last()
-		end, { desc = "Run nearest test" })
+		end, { desc = "运行最近的测试" })
 
 		vim.keymap.set("n", "<leader>td", function()
 			neotest.run.run({ strategy = "dap" })
-		end, { desc = "Debug nearest test (DAP)" })
+		end, { desc = "调试最近的测试 (DAP)" })
 
 		vim.keymap.set("n", "<leader>ts", function()
 			neotest.run.stop()
-		end, { desc = "Stop nearest test" })
+		end, { desc = "停止最近的测试" })
 
 		vim.keymap.set("n", "<leader>ta", function()
 			neotest.run.attach()
-		end, { desc = "Attach to nearest test" })
+		end, { desc = "附加到最近的测试" })
 
 		vim.keymap.set("n", "<leader>to", function()
 			neotest.output.open({ enter = true, auto_close = true })
-		end, { desc = "Open test output" })
+		end, { desc = "打开测试输出" })
 
 		vim.keymap.set("n", "<leader>tp", function()
 			neotest.output_panel.toggle()
-		end, { desc = "Toggle test output panel" })
+		end, { desc = "切换测试输出面板" })
 
 		vim.keymap.set("n", "<leader>tt", function()
 			neotest.summary.toggle()
-		end, { desc = "Toggle test summary" })
+		end, { desc = "切换测试摘要" })
 
 		vim.keymap.set("n", "<leader>tS", function()
 			require("feat.test_picker").pick()
-		end, { desc = "Fuzzy find test methods (project-wide)" })
+		end, { desc = "模糊查找测试方法（全项目）" })
 
 		vim.keymap.set("n", "<leader>tw", function()
 			neotest.watch.toggle(vim.fn.expand("%"))
-		end, { desc = "Watch current file tests" })
+		end, { desc = "监听当前文件测试" })
 
 		vim.keymap.set("n", "[T", function()
 			neotest.jump.prev({ status = "failed" })
-		end, { desc = "Jump to previous failed test" })
+		end, { desc = "跳到上一个失败测试" })
 
 		vim.keymap.set("n", "]T", function()
 			neotest.jump.next({ status = "failed" })
-		end, { desc = "Jump to next failed test" })
+		end, { desc = "跳到下一个失败测试" })
 	end,
 }

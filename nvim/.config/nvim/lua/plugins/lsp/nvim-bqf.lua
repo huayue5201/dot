@@ -31,6 +31,6 @@ return {
 			end
 		end
 
-		vim.notify("nvim-bqf: fzf Vim plugin not found (plugin/fzf.vim)", vim.log.levels.WARN)
+		vim.notify("nvim-bqf: 找不到 fzf 的 Vim 插件（plugin/fzf.vim）", vim.log.levels.WARN)
 	end,
 }

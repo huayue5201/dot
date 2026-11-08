@@ -302,7 +302,7 @@ local function ensure_buf()
 	vim.bo[buf].filetype = FT
 	vim.b[buf].tw_term_sidebar = true
 	vim.bo[buf].buflisted = false
-	pcall(api.nvim_buf_set_name, buf, "Terminal")
+	pcall(api.nvim_buf_set_name, buf, "终端")
 	-- buffer 被 :bwipeout 之后不要留一个悬空 id
 	local b = buf
 	api.nvim_create_autocmd("BufWipeout", {
@@ -386,10 +386,10 @@ local function ensure_buf()
 		if item then
 			M.host.kill(item.bufnr)
 		end
-	end, vim.tbl_extend("force", o, { desc = "Close this terminal" }))
+	end, vim.tbl_extend("force", o, { desc = "结束该终端" }))
 	vim.keymap.set("n", "q", function()
 		M.host.hide()
-	end, vim.tbl_extend("force", o, { desc = "Collapse terminal" }))
+	end, vim.tbl_extend("force", o, { desc = "收起终端" }))
 	return buf
 end
 

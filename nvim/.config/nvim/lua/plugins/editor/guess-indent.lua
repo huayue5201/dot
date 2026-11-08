@@ -72,8 +72,8 @@ return {
 		-- 使用 :ShowIndent 命令可以查看当前缓冲区的缩进配置
 		vim.api.nvim_create_user_command("ShowIndent", function()
 			local indent_info = string.format(
-				"Indent settings | expandtab=%s | shiftwidth=%d | tabstop=%d | softtabstop=%d",
-				vim.bo.expandtab and "spaces" or "Tab",
+				"缩进设置 | expandtab=%s | shiftwidth=%d | tabstop=%d | softtabstop=%d",
+				vim.bo.expandtab and "空格" or "Tab",
 				vim.bo.shiftwidth,
 				vim.bo.tabstop,
 				vim.bo.softtabstop

@@ -270,7 +270,7 @@ function M.setup(opts, settings)
 
 	api.nvim_create_autocmd("WinClosed", {
 		group = group,
-		desc = "Restore target window to expected size after closing",
+		desc = "关窗后把目标窗口塞回期望尺寸",
 		callback = function()
 			on_topology()
 		end,
@@ -278,7 +278,7 @@ function M.setup(opts, settings)
 
 	api.nvim_create_autocmd({ "WinNew", "BufWinEnter", "TabEnter", "VimResized" }, {
 		group = group,
-		desc = "Refresh baseline and enforce expected size after layout changes",
+		desc = "布局变化后刷新基线并强制期望尺寸",
 		callback = function()
 			on_topology()
 		end,
@@ -288,7 +288,7 @@ function M.setup(opts, settings)
 	-- 观察点：只要在拓扑变化之外观测到声明窗口尺寸变化，就当成用户手动调整。
 	api.nvim_create_autocmd({ "WinResized", "WinEnter", "BufEnter", "ModeChanged", "CursorHold", "CursorHoldI" }, {
 		group = group,
-		desc = "Distinguish manual resize from layout changes",
+		desc = "区分用户手动 resize 与布局变化",
 		callback = observe,
 	})
 

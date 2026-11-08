@@ -99,14 +99,14 @@ Rules:
 				"window",
 				{ bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.expand("<cword>") }
 			)
-		end, { silent = true, desc = "Translate and show in float (current word)" })
+		end, { silent = true, desc = "翻译并浮窗显示（当前词）" })
 
 		-- 普通模式：翻译当前句（回显）—— key 改为 tE，避免与"读原文"冲突
 		vim.keymap.set("n", "<localLeader>tE", function()
 			vim.cmd("normal! vis")
 			local text = util.get_visual_selection()
 			translator.start("window", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
-		end, { silent = true, desc = "Translate and show in float (current sentence)" })
+		end, { silent = true, desc = "翻译并浮窗显示（当前句）" })
 
 		-- 窗口显示（当前词）
 		vim.keymap.set("n", "<localleader>tw", function()
@@ -114,45 +114,45 @@ Rules:
 				"window",
 				{ bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.expand("<cword>") }
 			)
-		end, { silent = true, desc = "Translate and show in window (current word)" })
+		end, { silent = true, desc = "翻译并窗口显示（当前词）" })
 
-		vim.keymap.set("n", "<localleader>ti", "<Cmd>TranslateI<CR>", { desc = "Interactive translate" })
+		vim.keymap.set("n", "<localleader>ti", "<Cmd>TranslateI<CR>", { desc = "交互翻译" })
 
 		-- buffer 内虚拟文本中英对照（再按一次关闭；Esc 可中止进行中的批量请求）
 		vim.keymap.set(
 			"n",
 			"<localleader>tv",
 			"<Cmd>TranslateV<CR>",
-			{ silent = true, desc = "Virtual text translation (on/off)" }
+			{ silent = true, desc = "虚拟文本对照（开/关）" }
 		)
 		vim.keymap.set(
 			"n",
 			"<localleader>tV",
 			"<Cmd>TranslateVClear<CR>",
-			{ silent = true, desc = "Clear virtual text translation" }
+			{ silent = true, desc = "清除虚拟文本对照" }
 		)
 		vim.keymap.set(
 			"v",
 			"<localleader>tv",
 			":TranslateV<CR>",
-			{ silent = true, desc = "Virtual text translation (selection)" }
+			{ silent = true, desc = "虚拟文本对照（选区）" }
 		)
 
 		-- API 文档翻译（面向代码符号，需配置 translator_llm）
-		vim.keymap.set("n", "<localLeader>td", "<Cmd>TranslateApi<CR>", { desc = "Translate API docs" })
-		vim.keymap.set("v", "<localLeader>td", ":TranslateApi<CR>", { desc = "Translate API docs" })
+		vim.keymap.set("n", "<localLeader>td", "<Cmd>TranslateApi<CR>", { desc = "API 文档翻译" })
+		vim.keymap.set("v", "<localLeader>td", ":TranslateApi<CR>", { desc = "API 文档翻译" })
 
 		-- 替换当前词
 		vim.keymap.set("n", "<localLeader>tr", function()
 			vim.cmd("normal! viw")
 			local text = util.get_visual_selection()
 			translator.start("replace", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
-		end, { silent = true, desc = "Translate and replace (current word)" })
+		end, { silent = true, desc = "翻译并替换（当前词）" })
 
 		-- 翻译剪贴板
 		vim.keymap.set("n", "<localLeader>tx", function()
 			translator.start("window", { bang = false, range = 0, line1 = 1, line2 = 1, args = vim.fn.getreg("*") })
-		end, { silent = true, desc = "Translate clipboard" })
+		end, { silent = true, desc = "翻译剪贴板" })
 
 		-- 二级操作（也可在翻译浮窗 footer 里直接按 s/S/a/y/Esc）
 		-- vim.keymap.set("n", "<localLeader>tls", "<Cmd>TranslateSay<CR>", { desc = "读原文" })
@@ -165,17 +165,17 @@ Rules:
 		vim.keymap.set("v", "<localLeader>te", function()
 			local text = util.get_visual_selection()
 			translator.start("window", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
-		end, { silent = true, desc = "Translate and show in float (selection)" })
+		end, { silent = true, desc = "翻译并浮窗显示（选区）" })
 
 		vim.keymap.set("v", "<localleader>tw", function()
 			local text = util.get_visual_selection()
 			translator.start("window", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
-		end, { silent = true, desc = "Translate and show in window (selection)" })
+		end, { silent = true, desc = "翻译并窗口显示（选区）" })
 
 		vim.keymap.set("v", "<localLeader>tr", function()
 			local text = util.get_visual_selection()
 			translator.start("replace", { bang = false, range = 2, line1 = 1, line2 = 1, args = text })
-		end, { silent = true, desc = "Translate and replace (selection)" })
+		end, { silent = true, desc = "翻译并替换（选区）" })
 
 		----------------------------------------------------------------------
 		-- 浮窗滚动
@@ -187,7 +187,7 @@ Rules:
 			else
 				vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<A-f>", true, false, true), "n", false)
 			end
-		end, { desc = "Scroll translation window down" })
+		end, { desc = "翻译窗口向下滚动" })
 
 		vim.keymap.set("n", "<A-b>", function()
 			local float = require("translator.window.float")
@@ -196,18 +196,18 @@ Rules:
 			else
 				vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<A-b>", true, false, true), "n", false)
 			end
-		end, { desc = "Scroll translation window up" })
+		end, { desc = "翻译窗口向上滚动" })
 
 		----------------------------------------------------------------------
 		-- 历史与日志
 		----------------------------------------------------------------------
-		vim.keymap.set("n", "<localLeader>th", "<Cmd>TranslateH<CR>", { silent = true, desc = "Translation history" })
-		vim.keymap.set("n", "<localLeader>tl", "<Cmd>TranslateL<CR>", { silent = true, desc = "Translation log" })
+		vim.keymap.set("n", "<localLeader>th", "<Cmd>TranslateH<CR>", { silent = true, desc = "翻译历史" })
+		vim.keymap.set("n", "<localLeader>tl", "<Cmd>TranslateL<CR>", { silent = true, desc = "翻译日志" })
 		vim.keymap.set(
 			"n",
 			"<localLeader>tc",
 			"<Cmd>TranslateCacheClear<CR>",
-			{ silent = true, desc = "Clear translation cache" }
+			{ silent = true, desc = "清空翻译缓存" }
 		)
 
 		-- 强制刷新（绕过缓存）：等价于 :Translate --no-cache
@@ -216,6 +216,6 @@ Rules:
 				"window",
 				{ bang = false, range = 0, line1 = 1, line2 = 1, args = "--no-cache " .. vim.fn.expand("<cword>") }
 			)
-		end, { silent = true, desc = "Translate and show in window (force refresh)" })
+		end, { silent = true, desc = "翻译并窗口显示（强制刷新）" })
 	end,
 }

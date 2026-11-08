@@ -56,44 +56,44 @@ M.settings = {
 M.buf_keymaps = {
 	-- 关闭窗口（q 键）
 	["q"] = {
-		help = { cmd = "quit", desc = "Close help window" },
-		man = { cmd = "quit", desc = "Close man window" },
-		msgmore = { cmd = "quit", desc = "Close message window" },
-		FunctionReferences = { cmd = "quit", desc = "Close references window" },
-		checkhealth = { cmd = "close", desc = "Close health check" },
-		better_term = { cmd = "close", desc = "Close terminal" },
-		["grug-far"] = { cmd = "bdelete", desc = "Close search/replace" },
-		["dap-repl"] = { cmd = "close", desc = "Close DAP REPL" },
-		["dap-float"] = { cmd = "close", desc = "Close DAP floating window" },
-		["dap-view-term"] = { cmd = "close", desc = "Close DAP terminal" },
-		["dap-view"] = { cmd = "DapViewClose", desc = "Close DAP view" },
-		["gitsigns-blame"] = { cmd = "bdelete!", desc = "Close blame" },
-		terminal = { cmd = "bdelete", desc = "Close terminal" },
+		help = { cmd = "quit", desc = "关闭帮助窗口" },
+		man = { cmd = "quit", desc = "关闭 man 窗口" },
+		msgmore = { cmd = "quit", desc = "关闭消息窗口" },
+		FunctionReferences = { cmd = "quit", desc = "关闭引用窗口" },
+		checkhealth = { cmd = "close", desc = "关闭健康检查" },
+		better_term = { cmd = "close", desc = "关闭终端" },
+		["grug-far"] = { cmd = "bdelete", desc = "关闭搜索替换" },
+		["dap-repl"] = { cmd = "close", desc = "关闭 DAP REPL" },
+		["dap-float"] = { cmd = "close", desc = "关闭 DAP 浮动窗" },
+		["dap-view-term"] = { cmd = "close", desc = "关闭 DAP 终端" },
+		["dap-view"] = { cmd = "DapViewClose", desc = "关闭 DAP 视图" },
+		["gitsigns-blame"] = { cmd = "bdelete!", desc = "关闭 blame" },
+		terminal = { cmd = "bdelete", desc = "关闭终端" },
 		tw_terminal = {
 			cmd = function()
 				require("feat.terminal").toggle()
 			end,
-			desc = "Collapse terminal panel",
+			desc = "收起终端面板",
 		},
-		["nvim-undotree"] = { cmd = "close", desc = "Close undotree" },
-		OverseerOutput = { cmd = "close", desc = "Close task output" },
-		["neotest-summary"] = { cmd = "close", desc = "Close test summary" },
-		["neotest-output"] = { cmd = "close", desc = "Close test output" },
-		["neotest-output-panel"] = { cmd = "close", desc = "Close test output panel" },
+		["nvim-undotree"] = { cmd = "close", desc = "关闭 undotree" },
+		OverseerOutput = { cmd = "close", desc = "关闭任务输出" },
+		["neotest-summary"] = { cmd = "close", desc = "关闭测试摘要" },
+		["neotest-output"] = { cmd = "close", desc = "关闭测试输出" },
+		["neotest-output-panel"] = { cmd = "close", desc = "关闭测试输出面板" },
 	},
 
 	-- 错误跳转：下一个（]d），用 repeatable 版本支持 . 重复
 	["]d"] = {
-		["better_term"] = { cmd = "next_error_repeatable", desc = "Next error (repeatable with .)" },
-		["neotest-output"] = { cmd = "next_error_repeatable", desc = "Next error (repeatable with .)" },
-		["neotest-output-panel"] = { cmd = "next_error_repeatable", desc = "Next error (repeatable with .)" },
+		["better_term"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+		["neotest-output"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
+		["neotest-output-panel"] = { cmd = "next_error_repeatable", desc = "下一个错误（支持 . 重复）" },
 	},
 
 	-- 错误跳转：上一个（[d）
 	["[d"] = {
-		["better_term"] = { cmd = "prev_error_repeatable", desc = "Previous error (repeatable with .)" },
-		["neotest-output"] = { cmd = "prev_error_repeatable", desc = "Previous error (repeatable with .)" },
-		["neotest-output-panel"] = { cmd = "prev_error_repeatable", desc = "Previous error (repeatable with .)" },
+		["better_term"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
+		["neotest-output"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
+		["neotest-output-panel"] = { cmd = "prev_error_repeatable", desc = "上一个错误（支持 . 重复）" },
 	},
 }
 
@@ -161,7 +161,7 @@ local function apply_keymaps()
 					silent = true,
 					noremap = true,
 					nowait = true,
-					desc = config.desc or ("Mapping: " .. key),
+					desc = config.desc or ("映射: " .. key),
 				})
 
 				applied[key] = true
@@ -186,13 +186,13 @@ end
 function M.setup()
 	api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 		group = api.nvim_create_augroup("CustomKeyMappings", { clear = true }),
-		desc = "Automatically apply window keymaps from config table",
+		desc = "根据配置表自动应用窗口快捷键",
 		callback = apply_keymaps,
 	})
 
 	api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
 		group = api.nvim_create_augroup("CustomBufferSettings", { clear = true }),
-		desc = "Automatically apply buffer settings from config table",
+		desc = "根据配置表自动应用 buffer 设置",
 		callback = apply_settings,
 	})
 

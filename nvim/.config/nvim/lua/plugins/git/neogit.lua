@@ -35,7 +35,7 @@ return {
 					})
 				end)()
 			end,
-			desc = "neogit: generate/edit commit message",
+			desc = "neogit: 生成/编辑提交信息",
 		},
 	},
 	config = function()

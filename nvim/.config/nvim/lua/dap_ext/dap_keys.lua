@@ -106,9 +106,9 @@ local function set_conditional_breakpoint()
 
 	popup.open({
 		fields = {
-			{ key = "condition", label = "Condition (optional)", default = defaults.condition },
-			{ key = "hit", label = "Hit count (optional)", default = defaults.hit },
-			{ key = "log", label = "Log message (optional)", default = defaults.log },
+			{ key = "condition", label = "条件(可选)", default = defaults.condition },
+			{ key = "hit", label = "命中次数(可选)", default = defaults.hit },
+			{ key = "log", label = "日志消息(可选)", default = defaults.log },
 		},
 		on_submit = function(values)
 			local condition = values.condition ~= "" and values.condition or nil
@@ -119,7 +119,7 @@ local function set_conditional_breakpoint()
 			local log = values.log ~= "" and values.log or nil
 
 			if hit_str and not hit then
-				vim.notify("⚠️ Hit count must be a number", vim.log.levels.ERROR)
+				vim.notify("⚠️ 命中次数必须为数字！", vim.log.levels.ERROR)
 				return
 			end
 
@@ -127,19 +127,19 @@ local function set_conditional_breakpoint()
 				-- 自定义断点（函数/数据/硬件/列）不支持日志消息，只有条件与命中次数
 				if log then
 					vim.notify(
-						("ℹ️ %s breakpoints do not support log messages, ignored"):format(custom_bp.type),
+						("ℹ️ %s 断点不支持日志消息，已忽略"):format(custom_bp.type),
 						vim.log.levels.WARN
 					)
 				end
 				if not recreate_custom_breakpoint(custom_bp, condition, hit_str) then
-					vim.notify("❌ Failed to rebuild custom breakpoint; original unchanged", vim.log.levels.ERROR)
+					vim.notify("❌ 自定义断点重建失败，原断点未修改", vim.log.levels.ERROR)
 					return
 				end
 				print(
-					("✔️ %s breakpoint updated: condition=%s hit=%s"):format(
+					("✔️ %s 断点已更新：条件=%s 次数=%s"):format(
 						custom_bp.type,
-						condition or "none",
-						hit or "none"
+						condition or "无",
+						hit or "无"
 					)
 				)
 				sync_after_set()
@@ -156,10 +156,10 @@ local function set_conditional_breakpoint()
 				replace = existing ~= nil and existing.kind == "native" or false,
 			}, bufnr, lnum)
 			print(
-				("✔️ Breakpoint set: condition=%s hit=%s log=%s"):format(
-					condition or "none",
-					hit or "none",
-					log or "none"
+				("✔️ 断点已设置：条件=%s 次数=%s 日志=%s"):format(
+					condition or "无",
+					hit or "无",
+					log or "无"
 				)
 			)
 			sync_after_set()
@@ -171,23 +171,23 @@ end
 local function set_debuglog()
 	local dap = require("dap")
 	local desc = {
-		TRACE = "Trace: most detailed log information",
-		DEBUG = "Debug: debug information",
-		INFO = "Info: general information, default level",
-		WARN = "Warning: warning messages",
-		ERROR = "Error: error messages",
+		TRACE = "追踪：最详细的日志信息",
+		DEBUG = "调试：调试信息",
+		INFO = "信息：一般信息，默认级别",
+		WARN = "警告：警告信息",
+		ERROR = "错误：错误信息",
 	}
 	vim.ui.select({ "TRACE", "DEBUG", "INFO", "WARN", "ERROR" }, {
-		prompt = "📊 Select DAP log level:",
+		prompt = "📊 选择 DAP 日志级别:",
 		format_item = function(item)
 			return string.format("📝 %-10s . %s", item, desc[item])
 		end,
 	}, function(choice)
 		if choice then
 			dap.set_log_level(choice)
-			print(string.format("✔️ DAP log level set to: %s", choice))
+			print(string.format("✔️ DAP 日志级别设置为: %s", choice))
 		else
-			print("❌ No log level selected, cancelled")
+			print("❌ 未选择日志级别，操作已取消")
 		end
 	end)
 end
@@ -227,13 +227,13 @@ function M.setup()
 	-- 运行到光标：会话内 <S-Right>，见下方 step_keys / arrows
 	-- 跳到指定行需要输入行号，不是“移动一步”，所以保留命令式 <leader>dg
 	local function goto_line()
-		vim.ui.input({ prompt = " 󰙎 Enter line number: " }, function(input)
+		vim.ui.input({ prompt = " 󰙎 输入行号: " }, function(input)
 			if input then
 				local line = tonumber(input)
 				if line then
 					dap.goto_(line)
 				else
-					print("Invalid line number")
+					print("无效的行号")
 				end
 			end
 		end)
@@ -250,19 +250,19 @@ function M.setup()
 		return function()
 			local session = dap.session()
 			if need_session and not session then
-				vim.notify(label .. ": start a debug session first (<F5>)", vim.log.levels.WARN)
+				vim.notify(label .. "：需要先启动调试会话（<F5>）", vim.log.levels.WARN)
 				return
 			end
 			if session and cap and session.capabilities and session.capabilities[cap] ~= true then
 				vim.notify(
-					("%s: current debugger does not support this (%s = false), ignored"):format(label, cap),
+					("%s：当前调试器不支持（%s = false），已忽略"):format(label, cap),
 					vim.log.levels.WARN
 				)
 				return
 			end
 			local ok, err = pcall(fn)
 			if not ok then
-				vim.notify(("%s failed: %s"):format(label, err), vim.log.levels.WARN)
+				vim.notify(("%s失败：%s"):format(label, err), vim.log.levels.WARN)
 			end
 		end
 	end
@@ -300,20 +300,20 @@ function M.setup()
 				vim.notify(string.format("✓ Removed line breakpoint at line %d", line), "info")
 			end
 		end
-	end, { desc = "[D]ap [T]oggle breakpoint (smart)" })
+	end, { desc = "[D]ap [T]oggle breakpoint (智能切换)" })
 
 	-- 列断点：adapter 需要实测 setBreakpoints 才知是否支持 → 必须先有会话
 	vim.keymap.set(
 		"n",
 		"<leader>di",
-		guard("Column breakpoint", nil, true, dap_ext.commands.add_column_breakpoint),
+		guard("列断点", nil, true, dap_ext.commands.add_column_breakpoint),
 		{ desc = "[D]ap [C]olumn breakpoint (with conditions)" }
 	)
 
 	vim.keymap.set(
 		"n",
 		"<leader>dI",
-		guard("Column breakpoint", nil, true, dap_ext.commands.quick_column_breakpoint),
+		guard("列断点", nil, true, dap_ext.commands.quick_column_breakpoint),
 		{ desc = "[D]ap [C]olumn breakpoint (quick)" }
 	)
 
@@ -327,21 +327,21 @@ function M.setup()
 	vim.keymap.set(
 		"n",
 		"<leader>df",
-		guard("Function breakpoint", "supportsFunctionBreakpoints", false, dap_ext.commands.add_function_breakpoint),
+		guard("函数断点", "supportsFunctionBreakpoints", false, dap_ext.commands.add_function_breakpoint),
 		{ desc = "[D]ap [F]unction breakpoint" }
 	)
 
 	vim.keymap.set(
 		"n",
 		"<leader>dd",
-		guard("Data breakpoint", "supportsDataBreakpoints", false, dap_ext.commands.add_data_breakpoint),
+		guard("数据断点", "supportsDataBreakpoints", false, dap_ext.commands.add_data_breakpoint),
 		{ desc = "[D]ap [D]ata breakpoint" }
 	)
 
 	vim.keymap.set(
 		"n",
 		"<leader>dh",
-		guard("Hardware breakpoint", "supportsInstructionBreakpoints", false, dap_ext.commands.add_hardware_breakpoint),
+		guard("硬件断点", "supportsInstructionBreakpoints", false, dap_ext.commands.add_hardware_breakpoint),
 		{ desc = "[D]ap [H]ardware breakpoint" }
 	)
 

@@ -146,7 +146,7 @@ end
 ---@return string prefix, string old, string new, string suffix
 local function item_parts(it)
 	local prefix = ("%s:%d  "):format(short_path(it.file), it.lnum)
-	return prefix, clip(it.old, 60), clip(it.new, 60), it.multiline and "  (multiline/block)" or ""
+	return prefix, clip(it.old, 60), clip(it.new, 60), it.multiline and "  (多行/整块)" or ""
 end
 
 --- 完整的单行文本
@@ -163,7 +163,7 @@ local function jump(it)
 	vim.schedule(function()
 		local ok, err = pcall(vim.cmd, "edit " .. vim.fn.fnameescape(it.file))
 		if not ok then
-			notify("Failed to open: " .. tostring(err), vim.log.levels.ERROR)
+			notify("打开失败：" .. tostring(err), vim.log.levels.ERROR)
 			return
 		end
 		local line = vim.api.nvim_buf_get_lines(0, it.lnum - 1, it.lnum, false)[1] or ""
@@ -232,12 +232,12 @@ local function open_diff(it)
 	end
 	local edits = pending.changes[it.uri]
 	if not edits or #edits == 0 then
-		notify("No pending changes for this file", vim.log.levels.WARN)
+		notify("这个文件没有待应用的修改", vim.log.levels.WARN)
 		return
 	end
 	local ok_mod, diffbandit = pcall(require, "diffbandit")
 	if not (ok_mod and type(diffbandit.files) == "function") then
-		notify("diffbandit unavailable (check that lua/plugins/git/diffbandit.lua is loaded)", vim.log.levels.ERROR)
+		notify("diffbandit 不可用（检查 lua/plugins/git/diffbandit.lua 是否加载）", vim.log.levels.ERROR)
 		return
 	end
 
@@ -249,7 +249,7 @@ local function open_diff(it)
 		vim.fn.writefile(apply_text_edits(read_lines(it.uri), edits, pending.encoding), after)
 	end)
 	if not ok then
-		notify("Failed to generate diff preview: " .. tostring(err), vim.log.levels.ERROR)
+		notify("生成 diff 预览失败：" .. tostring(err), vim.log.levels.ERROR)
 		return
 	end
 
@@ -258,11 +258,13 @@ local function open_diff(it)
 		right_label = "SSR after",
 	})
 	if not ok2 then
-		notify("diffbandit failed to open: " .. tostring(err2), vim.log.levels.ERROR)
+		notify("diffbandit 打开失败：" .. tostring(err2), vim.log.levels.ERROR)
 		return
 	end
 	notify(
-		("%d changes preview (SSR result kept: :RustSsrApply to apply / ! to apply to on-disk content)"):format(#edits)
+		("%d 处改动预览（SSR 结果仍保留：:RustSsrApply 应用 / ! 应用到已写盘内容）"):format(
+			#edits
+		)
 	)
 end
 
@@ -273,15 +275,18 @@ local active_list = nil
 --- 应用 pending 的 WorkspaceEdit
 local function apply_pending()
 	if not pending then
-		notify("No pending SSR result", vim.log.levels.WARN)
+		notify("没有待应用的 SSR 结果", vim.log.levels.WARN)
 		return false
 	end
 	local ok, err = pcall(vim.lsp.util.apply_workspace_edit, pending.edit, pending.encoding)
 	if not ok then
-		notify("Apply failed (files may have changed; run SSR again): " .. tostring(err), vim.log.levels.ERROR)
+		notify(
+			"应用失败（文件可能已被改动，请重新执行 SSR）：" .. tostring(err),
+			vim.log.levels.ERROR
+		)
 		return false
 	end
-	notify(("Applied %d changes: %s (undo per buffer with u, write with :wa)"):format(pending.count, pending.query))
+	notify(("已应用 %d 处修改：%s（逐 buffer u 撤销，:wa 写盘）"):format(pending.count, pending.query))
 	pending = nil
 	return true
 end
@@ -369,22 +374,22 @@ local function open_preview(items, query)
 						return
 					end
 					vim.fn.setreg(vim.v.register ~= "" and vim.v.register or '"', ("%s ==>> %s"):format(it.old, it.new))
-					notify("Copied old/new text of the current line; can be turned into a query template")
+					notify("已复制当前行的旧/新文本，可整理成 query 模板")
 				end,
 			},
 		},
 		help = {
-			{ "<CR>", "Jump to a match to see context (preview keeps pending)" },
-			{ "a", "Apply all changes" },
-			{ "d", "Preview the current file after changes with diffbandit (without applying)" },
-			{ "j / k", "Move up / down" },
-			{ "y", "Copy the current line's old/new text as a query" },
-			{ "q / <Esc>", "Cancel (discard results)" },
+			{ "<CR>", "跳到命中处看上下文（预览不关闭 pending）" },
+			{ "a", "应用全部修改" },
+			{ "d", "用 diffbandit 看当前文件会变成什么样（不应用）" },
+			{ "j / k", "上下移动" },
+			{ "y", "把当前行的旧/新文本拼成 query 复制" },
+			{ "q / <Esc>", "取消（丢弃结果）" },
 		},
 		on_close = function(reason)
 			if reason == "cancel" and pending then
 				pending = nil
-				notify("Cancelled, results discarded")
+				notify("已取消，结果已丢弃")
 			end
 		end,
 	})
@@ -393,7 +398,7 @@ local function open_preview(items, query)
 	end
 	active_list = list
 	list:toggle()
-	notify(("%d matches in %d files: <CR> jump, a apply, d diff, q cancel"):format(#items, files))
+	notify(("%d 处匹配 / %d 个文件：<CR> 跳转，a 应用，d 看 diff，q 取消"):format(#items, files))
 end
 
 --- 发请求（pos 是触发时抓的坐标，避免被输入浮窗改掉当前窗口）
@@ -406,13 +411,13 @@ end
 local function request(client, bufnr, query, selections, apply_now, pos)
 	-- 服务端只认 `==>>` 这一个分隔符（其它写法会回 `Parse error: Cannot find delimiter`）
 	if not query:find("==>>", 1, true) then
-		notify("query is missing the delimiter; format: `search ==>> replace`", vim.log.levels.WARN)
+		notify("query 缺少分隔符，格式：`搜索 ==>> 替换`", vim.log.levels.WARN)
 		return
 	end
 
 	local enc = client.offset_encoding or "utf-8"
 	notify(
-		"Requesting… (" .. ((selections and #selections > 0) and "selection/line range" or "entire workspace") .. ")"
+		"请求中…（" .. ((selections and #selections > 0) and "选区/行范围" or "整个 workspace") .. "）"
 	)
 
 	client:request("experimental/ssr", {
@@ -423,17 +428,17 @@ local function request(client, bufnr, query, selections, apply_now, pos)
 		selections = selections or {},
 	}, function(err, result)
 		if err then
-			notify("Request failed: " .. (err.message or tostring(err)), vim.log.levels.ERROR)
+			notify("请求失败：" .. (err.message or tostring(err)), vim.log.levels.ERROR)
 			return
 		end
 		if not result then
-			notify("No matches")
+			notify("没有命中")
 			return
 		end
 
 		local items, count = build_items(result)
 		if count == 0 then
-			notify("No matches")
+			notify("没有命中")
 			return
 		end
 
@@ -467,7 +472,7 @@ local function ask_query(on_query)
 		})
 		return
 	end
-	vim.ui.input({ prompt = "SSR (search ==>> replace): " }, function(input)
+	vim.ui.input({ prompt = "SSR (搜索 ==>> 替换): " }, function(input)
 		if input and input ~= "" then
 			on_query(input)
 		end
@@ -528,27 +533,27 @@ function M.setup(client, bufnr)
 
 	vim.keymap.set("n", "grS", function()
 		trigger(client, bufnr, nil, nil, false)
-	end, vim.tbl_extend("force", key_opts, { desc = "SSR: structured replace in whole workspace (preview first)" }))
+	end, vim.tbl_extend("force", key_opts, { desc = "SSR: 整个 workspace 结构化替换（先预览）" }))
 
 	vim.keymap.set("x", "grS", function()
 		trigger(client, bufnr, nil, { visual_range(client) }, false)
-	end, vim.tbl_extend("force", key_opts, { desc = "SSR: structured replace in selection (preview first)" }))
+	end, vim.tbl_extend("force", key_opts, { desc = "SSR: 选区内结构化替换（先预览）" }))
 
 	vim.keymap.set("n", "grs", function()
 		trigger(client, bufnr, nil, { current_line_range() }, false)
-	end, vim.tbl_extend("force", key_opts, { desc = "SSR: structured replace in current line (preview first)" }))
+	end, vim.tbl_extend("force", key_opts, { desc = "SSR: 光标行内结构化替换（先预览）" }))
 
 	vim.keymap.set("x", "grs", function()
 		trigger(client, bufnr, nil, { visual_range(client) }, false)
-	end, vim.tbl_extend("force", key_opts, { desc = "SSR: structured replace in selection (preview first)" }))
+	end, vim.tbl_extend("force", key_opts, { desc = "SSR: 选区内结构化替换（先预览）" }))
 
 	vim.api.nvim_buf_create_user_command(bufnr, "RustSsr", function(args)
 		trigger(client, bufnr, args.args, nil, args.bang)
-	end, { nargs = "*", bang = true, desc = "rust-analyzer structured search and replace (! skips preview)" })
+	end, { nargs = "*", bang = true, desc = "rust-analyzer 结构化搜索替换（! 跳过预览）" })
 
 	vim.api.nvim_buf_create_user_command(bufnr, "RustSsrApply", function()
 		apply_pending()
-	end, { nargs = 0, desc = "Apply result of last :RustSsr preview" })
+	end, { nargs = 0, desc = "应用上一次 :RustSsr 预览的结果" })
 end
 
 -- 导出内部函数供测试

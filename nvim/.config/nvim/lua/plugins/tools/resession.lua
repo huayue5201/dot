@@ -11,24 +11,21 @@ return {
 		-- 快捷键配置：会话属于 tab / 工作区域，统一放在 <leader>ls
 		vim.keymap.set("n", "<leader>lss", function()
 			store.save_tab()
-		end, { desc = "Session: save current tab" })
+		end, { desc = "会话: 保存当前标签" })
 		vim.keymap.set("n", "<leader>lst", function()
 			require("feat.tab_workspace").save_session()
-		end, { desc = "Session: save current session" })
+		end, { desc = "会话: 保存当前会话" })
 		-- 删除统一走 tab_workspace.delete_session：带确认、显示根目录、跳过当前会话
 		vim.keymap.set("n", "<leader>lsd", function()
 			require("feat.tab_workspace").delete_session()
-		end, { desc = "Session: delete saved session" })
+		end, { desc = "会话: 删除已保存会话" })
 
 		-- 带归属校验的 autosave（定时器 + VimLeavePre）
 		require("feat.tab_workspace.session_guard").setup_autosave({ interval = 60, notify = false })
 
 		-- tab_workspace 的 post_load 钩子必须在 resession 加载后才能挂（init 阶段 require 不到）
 		if not require("feat.tab_workspace").attach_resession() then
-			vim.notify(
-				"tab_workspace: failed to attach resession hooks; workspace restore unavailable",
-				vim.log.levels.WARN
-			)
+			vim.notify("tab_workspace: resession 钩子挂接失败，工作区恢复不可用", vim.log.levels.WARN)
 		end
 
 		-- 会话恢复后：确保 todo2 已 setup，并补渲染当前 tab 的 buffer。

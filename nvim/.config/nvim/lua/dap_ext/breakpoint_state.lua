@@ -444,7 +444,7 @@ function M.setup_autoload()
 				end
 			end
 		end,
-		desc = "Auto-restore DAP breakpoints",
+		desc = "自动恢复 DAP 断点",
 	})
 
 	-- 编辑或保存时同步原生断点（带轻微节流）
@@ -452,7 +452,7 @@ function M.setup_autoload()
 		callback = function()
 			schedule_sync_breakpoints()
 		end,
-		desc = "Sync native breakpoints",
+		desc = "同步原生断点",
 	})
 
 	-- 监听自定义断点事件

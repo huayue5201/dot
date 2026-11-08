@@ -59,7 +59,7 @@ local function report_errors()
 	end
 	local msg = table.concat(errors, "\n")
 	vim.schedule(function()
-		vim.notify("Plugin load failed:\n" .. msg, vim.log.levels.ERROR)
+		vim.notify("插件加载有问题:\n" .. msg, vim.log.levels.ERROR)
 	end)
 end
 
@@ -235,7 +235,7 @@ local function collect()
 		local mod = "plugins." .. file:gsub("%.lua$", ""):gsub("/", ".")
 		local ok, ret = pcall(require, mod)
 		if not ok then
-			fail("spec %s load failed: %s", mod, ret)
+			fail("spec %s 加载失败: %s", mod, ret)
 		elseif type(ret) == "table" then
 			local items = is_single_spec(ret) and { ret } or ret
 			for _, raw in ipairs(items) do
@@ -444,7 +444,7 @@ local function source_dir(dir)
 		for _, file in ipairs(vim.fn.glob(dir .. "/**/*." .. ext, false, true)) do
 			local ok, err = pcall(vim.cmd.source, file)
 			if not ok then
-				fail("source %s failed: %s", file, err)
+				fail("source %s 失败: %s", file, err)
 			end
 		end
 	end
@@ -507,7 +507,7 @@ local function run_build(spec)
 		ok, err = pcall(vim.cmd, (build:gsub("^%s*:%%?", "")))
 	end
 	if not ok then
-		fail("build %s failed: %s", spec.name, err)
+		fail("build %s 失败: %s", spec.name, err)
 	end
 end
 
@@ -515,7 +515,7 @@ local function run_init(spec)
 	if type(spec.init) == "function" then
 		local ok, err = pcall(spec.init, plugin_object(spec))
 		if not ok then
-			fail("init %s failed: %s", spec.name, err)
+			fail("init %s 失败: %s", spec.name, err)
 		end
 	end
 end
@@ -526,23 +526,23 @@ local function run_config(spec, plugin)
 	if type(spec.config) == "function" then
 		local ok, err = pcall(spec.config, plugin, opts)
 		if not ok then
-			fail("config %s failed: %s", spec.name, err)
+			fail("config %s 失败: %s", spec.name, err)
 		end
 	elseif spec.config == true or spec.opts ~= nil then
 		local main = resolve_main(spec, plugin.dir)
 		if not main then
-			fail("cannot infer main module for %s; set main explicitly or write a config function", spec.name)
+			fail("无法推断 %s 的主模块，请显式设置 main 或直接写 config 函数", spec.name)
 			return
 		end
 		local ok, mod = pcall(require, main)
 		if not ok then
-			fail("require %s failed (config %s): %s", main, spec.name, mod)
+			fail("require %s 失败 (config %s): %s", main, spec.name, mod)
 			return
 		end
 		if type(mod) == "table" and type(mod.setup) == "function" then
 			local ok2, err = pcall(mod.setup, opts)
 			if not ok2 then
-				fail("setup %s failed: %s", spec.name, err)
+				fail("setup %s 失败: %s", spec.name, err)
 			end
 		end
 	end
@@ -576,7 +576,7 @@ local function install_ft_keys(buf)
 			local ok, err =
 				pcall(vim.keymap.set, item.entry.mode or "n", item.entry[1], item.entry[2], key_opts(item.entry, buf))
 			if not ok then
-				fail("keymap %s (%s) failed: %s", item.entry[1], item.spec, err)
+				fail("keymap %s (%s) 失败: %s", item.entry[1], item.spec, err)
 			end
 		end
 	end
@@ -630,14 +630,14 @@ local function apply_keys(spec)
 			-- 纯 lhs 条目在 lazy.nvim 里是"分组标签"，在这里只会变成 lhs→lhs 的空映射，
 			-- 还会覆盖 config 里定义的真实映射（rustowl 就这么坏过）。分组请写进
 			-- lua/plugins/ui/which-key.lua 的 wk.add。
-			fail("keys %s: missing lhs/rhs, skipped (write group labels in which-key.lua)", tostring(lhs))
+			fail("keys %s: 缺少 lhs/rhs，已跳过（分组标签请写进 which-key.lua）", tostring(lhs))
 		elseif type(fts) == "table" then
 			register_ft_key(spec, k, fts)
 		elseif not key_owner[lhs] then
 			key_owner[lhs] = spec.name
 			local ok, err = pcall(vim.keymap.set, k.mode or "n", lhs, rhs, key_opts(k))
 			if not ok then
-				fail("keymap %s (%s) failed: %s", lhs, spec.name, err)
+				fail("keymap %s (%s) 失败: %s", lhs, spec.name, err)
 			end
 		end
 	end
@@ -666,7 +666,7 @@ local function activate_batch(batch)
 		if via_packadd then
 			local ok, err = pcall(vim.cmd.packadd, { spec.name })
 			if not ok then
-				fail("packadd %s failed: %s", spec.name, err)
+				fail("packadd %s 失败: %s", spec.name, err)
 			end
 		else
 			source_dir(paths[i] .. "/plugin")
@@ -719,7 +719,7 @@ local function main()
 	if #to_install > 0 then
 		local ok, err = phase("vim.pack.add", pcall, vim.pack.add, to_install, { confirm = false, load = false })
 		if not ok then
-			fail("vim.pack.add failed: %s", err)
+			fail("vim.pack.add 失败: %s", err)
 			return
 		end
 	end
@@ -831,7 +831,7 @@ local function main()
 			callback = function()
 				vim.schedule(start_later)
 			end,
-			desc = "Load heavy plugins after first frame (see DEFER_HEAVY in pack.lua)",
+			desc = "首帧之后再加载重插件（见 pack.lua 的 DEFER_HEAVY）",
 		})
 	end
 
@@ -843,9 +843,9 @@ local function main()
 		for _, row in ipairs(profile_rows) do
 			total = total + row.ms
 		end
-		local lines = { ("Total plugin load time %.1fms (%d plugins)"):format(total, #profile_rows) }
+		local lines = { ("插件加载总耗时 %.1fms（%d 个）"):format(total, #profile_rows) }
 		for _, row in ipairs(phase_rows) do
-			lines[#lines + 1] = ("phase %6.1fms  %s"):format(row.ms, row.name)
+			lines[#lines + 1] = ("阶段 %6.1fms  %s"):format(row.ms, row.name)
 		end
 		for i = 1, math.min(25, #profile_rows) do
 			lines[#lines + 1] = ("  %6.1fms  %s"):format(profile_rows[i].ms, profile_rows[i].name)
@@ -890,7 +890,7 @@ function M.prune(opts)
 	local names = stale_names()
 	if #names == 0 then
 		if not opts.quiet then
-			vim.notify("No plugins to clean up", vim.log.levels.INFO)
+			vim.notify("没有需要清理的插件", vim.log.levels.INFO)
 		end
 		return names
 	end
@@ -901,11 +901,11 @@ function M.prune(opts)
 	if not opts.quiet then
 		if ok then
 			vim.notify(
-				("Deleted %d unused plugins:\n%s"):format(#names, table.concat(names, ", ")),
+				("已删除 %d 个未使用插件:\n%s"):format(#names, table.concat(names, ", ")),
 				vim.log.levels.INFO
 			)
 		else
-			vim.notify("Plugin cleanup failed: " .. tostring(err), vim.log.levels.ERROR)
+			vim.notify("清理插件失败: " .. tostring(err), vim.log.levels.ERROR)
 		end
 	end
 	return names
@@ -920,8 +920,8 @@ end
 -- 原生 :packupdate / :packdel 已经够用，这里只补原生没有的两件事：
 --   :PackStatus 看已注册数量；:PackPrune 回收 spec 里已移除的目录。
 vim.api.nvim_create_user_command("PackStatus", function()
-	vim.notify(("Registered %d plugins"):format(#vim.pack.get(nil, { info = false })), vim.log.levels.INFO)
-end, { desc = "Show plugin count" })
+	vim.notify(("已注册 %d 个插件"):format(#vim.pack.get(nil, { info = false })), vim.log.levels.INFO)
+end, { desc = "查看插件数量" })
 
 -- :PackPrune 只列出将要删除的；:PackPrune! 真的删（--force）。
 -- 删除结果的通知在 M.prune 里，这里只负责 dry_run 的预览，不重复拼一遍消息。
@@ -932,14 +932,14 @@ vim.api.nvim_create_user_command("PackPrune", function(cmd)
 	end
 	local names = M.prune({ dry_run = true, quiet = true })
 	if #names == 0 then
-		vim.notify("No plugins to clean up", vim.log.levels.INFO)
+		vim.notify("没有需要清理的插件", vim.log.levels.INFO)
 	else
 		vim.notify(
-			("Will delete %d unused plugins (run :PackPrune!):\n%s"):format(#names, table.concat(names, "\n")),
+			("将删除 %d 个未使用插件（:PackPrune! 执行）:\n%s"):format(#names, table.concat(names, "\n")),
 			vim.log.levels.WARN
 		)
 	end
-end, { desc = "Clean up plugin dirs removed from spec", bang = true })
+end, { desc = "清理 spec 里已移除的插件目录", bang = true })
 
 -- dir = "~/neovim-plugins/*" 的本地插件：vim.pack 会 clone 一份副本，
 -- 改为手动触发同步（<leader>zp 或 :PackLocalSync），不阻塞启动。

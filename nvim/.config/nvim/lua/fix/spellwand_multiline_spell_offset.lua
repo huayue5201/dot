@@ -22,14 +22,14 @@ local M = {}
 -- 守卫元数据：见 lua/fix/init.lua 顶部说明；:FixStatus 查看状态
 M.meta = {
 	id = "spellwand-multiline-spell",
-	title = "Multi-line @spell node column out of range (abs_col not split into row/col by \\n)",
+	title = "多行 @spell 节点的列号越界（abs_col 没按 \\n 拆成行/列）",
 	plugin = "spellwand.nvim",
 	baseline_rev = "608a3b4",
 	-- 上游把「节点内字节偏移」直接加到首行列号上；这行还在 = bug 还在
 	buggy = {
 		{ file = "lua/spellwand/spelling.lua", contains = "local abs_col = start_col + col_offset" },
 	},
-	cleanup = { "Also delete the FIX-marked require/install line in plugins/lang/spellwand.lua" },
+	cleanup = { "同时删掉 plugins/lang/spellwand.lua 里带 FIX 标记的 require/install 那一行" },
 }
 
 local ERROR_TYPES = {

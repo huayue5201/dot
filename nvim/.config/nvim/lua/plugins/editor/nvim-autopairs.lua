@@ -86,6 +86,6 @@ return {
 				return "<Right>"
 			end
 			return ""
-		end, { expr = true, replace_keycodes = true, desc = "autopairs: jump out of pair" })
+		end, { expr = true, replace_keycodes = true, desc = "autopairs: 跳出配对" })
 	end,
 }

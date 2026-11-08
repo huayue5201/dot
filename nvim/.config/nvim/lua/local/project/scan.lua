@@ -92,7 +92,7 @@ local function parse_tokei(stdout)
 		code = code,
 		comments = comments,
 		blanks = blanks,
-		source = "tokei, excluding comments/blank lines",
+		source = "tokei，不含注释/空行",
 	}
 end
 
@@ -126,7 +126,7 @@ local function parse_wc(stdout)
 		code = code,
 		comments = nil,
 		blanks = nil,
-		source = "wc -l (including comments and blank lines; language guessed by extension)",
+		source = "wc -l（含注释与空行，按扩展名猜语言）",
 		files = files,
 	}
 end

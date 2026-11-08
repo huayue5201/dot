@@ -16,7 +16,7 @@ local function scratchpad()
 		"return {",
 		"\t{",
 		'\t\t"https://jsonplaceholder.typicode.com/posts/1",',
-		'\t\ttitle = "Example request",',
+		'\t\ttitle = "示例请求",',
 		"\t},",
 		"}",
 	})
@@ -72,47 +72,47 @@ return {
 			function()
 				vim.cmd("Nurl .")
 			end,
-			desc = "Send request at cursor",
+			desc = "发送光标处请求",
 		},
 		{
 			"<leader>Ra",
 			function()
 				vim.cmd("Nurl")
 			end,
-			desc = "Project request list → send",
+			desc = "项目请求列表 → 发送",
 		},
 		{
 			"<leader>Rb",
 			scratchpad,
-			desc = "New request draft",
+			desc = "新建请求草稿",
 		},
 		{
 			"<leader>Rr",
 			function()
 				vim.cmd("Nurl resend -1")
 			end,
-			desc = "Resend last request",
+			desc = "重发上一条请求",
 		},
 		{
 			"<leader>Rh",
 			function()
 				vim.cmd("Nurl history")
 			end,
-			desc = "Request history",
+			desc = "请求历史",
 		},
 		{
 			"<leader>Re",
 			function()
 				vim.cmd("Nurl env")
 			end,
-			desc = "Toggle environment",
+			desc = "切换环境",
 		},
 		{
 			"<leader>Ry",
 			function()
 				vim.cmd("Nurl yank")
 			end,
-			desc = "Copy as curl command",
+			desc = "复制为 curl 命令",
 		},
 	},
 

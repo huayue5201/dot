@@ -125,7 +125,7 @@ return {
 		-- 切换 DAP 视图显示/隐藏
 		vim.keymap.set("n", "<leader>du", function()
 			require("dap-view").toggle()
-		end, { desc = "DAP: toggle debug view" })
+		end, { desc = "DAP: 切换调试视图" })
 
 		-- 智能添加监视表达式：
 		-- DapViewWatch
@@ -162,18 +162,18 @@ return {
 				-- 直接使用获取到的表达式
 				require("dap-view").add_expr(expr, false)
 				require("dap-view").open()
-				vim.notify(string.format("Added watch: %s", expr), vim.log.levels.INFO)
+				vim.notify(string.format("已添加监视: %s", expr), vim.log.levels.INFO)
 			else
 				-- 没有获取到，弹出输入框
 				vim.ui.input({ prompt = "󰌓 Add watch: " }, function(input)
 					if input and input ~= "" then
 						require("dap-view").add_expr(input, false)
 						require("dap-view").open()
-						vim.notify(string.format("Added watch: %s", input), vim.log.levels.INFO)
+						vim.notify(string.format("已添加监视: %s", input), vim.log.levels.INFO)
 					end
 				end)
 			end
-		end, { desc = "DAP: smart add watch expression" })
+		end, { desc = "DAP: 智能添加监视表达式" })
 
 		-- 通过选择器跳转到视图
 		vim.keymap.set("n", "<leader>dj", function()

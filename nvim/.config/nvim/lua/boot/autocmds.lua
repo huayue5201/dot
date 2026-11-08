@@ -37,7 +37,7 @@ end
 
 vim.api.nvim_create_autocmd("BufEnter", {
 	group = vim.api.nvim_create_augroup("DropEmptyBuffers", { clear = true }),
-	desc = "Delete stale unnamed empty buffers after entering a named file",
+	desc = "进入命名文件后删除残留的无名空 buffer",
 	callback = function(args)
 		-- 会话恢复中（mksession / `:restart`）：session 脚本自己在 prologue 末尾执行
 		-- `bwipe <启动空 buffer>`，这里抢先删掉它会让那句 bwipe 报 E517。

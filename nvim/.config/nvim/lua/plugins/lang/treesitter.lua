@@ -55,7 +55,10 @@ return {
 
 			if #repaired > 0 then
 				vim.notify(
-					("treesitter: repaired %d broken query links: %s"):format(#repaired, table.concat(repaired, ", ")),
+					("treesitter: 修复了 %d 个失效的查询链接: %s"):format(
+						#repaired,
+						table.concat(repaired, ", ")
+					),
 					vim.log.levels.INFO
 				)
 			end

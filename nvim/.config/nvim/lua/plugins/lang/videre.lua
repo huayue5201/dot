@@ -22,6 +22,6 @@ return {
 		box_style = "sharp",
 	},
 	keys = {
-		{ "<localleader>vv", "<cmd>Videre<cr>", desc = "Videre: JSON/YAML/TOML graphical viewer" },
+		{ "<localleader>vv", "<cmd>Videre<cr>", desc = "Videre: JSON/YAML/TOML 图形浏览器" },
 	},
 }
