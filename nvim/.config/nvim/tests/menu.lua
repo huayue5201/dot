@@ -15,6 +15,7 @@
 --   9. 输入模式的数字是查询字符（不是直接选中）；中文可输入、<BS> 多字节安全
 --   10. 列表超过 max_height 时滚动，选中项始终在视口内
 --   11. 锚点贴光标所在的屏幕行列（长行折行时不跑到行首），且始终钳制在屏幕内
+--   14. 索引模式：<C-g> + 数字 + <CR>（越界不选、<BS>/<C-u> 可编辑、过滤后作用于结果）
 --   13. gg 首项 / G 末项（g 后接其它键不作数）
 --   12. 每一行都带序号，文本列对齐（第 19 项以后也一样）；输入模式下序号变暗；关菜单后 buffer 全部释放
 --   7. setup() 之后 vim.ui.select 走的是这个菜单；M.builtin 保留原实现
@@ -107,8 +108,9 @@ check(r.item == "alpha", "<C-u> 清空查询后 <CR> 应选回第一项")
 r = run(kc("<Esc>"))
 check(r.called == 1 and r.item == nil, "Esc 应回调 (nil, nil)")
 
-r = run(kc("<M-s>"), { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l" })
-check(r.item == "k", "M-s 应选中第 11 项，实际 " .. tostring(r.item))
+-- M-<pivot> 已移除：M-s 不再选第 11 项，只剩 1-9 与 <C-g> 索引模式
+r = run(kc("<M-s>") .. kc("<CR>"), { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l" })
+check(r.item == "a", "M-<pivot> 应已失效（停在首项），实际 " .. tostring(r.item))
 
 ----------------------------------------------------------------------
 -- 5b. 提示文本在边框中间（含输入模式标记）
@@ -610,6 +612,37 @@ check(r_gj.item == "b", "gj 应当作下移一次（g 不作数），实际 " ..
 -- 小写 g 回车：没有 gg，仍停在当前项
 local r_g_cr = run(kc("<C-n>") .. "g" .. kc("<CR>"), five)
 check(r_g_cr.item == "b", "单个 g 后接回车应保持当前项，实际 " .. tostring(r_g_cr.item))
+
+----------------------------------------------------------------------
+-- 14. 索引模式：<C-g> + 数字 + <CR>
+----------------------------------------------------------------------
+
+local many = {}
+for i = 1, 40 do
+	many[i] = ("item%02d"):format(i)
+end
+
+local r_idx = run(kc("<C-g>") .. "2" .. "1" .. kc("<CR>"), many)
+check(r_idx.item == "item21", "索引模式敲 21 应选中第 21 项，实际 " .. tostring(r_idx.item))
+
+-- 越界时 <CR> 不选、也不关菜单；选中行停在「最后有效的那一项」（99 越界 → 停在 9）
+-- <Esc> 退回导航模式后 <CR> 选中的就是这一项
+local r_bad = run(kc("<C-g>") .. "9" .. "9" .. kc("<CR>") .. kc("<Esc>") .. kc("<CR>"), many)
+check(r_bad.item == "item09", "越界后 Esc 退出应选最后有效的第 9 项，实际 " .. tostring(r_bad.item))
+
+-- <BS> 删一位后重新生效；<C-u> 清空后敲新的也生效
+local r_bs = run(kc("<C-g>") .. "3" .. "9" .. kc("<BS>") .. kc("<CR>"), many)
+check(r_bs.item == "item03", "39 退格成 3 应选中第 3 项，实际 " .. tostring(r_bs.item))
+local r_cu = run(kc("<C-g>") .. "3" .. "9" .. kc("<C-u>") .. "7" .. kc("<CR>"), many)
+check(r_cu.item == "item07", "<C-u> 清空后敲 7 应选中第 7 项，实际 " .. tostring(r_cu.item))
+
+-- 输入模式里 <C-g> 转入索引模式，序号作用于**过滤后**的结果
+local r_filtered = run("i" .. "m0" .. kc("<C-g>") .. "2" .. kc("<CR>"), { "m01", "x", "m02", "m03" })
+check(r_filtered.item == "m02", "过滤后索引应作用于过滤结果，实际 " .. tostring(r_filtered.item))
+
+-- M-<pivot> 已移除：按 M-a 不再选第 10 项
+local r_ma = run(kc("<M-a>") .. kc("<CR>"), many)
+check(r_ma.item == "item01", "M-<pivot> 应已失效，实际 " .. tostring(r_ma.item))
 
 ----------------------------------------------------------------------
 -- 收尾

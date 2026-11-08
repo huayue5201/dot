@@ -15,19 +15,22 @@
 --   vim.ui.select(items, { prompt = "Pick: ", format_item = tostring }, function(item) ... end)
 --   （setup() 会接管 vim.ui.select；这里也导出同签名的 M.select）
 --
--- 两种模式（跟 dropbar 的菜单一致：打开时是导航模式，不会一上来就吃字符）：
+-- 三种模式（跟 dropbar 的菜单一致：打开时是导航模式，不会一上来就吃字符）：
 --   导航模式：j / <Down> / <C-n> 下移，k / <Up> / <C-p> 上移；gg 首项、G 末项；
---            1-9 直接选，10-18 用 M-<pivot>；
---            （数字与 M-<pivot> 只在导航模式生效，输入模式下它们是普通查询字符）
---            （数字与 M-<pivot> 只在导航模式生效，输入模式下它们是普通查询字符）
---            <CR> 选当前；i 或 f 或 / 进入输入模式；? 打开按键帮助；Esc / q 取消。
+--            1-9 直接选（只到 9）；<CR> 选当前；i 或 f 或 / 进入输入模式；
+--            <C-g> 进入索引模式；? 打开按键帮助；Esc / q 取消。
+--            （数字只在导航模式当快捷键，输入模式下它们是普通查询字符）
 --   输入模式：字符进入查询（内建 matchfuzzypos，任何可打印字符，含中文），<BS> 退格，<C-u> 清空；
+--            <C-g> 转入索引模式（在当前过滤结果里按序号定位）；
 --            <CR> 选当前；j/k 这时是查询字符（上下移动用 <Down>/<Up> 或 <C-n>/<C-p>）；
 --            Esc 只退回导航模式（查询保留），再按 Esc 才取消。
+--   索引模式：<C-g> 打开，输入框变成「 # 12」，敲数字直接定位到第 N 项（选中行实时跟随，
+--            越界时数字标红）；<CR> 确认、<BS> 删一位、<C-u> 清空、Esc 退回上一模式。
+--            序号是全列表的位置参照，所以 1-9 之外的项也有了直达手段。
 --   帮助浮窗：'?' 打开，任意键（含 Esc）收起；关菜单时一并关掉。
 -- 每一行前面都有序号（右对齐到同一列，见 M.label_width）：它首先是一个位置参照——
--- 同一列表每行都带编号，不会出现「前 18 项有、之后没有」的割裂感；可点击的快捷键只有
--- 1-9 与 M-<pivot>(10-18)，输入模式下序号会降为注释色，避免看起来像快捷键。
+-- 同一列表每行都带编号，不会出现「前 18 项有、之后没有」的割裂感；1-9 可直接选，
+-- 其余靠索引模式（<C-g>）或过滤；输入/索引模式下序号会降为注释色，避免看起来像快捷键。
 -- 列表超过 config.max_height 时只画一个视口，选中项始终在视口内（不做平滑滚动）；
 -- 宽度在 config.min_width..config.width 之间随内容自适应，且至少容得下标题。
 -- 浮窗自己把 scrolloff/sidescrolloff 归零，全局 scrolloff=8 不会把内容推上去留白。
@@ -46,7 +49,6 @@ M.config = {
 	min_width = 30, -- 浮窗最小宽度（列）：只有一两个字的条目也不该缩成一条缝
 	max_height = 14, -- 视口最多显示多少项（超出后滚动）
 	border = "rounded",
-	pivots = "asdfghjkl", -- 第 10-18 项的快捷键（M-<pivot>）：只是加速键，不影响每行都带序号
 }
 
 -- 同一时间只允许一个菜单：重复按键直接取消新请求，不再叠一层
@@ -54,9 +56,8 @@ M._busy = false
 
 local ns = api.nvim_create_namespace("lib-menu")
 
--- 输入框前缀：❯ 是 3 字节，光标列按字节算
+-- 输入框前缀：❯ 是 3 字节，光标列按字节算（索引模式的 " # " 用 #prefix 算，不写死）
 local INPUT_PREFIX = " ❯ "
-local INPUT_PREFIX_BYTES = #INPUT_PREFIX
 
 ---keytrans 之后的特殊键（<CR>/<C-n>/<M-x> …）
 ---@param k string
@@ -77,9 +78,8 @@ local function drop_last_char(s)
 end
 
 ---第 idx 项的标签：每一项都编号。
----编号是「位置参照」，也是 1-9 / M-<pivot> 快捷键的落点；不再用 pivots 决定「有没有标签」，
+---编号是「位置参照」，也是 1-9 直接选与 <C-g> 索引模式的落点；不再用快捷键字母决定「有没有标签」，
 ---否则第 19 项往后会突然没有前缀，同一个列表前 18 行带数字、之后不带，看着像两个列表。
----（M-<pivot> 仍然只到 18，属于快捷键而非标签。）
 ---@param idx integer
 ---@return string
 function M.label(idx)
@@ -178,7 +178,8 @@ M.help_entries = {
 	{ "j / k, <Down>/<Up>", "move" },
 	{ "<C-n> / <C-p>", "move" },
 	{ "gg / G", "first / last item" },
-	{ "1-9 / M-<pivot>", "pick by number (navigation mode)" },
+	{ "1-9", "pick by number (navigation mode)" },
+	{ "<C-g>", "typing number to jump to index" },
 	{ "<CR>", "accept" },
 	{ "i / f / /", "type to filter (j/k become text)" },
 	{ "<BS> / <C-u>", "delete char / clear query" },
@@ -287,9 +288,11 @@ end
 ---输入框：独立的浮窗，贴在列表下方（跟 dropbar 的菜单一样，脱离列表单独浮着）。
 ---输入位置用 Cursor 高亮的格子画出来——浮窗里的真光标在部分终端/配置下根本不显示，
 ---只依赖它就会「看不见光标」；真光标正常时与这一格重合。
+---索引模式（<C-g>）复用这个浮窗，前缀换成 " # "，内容是敲的数字。
 ---@param state table
 local function render_input(state)
-	if not (state.mode == "input" or state.query ~= "") then
+	local index_mode = state.mode == "index"
+	if not (state.mode == "input" or index_mode or state.query ~= "") then
 		if state.input_win and api.nvim_win_is_valid(state.input_win) then
 			pcall(api.nvim_win_close, state.input_win, true)
 		end
@@ -301,7 +304,9 @@ local function render_input(state)
 		return
 	end
 
-	local line = INPUT_PREFIX .. state.query .. " "
+	local prefix = index_mode and " # " or INPUT_PREFIX
+	local text = index_mode and state.num or state.query
+	local line = prefix .. text .. " "
 	-- 宽度与列表浮窗一致：两个浮窗左右边对齐，看起来是同一个面板
 	local width = state.width or M.config.width
 	-- 列表带边框，下沿再留一行空；下面放不下就翻到列表上方
@@ -345,9 +350,25 @@ local function render_input(state)
 		api.nvim_win_set_config(state.input_win, opts)
 	end
 
-	-- 前缀 " ❯ " 的 ❯ 在字节 1..3
-	api.nvim_buf_set_extmark(state.input_buf, ns, 0, 1, { end_col = 4, hl_group = "lib-menu-label" })
-	local col_byte = INPUT_PREFIX_BYTES + #state.query
+	-- 前缀 " ❯ " 的 ❯ 在字节 1..3（索引模式的 " # " 只有一个字节）
+	api.nvim_buf_set_extmark(
+		state.input_buf,
+		ns,
+		0,
+		1,
+		{ end_col = index_mode and 2 or 4, hl_group = "lib-menu-label" }
+	)
+	local text_start = #prefix
+	if index_mode and state.num ~= "" then
+		-- 数字直接上色：越界（或 0）标红，用户不用按 <CR> 才知道敲错了
+		local idx = tonumber(state.num)
+		local ok_idx = idx ~= nil and idx >= 1 and idx <= #state.view
+		api.nvim_buf_set_extmark(state.input_buf, ns, 0, text_start, {
+			end_col = text_start + #state.num,
+			hl_group = ok_idx and "lib-menu-index" or "lib-menu-error",
+		})
+	end
+	local col_byte = text_start + #text
 	api.nvim_buf_set_extmark(state.input_buf, ns, 0, col_byte, {
 		end_col = col_byte + 1,
 		hl_group = "Cursor",
@@ -406,7 +427,7 @@ local function render(state)
 	api.nvim_buf_clear_namespace(state.buf, ns, 0, -1)
 
 	-- 宽度自适应内容：测量**整个 view**而不是可见视口——只量视口的话，滚动时可见项的
-	-- 标签宽度（1-9 / M-<pivot> / 无标签）会变，浮窗跟着一会儿变宽一会儿变窄。
+	-- 标签宽度（1..n 的位数）会变，浮窗跟着一会儿变宽一会儿变窄。
 	-- M.config.width 只是上限，超宽终端上菜单也不会拉成一条长条。
 	-- 下限两道：min_width（条目太短时别缩成一条缝）与实际标题宽度 + 4（标题被截断
 	-- 比留白更难看）。标题超长时仍以上限为准，交给 nvim 截断。
@@ -494,7 +515,7 @@ local function render(state)
 
 	-- 标签与命中位置的高亮（行首一个空格 + 右对齐到 label_w 的编号 + 空格）
 	-- 输入模式下编号只是位置参照（数字会被当成查询字符），压成注释色，免得看起来像快捷键
-	local label_hl = state.mode == "input" and "lib-menu-label-dim" or "lib-menu-label"
+	local label_hl = (state.mode == "input" or state.mode == "index") and "lib-menu-label-dim" or "lib-menu-label"
 	for n, text_line in ipairs(lines) do
 		local entry = view[top + n - 1]
 		if entry then
@@ -613,6 +634,7 @@ function M.select(items, opts, on_choice)
 	local state = {
 		prompt = opts.prompt or "Select: ",
 		query = "",
+		num = "", -- 索引模式的数字缓冲（<C-g>）
 		mode = "normal", -- 打开时不进输入模式：j/k 上下，i/f 才输入
 		formatted = opts.format_item,
 		sel = 1,
@@ -678,6 +700,15 @@ function M.select(items, opts, on_choice)
 		return true
 	end
 
+	---索引模式：数字一变就让选中行跟上（空串/越界时保持原地，靠输入框标红提示）
+	---@param st table
+	local function follow_index(st)
+		local idx = tonumber(st.num)
+		if idx and idx >= 1 and idx <= #st.view then
+			st.sel = idx
+		end
+	end
+
 	local ok, err = pcall(function()
 		while true do
 			-- 窗口没了就别再画、也别再吃键
@@ -700,33 +731,53 @@ function M.select(items, opts, on_choice)
 			local waiting_g = state.pending_g
 			state.pending_g = false
 
-			if kl == "<esc>" or kl == "<c-c>" or kl == "<c-g>" then
+			if kl == "<esc>" or kl == "<c-c>" then
 				if state.help then
 					state.help = false -- 帮助开着：先收帮助
-				elseif state.mode == "input" then
-					state.mode = "normal" -- 输入模式：只退回导航模式，不关菜单
+				elseif state.mode == "input" or state.mode == "index" then
+					state.mode = "normal" -- 输入/索引模式：只退回导航模式，不关菜单
+					state.num = ""
 				else
 					break
 				end
 			elseif state.help then
 				state.help = false -- 帮助开着时任何其他键都只收帮助
 			elseif kl == "<cr>" or kl == "<nl>" then
-				pick(state.sel)
-				break
+				if state.mode == "index" then
+					local idx = tonumber(state.num)
+					if idx and pick(idx) then
+						break
+					elseif state.num == "" then
+						state.mode = "normal" -- 空着按 <CR>：当作出索引模式，不选也不关菜单
+					end
+					-- 越界：留在索引模式，接着敲数字或 <Esc> 退出
+				else
+					pick(state.sel)
+					break
+				end
 			elseif kl == "<down>" or kl == "<c-n>" then
 				move(1)
 			elseif kl == "<up>" or kl == "<c-p>" then
 				move(-1)
 			elseif kl == "<bs>" or kl == "<c-h>" then
-				if state.query ~= "" then
+				if state.mode == "index" then
+					state.num = state.num:sub(1, -2) -- 只會有 ASCII 数字，按字节删安全
+					follow_index(state)
+				elseif state.query ~= "" then
 					state.query = drop_last_char(state.query)
 					refilter()
 				end
 			elseif kl == "<c-u>" then
-				if state.query ~= "" then
+				if state.mode == "index" then
+					state.num = ""
+				elseif state.query ~= "" then
 					state.query = ""
 					refilter()
 				end
+			elseif kl == "<c-g>" and state.mode ~= "index" then
+				-- 导航/输入模式 → 索引模式：在**当前（可能已过滤的）结果**里按序号直达
+				state.mode = "index"
+				state.num = ""
 			elseif state.mode == "normal" then
 				-- 导航模式：只有命令键生效，其余可打印字符忽略（免得一按普通字母就进查询）
 				if kl == "j" then
@@ -756,11 +807,12 @@ function M.select(items, opts, on_choice)
 					if pick(tonumber(kl)) then
 						break
 					end
-				elseif kl:match("^<m%-(%a)>$") then
-					local slot = M.config.pivots:find(kl:match("^<m%-(%a)>$"), 1, true)
-					if slot and pick(slot + 9) then
-						break
-					end
+				end
+			elseif state.mode == "index" then
+				-- 索引模式：数字累加到要跳转的序号上，选中行实时跟随（越界时输入框里标红）
+				if kl:match("^%d$") and #state.num < 6 then
+					state.num = state.num .. kl
+					follow_index(state)
 				end
 			elseif not is_special(k) then
 				-- 输入模式：任何可打印字符（含中文等多字节）都进查询
@@ -798,6 +850,8 @@ function M.setup(opts)
 	end
 	api.nvim_set_hl(0, "lib-menu-label", { link = "Identifier", default = true })
 	api.nvim_set_hl(0, "lib-menu-label-dim", { link = "Comment", default = true })
+	api.nvim_set_hl(0, "lib-menu-index", { link = "Number", default = true })
+	api.nvim_set_hl(0, "lib-menu-error", { link = "DiagnosticError", default = true })
 	api.nvim_set_hl(0, "lib-menu-match", { link = "Special", default = true })
 end
 
