@@ -6,7 +6,8 @@
 
 - 新增插件：放进对应分类目录即可，不需要注册。
 - 一个插件需要多个文件时，建成 `分类/名字/init.lua`（该目录会被当成一个 spec 模块，不再递归）。
-- 加载是 eager 的：没有 `event` / `ft` / `cmd` / `module` / `lazy` 字段，`keys` 只注册映射。
+- 加载是 eager 的：没有 spec 级 `event` / `ft` / `cmd` / `module` / `lazy`；`keys` 默认注册全局映射，
+  单条 key 可写 `ft = "lua"`（或 string 列表）改成只在对应 buffer 里注册的 buffer-local 映射。
 
 分类：
 

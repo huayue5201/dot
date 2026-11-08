@@ -13,7 +13,10 @@
 --   * 生效的字段：src(第 1 位) / dir / url / name / main / version / branch / tag
 --                / sem_version / dependencies / init / config / opts / build / priority / enabled
 --   * keys：注册成普通映射（不要写纯 lhs 的分组标签，那会变成空映射）
---   * 不识别（写了也无效）：event / ft / cmd / module / lazy
+--            单条 key 支持 lazy.nvim 的 `ft`（string 或 string[]）：写了 ft 的键位不再全局
+--            注册，而是在 FileType 命中时建成 buffer-local，这样「只对某种语言有意义」的
+--            键位不会在别的 buffer 里变成噪音（which-key 也只在对应 buffer 显示）。
+--   * 不识别（写了也无效）：event / cmd / module / lazy
 
 local M = {}
 
@@ -546,6 +549,74 @@ local function run_config(spec, plugin)
 end
 
 --- keys 既可以写成列表，也可以写成单个 { lhs, rhs, ... }
+---
+--- 单条 key 可带 `ft`（string | string[]）：只在这些 filetype 的 buffer 里注册（buffer-local），
+--- 等价于 lazy.nvim 的 keys[].ft。用于「只在某种语言里才有意义」的键位，避免全局噪音。
+local ft_pending = {} -- { { fts = { [ft] = true }, entry = k, spec = name } }
+local ft_autocmd_ready = false
+
+local function key_opts(k, buf)
+	local opts = {
+		desc = k.desc,
+		silent = k.silent,
+		expr = k.expr,
+		nowait = k.nowait,
+		remap = k.remap,
+	}
+	if buf then
+		opts.buffer = buf
+	end
+	return opts
+end
+
+local function install_ft_keys(buf)
+	local ft = vim.bo[buf].filetype
+	for _, item in ipairs(ft_pending) do
+		if item.fts[ft] then
+			local ok, err =
+				pcall(vim.keymap.set, item.entry.mode or "n", item.entry[1], item.entry[2], key_opts(item.entry, buf))
+			if not ok then
+				fail("keymap %s (%s) 失败: %s", item.entry[1], item.spec, err)
+			end
+		end
+	end
+end
+
+local function ensure_ft_autocmd()
+	if ft_autocmd_ready then
+		return
+	end
+	ft_autocmd_ready = true
+	local group = vim.api.nvim_create_augroup("pack_ft_keys", { clear = true })
+	vim.api.nvim_create_autocmd("FileType", {
+		group = group,
+		callback = function(event)
+			install_ft_keys(event.buf)
+		end,
+	})
+end
+
+local function register_ft_key(spec, k, ft_list)
+	local fts = {}
+	for _, ft in ipairs(ft_list) do
+		fts[ft] = true
+	end
+	-- 去重：同一个 spec 里同 lhs + 同 ft 集合只登记一次
+	local dedup = "ft:" .. k[1] .. "|" .. table.concat(ft_list, ",")
+	if key_owner[dedup] then
+		return
+	end
+	key_owner[dedup] = spec.name
+	ft_pending[#ft_pending + 1] = { fts = fts, entry = k, spec = spec.name }
+	ensure_ft_autocmd()
+	-- 已经打开的 buffer（FileType 早已触发过）补一遍
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_loaded(buf) then
+			install_ft_keys(buf)
+		end
+	end
+end
+
 local function apply_keys(spec)
 	local keys = spec.keys
 	if not keys then
@@ -554,20 +625,17 @@ local function apply_keys(spec)
 
 	for _, k in ipairs(type(keys[1]) == "table" and keys or { keys }) do
 		local lhs, rhs = k[1], k[2]
+		local fts = type(k.ft) == "string" and { k.ft } or k.ft
 		if type(lhs) ~= "string" or rhs == nil then
 			-- 纯 lhs 条目在 lazy.nvim 里是"分组标签"，在这里只会变成 lhs→lhs 的空映射，
 			-- 还会覆盖 config 里定义的真实映射（rustowl 就这么坏过）。分组请写进
 			-- lua/plugins/ui/which-key.lua 的 wk.add。
 			fail("keys %s: 缺少 lhs/rhs，已跳过（分组标签请写进 which-key.lua）", tostring(lhs))
+		elseif type(fts) == "table" then
+			register_ft_key(spec, k, fts)
 		elseif not key_owner[lhs] then
 			key_owner[lhs] = spec.name
-			local ok, err = pcall(vim.keymap.set, k.mode or "n", lhs, rhs, {
-				desc = k.desc,
-				silent = k.silent,
-				expr = k.expr,
-				nowait = k.nowait,
-				remap = k.remap,
-			})
+			local ok, err = pcall(vim.keymap.set, k.mode or "n", lhs, rhs, key_opts(k))
 			if not ok then
 				fail("keymap %s (%s) 失败: %s", lhs, spec.name, err)
 			end

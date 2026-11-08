@@ -1,5 +1,6 @@
 -- https://github.com/leoluz/nvim-dap-go
--- 全 eager 加载（本仓不使用 ft 懒加载）
+-- 全 eager 加载，但下面两个键位用 keys[].ft 限制成只在 Go buffer 里出现
+-- （别处按下只会 notify「no test found」，属于噪音）
 -- 只保留 Go 测试相关的两个入口：<leader>dT / <leader>dY
 -- （<leader>dt 已被 lua/dap_ext/dap_keys.lua 的「启用/禁用断点」占用，不能覆盖）
 
@@ -11,16 +12,27 @@ return {
 	},
 	config = function(_, opts)
 		require("dap-go").setup(opts)
-
-		-- 静态绑定即可：ft=go 时插件才加载，不需要按 session 动态增删键位
-		vim.keymap.set("n", "<leader>dT", function()
-			require("dap-go").debug_test()
-		end, { desc = "[D]ap [T]est debug (closest)" })
-
-		vim.keymap.set("n", "<leader>dY", function()
-			require("dap-go").debug_last_test()
-		end, { desc = "[D]ap [Y] last test debug" })
 	end,
+
+	-- keys[].ft 由 lua/boot/pack.lua 处理：只在 ft=go 的 buffer 里建 buffer-local 映射
+	keys = {
+		{
+			"<leader>dT",
+			function()
+				require("dap-go").debug_test()
+			end,
+			ft = "go",
+			desc = "[D]ap [T]est debug (closest)",
+		},
+		{
+			"<leader>dY",
+			function()
+				require("dap-go").debug_last_test()
+			end,
+			ft = "go",
+			desc = "[D]ap [Y] last test debug",
+		},
+	},
 
 	opts = {
 		-- 默认已有 Debug / Debug Test / Attach，这里只补一个「调试整个包」

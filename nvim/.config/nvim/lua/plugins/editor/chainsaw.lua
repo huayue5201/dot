@@ -6,6 +6,26 @@
 -- 每条语句带唯一标记（默认 🪚），用于行高亮/sign/删除。
 --
 -- 键位沿用旧的 `g?` 家族，尽量贴合 debugprint 时的肌肉记忆。
+-- 只在插件真正配了语句模板的 filetype 里注册（keys[].ft，见 lua/boot/pack.lua），
+-- 否则在 json/yaml 之类 buffer 里每按一次就一条
+-- `There is no configuration for "variableLog" in "json"` 的 WARN，纯噪音。
+local SUPPORTED_FTS = {
+	"applescript",
+	"bash",
+	"cpp",
+	"css",
+	"go",
+	"javascript",
+	"lua",
+	"nvim_lua",
+	"python",
+	"ruby",
+	"rust",
+	"sh",
+	"swift",
+	"typescript",
+	"zsh",
+}
 
 return {
 	"chrisgrieser/nvim-chainsaw",
@@ -19,6 +39,7 @@ return {
 				require("chainsaw").variableLog()
 			end,
 			mode = { "n", "x" },
+			ft = SUPPORTED_FTS,
 			desc = "打印：变量 (variableLog)",
 		},
 		{
@@ -27,6 +48,7 @@ return {
 				require("chainsaw").objectLog()
 			end,
 			mode = { "n", "x" },
+			ft = SUPPORTED_FTS,
 			desc = "打印：对象 (objectLog)",
 		},
 		{
@@ -35,6 +57,7 @@ return {
 				require("chainsaw").typeLog()
 			end,
 			mode = { "n", "x" },
+			ft = SUPPORTED_FTS,
 			desc = "打印：类型 (typeLog)",
 		},
 		{
@@ -43,6 +66,7 @@ return {
 				require("chainsaw").assertLog()
 			end,
 			mode = { "n", "x" },
+			ft = SUPPORTED_FTS,
 			desc = "打印：断言 (assertLog)",
 		},
 
@@ -52,6 +76,7 @@ return {
 			function()
 				require("chainsaw").emojiLog()
 			end,
+			ft = SUPPORTED_FTS,
 			desc = "打印：emoji 控制流 (emojiLog)",
 		},
 		{
@@ -59,6 +84,7 @@ return {
 			function()
 				require("chainsaw").messageLog()
 			end,
+			ft = SUPPORTED_FTS,
 			desc = "打印：消息 (messageLog)",
 		},
 		{
@@ -66,6 +92,7 @@ return {
 			function()
 				require("chainsaw").sound()
 			end,
+			ft = SUPPORTED_FTS,
 			desc = "打印：声音 (sound)",
 		},
 
@@ -75,6 +102,7 @@ return {
 			function()
 				require("chainsaw").timeLog()
 			end,
+			ft = SUPPORTED_FTS,
 			desc = "打印：计时 (timeLog)",
 		},
 		{
@@ -82,6 +110,7 @@ return {
 			function()
 				require("chainsaw").debugLog()
 			end,
+			ft = SUPPORTED_FTS,
 			desc = "打印：debugger 断点 (debugLog)",
 		},
 		{
@@ -89,6 +118,7 @@ return {
 			function()
 				require("chainsaw").stacktraceLog()
 			end,
+			ft = SUPPORTED_FTS,
 			desc = "打印：堆栈 (stacktraceLog)",
 		},
 		{
@@ -96,6 +126,7 @@ return {
 			function()
 				require("chainsaw").clearLog()
 			end,
+			ft = SUPPORTED_FTS,
 			desc = "打印：清屏 (clearLog)",
 		},
 
@@ -106,6 +137,7 @@ return {
 				require("chainsaw").removeLogs()
 			end,
 			mode = { "n", "x" },
+			ft = SUPPORTED_FTS,
 			desc = "打印：删除所有 chainsaw 语句 (removeLogs)",
 		},
 	},
