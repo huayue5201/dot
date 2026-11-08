@@ -4,7 +4,7 @@
 --
 -- 覆盖：
 --   1. 过滤：空查询返回全部、模糊命中带高亮位置、无命中为空
---   2. 标签：1-9 数字、10 起 M-<pivot>
+--   2. 标签：所有行连续编号、右对齐到同一列
 --   3. 数字键直接选中、<C-n> 移动 + <CR> 选中
 --   4. 输入字符过滤、<BS> 退格、<C-u> 清空
 --   5. Esc 取消 → 回调 (nil, nil)
@@ -15,7 +15,7 @@
 --   9. 输入模式的数字是查询字符（不是直接选中）；中文可输入、<BS> 多字节安全
 --   10. 列表超过 max_height 时滚动，选中项始终在视口内
 --   11. 锚点贴光标所在的屏幕行列（长行折行时不跑到行首），且始终钳制在屏幕内
---   12. 没有标签的行（第 19 项以后）高亮不偏列；input/help 关掉后 buffer 全部释放
+--   12. 每一行都带序号，文本列对齐（第 19 项以后也一样）；输入模式下序号变暗；关菜单后 buffer 全部释放
 --   7. setup() 之后 vim.ui.select 走的是这个菜单；M.builtin 保留原实现
 --
 -- 退出码：有失败 1，全通过 0。
@@ -54,9 +54,10 @@ check(#menu.filter(items, "zzz", tostring) == 0, "无命中应为空")
 -- 2. 标签
 ----------------------------------------------------------------------
 
-check(menu.label(1) == "1" and menu.label(9) == "9", "1-9 用数字标签")
-check(menu.label(10) == "M-a" and menu.label(11) == "M-s", "第 10 项起用 M-<pivot>")
-check(menu.line(2, "x") == "2 x", "行文本 = 标签 + 空格 + 内容")
+check(menu.label(1) == "1" and menu.label(19) == "19", "所有行都带序号（19 以后不会突然没有标签）")
+check(menu.label_width(4) == 2 and menu.label_width(140) == 3, "标签列宽：最少 2 位，按总项数增长")
+check(menu.line(2, "x", 2) == " 2 x", "行文本 = 右对齐序号 + 空格 + 内容")
+check(menu.line(12, "x", 2) == "12 x", "两位数序号占满 2 列时不补空格")
 
 ----------------------------------------------------------------------
 -- 3/4/5. 键位：数字选中、移动、输入过滤、退格、清空、取消
@@ -173,7 +174,7 @@ check(
 	last_input and last_input.cursor[1] == 1 and last_input.cursor[2] == 6,
 	"光标应停在输入框查询末尾（1,6），实际 " .. vim.inspect(last_input and last_input.cursor)
 )
-check(bodies[1] and bodies[1][1] == " 1 alpha", "导航模式下没有查询行")
+check(bodies[1] and bodies[1][1] == "  1 alpha", "导航模式下没有查询行")
 -- 输入框的光标格要有 Cursor 高亮：浮窗里的真光标未必被终端显示，这一格保证位置可见
 local last_marks = (last_input and last_input.hl) or {}
 local has_cursor = false
@@ -467,7 +468,7 @@ check(
 )
 
 ----------------------------------------------------------------------
--- 12. 没有标签的行（第 19 项以后）高亮列不能偏；关菜单后 buffer 全部释放
+-- 12. 每一行都带序号、文本列对齐；输入模式下序号变暗；关菜单后 buffer 全部释放
 ----------------------------------------------------------------------
 
 local many3 = {}
@@ -477,6 +478,10 @@ end
 local snap = {}
 local old_max3 = menu.config.max_height
 menu.config.max_height = 40
+-- render 会把视口高度再按屏幕行数收窄（vim.go.lines - 4），headless 默认只有 24 行，
+-- 不放大就拿不到第 21 行。测完后恢复。
+local old_lines3 = vim.o.lines
+vim.o.lines = 44
 local orig_rk_label = menu._read_key
 local step = 0
 menu._read_key = function()
@@ -494,9 +499,12 @@ menu._read_key = function()
 				local buf = vim.api.nvim_win_get_buf(w)
 				snap.lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 				snap.marks = {}
+				snap.label_hl = {}
 				for _, m in ipairs(vim.api.nvim_buf_get_extmarks(buf, -1, 0, -1, { details = true })) do
 					if m[4].hl_group == "lib-menu-match" then
 						snap.marks[#snap.marks + 1] = { line = m[2], col = m[3] }
+					elseif m[4].hl_group == "lib-menu-label" or m[4].hl_group == "lib-menu-label-dim" then
+						snap.label_hl[m[2]] = m[4].hl_group
 					end
 				end
 			end
@@ -512,18 +520,24 @@ end
 menu.select(many3, { prompt = "Lbl: ", format_item = tostring }, function() end)
 menu._read_key = orig_rk_label
 menu.config.max_height = old_max3
+vim.o.lines = old_lines3
 
 local marks_by_line = {}
 for _, m in ipairs(snap.marks or {}) do
 	marks_by_line[m.line] = marks_by_line[m.line] or {}
 	table.insert(marks_by_line[m.line], m.col)
 end
--- 第 1 行有标签 "1": " 1 abc01"，文本从 0-based 列 3 开始，命中在 3,4,5
+-- 标签列宽 2（30 项），所有行都是 " 数字 文本"：文本从 0-based 列 4 开始，命中在 4,5,6
 local labeled = table.concat(marks_by_line[0] or {}, ",")
--- 第 21 行无标签: " abc21"，文本从列 1 开始，命中在 1,2,3
+-- 第 21 行同样是 "21 abc21"，文本列与第 1 行完全一致（这正是补齐序号的点）
 local unlabeled = table.concat(marks_by_line[20] or {}, ",")
-check(labeled == "3,4,5", "有标签行高亮列应为 3,4,5，实际 " .. labeled)
-check(unlabeled == "1,2,3", "无标签行高亮列应为 1,2,3，实际 " .. unlabeled)
+check(labeled == "4,5,6", "第 1 行高亮列应为 4,5,6，实际 " .. labeled)
+check(unlabeled == "4,5,6", "第 21 行高亮列也应为 4,5,6，实际 " .. unlabeled)
+-- 快照时已输入 "abc"，处于输入模式：序号压成注释色，不冒充快捷键
+check(
+	snap.label_hl[0] == "lib-menu-label-dim",
+	"输入模式下序号应变暗，实际 " .. tostring(snap.label_hl[0])
+)
 
 for _, b in ipairs(vim.api.nvim_list_bufs()) do
 	check(

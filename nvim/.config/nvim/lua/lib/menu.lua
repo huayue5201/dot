@@ -8,7 +8,7 @@
 -- 单飞（同一时间只有一个菜单）与取消语义在实现里就成立。
 --
 -- 与 ui/picker.lua 的分工：picker 是「底部整宽列表 + 右侧预览」的重型选择器（需要看文件内容时用，
--- 如 yanky 历史）；menu 是「贴着光标的小浮窗 + 数字标签」的轻量选择（vim.ui.select 的默认外观）。
+-- 如 yanky 历史）；menu 是「贴着光标的小浮窗 + 序号列」的轻量选择（vim.ui.select 的默认外观）。
 -- 需要预览的场合仍显式调 ui.picker，不要往这里加预览。
 --
 -- 用法：
@@ -16,13 +16,17 @@
 --   （setup() 会接管 vim.ui.select；这里也导出同签名的 M.select）
 --
 -- 两种模式（跟 dropbar 的菜单一致：打开时是导航模式，不会一上来就吃字符）：
---   导航模式：j / <Down> / <C-n> 下移，k / <Up> / <C-p> 上移；1-9 直接选，10 项以后 M-<pivot>；
+--   导航模式：j / <Down> / <C-n> 下移，k / <Up> / <C-p> 上移；1-9 直接选，10-18 用 M-<pivot>；
+--            （数字与 M-<pivot> 只在导航模式生效，输入模式下它们是普通查询字符）
 --            （数字与 M-<pivot> 只在导航模式生效，输入模式下它们是普通查询字符）
 --            <CR> 选当前；i 或 f 或 / 进入输入模式；? 打开按键帮助；Esc / q 取消。
 --   输入模式：字符进入查询（内建 matchfuzzypos，任何可打印字符，含中文），<BS> 退格，<C-u> 清空；
 --            <CR> 选当前；j/k 这时是查询字符（上下移动用 <Down>/<Up> 或 <C-n>/<C-p>）；
 --            Esc 只退回导航模式（查询保留），再按 Esc 才取消。
 --   帮助浮窗：'?' 打开，任意键（含 Esc）收起；关菜单时一并关掉。
+-- 每一行前面都有序号（右对齐到同一列，见 M.label_width）：它首先是一个位置参照——
+-- 同一列表每行都带编号，不会出现「前 18 项有、之后没有」的割裂感；可点击的快捷键只有
+-- 1-9 与 M-<pivot>(10-18)，输入模式下序号会降为注释色，避免看起来像快捷键。
 -- 列表超过 config.max_height 时只画一个视口，选中项始终在视口内（不做平滑滚动）；
 -- 宽度在 config.min_width..config.width 之间随内容自适应，且至少容得下标题。
 -- 浮窗自己把 scrolloff/sidescrolloff 归零，全局 scrolloff=8 不会把内容推上去留白。
@@ -41,7 +45,7 @@ M.config = {
 	min_width = 30, -- 浮窗最小宽度（列）：只有一两个字的条目也不该缩成一条缝
 	max_height = 14, -- 视口最多显示多少项（超出后滚动）
 	border = "rounded",
-	pivots = "asdfghjkl", -- 第 10 项起用 M-<pivot> 标签（与 dropbar 的肌肉记忆一致）
+	pivots = "asdfghjkl", -- 第 10-18 项的快捷键（M-<pivot>）：只是加速键，不影响每行都带序号
 }
 
 -- 同一时间只允许一个菜单：重复按键直接取消新请求，不再叠一层
@@ -71,18 +75,22 @@ local function drop_last_char(s)
 	return s:sub(1, fn.byteidx(s, n - 1))
 end
 
----第 idx 项的标签
+---第 idx 项的标签：每一项都编号。
+---编号是「位置参照」，也是 1-9 / M-<pivot> 快捷键的落点；不再用 pivots 决定「有没有标签」，
+---否则第 19 项往后会突然没有前缀，同一个列表前 18 行带数字、之后不带，看着像两个列表。
+---（M-<pivot> 仍然只到 18，属于快捷键而非标签。）
 ---@param idx integer
 ---@return string
 function M.label(idx)
-	if idx <= 9 then
-		return tostring(idx)
-	end
-	local pivot = M.config.pivots:sub(idx - 9, idx - 9)
-	if pivot == "" then
-		return ""
-	end
-	return "M-" .. pivot
+	return tostring(idx)
+end
+
+---标签列宽度：所有行右对齐到同一列，条目文本才会从同一列开始。
+---最少 2 位（1..9 也占 2 格，滚动/过滤时文本列不会左右跳），超过 99 项自动变 3 位。
+---@param total integer
+---@return integer
+function M.label_width(total)
+	return math.max(2, #tostring(math.max(total, 1)))
 end
 
 ---模糊过滤（Vim 自带 matchfuzzypos，返回命中位置用于高亮）
@@ -148,14 +156,18 @@ end
 ---把一个菜单项渲染成一行文本（标签 + 内容）
 ---@param idx integer
 ---@param text string
+---@param label_w? integer 标签列宽度（M.label_width）；省略则不补齐
 ---@return string
-function M.line(idx, text)
+function M.line(idx, text, label_w)
 	-- 条目文本里的换行会打破「一行一项」的假设（视口高度、选中行、命中高亮全按行号算），
 	-- 统一压成空格，宁可长一点也不能让浮窗内容比视口多行
 	text = text:gsub("[\r\n]+", " ")
 	local label = M.label(idx)
 	if label == "" then
 		return text
+	end
+	if label_w and label_w > #label then
+		label = string.rep(" ", label_w - #label) .. label
 	end
 	return label .. " " .. text
 end
@@ -164,8 +176,7 @@ end
 M.help_entries = {
 	{ "j / k, <Down>/<Up>", "move" },
 	{ "<C-n> / <C-p>", "move" },
-	{ "1-9", "pick by number" },
-	{ "M-<pivot>", "pick items 10+" },
+	{ "1-9 / M-<pivot>", "pick by number (navigation mode)" },
 	{ "<CR>", "accept" },
 	{ "i / f / /", "type to filter (j/k become text)" },
 	{ "<BS> / <C-u>", "delete char / clear query" },
@@ -350,6 +361,7 @@ local function render(state)
 	local view = state.view
 	local total = #view
 	local lines = {}
+	local label_w = M.label_width(total)
 	if total == 0 then
 		lines[1] = state.query == "" and "  (empty)" or "  (no match)"
 	end
@@ -373,7 +385,7 @@ local function render(state)
 			if not entry then
 				break
 			end
-			lines[#lines + 1] = " " .. M.line(i, entry.text)
+			lines[#lines + 1] = " " .. M.line(i, entry.text, label_w)
 		end
 	end
 	height = #lines
@@ -400,7 +412,7 @@ local function render(state)
 	for i = 1, total do
 		local entry = view[i]
 		if entry then
-			content_w = math.max(content_w, fn.strdisplaywidth(" " .. M.line(i, entry.text)))
+			content_w = math.max(content_w, fn.strdisplaywidth(" " .. M.line(i, entry.text, label_w)))
 			if content_w >= M.config.width then
 				break -- 已经到上限，不必再量
 			end
@@ -478,17 +490,19 @@ local function render(state)
 		api.nvim_win_set_config(state.win, win_opts)
 	end
 
-	-- 标签与命中位置的高亮（行首一个空格 + 标签 + 空格；超过 M-<pivot> 范围的项没有标签）
+	-- 标签与命中位置的高亮（行首一个空格 + 右对齐到 label_w 的编号 + 空格）
+	-- 输入模式下编号只是位置参照（数字会被当成查询字符），压成注释色，免得看起来像快捷键
+	local label_hl = state.mode == "input" and "lib-menu-label-dim" or "lib-menu-label"
 	for n, text_line in ipairs(lines) do
 		local entry = view[top + n - 1]
 		if entry then
 			local lnum = n - 1
 			local label = M.label(top + n - 1)
-			local text_start = label == "" and 1 or (2 + #label)
+			local text_start = label == "" and 1 or (2 + label_w)
 			if label ~= "" then
 				api.nvim_buf_set_extmark(state.buf, ns, lnum, 1, {
-					end_col = 1 + #label,
-					hl_group = "lib-menu-label",
+					end_col = 1 + label_w,
+					hl_group = label_hl,
 				})
 			end
 			for _, pos in ipairs(entry.positions) do
@@ -764,6 +778,7 @@ function M.setup(opts)
 		M.select(items, o, on_choice)
 	end
 	api.nvim_set_hl(0, "lib-menu-label", { link = "Identifier", default = true })
+	api.nvim_set_hl(0, "lib-menu-label-dim", { link = "Comment", default = true })
 	api.nvim_set_hl(0, "lib-menu-match", { link = "Special", default = true })
 end
 
