@@ -16,7 +16,8 @@
 --   （setup() 会接管 vim.ui.select；这里也导出同签名的 M.select）
 --
 -- 两种模式（跟 dropbar 的菜单一致：打开时是导航模式，不会一上来就吃字符）：
---   导航模式：j / <Down> / <C-n> 下移，k / <Up> / <C-p> 上移；1-9 直接选，10-18 用 M-<pivot>；
+--   导航模式：j / <Down> / <C-n> 下移，k / <Up> / <C-p> 上移；gg 首项、G 末项；
+--            1-9 直接选，10-18 用 M-<pivot>；
 --            （数字与 M-<pivot> 只在导航模式生效，输入模式下它们是普通查询字符）
 --            （数字与 M-<pivot> 只在导航模式生效，输入模式下它们是普通查询字符）
 --            <CR> 选当前；i 或 f 或 / 进入输入模式；? 打开按键帮助；Esc / q 取消。
@@ -176,6 +177,7 @@ end
 M.help_entries = {
 	{ "j / k, <Down>/<Up>", "move" },
 	{ "<C-n> / <C-p>", "move" },
+	{ "gg / G", "first / last item" },
 	{ "1-9 / M-<pivot>", "pick by number (navigation mode)" },
 	{ "<CR>", "accept" },
 	{ "i / f / /", "type to filter (j/k become text)" },
@@ -693,6 +695,10 @@ function M.select(items, opts, on_choice)
 			end
 			local k = fn.keytrans(key)
 			local kl = k:lower() -- 特殊键 keytrans 可能大写（<C-N>）
+			-- gg 的前置状态：只在「下一个键也是 g」时成立，其它任何键都会把它作废
+			-- （与 Vim 一致，无超时；gj 就是普通的下移）
+			local waiting_g = state.pending_g
+			state.pending_g = false
 
 			if kl == "<esc>" or kl == "<c-c>" or kl == "<c-g>" then
 				if state.help then
@@ -727,6 +733,19 @@ function M.select(items, opts, on_choice)
 					move(1)
 				elseif kl == "k" then
 					move(-1)
+				elseif k == "G" then
+					-- 末项（shift-g；必须在 kl == "g" 之前判，否则会被当成 gg 的第一个 g）
+					if #state.view > 0 then
+						state.sel = #state.view
+					end
+				elseif kl == "g" then
+					if waiting_g then
+						if #state.view > 0 then
+							state.sel = 1
+						end
+					else
+						state.pending_g = true
+					end
 				elseif kl == "q" then
 					break
 				elseif kl == "i" or kl == "f" or kl == "/" then

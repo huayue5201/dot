@@ -15,6 +15,7 @@
 --   9. 输入模式的数字是查询字符（不是直接选中）；中文可输入、<BS> 多字节安全
 --   10. 列表超过 max_height 时滚动，选中项始终在视口内
 --   11. 锚点贴光标所在的屏幕行列（长行折行时不跑到行首），且始终钳制在屏幕内
+--   13. gg 首项 / G 末项（g 后接其它键不作数）
 --   12. 每一行都带序号，文本列对齐（第 19 项以后也一样）；输入模式下序号变暗；关菜单后 buffer 全部释放
 --   7. setup() 之后 vim.ui.select 走的是这个菜单；M.builtin 保留原实现
 --
@@ -589,6 +590,26 @@ end)
 check(empty.called == 1 and empty.item == nil, "空列表应立刻回调 nil")
 
 vim.ui.select = orig
+
+----------------------------------------------------------------------
+-- 13. gg / G：跳到首项 / 末项；g 后接其它键不作数
+----------------------------------------------------------------------
+
+local five = { "a", "b", "c", "d", "e" }
+
+local r_gg = run(kc("<C-n>") .. kc("<C-n>") .. kc("<C-n>") .. "gg" .. kc("<CR>"), five)
+check(r_gg.item == "a", "下移 3 次后按 gg 应回到首项，实际 " .. tostring(r_gg.item))
+
+local r_G = run("G" .. kc("<CR>"), five)
+check(r_G.item == "e", "按 G 应选中末项，实际 " .. tostring(r_G.item))
+
+-- g 后接非 g：作废那个 g，后面的键按原语义处理（gj = 下移一次）
+local r_gj = run("g" .. "j" .. kc("<CR>"), five)
+check(r_gj.item == "b", "gj 应当作下移一次（g 不作数），实际 " .. tostring(r_gj.item))
+
+-- 小写 g 回车：没有 gg，仍停在当前项
+local r_g_cr = run(kc("<C-n>") .. "g" .. kc("<CR>"), five)
+check(r_g_cr.item == "b", "单个 g 后接回车应保持当前项，实际 " .. tostring(r_g_cr.item))
 
 ----------------------------------------------------------------------
 -- 收尾
