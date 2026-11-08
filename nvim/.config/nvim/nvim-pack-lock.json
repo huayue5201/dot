@@ -365,7 +365,7 @@
       "src": "https://github.com/chrisgrieser/nvim-scissors"
     },
     "nvim-store3": {
-      "rev": "579c054365f800bc91e2d5fab9e9e9a8406f8cff",
+      "rev": "76b450fcab0823fbc4f5007d3fe32d3804df770c",
       "src": "/Users/lijia/neovim-plugins/nvim-store3"
     },
     "nvim-surround": {
@@ -373,7 +373,7 @@
       "src": "https://github.com/kylechui/nvim-surround"
     },
     "nvim-translator": {
-      "rev": "167370164bab8f931b47ad27d8d986f4f4ba339d",
+      "rev": "60a5c46044ecc80d6c884bc6e092ec3b6287ff6c",
       "src": "/Users/lijia/neovim-plugins/nvim-translator"
     },
     "nvim-treesitter": {
@@ -489,7 +489,7 @@
       "src": "https://github.com/folke/todo-comments.nvim"
     },
     "todo2": {
-      "rev": "ca14db0f3c94d9f36ea9af157cbcf6d86d6fec88",
+      "rev": "700876876dc5f09815e7a71ddfe38d06b67d54b7",
       "src": "/Users/lijia/neovim-plugins/todo2"
     },
     "treesj": {
