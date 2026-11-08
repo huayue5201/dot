@@ -17,7 +17,7 @@
 | [`lsp/`](lsp/) | LSP、格式化、诊断、quickfix | 12 |
 | [`dap/`](dap/) | 调试器与容器开发 | 10 |
 | [`git/`](git/) | git 界面、diff、冲突、PR | 8 |
-| [`ui/`](ui/) | 界面外壳：状态列、标签栏、侧栏、取景器、主题 | 23 |
+| [`ui/`](ui/) | 界面外壳：状态列、标签栏、侧栏、取景器、主题 | 24 |
 | [`editor/`](editor/) | 编辑动作：补全、环绕、跳转、滚动动画 | 27 |
 | [`lang/`](lang/) | 语言/文件类型相关：treesitter、markdown、拼写、中文 | 18 |
 | [`tools/`](tools/) | 独立工具窗：测试、会话、数据库、日志 | 14 |
@@ -89,6 +89,7 @@
 | [ui/fff.lua](ui/fff.lua) | dmtrKovalenko/fff | 模糊文件查找器（Rust 后端） |
 | [ui/glance.lua](ui/glance.lua) | DNLHC/glance.nvim | LSP peek 预览窗 |
 | [ui/eagle.lua](ui/eagle.lua) | soulis-1256/eagle.nvim | 鼠标悬停浮窗：诊断 + LSP hover |
+| [ui/scrollbar.lua](ui/scrollbar.lua) | petertriho/nvim-scrollbar | 右边缘滚动条：位置 + 诊断/git 刻度（固定 v1 分支） |
 | [ui/neo-tree.lua](ui/neo-tree.lua) | nvim-neo-tree/neo-tree.nvim | 文件树侧栏 |
 | [ui/nvim-window-picker.lua](ui/nvim-window-picker.lua) | huayue5201/nvim-window-picker | 窗口选择器（本地 fork） |
 | [ui/buffer-preview.lua](ui/buffer-preview.lua) | propilideno/buffer-preview.nvim | 切 buffer 前预览内容 |
