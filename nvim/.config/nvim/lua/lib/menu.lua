@@ -23,7 +23,9 @@
 --            <CR> 选当前；j/k 这时是查询字符（上下移动用 <Down>/<Up> 或 <C-n>/<C-p>）；
 --            Esc 只退回导航模式（查询保留），再按 Esc 才取消。
 --   帮助浮窗：'?' 打开，任意键（含 Esc）收起；关菜单时一并关掉。
--- 列表超过 config.max_height 时只画一个视口，选中项始终在视口内（不做平滑滚动）。
+-- 列表超过 config.max_height 时只画一个视口，选中项始终在视口内（不做平滑滚动）；
+-- 宽度在 config.min_width..config.width 之间随内容自适应，且至少容得下标题。
+-- 浮窗自己把 scrolloff/sidescrolloff 归零，全局 scrolloff=8 不会把内容推上去留白。
 -- 浮窗位置锚在**光标所在的屏幕行列**（不是行首）：长行折行 / 水平滚动时也不会错位。
 -- 提示文本（prompt）显示在浮窗上边框中间；输入模式时列表下方**单独浮一个输入框**
 -- （" ❯ " + 查询），跟 dropbar 的菜单一致。输入位置用一个 Cursor 高亮的格子画出来：
@@ -36,6 +38,7 @@ local M = {}
 
 M.config = {
 	width = 64, -- 浮窗最大宽度（列）
+	min_width = 30, -- 浮窗最小宽度（列）：只有一两个字的条目也不该缩成一条缝
 	max_height = 14, -- 视口最多显示多少项（超出后滚动）
 	border = "rounded",
 	pivots = "asdfghjkl", -- 第 10 项起用 M-<pivot> 标签（与 dropbar 的肌肉记忆一致）
@@ -147,6 +150,9 @@ end
 ---@param text string
 ---@return string
 function M.line(idx, text)
+	-- 条目文本里的换行会打破「一行一项」的假设（视口高度、选中行、命中高亮全按行号算），
+	-- 统一压成空格，宁可长一点也不能让浮窗内容比视口多行
+	text = text:gsub("[\r\n]+", " ")
 	local label = M.label(idx)
 	if label == "" then
 		return text
@@ -316,6 +322,11 @@ local function render_input(state)
 		for _, o in ipairs({ { "statuscolumn", "" }, { "signcolumn", "no" }, { "foldcolumn", "0" }, { "wrap", false } }) do
 			api.nvim_set_option_value(o[1], o[2], { win = state.input_win })
 		end
+		-- 查询很长时也不要横向滚动（scrolloff 会把输入行推得看不见开头）
+		for _, o in ipairs({ { "scrolloff", 0 }, { "sidescrolloff", 0 } }) do
+			pcall(api.nvim_set_option_value, o[1], o[2], { win = state.input_win })
+		end
+		pcall(api.nvim_set_option_value, "scrolloffpad", 0, { win = state.input_win })
 		api.nvim_set_option_value("winhl", "Normal:Pmenu,FloatBorder:FloatBorder", { win = state.input_win })
 	else
 		api.nvim_win_set_config(state.input_win, opts)
@@ -343,7 +354,10 @@ local function render(state)
 		lines[1] = state.query == "" and "  (empty)" or "  (no match)"
 	end
 	-- 视口：最多 max_height 行，选中项始终保持在视口内（不做平滑滚动）
+	-- 终端本身装不下（窗口被压到很矮）时再按屏幕行数收窄：否则浮窗会越过屏幕下沿，
+	-- nvim 只裁不缩，最后几项直接看不见
 	local height = math.min(math.max(total, 1), math.max(1, M.config.max_height))
+	height = math.min(height, math.max(1, vim.go.lines - 4))
 	local top = 1
 	if total > 0 then
 		local t = state.top or 1
@@ -377,15 +391,29 @@ local function render(state)
 	api.nvim_set_option_value("modifiable", false, { buf = state.buf })
 	api.nvim_buf_clear_namespace(state.buf, ns, 0, -1)
 
-	-- 宽度自适应内容：lines 里已经含「行首空格 + 数字/M-<pivot> 标签 + 文本」，
+	-- 宽度自适应内容：测量**整个 view**而不是可见视口——只量视口的话，滚动时可见项的
+	-- 标签宽度（1-9 / M-<pivot> / 无标签）会变，浮窗跟着一会儿变宽一会儿变窄。
 	-- M.config.width 只是上限，超宽终端上菜单也不会拉成一条长条。
-	-- 标题不算在内：prompt 往往很长（一到两行提示），拿它算会把菜单撑成满宽；
-	-- 标题放不下时由 nvim 自己截断。
+	-- 下限两道：min_width（条目太短时别缩成一条缝）与实际标题宽度 + 4（标题被截断
+	-- 比留白更难看）。标题超长时仍以上限为准，交给 nvim 截断。
 	local content_w = 0
-	for _, l in ipairs(lines) do
-		content_w = math.max(content_w, fn.strdisplaywidth(l))
+	for i = 1, total do
+		local entry = view[i]
+		if entry then
+			content_w = math.max(content_w, fn.strdisplaywidth(" " .. M.line(i, entry.text)))
+			if content_w >= M.config.width then
+				break -- 已经到上限，不必再量
+			end
+		end
 	end
-	local width = math.max(10, math.min(M.config.width, content_w + 1))
+	if total == 0 then
+		content_w = fn.strdisplaywidth(lines[1] or "")
+	end
+	-- 标题（prompt）：换行会破坏浮窗边框，先压成空格
+	local title = (state.prompt or ""):gsub("[\r\n]+", " ")
+	local title_w = fn.strdisplaywidth(title)
+	local want_w = math.max(content_w + 1, M.config.min_width or 1, title_w + 4)
+	local width = math.min(M.config.width, want_w)
 	local row = state.pos.row
 	local col = state.pos.col
 	-- 右/下边界钳制：nvim 不会因为浮窗出屏而报错，它只会静静地画在屏幕外。
@@ -411,7 +439,7 @@ local function render(state)
 		height = height,
 		style = "minimal",
 		border = M.config.border,
-		title = state.prompt,
+		title = title,
 		title_pos = "center",
 		-- 关键：浮窗创建期间不要跑 autocmd。statuscol.nvim 的处理器用
 		-- nvim_get_current_win() 定位窗口，浮窗创建时「当前窗口」还是下面那个，
@@ -436,6 +464,16 @@ local function render(state)
 		api.nvim_set_option_value("statuscolumn", "", { win = state.win })
 		api.nvim_set_option_value("signcolumn", "no", { win = state.win })
 		api.nvim_set_option_value("foldcolumn", "0", { win = state.win })
+		-- 浮窗必须自己关掉 scrolloff / sidescrolloff / scrolloffpad：
+		-- 本配置是全局 scrolloff=8（lua/boot/settings.lua:44），浮窗会继承它。
+		-- 菜单内容永远刚好填满视口，光标往下走时 scrolloff 会为了留出「光标下方 8 行」
+		-- 把整个内容向上推，于是浮窗底部出现一片空白、列表还少显示几项
+		-- （终端里表现就是「滚到下面以后浮框下面空了」）。
+		-- 与 lua/feat/terminal/sidebar.lua:409-412 的处理同理。
+		for _, o in ipairs({ { "scrolloff", 0 }, { "sidescrolloff", 0 } }) do
+			pcall(api.nvim_set_option_value, o[1], o[2], { win = state.win })
+		end
+		pcall(api.nvim_set_option_value, "scrolloffpad", 0, { win = state.win })
 	else
 		api.nvim_win_set_config(state.win, win_opts)
 	end
