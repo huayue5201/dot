@@ -27,10 +27,20 @@ return {
 			lsp = { enabled = true, actions = true, completion = true, hover = true },
 		})
 
-		local function map_filetype(ft, mode, lhs, rhs, opts)
+		-- 只对 Cargo.toml 生效：crates.nvim 自己只在文件名是 Cargo.toml 时 attach，
+		-- 普通 .toml 里按这些键只会拿到空浮窗，属于无意义噪音。
+		local function is_cargo(buf)
+			return vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t") == "Cargo.toml"
+		end
+
+		local function map_cargo(mode, lhs, rhs, opts)
 			vim.api.nvim_create_autocmd("FileType", {
-				pattern = ft,
-				callback = function()
+				pattern = "toml",
+				callback = function(args)
+					pcall(vim.keymap.del, mode, lhs, { buffer = args.buf })
+					if not is_cargo(args.buf) then
+						return
+					end
 					vim.keymap.set(
 						mode,
 						lhs,
@@ -41,11 +51,14 @@ return {
 			})
 		end
 
-		-- which-key：\c 分组只在 toml buffer 里有键，所以分组名也得按 buffer 注册
+		-- which-key：\c 分组只在 Cargo.toml 里有键，所以分组名也得按 buffer 注册
 		-- （全局注册的话 which-key 找不到子映射会把这个空组删掉，见 plugin/which-key.lua）
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = "toml",
 			callback = function(args)
+				if not is_cargo(args.buf) then
+					return
+				end
 				pcall(function()
 					require("which-key").add({
 						{
@@ -60,42 +73,29 @@ return {
 		})
 
 		-- Crates 按键映射
-		map_filetype("toml", "n", "<localleader>ct", crates.toggle, { desc = "依赖: 切换" })
-		map_filetype("toml", "n", "<localleader>cr", crates.reload, { desc = "依赖: 重载" })
-		map_filetype("toml", "n", "<localleader>cv", crates.show_versions_popup, { desc = "依赖: 显示版本" })
-		map_filetype("toml", "n", "<localleader>cf", crates.show_features_popup, { desc = "依赖: 显示功能" })
-		map_filetype(
-			"toml",
-			"n",
-			"<localleader>cd",
-			crates.show_dependencies_popup,
-			{ desc = "依赖: 显示依赖项" }
-		)
-		map_filetype("toml", "n", "<localleader>cu", crates.update_crate, { desc = "依赖: 更新当前包" })
-		map_filetype("toml", "v", "<localleader>cu", crates.update_crates, { desc = "依赖: 更新选中包" })
-		map_filetype("toml", "n", "<localleader>ca", crates.update_all_crates, { desc = "依赖: 更新所有包" })
-		map_filetype("toml", "n", "<localleader>cU", crates.upgrade_crate, { desc = "依赖: 升级当前包" })
-		map_filetype("toml", "v", "<localleader>cU", crates.upgrade_crates, { desc = "依赖: 升级选中包" })
-		map_filetype("toml", "n", "<localleader>cA", crates.upgrade_all_crates, { desc = "依赖: 升级所有包" })
-		map_filetype(
-			"toml",
+		map_cargo("n", "<localleader>ct", crates.toggle, { desc = "依赖: 切换" })
+		map_cargo("n", "<localleader>cr", crates.reload, { desc = "依赖: 重载" })
+		map_cargo("n", "<localleader>cv", crates.show_versions_popup, { desc = "依赖: 显示版本" })
+		map_cargo("n", "<localleader>cf", crates.show_features_popup, { desc = "依赖: 显示功能" })
+		map_cargo("n", "<localleader>cd", crates.show_dependencies_popup, { desc = "依赖: 显示依赖项" })
+		map_cargo("n", "<localleader>cu", crates.update_crate, { desc = "依赖: 更新当前包" })
+		map_cargo("v", "<localleader>cu", crates.update_crates, { desc = "依赖: 更新选中包" })
+		map_cargo("n", "<localleader>ca", crates.update_all_crates, { desc = "依赖: 更新所有包" })
+		map_cargo("n", "<localleader>cU", crates.upgrade_crate, { desc = "依赖: 升级当前包" })
+		map_cargo("v", "<localleader>cU", crates.upgrade_crates, { desc = "依赖: 升级选中包" })
+		map_cargo("n", "<localleader>cA", crates.upgrade_all_crates, { desc = "依赖: 升级所有包" })
+		map_cargo(
 			"n",
 			"<localleader>cx",
 			crates.expand_plain_crate_to_inline_table,
 			{ desc = "依赖: 展开到内联表" }
 		)
-		map_filetype(
-			"toml",
-			"n",
-			"<localleader>cX",
-			crates.extract_crate_into_table,
-			{ desc = "依赖: 提取到独立表" }
-		)
-		map_filetype("toml", "n", "<localleader>cH", crates.open_homepage, { desc = "依赖: 打开主页" })
-		map_filetype("toml", "n", "<localleader>cR", crates.open_repository, { desc = "依赖: 打开仓库" })
-		map_filetype("toml", "n", "<localleader>cD", crates.open_documentation, { desc = "依赖: 打开文档" })
-		map_filetype("toml", "n", "<localleader>cC", crates.open_crates_io, { desc = "依赖: 打开 crates.io" })
-		map_filetype("toml", "n", "<localleader>cL", crates.open_lib_rs, { desc = "依赖: 打开 lib.rs" })
+		map_cargo("n", "<localleader>cX", crates.extract_crate_into_table, { desc = "依赖: 提取到独立表" })
+		map_cargo("n", "<localleader>cH", crates.open_homepage, { desc = "依赖: 打开主页" })
+		map_cargo("n", "<localleader>cR", crates.open_repository, { desc = "依赖: 打开仓库" })
+		map_cargo("n", "<localleader>cD", crates.open_documentation, { desc = "依赖: 打开文档" })
+		map_cargo("n", "<localleader>cC", crates.open_crates_io, { desc = "依赖: 打开 crates.io" })
+		map_cargo("n", "<localleader>cL", crates.open_lib_rs, { desc = "依赖: 打开 lib.rs" })
 
 		-- 显示文档（回退到 LSP 悬停提示）
 		local function show_documentation()
@@ -105,6 +105,6 @@ return {
 				vim.lsp.buf.hover()
 			end
 		end
-		map_filetype("toml", "n", "K", show_documentation, { desc = "依赖: 显示文档", silent = true })
+		map_cargo("n", "K", show_documentation, { desc = "依赖: 显示文档", silent = true })
 	end,
 }

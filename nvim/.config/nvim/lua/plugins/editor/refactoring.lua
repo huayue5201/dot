@@ -63,20 +63,15 @@ return {
 		-- setup() 不是必须的（默认配置即可用），显式调用便于以后覆盖 config.lua 的字段
 		require("refactoring").setup({})
 
-		-- 与插件内部一致：优先用 buffer 的 treesitter parser 语言；
-		-- FileType 阶段 parser 可能还没起来，退回 filetype→language 映射（处理
-		-- typescriptreact→tsx 这类别名），最后退回 filetype 本身。
+		-- 必须拿到真实 parser：插件 queries 里虽然有某种语言的 query 文件，
+		-- 但该语言的 parser 未必装了（如 cpp/java），那种情况下注册了键位也会在
+		-- 按下时抛 "no parser for 'cpp' language"。所以拿不到 parser 就不注册。
 		local function buf_lang(buf)
 			local ok, parser = pcall(vim.treesitter.get_parser, buf)
-			if ok and parser then
-				return parser:lang()
-			end
-			local ft = vim.bo[buf].filetype
-			if ft == "" then
+			if not ok or not parser then
 				return nil
 			end
-			local ok2, lang = pcall(vim.treesitter.language.get_lang, ft)
-			return (ok2 and lang) or ft
+			return parser:lang()
 		end
 
 		local function has_queries(op_name, lang)
@@ -87,7 +82,6 @@ return {
 			end
 			return true
 		end
-
 		-- 为单个 buffer 安装它支持的那几个键位（buffer-local，别的 buffer 不受影响）
 		local function install(buf)
 			if not vim.api.nvim_buf_is_valid(buf) then
