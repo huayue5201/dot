@@ -301,7 +301,7 @@
       "src": "https://github.com/docker/nvim-dap-docker"
     },
     "nvim-dap-extensions": {
-      "rev": "0123d81423d413693d67c10688daf0d0e5f9b89e",
+      "rev": "8dc9a388990016624060bbe354c57b83f1efa1fa",
       "src": "/Users/lijia/neovim-plugins/nvim-dap-extensions"
     },
     "nvim-dap-go": {
