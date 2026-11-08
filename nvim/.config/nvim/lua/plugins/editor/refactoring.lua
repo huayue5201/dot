@@ -1,6 +1,6 @@
 -- https://github.com/ThePrimeagen/refactoring.nvim
 --
--- 基于 treesitter + LSP 的重构operator：提取函数/变量、内联变量/函数。
+-- 基于 treesitter 的重构 operator：提取函数/变量、内联变量/函数。
 -- 所有操作都是 vim operator（支持 . 重复、任意 textobject/motion），n/x 都可触发：
 -- 可视模式对选区生效，普通模式下 `<leader>re` 之后跟一个 motion/textobject（如 `iw`、`_`、`ap`）。
 --
@@ -14,13 +14,16 @@
 --   e=extract function, v=extract variable, i=inline variable, I=inline function,
 --   s=select（菜单里挑一个）, E=extract to file。
 --
--- ⚠️ 语言约束：插件只附带 16 种语言的 queries（c/cpp/c_sharp/go/java/ecma/
--- javascript/kotlin/lua/php/powershell/python/ruby/tsx/typescript/vim），
--- 其它语言（Rust、Zig、Elixir…）一按就抛
--- "There is no `refactor_xxx` query file for language <lang>"。
--- 所以每次触发前先探 query 是否存在，缺了就只提示、不报错。
+-- ⚠️ 语言约束：插件只附带 16 种语言的 refactor_* queries（c/cpp/c_sharp/go/java/ecma/
+-- javascript/kotlin/lua/php/powershell/python/ruby/tsx/typescript/vim），其它语言
+-- （Rust、Zig、Elixir…）一按就抛 "There is no `refactor_xxx` query file for language <lang>"。
+-- 所以这里按 buffer 的 treesitter 语言探测 query，**只在支持的 buffer 里建映射**：
+-- 不支持的语言（如 Rust）压根没有这些键位，which-key 里也不会出现，属于视觉噪音的就不给。
+-- Rust 的重构走 rust-analyzer 的 code action（`gra`，见 lua/plugins/lsp/tiny-code-action.lua）。
+--
 -- 各操作实际依赖的 query（读插件源码得到，非猜测）：
 --   extract_func:        extract_func.lua:95 output_function + :262 reference + :264 scope
+--   extract_func_to_file 额外用 extract_func.lua:147 input_function
 --   extract_var:         extract_var.lua:121 scope + :123 output_statement
 --   inline_var:          inline_var.lua:88 reference + :90 variable
 --   inline_func:         inline_func.lua:30 function + :32 function_call（**只有 lua 有**）
@@ -44,82 +47,80 @@ local REQUIRED = {
 	},
 }
 
+-- 按依赖顺序列出（key / 插件函数名 / 注释）
+local OPS = {
+	{ key = "e", name = "extract_func", desc = "重构: 提取函数" },
+	{ key = "E", name = "extract_func_to_file", desc = "重构: 提取函数到新文件" },
+	{ key = "v", name = "extract_var", desc = "重构: 提取变量" },
+	{ key = "i", name = "inline_var", desc = "重构: 内联变量" },
+	{ key = "I", name = "inline_func", desc = "重构: 内联函数" },
+	{ key = "s", name = "select_refactor", desc = "重构: 选择要执行的重构" },
+}
+
 return {
 	"ThePrimeagen/refactoring.nvim",
 	config = function()
 		-- setup() 不是必须的（默认配置即可用），显式调用便于以后覆盖 config.lua 的字段
 		require("refactoring").setup({})
 
-		-- 与插件内部一致：用 buffer 的 treesitter parser 语言（不是 filetype），
-		-- 这样 embedded 语言等情况判断才准。
+		-- 与插件内部一致：优先用 buffer 的 treesitter parser 语言；
+		-- FileType 阶段 parser 可能还没起来，退回 filetype→language 映射（处理
+		-- typescriptreact→tsx 这类别名），最后退回 filetype 本身。
 		local function buf_lang(buf)
 			local ok, parser = pcall(vim.treesitter.get_parser, buf)
-			if not ok or not parser then
+			if ok and parser then
+				return parser:lang()
+			end
+			local ft = vim.bo[buf].filetype
+			if ft == "" then
 				return nil
 			end
-			return parser:lang()
+			local ok2, lang = pcall(vim.treesitter.language.get_lang, ft)
+			return (ok2 and lang) or ft
 		end
 
-		-- 返回缺失的 query 名（nil = 全部具备）
-		local function missing_query(op_name, lang)
+		local function has_queries(op_name, lang)
 			for _, q in ipairs(REQUIRED[op_name] or {}) do
 				if not vim.treesitter.query.get(lang, q) then
-					return q
+					return false
 				end
 			end
-			return nil
+			return true
 		end
 
-		local function check(op_name, label)
-			local lang = buf_lang(vim.api.nvim_get_current_buf())
+		-- 为单个 buffer 安装它支持的那几个键位（buffer-local，别的 buffer 不受影响）
+		local function install(buf)
+			if not vim.api.nvim_buf_is_valid(buf) then
+				return
+			end
+			local lang = buf_lang(buf)
 			if not lang then
-				vim.notify(
-					("重构: %s 不可用——当前 buffer 没有 treesitter parser"):format(label),
-					vim.log.levels.WARN
-				)
-				return false
+				return
 			end
-			local missing = missing_query(op_name, lang)
-			if not missing then
-				return true
-			end
-			local hint = lang == "rust" and "（Rust 用 `gra` 走 rust-analyzer 的 extract/inline code action）"
-				or ""
-			vim.notify(
-				("重构: %s 在 %s 下不可用——缺少 queries/%s/%s.scm%s"):format(
-					label,
-					lang,
-					lang,
-					missing,
-					hint
-				),
-				vim.log.levels.WARN
-			)
-			return false
-		end
-
-		local function op(fn, desc)
-			local label = "重构: " .. desc
-			vim.keymap.set({ "n", "x" }, "<leader>r" .. fn.key, function()
-				if not check(fn.name, desc) then
-					-- expr 映射必须返回字符串，返回 "" 表示不吞掉后续 motion
-					return ""
+			for _, op in ipairs(OPS) do
+				local lhs = "<leader>r" .. op.key
+				-- FileType 会重复触发：先清掉本 buffer 上可能残留的旧映射
+				pcall(vim.keymap.del, { "n", "x" }, lhs, { buffer = buf })
+				if has_queries(op.name, lang) then
+					vim.keymap.set({ "n", "x" }, lhs, function()
+						return require("refactoring")[op.name]()
+					end, { expr = true, buffer = buf, desc = op.desc })
 				end
-				return require("refactoring")[fn.name]()
-			end, { expr = true, desc = label })
+			end
 		end
 
-		op({ key = "e", name = "extract_func" }, "提取函数")
-		op({ key = "E", name = "extract_func_to_file" }, "提取函数到新文件")
-		op({ key = "v", name = "extract_var" }, "提取变量")
-		op({ key = "i", name = "inline_var" }, "内联变量")
-		op({ key = "I", name = "inline_func" }, "内联函数")
+		vim.api.nvim_create_autocmd("FileType", {
+			group = vim.api.nvim_create_augroup("refactoring_lang_guard", { clear = true }),
+			callback = function(event)
+				install(event.buf)
+			end,
+		})
 
-		vim.keymap.set({ "n", "x" }, "<leader>rs", function()
-			if not check("select_refactor", "选择要执行的重构") then
-				return ""
+		-- 插件可能在已有 buffer 之后才加载（vim.pack 是启动时加载，但保险起见）
+		for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+			if vim.api.nvim_buf_is_loaded(buf) then
+				install(buf)
 			end
-			require("refactoring").select_refactor()
-		end, { expr = true, desc = "重构: 选择要执行的重构" })
+		end
 	end,
 }
