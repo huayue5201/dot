@@ -241,6 +241,32 @@ function M.setup()
 
 	vim.keymap.set("n", "<leader>dg", goto_line, { desc = "[D]ap [G]oto line" })
 
+	--- 高级断点键位的失效保护：不满足条件时只给一条 WARN，绝不抛 Lua 错误。
+	---@param label string 中文名，用于提示
+	---@param cap string? DAP capability 字段名（如 "supportsFunctionBreakpoints"）
+	---@param need_session boolean 是否必须有活动会话（列断点靠实测能力，必须有）
+	---@param fn function 真正执行的命令
+	local function guard(label, cap, need_session, fn)
+		return function()
+			local session = dap.session()
+			if need_session and not session then
+				vim.notify(label .. "：需要先启动调试会话（<F5>）", vim.log.levels.WARN)
+				return
+			end
+			if session and cap and session.capabilities and session.capabilities[cap] ~= true then
+				vim.notify(
+					("%s：当前调试器不支持（%s = false），已忽略"):format(label, cap),
+					vim.log.levels.WARN
+				)
+				return
+			end
+			local ok, err = pcall(fn)
+			if not ok then
+				vim.notify(("%s失败：%s"):format(label, err), vim.log.levels.WARN)
+			end
+		end
+	end
+
 	-- 💡 断点管理
 	vim.keymap.set("n", "<leader>db", function()
 		local bufnr = vim.api.nvim_get_current_buf()
@@ -276,17 +302,18 @@ function M.setup()
 		end
 	end, { desc = "[D]ap [T]oggle breakpoint (智能切换)" })
 
+	-- 列断点：adapter 需要实测 setBreakpoints 才知是否支持 → 必须先有会话
 	vim.keymap.set(
 		"n",
 		"<leader>di",
-		dap_ext.commands.add_column_breakpoint,
+		guard("列断点", nil, true, dap_ext.commands.add_column_breakpoint),
 		{ desc = "[D]ap [C]olumn breakpoint (with conditions)" }
 	)
 
 	vim.keymap.set(
 		"n",
 		"<leader>dI",
-		dap_ext.commands.quick_column_breakpoint,
+		guard("列断点", nil, true, dap_ext.commands.quick_column_breakpoint),
 		{ desc = "[D]ap [C]olumn breakpoint (quick)" }
 	)
 
@@ -295,22 +322,26 @@ function M.setup()
 		breakpoint_state.sync_breakpoints()
 	end, { desc = "[D]ap [C]onditional breakpoint" })
 
-	-- 函数断点
+	-- 函数 / 数据 / 硬件断点：无会话时可以作为 pending 先建着（nvim-dap 的惯例），
+	-- 有会话时先看 adapter 能力，不支持就只 WARN 一条，不弹报错栈
 	vim.keymap.set(
 		"n",
 		"<leader>df",
-		dap_ext.commands.add_function_breakpoint,
+		guard("函数断点", "supportsFunctionBreakpoints", false, dap_ext.commands.add_function_breakpoint),
 		{ desc = "[D]ap [F]unction breakpoint" }
 	)
 
-	-- 数据断点
-	vim.keymap.set("n", "<leader>dd", dap_ext.commands.add_data_breakpoint, { desc = "[D]ap [D]ata breakpoint" })
+	vim.keymap.set(
+		"n",
+		"<leader>dd",
+		guard("数据断点", "supportsDataBreakpoints", false, dap_ext.commands.add_data_breakpoint),
+		{ desc = "[D]ap [D]ata breakpoint" }
+	)
 
-	-- 硬件断点
 	vim.keymap.set(
 		"n",
 		"<leader>dh",
-		dap_ext.commands.add_hardware_breakpoint,
+		guard("硬件断点", "supportsInstructionBreakpoints", false, dap_ext.commands.add_hardware_breakpoint),
 		{ desc = "[D]ap [H]ardware breakpoint" }
 	)
 
