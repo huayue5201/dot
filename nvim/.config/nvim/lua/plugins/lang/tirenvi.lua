@@ -55,10 +55,10 @@ return {
 
 			local motion = require("tirenvi").motion
 			local maps = {
-				["<C-h>"] = { motion.cell_prev, "TirEnvi: 上一个单元格" },
-				["<C-l>"] = { motion.cell_next, "TirEnvi: 下一个单元格" },
-				["<C-k>"] = { motion.block_top, "TirEnvi: 块首" },
-				["<C-j>"] = { motion.block_bottom, "TirEnvi: 块尾" },
+				["<C-h>"] = { motion.cell_prev, "TirEnvi: previous cell" },
+				["<C-l>"] = { motion.cell_next, "TirEnvi: next cell" },
+				["<C-k>"] = { motion.block_top, "TirEnvi: block start" },
+				["<C-j>"] = { motion.block_bottom, "TirEnvi: block end" },
 			}
 			for lhs, m in pairs(maps) do
 				if on then
@@ -86,13 +86,13 @@ return {
 			local parser = ok and state.get(vim.api.nvim_get_current_buf(), state.IKEY.PARSER)
 			if not parser then
 				vim.notify(
-					"当前缓冲区不支持表格视图（需 csv/tsv/markdown/codecompanion）",
+					"Current buffer does not support table view (requires csv/tsv/markdown/codecompanion)",
 					vim.log.levels.WARN
 				)
 				return
 			end
 			vim.cmd("Tir toggle")
 			sync_tir_motions(vim.api.nvim_get_current_buf())
-		end, { desc = "表格视图切换 (tirenvi)" })
+		end, { desc = "Toggle table view (tirenvi)" })
 	end,
 }

@@ -46,7 +46,7 @@ function M.sync(opts)
 
 	vim.schedule(function()
 		if not ok then
-			vim.notify("本地插件同步失败: " .. tostring(err), vim.log.levels.WARN)
+			vim.notify("Local plugin sync failed: " .. tostring(err), vim.log.levels.WARN)
 			return
 		end
 		local after = lock_revs()
@@ -58,11 +58,11 @@ function M.sync(opts)
 		end
 		if #updated > 0 then
 			vim.notify(
-				("已同步本地插件: %s（重启 nvim 生效）"):format(table.concat(updated, ", ")),
+				("Synced local plugins: %s (restart nvim to apply)"):format(table.concat(updated, ", ")),
 				vim.log.levels.INFO
 			)
 		elseif opts.verbose then
-			vim.notify("本地插件都是最新的", vim.log.levels.INFO)
+			vim.notify("Local plugins are up to date", vim.log.levels.INFO)
 		end
 	end)
 end
@@ -72,13 +72,13 @@ function M.setup(opts)
 	opts = opts or {}
 	vim.api.nvim_create_user_command("PackLocalSync", function()
 		M.sync({ verbose = true })
-	end, { desc = "同步本地 dir 插件（vim.pack.update）" })
+	end, { desc = "Sync local dir plugins (vim.pack.update)" })
 
 	-- 不自动同步：只在需要时手动触发（工具分组 <leader>z + p(pack)）
 	if opts.keymap ~= false then
 		vim.keymap.set("n", opts.keymap or "<leader>zp", function()
 			M.sync({ verbose = true })
-		end, { silent = true, desc = "Pack: 同步本地 dir 插件（重启生效）" })
+		end, { silent = true, desc = "Pack: sync local dir plugins (takes effect after restart)" })
 	end
 end
 

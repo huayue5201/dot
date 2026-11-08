@@ -88,14 +88,14 @@ return {
 			if not db_move("left") then
 				ss.move_cursor_left()
 			end
-		end, { desc = "Smart-splits: 光标去左窗口" })
-		map({ "n", "x" }, "<C-j>", ss.move_cursor_down, { desc = "Smart-splits: 光标去下窗口" })
-		map({ "n", "x" }, "<C-k>", ss.move_cursor_up, { desc = "Smart-splits: 光标去上窗口" })
+		end, { desc = "Smart-splits: move cursor to left window" })
+		map({ "n", "x" }, "<C-j>", ss.move_cursor_down, { desc = "Smart-splits: move cursor to down window" })
+		map({ "n", "x" }, "<C-k>", ss.move_cursor_up, { desc = "Smart-splits: move cursor to up window" })
 		map({ "n", "x" }, "<C-l>", function()
 			if not db_move("right") then
 				ss.move_cursor_right()
 			end
-		end, { desc = "Smart-splits: 光标去右窗口" })
+		end, { desc = "Smart-splits: move cursor to right window" })
 
 		-- 调整窗口大小（ctrl+alt+hjkl）。
 		-- 不用裸 alt：macOS 下 Option 会被终端组合成特殊字符，且 alt 以 ESC 前缀传输时
@@ -103,15 +103,15 @@ return {
 		-- ctrl+alt 是 herdr 官方推荐、跨终端最稳的直接修饰键家族。
 		-- herdr 侧同步把 ctrl+alt+hjkl 绑到 smart-splits.nvim.resize-*（见 dotfiles/herdr）：
 		-- 焦点在 vim pane 时转发回下面的 <C-A-*> 映射，在非 vim pane 时直接 resize herdr 面板。
-		map("n", "<C-A-h>", ss.resize_left, { desc = "Smart-splits: 左边界左移(变宽)" })
-		map("n", "<C-A-j>", ss.resize_down, { desc = "Smart-splits: 下边界下移(变高)" })
-		map("n", "<C-A-k>", ss.resize_up, { desc = "Smart-splits: 上边界上移(变高)" })
-		map("n", "<C-A-l>", ss.resize_right, { desc = "Smart-splits: 右边界右移(变宽)" })
+		map("n", "<C-A-h>", ss.resize_left, { desc = "Smart-splits: resize left boundary left (wider)" })
+		map("n", "<C-A-j>", ss.resize_down, { desc = "Smart-splits: resize bottom boundary down (taller)" })
+		map("n", "<C-A-k>", ss.resize_up, { desc = "Smart-splits: resize top boundary up (taller)" })
+		map("n", "<C-A-l>", ss.resize_right, { desc = "Smart-splits: resize right boundary right (wider)" })
 
 		-- 交换窗口 buffer（<leader><leader> + hjkl）
-		map("n", "<leader><leader>h", ss.swap_buf_left, { desc = "Smart-splits: 与左窗口换 buffer" })
-		map("n", "<leader><leader>j", ss.swap_buf_down, { desc = "Smart-splits: 与下窗口换 buffer" })
-		map("n", "<leader><leader>k", ss.swap_buf_up, { desc = "Smart-splits: 与上窗口换 buffer" })
-		map("n", "<leader><leader>l", ss.swap_buf_right, { desc = "Smart-splits: 与右窗口换 buffer" })
+		map("n", "<leader><leader>h", ss.swap_buf_left, { desc = "Smart-splits: swap buffer with left window" })
+		map("n", "<leader><leader>j", ss.swap_buf_down, { desc = "Smart-splits: swap buffer with down window" })
+		map("n", "<leader><leader>k", ss.swap_buf_up, { desc = "Smart-splits: swap buffer with up window" })
+		map("n", "<leader><leader>l", ss.swap_buf_right, { desc = "Smart-splits: swap buffer with right window" })
 	end,
 }

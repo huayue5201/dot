@@ -184,19 +184,19 @@ return {
 			keymap("n", lhs, rhs, { noremap = true, silent = true, desc = desc })
 		end
 
-		map("<leader>Hf", "<cmd>DiffBanditGit<cr>", "Diff: Git 变更队列")
-		map("<leader>Hh", "<cmd>DiffBanditGitLog<cr>", "Diff: 仓库提交历史")
-		map("<leader>Hd", "<cmd>DiffBanditGitCurrent<cr>", "Diff: 当前文件 vs HEAD")
+		map("<leader>Hf", "<cmd>DiffBanditGit<cr>", "Diff: Git changes queue")
+		map("<leader>Hh", "<cmd>DiffBanditGitLog<cr>", "Diff: repository commit history")
+		map("<leader>Hd", "<cmd>DiffBanditGitCurrent<cr>", "Diff: current file vs HEAD")
 		-- 注意：DiffBanditGitLog 的 pathspec 不展开 %，这里手动展开成当前文件名
 		map("<leader>HH", function()
 			local file = vim.fn.expand("%")
 			if file == "" then
-				return vim.notify("当前 buffer 没有文件名", vim.log.levels.WARN)
+				return vim.notify("Current buffer has no file name", vim.log.levels.WARN)
 			end
 			vim.cmd("DiffBanditGitLog -- " .. vim.fn.fnameescape(file))
-		end, "Diff: 当前文件历史")
-		map("<leader>HD", "<cmd>DiffBanditGitMenu<cr>", "Diff: Git 工作流菜单")
-		map("<leader>Hm", "<cmd>DiffBanditMerge<cr>", "Diff: 冲突解决（三路）")
-		map("<leader>HP", "<cmd>DiffBanditCommitPanel<cr>", "Diff: 提交面板")
+		end, "Diff: current file history")
+		map("<leader>HD", "<cmd>DiffBanditGitMenu<cr>", "Diff: Git workflow menu")
+		map("<leader>Hm", "<cmd>DiffBanditMerge<cr>", "Diff: conflict resolution (three-way)")
+		map("<leader>HP", "<cmd>DiffBanditCommitPanel<cr>", "Diff: commit panel")
 	end,
 }

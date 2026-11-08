@@ -21,7 +21,7 @@ local buffer_states = {}
 local function auto_diagnostic()
 	vim.api.nvim_create_autocmd("ModeChanged", {
 		pattern = { "n:i", "v:s", "i:n", "s:v" },
-		desc = "插入/选择模式禁用/启用诊断",
+		desc = "Disable/enable diagnostics in insert/select mode",
 		callback = function(args)
 			local bufnr = args.buf
 			local mode = vim.fn.mode()
@@ -132,7 +132,7 @@ end
 local function setup_lsp_attach()
 	vim.api.nvim_create_autocmd("LspAttach", {
 		group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
-		desc = "LSP 客户端附加到缓冲区时的配置",
+		desc = "Setup when an LSP client attaches to a buffer",
 		callback = function(args)
 			local bufnr = args.buf
 			local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -249,7 +249,7 @@ local function setup_ready_refresh()
 
 	vim.api.nvim_create_autocmd("LspProgress", {
 		group = group,
-		desc = "server 索引进度结束时补取内联提示/代码透镜",
+		desc = "Fetch inlay hints/code lenses after server indexing ends",
 		callback = function(args)
 			local data = args.data or {}
 			local value = data.params and data.params.value
@@ -286,7 +286,7 @@ function M.setup()
 
 	-- FileType：按项目状态启停 server
 	vim.api.nvim_create_autocmd("FileType", {
-		desc = "根据文件类型启动或停止 LSP",
+		desc = "Start or stop LSP based on filetype",
 		pattern = registry.get_lsp_config("filetypes"),
 		callback = function(args)
 			servers.apply_for_buffer(args.buf)

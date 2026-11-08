@@ -154,7 +154,7 @@ function M.refresh(repo, opts)
 							last = line
 						end
 					end
-					notify(("检查失败 %s: %s"):format(repo, (last:gsub("%s+$", ""))), vim.log.levels.WARN)
+					notify(("Check failed %s: %s"):format(repo, (last:gsub("%s+$", ""))), vim.log.levels.WARN)
 				end
 				return
 			end
@@ -164,7 +164,7 @@ function M.refresh(repo, opts)
 				if not opts.quiet then
 					-- 不要把整段 stdout 喷出来（可能是几百行 JSON），只报长度
 					notify(
-						("ForkUpstream 输出无法解析（%d 字节）"):format(#(obj.stdout or "")),
+						("Cannot parse ForkUpstream output (%d bytes)"):format(#(obj.stdout or "")),
 						vim.log.levels.ERROR
 					)
 				end
@@ -186,7 +186,7 @@ function M.refresh(repo, opts)
 		if not missing_warned then
 			missing_warned = true
 			notify(
-				("找不到可执行文件 %s（检查 PATH，或 setup({ bin = ... })）"):format(cfg.bin),
+				("Cannot find executable %s (check PATH, or setup({ bin = ... }))"):format(cfg.bin),
 				vim.log.levels.ERROR
 			)
 		end
@@ -292,47 +292,47 @@ end
 local function detail_lines(data)
 	local lines = {}
 	if not data then
-		return { "尚未检查（运行 :ForkUpstream 刷新）" }
+		return { "Not checked yet (run :ForkUpstream to refresh)" }
 	end
 
 	local head = ("%s  ·  %s  →  %s"):format(data.name or "?", data.branch or "?", data.remote or "?")
 	if data.error == "fork-without-upstream" then
 		table.insert(lines, head)
 		table.insert(lines, "")
-		table.insert(lines, "是 fork，但没有 upstream 远端")
-		table.insert(lines, "运行 :ForkUpstreamFix 自动补上")
+		table.insert(lines, "This is a fork, but it has no upstream remote")
+		table.insert(lines, "Run :ForkUpstreamFix to add it automatically")
 		return lines
 	end
 	if data.error == "upstream-ref-missing" then
 		table.insert(lines, head)
 		table.insert(lines, "")
-		table.insert(lines, ("无法确定上游分支（%s 未 fetch？）"):format(data.remote or "?"))
+		table.insert(lines, ("Cannot determine upstream branch (was %s not fetched?)"):format(data.remote or "?"))
 		return lines
 	end
 	if data.error then
-		return { head, "", "错误: " .. tostring(data.error) }
+		return { head, "", "Error: " .. tostring(data.error) }
 	end
 
 	table.insert(lines, head)
 	local status
 	if (data.behind or 0) > 0 then
-		status = ("落后 %d 提交 · 本地独有 %d"):format(data.behind, data.ahead or 0)
+		status = ("Behind %d commits · %d local only"):format(data.behind, data.ahead or 0)
 	else
-		status = ("已同步 · 本地独有 %d"):format(data.ahead or 0)
+		status = ("Up to date · %d local only"):format(data.ahead or 0)
 	end
 	table.insert(lines, status)
 	if data.dirty then
-		table.insert(lines, "有未提交改动")
+		table.insert(lines, "Uncommitted changes present")
 	end
 
 	if not data.has_upstream then
-		table.insert(lines, "（没有 upstream，对比的是 origin）")
+		table.insert(lines, "(no upstream; comparing against origin)")
 	end
 
 	local last = data.last or {}
 	if (data.behind or 0) > 0 and last.subject and last.subject ~= "" then
 		table.insert(lines, "")
-		table.insert(lines, ("上游最后: %s %s"):format(last.date or "", last.subject))
+		table.insert(lines, ("Latest upstream: %s %s"):format(last.date or "", last.subject))
 		for _, c in ipairs(data.commits or {}) do
 			table.insert(lines, "  " .. c)
 		end
@@ -343,7 +343,7 @@ end
 function M.detail(repo, data)
 	repo = repo or current_repo(0)
 	if not repo then
-		notify("当前 buffer 不在 git 仓库中", vim.log.levels.WARN)
+		notify("Current buffer is not in a git repository", vim.log.levels.WARN)
 		return
 	end
 	if not data then
@@ -402,7 +402,7 @@ function M.setup(opts)
 	vim.api.nvim_create_user_command("ForkUpstream", function()
 		local repo = current_repo(0)
 		if not repo then
-			notify("当前 buffer 不在 git 仓库中", vim.log.levels.WARN)
+			notify("Current buffer is not in a git repository", vim.log.levels.WARN)
 			return
 		end
 		M.refresh(repo, {
@@ -412,12 +412,12 @@ function M.setup(opts)
 				M.detail(repo)
 			end,
 		})
-	end, { desc = "检查当前仓库上游（会 fetch）并显示详情" })
+	end, { desc = "Check current repo upstream (fetches) and show details" })
 
 	vim.api.nvim_create_user_command("ForkUpstreamFix", function()
 		local repo = current_repo(0)
 		if not repo then
-			notify("当前 buffer 不在 git 仓库中", vim.log.levels.WARN)
+			notify("Current buffer is not in a git repository", vim.log.levels.WARN)
 			return
 		end
 		M.refresh(repo, {
@@ -428,16 +428,16 @@ function M.setup(opts)
 				M.detail(repo)
 			end,
 		})
-	end, { desc = "给缺 upstream 的 fork 自动补上远端" })
+	end, { desc = "Auto-add upstream remote to forks missing it" })
 
 	vim.api.nvim_create_user_command("ForkUpstreamStatus", function()
 		local repo, data = M.status(0)
 		if not repo then
-			notify("当前 buffer 不在 git 仓库中", vim.log.levels.WARN)
+			notify("Current buffer is not in a git repository", vim.log.levels.WARN)
 			return
 		end
-		notify(vim.inspect(data or "尚未检查"))
-	end, { desc = "显示当前仓库的缓存状态" })
+		notify(vim.inspect(data or "not checked yet"))
+	end, { desc = "Show cache status of current repo" })
 
 	local group = vim.api.nvim_create_augroup("ForkUpstream", { clear = true })
 	vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "DirChanged" }, {

@@ -20,12 +20,12 @@ return {
 		"nvim-treesitter/nvim-treesitter",
 	},
 	keys = {
-		{ "<leader>aa", "<cmd>CodeCompanionActions<cr>", mode = { "n", "v" }, desc = "AI: 操作面板" },
-		{ "<leader>at", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "AI: 聊天 (DeepSeek)" },
-		{ "<leader>an", "<cmd>CodeCompanionChat<cr>", desc = "AI: 新聊天 (DeepSeek)" },
+		{ "<leader>aa", "<cmd>CodeCompanionActions<cr>", mode = { "n", "v" }, desc = "AI: actions panel" },
+		{ "<leader>at", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "AI: chat (DeepSeek)" },
+		{ "<leader>an", "<cmd>CodeCompanionChat<cr>", desc = "AI: new chat (DeepSeek)" },
 		{ "<leader>ap", "<cmd>CodeCompanionChat adapter=pi<cr>", desc = "AI: pi Agent (ACP)" },
-		{ "<leader>ad", "<cmd>CodeCompanionChat Add<cr>", mode = { "n", "v" }, desc = "AI: 加入上下文" },
-		{ "<leader>ae", "<cmd>CodeCompanion<cr>", mode = { "n", "v" }, desc = "AI: 内联改写" },
+		{ "<leader>ad", "<cmd>CodeCompanionChat Add<cr>", mode = { "n", "v" }, desc = "AI: add to context" },
+		{ "<leader>ae", "<cmd>CodeCompanion<cr>", mode = { "n", "v" }, desc = "AI: inline rewrite" },
 	},
 	opts = {
 		-- 默认用中文回复（HTTP 适配器会写进 system prompt）

@@ -30,17 +30,17 @@ local function detect_build(root, fileset, full)
 	end
 
 	if fileset["flake.nix"] then
-		note("flake.nix（nix develop / nix run）")
+		note("flake.nix (nix develop / nix run)")
 	end
 	if fileset["Makefile"] or fileset["makefile"] then
 		local name = fileset["Makefile"] and "Makefile" or "makefile"
 		local targets = parse_targets(root, name, 8)
-		note(name .. (#targets > 0 and ("：make " .. table.concat(targets, " / ")) or ""))
+		note(name .. (#targets > 0 and (": make " .. table.concat(targets, " / ")) or ""))
 	end
 	if fileset["justfile"] or fileset["Justfile"] then
 		local name = fileset["justfile"] and "justfile" or "Justfile"
 		local targets = parse_targets(root, name, 8)
-		note(name .. (#targets > 0 and ("：just " .. table.concat(targets, " / ")) or ""))
+		note(name .. (#targets > 0 and (": just " .. table.concat(targets, " / ")) or ""))
 	end
 	if fileset["package.json"] then
 		local ok, pkg = pcall(vim.json.decode, table.concat(read_lines(join(root, "package.json")), "\n"))
@@ -58,7 +58,7 @@ local function detect_build(root, fileset, full)
 			elseif type(pkg.main) == "string" then
 				bits[#bits + 1] = "main: " .. pkg.main
 			end
-			note("package.json" .. (#bits > 0 and ("：" .. table.concat(bits, " · ")) or ""))
+			note("package.json" .. (#bits > 0 and (": " .. table.concat(bits, " · ")) or ""))
 		else
 			note("package.json")
 		end
@@ -83,11 +83,11 @@ local function detect_build(root, fileset, full)
 			bits[#bits + 1] = "bin: " .. table.concat(bins, ", ")
 		end
 		if fileset["src/main.rs"] then
-			bits[#bits + 1] = "入口 src/main.rs"
+			bits[#bits + 1] = "entry src/main.rs"
 		elseif fileset["src/lib.rs"] then
-			bits[#bits + 1] = "库 src/lib.rs"
+			bits[#bits + 1] = "library src/lib.rs"
 		end
-		note("Cargo.toml" .. (#bits > 0 and ("：" .. table.concat(bits, " · ")) or ""))
+		note("Cargo.toml" .. (#bits > 0 and (": " .. table.concat(bits, " · ")) or ""))
 	end
 	if fileset["go.mod"] then
 		local module, goversion = nil, nil
@@ -102,7 +102,7 @@ local function detect_build(root, fileset, full)
 		if goversion then
 			bits[#bits + 1] = "go " .. goversion
 		end
-		note("go.mod" .. (#bits > 0 and ("：" .. table.concat(bits, " · ")) or ""))
+		note("go.mod" .. (#bits > 0 and (": " .. table.concat(bits, " · ")) or ""))
 	end
 	if fileset["pyproject.toml"] then
 		local name, version
@@ -110,7 +110,7 @@ local function detect_build(root, fileset, full)
 			name = name or line:match('^name%s*=%s*"(.-)"')
 			version = version or line:match('^version%s*=%s*"(.-)"')
 		end
-		note("pyproject.toml" .. ((name or version) and ("：" .. table.concat(
+		note("pyproject.toml" .. ((name or version) and (": " .. table.concat(
 			vim.tbl_filter(function(x)
 				return x ~= nil
 			end, { name, version }),
@@ -121,7 +121,7 @@ local function detect_build(root, fileset, full)
 		note("setup.py")
 	end
 	if fileset["Dockerfile"] or fileset["docker-compose.yml"] or fileset["compose.yml"] then
-		note("Docker： " .. table.concat(
+		note("Docker: " .. table.concat(
 			vim.tbl_filter(function(x)
 				return fileset[x] and x or nil
 			end, { "Dockerfile", "docker-compose.yml", "compose.yml" }),
@@ -181,30 +181,30 @@ local function detect_deps(root, fileset)
 end
 
 local CONVENTION_FILES = {
-	{ ".editorconfig", "缩进/换行约定" },
-	{ ".gitattributes", "git 属性" },
-	{ "stylua.toml", "Lua 格式化" },
-	{ ".stylua.toml", "Lua 格式化" },
+	{ ".editorconfig", "indent/line-ending conventions" },
+	{ ".gitattributes", "git attributes" },
+	{ "stylua.toml", "Lua formatter" },
+	{ ".stylua.toml", "Lua formatter" },
 	{ ".luacheckrc", "Lua lint" },
-	{ "rustfmt.toml", "Rust 格式化" },
-	{ ".rustfmt.toml", "Rust 格式化" },
+	{ "rustfmt.toml", "Rust formatter" },
+	{ ".rustfmt.toml", "Rust formatter" },
 	{ ".golangci.yml", "Go lint" },
 	{ ".golangci.yaml", "Go lint" },
-	{ ".prettierrc", "JS/TS 格式化" },
-	{ ".prettierrc.json", "JS/TS 格式化" },
+	{ ".prettierrc", "JS/TS formatter" },
+	{ ".prettierrc.json", "JS/TS formatter" },
 	{ "eslint.config.js", "JS/TS lint" },
 	{ ".eslintrc", "JS/TS lint" },
-	{ "AGENTS.md", "给 agent 的约定" },
-	{ "CLAUDE.md", "给 agent 的约定" },
-	{ "CONTRIBUTING.md", "贡献流程" },
-	{ "CODE_OF_CONDUCT.md", "行为准则" },
+	{ "AGENTS.md", "agent conventions" },
+	{ "CLAUDE.md", "agent conventions" },
+	{ "CONTRIBUTING.md", "contribution flow" },
+	{ "CODE_OF_CONDUCT.md", "code of conduct" },
 }
 
 local function detect_conventions(root, fileset)
 	local out = {}
 	for _, item in ipairs(CONVENTION_FILES) do
 		if fileset[item[1]] then
-			out[#out + 1] = ("%s（%s）"):format(item[1], item[2])
+			out[#out + 1] = ("%s (%s)"):format(item[1], item[2])
 		end
 	end
 	local ci = {}
@@ -221,7 +221,7 @@ local function detect_conventions(root, fileset)
 		end
 	end
 	if #ci > 0 then
-		out[#out + 1] = "CI： " .. table.concat(ci, " · ")
+		out[#out + 1] = "CI: " .. table.concat(ci, " · ")
 	end
 	local docs = {}
 	for _, name in ipairs({ "README.md", "README.rst", "docs/", "doc/", "CONTRIBUTING.md", "AGENTS.md", "CHANGELOG.md" }) do
@@ -230,7 +230,7 @@ local function detect_conventions(root, fileset)
 		end
 	end
 	if #docs > 0 then
-		out[#out + 1] = "文档： " .. table.concat(docs, " · ")
+		out[#out + 1] = "Docs: " .. table.concat(docs, " · ")
 	end
 	return out
 end
@@ -263,7 +263,7 @@ local function build_data(info, results, full)
 	if not stats and results.wc then
 		stats = parse_wc(results.wc)
 	end
-	stats = stats or { langs = {}, filelines = {}, code = 0, source = "无法统计", files = info.files }
+	stats = stats or { langs = {}, filelines = {}, code = 0, source = "unavailable", files = info.files }
 
 	local files = info.files
 	local filelines = stats.filelines or {}

@@ -57,12 +57,12 @@ end
 local function ask_ai(data, opts)
 	local ok, ai = pcall(require, "ask_agent")
 	if not ok then
-		notify("没有 ask_agent 模块，无法发问")
+		notify("No ask_agent module; cannot ask")
 		return
 	end
 	local text, tokens = M.digest(data)
 	local ok_ask, err = pcall(ai.ask, {
-		note = ("概览 ~%d tok"):format(tokens),
+		note = ("Overview ~%d tok"):format(tokens),
 		extension = { digest = text },
 	})
 	if not ok_ask then
@@ -102,7 +102,7 @@ function M.chat(opts)
 	with_data(opts, function(data)
 		local ok, cc = pcall(require, "codecompanion")
 		if not ok then
-			notify("没有 codecompanion 插件，改用 :ProjectAsk", vim.log.levels.WARN)
+			notify("No codecompanion plugin; use :ProjectAsk instead", vim.log.levels.WARN)
 			return
 		end
 		local text, tokens = M.digest(data)
@@ -113,7 +113,7 @@ function M.chat(opts)
 			messages = {
 				{
 					role = "user",
-					content = ("（项目概览索引，供后续提问参考；只有结构与统计，不含源码）\n\n<project-overview>\n%s\n</project-overview>"):format(
+					content = ("(Project overview index for reference in follow-up questions; structure and stats only, no source code)\n\n<project-overview>\n%s\n</project-overview>"):format(
 						text
 					),
 				},
@@ -124,11 +124,11 @@ function M.chat(opts)
 		end
 		local sent, err = pcall(cc.chat, chat_opts)
 		if not sent then
-			notify("打开 codecompanion chat 失败：" .. tostring(err), vim.log.levels.WARN)
+			notify("Failed to open codecompanion chat: " .. tostring(err), vim.log.levels.WARN)
 			return
 		end
 		notify(
-			("概览已放进 chat（adapter=%s，~%d tok）：接着在里面提问即可"):format(adapter, tokens),
+			("Overview added to chat (adapter=%s, ~%d tok); ask your questions there"):format(adapter, tokens),
 			vim.log.levels.INFO
 		)
 	end)
@@ -165,7 +165,7 @@ function M.bridge(req)
 		if not got then
 			return {
 				ok = false,
-				error = ("采集 %s 超时（%dms）：大仓库首次跑 tokei 可能较慢，稍后重试"):format(
+				error = ("Collection of %s timed out (%dms): the first tokei run on a large repo can be slow, try again later"):format(
 					root,
 					wait_ms
 				),

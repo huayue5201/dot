@@ -55,11 +55,11 @@ return {
 		-- 粘贴：走 yanky 的 put，才会进环 + 打高亮
 		vim.keymap.set({ "n", "x" }, "<leader>p", function()
 			yanky.put("p", vim.fn.mode() == "x")
-		end, { desc = "环粘贴: 光标后" })
+		end, { desc = "Yank ring: after cursor" })
 
 		vim.keymap.set({ "n", "x" }, "<leader>P", function()
 			yanky.put("P", vim.fn.mode() == "x")
-		end, { desc = "环粘贴: 光标前" })
+		end, { desc = "Yank ring: before cursor" })
 
 		-- 循环：只在刚做过一次环粘贴后有效；否则安静地什么也不做，避免每次 INFO 提示刷屏
 		local function cycle(direction)
@@ -70,8 +70,8 @@ return {
 			end
 		end
 
-		vim.keymap.set("n", "]y", cycle(yanky.direction.FORWARD), { desc = "环粘贴: 上一条（更旧）" })
-		vim.keymap.set("n", "[y", cycle(yanky.direction.BACKWARD), { desc = "环粘贴: 下一条（更新）" })
+		vim.keymap.set("n", "]y", cycle(yanky.direction.FORWARD), { desc = "Yank ring: previous (older)" })
+		vim.keymap.set("n", "[y", cycle(yanky.direction.BACKWARD), { desc = "Yank ring: next (newer)" })
 
 		-- iy = 「上一次环粘贴进来的那段文本」的 textobj：viy 选中它、diy/yiy/ciy 对它做操作。
 		-- iy 不是任何内建 textobj（内建只有 iw/ip/is/ib/it/i(…等），无冲突。
@@ -92,7 +92,7 @@ return {
 				local prefix = (register and register ~= "" and register ~= '"') and register or ""
 				pcall(vim.cmd, "normal! " .. prefix .. operator)
 			end
-		end, { desc = "环粘贴范围 textobj" })
+		end, { desc = "Yank ring range textobj" })
 
 		-- :YankyRingHistory 用 ui.picker 重做
 		-- yanky 自带的是 vim.ui.select（本机由 lib/menu.lua 接管：有输入行，但没有预览），
@@ -113,7 +113,7 @@ return {
 			end
 			local history = require("yanky.history").all()
 			if #history == 0 then
-				vim.notify("环里还没有内容", vim.log.levels.INFO)
+				vim.notify("Yank ring is empty", vim.log.levels.INFO)
 				return
 			end
 
@@ -144,7 +144,7 @@ return {
 				preview = function(item)
 					local e = item.entry
 					local lines = reg_lines(e.regcontents)
-					local head = { ("#%d  regtype=%s  共 %d 行"):format(item.index, e.regtype or "?", #lines) }
+					local head = { ("#%d  regtype=%s  %d lines"):format(item.index, e.regtype or "?", #lines) }
 					for _, l in ipairs(lines) do
 						head[#head + 1] = l
 					end
@@ -167,9 +167,9 @@ return {
 		-- 顺手给个好按的键：visual 下选中内容会被环里那一项替换
 		vim.keymap.set("n", "<leader>yr", function()
 			ring_history(false)
-		end, { desc = "环历史 (picker)" })
+		end, { desc = "Yank ring history (picker)" })
 		vim.keymap.set("x", "<leader>yr", function()
 			ring_history(true)
-		end, { desc = "环历史 (picker): 替换选区" })
+		end, { desc = "Yank ring history (picker): replace selection" })
 	end,
 }

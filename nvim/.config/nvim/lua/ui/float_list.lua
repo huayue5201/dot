@@ -172,7 +172,7 @@ function List:_draw()
 	end
 	local _, lines = self:_build()
 	if #lines == 0 then
-		lines = { "  (无内容)" }
+		lines = { "  (no content)" }
 	end
 	self.lines = lines
 

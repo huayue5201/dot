@@ -51,24 +51,24 @@ return {
 		local function map_select(key, query, desc)
 			vim.keymap.set({ "x", "o" }, "a" .. key, select_object(query .. ".outer"), {
 				silent = true,
-				desc = "选择外层" .. desc,
+				desc = "Select outer " .. desc,
 			})
 			vim.keymap.set({ "x", "o" }, "i" .. key, select_object(query .. ".inner"), {
 				silent = true,
-				desc = "选择内层" .. desc,
+				desc = "Select inner " .. desc,
 			})
 		end
 
 		-- 选择：aX / iX
-		map_select("f", "@function", "函数")
-		map_select("c", "@class", "类/类型")
-		map_select("a", "@parameter", "参数")
-		map_select("l", "@loop", "循环")
-		map_select("i", "@conditional", "条件")
-		map_select("C", "@call", "调用")
-		map_select("K", "@block", "语法块")
-		map_select("A", "@assignment", "赋值")
-		map_select("R", "@return", "返回")
+		map_select("f", "@function", "function")
+		map_select("c", "@class", "class/type")
+		map_select("a", "@parameter", "parameter")
+		map_select("l", "@loop", "loop")
+		map_select("i", "@conditional", "condition")
+		map_select("C", "@call", "call")
+		map_select("K", "@block", "block")
+		map_select("A", "@assignment", "assignment")
+		map_select("R", "@return", "return")
 
 		local function map_move(key, query, desc)
 			local function do_move(fn)
@@ -80,11 +80,11 @@ return {
 
 			vim.keymap.set({ "n", "x", "o" }, "]" .. key, function()
 				do_move(move.goto_next_start)
-			end, { silent = true, desc = "下一个" .. desc .. "开头" })
+			end, { silent = true, desc = "Next " .. desc .. " start" })
 
 			vim.keymap.set({ "n", "x", "o" }, "[" .. key, function()
 				do_move(move.goto_previous_start)
-			end, { silent = true, desc = "上一个" .. desc .. "开头" })
+			end, { silent = true, desc = "Previous " .. desc .. " start" })
 
 			local upper = key:upper()
 			if upper == key then
@@ -93,20 +93,20 @@ return {
 
 			vim.keymap.set({ "n", "x", "o" }, "]" .. upper, function()
 				do_move(move.goto_next_end)
-			end, { silent = true, desc = "下一个" .. desc .. "结尾" })
+			end, { silent = true, desc = "Next " .. desc .. " end" })
 
 			vim.keymap.set({ "n", "x", "o" }, "[" .. upper, function()
 				do_move(move.goto_previous_end)
-			end, { silent = true, desc = "上一个" .. desc .. "结尾" })
+			end, { silent = true, desc = "Previous " .. desc .. " end" })
 		end
 
 		-- 移动：]X / [X 开头，]X 大写 / [X 大写 结尾
 		-- 避开内置 ]a/]l/]t（参数/位置列表/标签）、]c（gitsigns）、]d（诊断）、
 		-- ]b（bufferline）、]m（Rust 宏展开）、]T（neotest）等。
-		map_move("f", "@function.outer", "函数")
-		map_move("o", "@loop.outer", "循环")
-		map_move("i", "@conditional.outer", "条件")
-		map_move("k", "@block.outer", "语法块")
+		map_move("f", "@function.outer", "function")
+		map_move("o", "@loop.outer", "loop")
+		map_move("i", "@conditional.outer", "condition")
+		map_move("k", "@block.outer", "block")
 
 		-- 参数交换：适合改 Rust/Go/Python/Lua/C 的函数实参顺序。
 		local function swap_parameter(fn)
@@ -119,10 +119,10 @@ return {
 
 		vim.keymap.set("n", "<A-=>", function()
 			swap_parameter("swap_next")
-		end, { silent = true, desc = "交换下一个参数" })
+		end, { silent = true, desc = "Swap next parameter" })
 		vim.keymap.set("n", "<A-->", function()
 			swap_parameter("swap_previous")
-		end, { silent = true, desc = "交换上一个参数" })
+		end, { silent = true, desc = "Swap previous parameter" })
 
 		-- 兼容旧习惯：]o 仍然跳循环；]i 仍然跳条件。
 	end,

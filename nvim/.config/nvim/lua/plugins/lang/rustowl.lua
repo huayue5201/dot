@@ -45,14 +45,11 @@ return {
 		local function rustowl_action(method)
 			return function()
 				if vim.bo.filetype ~= "rust" then
-					vim.notify("RustOwl: 只在 rust buffer 里生效", vim.log.levels.WARN)
+					vim.notify("RustOwl: only works in rust buffers", vim.log.levels.WARN)
 					return
 				end
 				if vim.fn.executable("rustowl") == 0 then
-					vim.notify(
-						"RustOwl: 找不到 rustowl 可执行文件（cargo install rustowl）",
-						vim.log.levels.ERROR
-					)
+					vim.notify("RustOwl: rustowl executable not found (cargo install rustowl)", vim.log.levels.ERROR)
 					return
 				end
 				require("rustowl")[method](vim.api.nvim_get_current_buf())

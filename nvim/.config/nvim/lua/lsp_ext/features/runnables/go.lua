@@ -175,13 +175,13 @@ end
 local function run_tests(command)
 	local a = first_arg(command.arguments)
 	if not a then
-		notify("gopls.run_tests 参数里没有目标文件", vim.log.levels.ERROR)
+		notify("No target file in gopls.run_tests arguments", vim.log.levels.ERROR)
 		return
 	end
 	local uri = str_field(a, { "URI", "uri" })
 	local lines, fname = read_lines(uri)
 	if not lines or not fname then
-		notify("无法读取测试文件: " .. tostring(uri), vim.log.levels.ERROR)
+		notify("Cannot read test file: " .. tostring(uri), vim.log.levels.ERROR)
 		return
 	end
 	local tests = list_field(a, { "Tests", "tests" })
@@ -205,12 +205,12 @@ local function generate(command)
 	local dir_uri = a and str_field(a, { "Dir", "dir" })
 	local file_uri = a and str_field(a, { "URI", "uri" })
 	if not dir_uri and not file_uri then
-		notify("gopls.generate 参数里没有目标文件", vim.log.levels.ERROR)
+		notify("No target file in gopls.generate arguments", vim.log.levels.ERROR)
 		return
 	end
 	local ok, path = pcall(vim.uri_to_fname, dir_uri or file_uri)
 	if not ok or not path then
-		notify("无法解析路径: " .. tostring(dir_uri or file_uri), vim.log.levels.ERROR)
+		notify("Cannot resolve path: " .. tostring(dir_uri or file_uri), vim.log.levels.ERROR)
 		return
 	end
 	-- Dir 本身就是目录；老版 URI 是文件，取 dirname

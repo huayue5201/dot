@@ -143,18 +143,26 @@ function M.watch(opts)
 		return
 	end
 
-	local ok = ev:start(dir, {}, vim.schedule_wrap(function(err, fname)
-		if err or fname ~= base or watch_timer then
-			return
-		end
-		watch_timer = uv.new_timer()
-		watch_timer:start(debounce, 0, vim.schedule_wrap(function()
-			watch_timer:close()
-			watch_timer = nil
-			M.refresh_add(add)
-			refresh_spellwand()
-		end))
-	end))
+	local ok = ev:start(
+		dir,
+		{},
+		vim.schedule_wrap(function(err, fname)
+			if err or fname ~= base or watch_timer then
+				return
+			end
+			watch_timer = uv.new_timer()
+			watch_timer:start(
+				debounce,
+				0,
+				vim.schedule_wrap(function()
+					watch_timer:close()
+					watch_timer = nil
+					M.refresh_add(add)
+					refresh_spellwand()
+				end)
+			)
+		end)
+	)
 	if not ok then
 		ev:close()
 		return
@@ -175,7 +183,7 @@ function M.build(dir)
 		end
 	end
 	if #words == 0 then
-		return vim.notify("dirtytalk 词表为空，跳过 build", vim.log.levels.WARN)
+		return vim.notify("dirtytalk word list is empty; skipping build", vim.log.levels.WARN)
 	end
 	vim.fn.mkdir(SPELL_DIR, "p")
 	local out = SPELL_DIR .. "/" .. PROGRAMMING
@@ -184,7 +192,7 @@ function M.build(dir)
 	local ok, err = pcall(vim.cmd, ("silent mkspell! %s %s"):format(vim.fn.fnameescape(out), vim.fn.fnameescape(tmp)))
 	vim.fn.delete(tmp)
 	if not ok then
-		vim.notify("mkspell 失败: " .. tostring(err), vim.log.levels.ERROR)
+		vim.notify("mkspell failed: " .. tostring(err), vim.log.levels.ERROR)
 	end
 end
 
@@ -240,7 +248,7 @@ function M.setup()
 		vim.bo.spelllang = spelllang()
 		vim.wo.spell = not vim.wo.spell
 		vim.w.spell_auto = vim.wo.spell -- 手动开的就别自动关
-	end, { desc = "拼写检查开关" })
+	end, { desc = "Toggle spell check" })
 end
 
 return M

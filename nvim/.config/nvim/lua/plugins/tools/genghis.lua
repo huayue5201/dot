@@ -26,22 +26,22 @@ return {
 		end
 
 		-- 重命名 / 移动 / 复制 / 新建
-		map("<leader>Fr", g.renameFile, "文件：重命名")
-		map("<leader>Fm", g.moveToFolderInCwd, "文件：移动到当前目录下的文件夹")
-		map("<leader>FM", g.moveAndRenameFile, "文件：移动 + 重命名")
-		map("<leader>Fd", g.duplicateFile, "文件：复制一份")
-		map("<leader>Fn", g.createNewFile, "文件：新建（当前文件所在目录）")
-		map("<leader>FN", g.createNewFileInFolder, "文件：新建（当前工作目录下的文件夹）")
-		map("<leader>Fv", g.moveSelectionToNewFile, "文件：把选中内容移到新文件", "x")
+		map("<leader>Fr", g.renameFile, "File: rename")
+		map("<leader>Fm", g.moveToFolderInCwd, "File: move to folder in cwd")
+		map("<leader>FM", g.moveAndRenameFile, "File: move and rename")
+		map("<leader>Fd", g.duplicateFile, "File: duplicate")
+		map("<leader>Fn", g.createNewFile, "File: new (in current file's directory)")
+		map("<leader>FN", g.createNewFileInFolder, "File: new (in folder under cwd)")
+		map("<leader>Fv", g.moveSelectionToNewFile, "File: move selection to new file", "x")
 
 		-- 删除 / 权限 / 定位
-		map("<leader>Ft", g.trashFile, "文件：删除到回收站")
-		map("<leader>Fx", g.chmodx, "文件：chmod +x")
-		map("<leader>Fe", g.showInSystemExplorer, "文件：在系统文件管理器中显示")
+		map("<leader>Ft", g.trashFile, "File: trash")
+		map("<leader>Fx", g.chmodx, "File: chmod +x")
+		map("<leader>Fe", g.showInSystemExplorer, "File: reveal in system file manager")
 
 		-- 复制路径 / 文件名（系统剪贴板）
-		map("<leader>Fy", g.copyFilepath, "文件：复制绝对路径")
-		map("<leader>FY", g.copyRelativePath, "文件：复制相对路径")
-		map("<leader>Fc", g.copyFilename, "文件：复制文件名")
+		map("<leader>Fy", g.copyFilepath, "File: copy absolute path")
+		map("<leader>FY", g.copyRelativePath, "File: copy relative path")
+		map("<leader>Fc", g.copyFilename, "File: copy filename")
 	end,
 }

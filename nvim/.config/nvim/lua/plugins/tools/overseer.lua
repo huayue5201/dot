@@ -10,7 +10,7 @@ return {
 			},
 		})
 
-		vim.keymap.set("n", "<leader>ru", "<cmd>OverseerRun<CR>", { desc = "运行任务" })
-		vim.keymap.set("n", "<leader>ro", "<cmd>OverseerToggle<CR>", { desc = "打开任务列表" })
+		vim.keymap.set("n", "<leader>ru", "<cmd>OverseerRun<CR>", { desc = "Run task" })
+		vim.keymap.set("n", "<leader>ro", "<cmd>OverseerToggle<CR>", { desc = "Open task list" })
 	end,
 }

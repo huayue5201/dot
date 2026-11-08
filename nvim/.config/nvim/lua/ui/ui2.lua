@@ -179,7 +179,7 @@ function M.setup()
 	vim.api.nvim_create_autocmd("ColorScheme", {
 		group = vim.api.nvim_create_augroup("ui2_transparent_float", { clear = true }),
 		callback = refresh_transparent_hl,
-		desc = "ui2 浮窗透明背景跟随配色",
+		desc = "ui2 float window transparent background follows colorscheme",
 	})
 
 	local function make_transparent(win)

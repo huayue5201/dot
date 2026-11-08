@@ -7,7 +7,7 @@ local M = {}
 
 -- 阅读契约：摘要里带一句，省得每次提问都重复交代，也防止 agent 先去全库乱搜
 local ASK_CONTRACT =
-	"answer_from_digest: 只依据本摘要回答结构/规模/归属类问题；摘要覆盖不到的，先列出要读的文件和行范围，不要用 find/grep 全库探查"
+	"answer_from_digest: answer structure/scale/ownership questions based only on this digest; for anything the digest does not cover, first list the files and line ranges to read instead of exploring the whole repo with find/grep"
 
 --- 粗略 token 估算：ASCII 约 4 字符/token，中文约 1 字符/token
 ---@param text string
@@ -104,7 +104,7 @@ local function digest(data)
 	end
 	L[#L + 1] = table.concat(misc, " ")
 
-	L[#L + 1] = "NOT_INCLUDED 代码正文（本摘要只有结构与统计，没有任何源码）"
+	L[#L + 1] = "NOT_INCLUDED source code (this digest contains only structure and stats, no source)"
 	L[#L + 1] = ASK_CONTRACT
 	return table.concat(L, "\n")
 end

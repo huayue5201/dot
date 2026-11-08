@@ -8,14 +8,14 @@ local unsaved = require("feat.unsaved")
 local float_list = require("ui.float_list")
 
 local HELP = {
-	{ "<CR>", "保存选中 buffer" },
-	{ "a / <C-s>", "保存全部" },
-	{ "o / <Tab>", "跳转到该 buffer" },
-	{ "j / k", "上下移动" },
-	{ "1-9", "直接保存对应行" },
-	{ "r", "刷新列表" },
-	{ "?", "显示/隐藏本帮助" },
-	{ "q / <Esc>", "关闭面板" },
+	{ "<CR>", "Save selected buffer" },
+	{ "a / <C-s>", "Save all" },
+	{ "o / <Tab>", "Jump to this buffer" },
+	{ "j / k", "Move up/down" },
+	{ "1-9", "Save the corresponding line" },
+	{ "r", "Refresh list" },
+	{ "?", "Show/hide this help" },
+	{ "q / <Esc>", "Close panel" },
 }
 
 ---------------------------------------------------------------------
@@ -50,7 +50,7 @@ local function write_buf(bufnr)
 	end)
 	if not ok then
 		vim.notify(
-			"保存失败: " .. vim.fn.fnamemodify(vim.fn.bufname(bufnr), ":t") .. "\n" .. tostring(err),
+			"Save failed: " .. vim.fn.fnamemodify(vim.fn.bufname(bufnr), ":t") .. "\n" .. tostring(err),
 			vim.log.levels.ERROR
 		)
 	end
@@ -77,7 +77,7 @@ local function ensure_panel()
 	end
 
 	panel = float_list.new({
-		title = " 未保存 buffer ",
+		title = " Unsaved buffers ",
 		width = function()
 			local width = 44
 			for _, r in ipairs(list_unsaved()) do
@@ -155,7 +155,7 @@ local function ensure_panel()
 			{ "r", "refresh" },
 		},
 		help = HELP,
-		help_title = " 未保存 buffer · 按键帮助 ",
+		help_title = " Unsaved buffers · Key help ",
 		close_keys = { q = "close", ["<Esc>"] = "close" },
 		refresh_events = { "BufWritePost", "TextChanged", "TextChangedI", "BufDelete", "BufAdd", "BufUnload" },
 		refresh_augroup = "save_panel_refresh",
@@ -184,7 +184,7 @@ end
 function M.setup()
 	vim.api.nvim_create_user_command("SavePanel", function()
 		M.toggle()
-	end, { desc = "未保存 buffer 列表" })
+	end, { desc = "Unsaved buffer list" })
 end
 
 return M

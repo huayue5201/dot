@@ -33,7 +33,7 @@ local function jump(buf)
 	local path = st.paths[line]
 	if not path then
 		notify(
-			"光标这一行没有文件路径（试试「结构」「活跃区」「最大文件」里的条目）",
+			"No file path on this line (try entries under 'Structure', 'Active areas', or 'Largest files')",
 			vim.log.levels.WARN
 		)
 		return
@@ -76,32 +76,32 @@ local function attach(buf, origin_win, origin_buf)
 			vim.api.nvim_buf_delete(buf, { force = true })
 		end
 	end
-	vim.keymap.set("n", "q", close, vim.tbl_extend("force", opts, { desc = "关闭项目概览" }))
-	vim.keymap.set("n", "<Esc>", close, vim.tbl_extend("force", opts, { desc = "关闭项目概览" }))
+	vim.keymap.set("n", "q", close, vim.tbl_extend("force", opts, { desc = "Close project overview" }))
+	vim.keymap.set("n", "<Esc>", close, vim.tbl_extend("force", opts, { desc = "Close project overview" }))
 	vim.keymap.set("n", "gd", function()
 		jump(buf)
-	end, vim.tbl_extend("force", opts, { desc = "跳到光标下的文件" }))
+	end, vim.tbl_extend("force", opts, { desc = "Jump to file under cursor" }))
 	vim.keymap.set("n", "r", function()
 		M.open({ full = state[buf].full, force = true })
-	end, vim.tbl_extend("force", opts, { desc = "重新采集" }))
+	end, vim.tbl_extend("force", opts, { desc = "Recollect" }))
 	-- 用 t 而不是 <Tab>：<Tab> 在 normal 模式等同于 <C-i>，会抢掉 jumplist 前进
 	vim.keymap.set("n", "t", function()
 		M.open({ full = not state[buf].full })
-	end, vim.tbl_extend("force", opts, { desc = "精简 ⇄ 完整" }))
+	end, vim.tbl_extend("force", opts, { desc = "Compact ⇄ full" }))
 	-- A(Ask)：把这份概览的紧凑摘要连同一个问题发给 AI 后端（走 ask_agent）
 	vim.keymap.set("n", "A", function()
 		local st = state[buf]
 		if st and st.data then
 			actions.ask()
 		end
-	end, vim.tbl_extend("force", opts, { desc = "带着概览问 AI" }))
+	end, vim.tbl_extend("force", opts, { desc = "Ask AI with overview" }))
 	-- C(Chat)：把摘要塞进 codecompanion chat，在 chat 里接着聊
 	vim.keymap.set("n", "C", function()
 		local st = state[buf]
 		if st and st.data then
 			actions.chat({})
 		end
-	end, vim.tbl_extend("force", opts, { desc = "概览进 codecompanion chat" }))
+	end, vim.tbl_extend("force", opts, { desc = "Overview into codecompanion chat" }))
 end
 
 local function fill(buf, data, full)
@@ -138,7 +138,7 @@ local function start_collect(buf, root, full)
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
 		("# %s"):format(vim.fs.basename(root)),
 		"",
-		"采集中（tokei / git log 并行跑，大仓库要几秒）…",
+		"Collecting (tokei / git log run in parallel; large repos take a few seconds)…",
 	})
 	vim.bo[buf].modifiable = false
 	collect(root, full, function(data)
@@ -221,28 +221,28 @@ end
 function M.setup()
 	vim.api.nvim_create_user_command("Project", function(args)
 		M.open({ full = args.bang })
-	end, { bang = true, desc = "项目概览（!: 完整版）" })
+	end, { bang = true, desc = "Project overview (!: full version)" })
 	vim.api.nvim_create_user_command("ProjectAsk", function()
 		actions.ask()
-	end, { desc = "带着项目概览问 AI（精简摘要随问题发出）" })
+	end, { desc = "Ask AI with project overview (compact summary sent with question)" })
 	vim.api.nvim_create_user_command("ProjectChat", function(args)
 		actions.chat({ adapter = args.args ~= "" and args.args or nil })
 	end, {
 		nargs = "?",
-		desc = "把项目概览摘要放进 codecompanion chat（默认 deepseek，可传 pi）",
+		desc = "Put project overview summary into codecompanion chat (deepseek by default, pi optional)",
 		complete = function()
 			return { "deepseek", "pi", "default" }
 		end,
 	})
 	vim.keymap.set("n", "<leader>ii", function()
 		M.open()
-	end, { desc = "项目概览（规模 / 结构 / 活跃区）" })
+	end, { desc = "Project overview (size / structure / hot areas)" })
 	vim.keymap.set("n", "<leader>ia", function()
 		actions.ask()
-	end, { desc = "带着项目概览问 AI" })
+	end, { desc = "Ask AI with project overview" })
 	vim.keymap.set("n", "<leader>ic", function()
 		actions.chat()
-	end, { desc = "项目概览放进 codecompanion chat" })
+	end, { desc = "Project overview into codecompanion chat" })
 end
 
 return M

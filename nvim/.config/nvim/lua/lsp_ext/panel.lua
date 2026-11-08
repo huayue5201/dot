@@ -40,7 +40,7 @@ end
 local FEATURES = {
 	{
 		key = "lsp.diagnostics",
-		label = "诊断",
+		label = "Diagnostics",
 		enabled = function(bufnr)
 			return vim.diagnostic.is_enabled({ bufnr = bufnr })
 		end,
@@ -50,7 +50,7 @@ local FEATURES = {
 	},
 	{
 		key = "lsp.inlay_hints",
-		label = "内联提示",
+		label = "Inlay hints",
 		enabled = function(bufnr)
 			return vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr })
 		end,
@@ -61,13 +61,13 @@ local FEATURES = {
 }
 
 local HELP = {
-	{ "<CR>", "切换选中行（启用/停用）" },
-	{ "R", "重启选中的 LSP" },
-	{ "r", "刷新附加状态" },
-	{ "j / k", "上下移动" },
-	{ "1-9", "直接切换对应行" },
-	{ "?", "显示/隐藏本帮助" },
-	{ "q / <Esc> / <Tab> / <C-s>", "关闭面板" },
+	{ "<CR>", "Toggle selected row (enable/disable)" },
+	{ "R", "Restart selected LSP" },
+	{ "r", "Refresh attach status" },
+	{ "j / k", "Move up / down" },
+	{ "1-9", "Toggle the corresponding row directly" },
+	{ "?", "Show/hide this help" },
+	{ "q / <Esc> / <Tab> / <C-s>", "Close panel" },
 }
 
 ---------------------------------------------------------------------
@@ -120,21 +120,16 @@ local function row_text(row, bufnr)
 	local icon = enabled and ICONS.on or ICONS.off
 
 	if row.kind == "feature" then
-		return string.format(
-			"%s %s%s",
-			icon,
-			pad(row.feature.label, NAME_WIDTH),
-			enabled and "已开启" or "已关闭"
-		)
+		return string.format("%s %s%s", icon, pad(row.feature.label, NAME_WIDTH), enabled and "enabled" or "disabled")
 	end
 
 	local clients = clients_for(row.name, bufnr)
 	local attached = #clients > 0
 	local status
 	if row.configured then
-		status = attached and "已附加" or "未附加"
+		status = attached and "attached" or "not attached"
 	else
-		status = attached and "已附加 (外部)" or "未附加 (外部)"
+		status = attached and "attached (external)" or "not attached (external)"
 	end
 
 	local root = ""
@@ -155,13 +150,16 @@ end
 local function stop_external(name, bufnr)
 	local clients = clients_for(name, bufnr)
 	if #clients == 0 then
-		vim.notify(name .. " 由插件托管，无法在此启用（请用其插件命令）", vim.log.levels.INFO)
+		vim.notify(
+			name .. " is managed by a plugin and cannot be enabled here (use its plugin command)",
+			vim.log.levels.INFO
+		)
 		return
 	end
 	for _, c in ipairs(clients) do
 		c:stop(true)
 	end
-	vim.notify("已停止外部 LSP: " .. name, vim.log.levels.INFO)
+	vim.notify("Stopped external LSP: " .. name, vim.log.levels.INFO)
 end
 
 local function toggle_row(row, bufnr)
@@ -169,7 +167,7 @@ local function toggle_row(row, bufnr)
 		-- 写进项目 store（下次打开同项目保持），同时立即作用到当前 buffer
 		local new = state.toggle(row.feature.key, bufnr)
 		row.feature.apply(new, bufnr)
-		vim.notify(string.format("%s：%s", row.feature.label, new and "开" or "关"), vim.log.levels.INFO)
+		vim.notify(string.format("%s: %s", row.feature.label, new and "on" or "off"), vim.log.levels.INFO)
 		return
 	end
 	if row.configured then
@@ -185,7 +183,7 @@ local function restart_row(row, bufnr)
 	end
 	if row.configured then
 		servers.restart_server(row.name, bufnr)
-		vim.notify("重启 LSP: " .. row.name, vim.log.levels.INFO)
+		vim.notify("Restarted LSP: " .. row.name, vim.log.levels.INFO)
 	else
 		stop_external(row.name, bufnr)
 	end
@@ -233,7 +231,7 @@ local function ensure_panel(bufnr)
 	end
 	local icon_bytes = math.max(#ICONS.on, #ICONS.off)
 	panel = float_list.new({
-		title = " LSP 控制面板 ",
+		title = " LSP Control Panel ",
 		width = 64,
 		height = function(n)
 			return n + 2
@@ -251,7 +249,7 @@ local function ensure_panel(bufnr)
 		end,
 		guard = function(rows)
 			if #rows == 0 then
-				return "当前 buffer 没有可用的 LSP 服务器：" .. vim.bo[bufnr].filetype
+				return "No LSP server available for the current buffer: " .. vim.bo[bufnr].filetype
 			end
 		end,
 		enter = function(row, _, self)
@@ -277,7 +275,7 @@ local function ensure_panel(bufnr)
 			{ "r", "refresh" },
 		},
 		help = HELP,
-		help_title = " LSP 面板 · 按键帮助 ",
+		help_title = " LSP Panel · Key Help ",
 		close_keys = { q = "close", ["<Esc>"] = "close", ["<Tab>"] = "close", ["<C-s>"] = "close" },
 		-- LSP 附加/断开是异步的：开关 server 后附加状态不会立刻变。
 		refresh_events = { "LspAttach", "LspDetach" },
@@ -301,7 +299,7 @@ end
 function M.setup()
 	vim.api.nvim_create_user_command("LspPanel", function()
 		M.toggle()
-	end, { desc = "LSP 服务器控制面板" })
+	end, { desc = "LSP server control panel" })
 end
 
 return M

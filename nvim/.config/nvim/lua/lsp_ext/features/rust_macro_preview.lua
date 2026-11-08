@@ -145,24 +145,24 @@ local function bind_preview_keys(state, buf)
 		M.close(state.bufnr)
 	end
 
-	vim.keymap.set("n", "q", close, { buffer = buf, desc = "关闭宏展开预览" })
-	vim.keymap.set("n", "<Esc>", close, { buffer = buf, desc = "关闭宏展开预览" })
+	vim.keymap.set("n", "q", close, { buffer = buf, desc = "Close macro expansion preview" })
+	vim.keymap.set("n", "<Esc>", close, { buffer = buf, desc = "Close macro expansion preview" })
 
 	-- 跳回源码中该宏的调用位置
 	vim.keymap.set("n", "<CR>", function()
 		local src, origin = state.source_win, state.origin
 		if not win_valid(src) or not origin then
-			vim.notify("找不到宏调用位置", vim.log.levels.WARN)
+			vim.notify("Macro call location not found", vim.log.levels.WARN)
 			return
 		end
 		vim.api.nvim_set_current_win(src)
 		vim.api.nvim_win_set_cursor(src, { origin.line + 1, origin.character })
-	end, { buffer = buf, desc = "跳到源码中的宏调用" })
+	end, { buffer = buf, desc = "Jump to macro call in source" })
 
 	local function expand_prev()
 		local prev = table.remove(state.stack)
 		if not prev then
-			vim.notify("已经是最外层", vim.log.levels.INFO)
+			vim.notify("Already at outermost level", vim.log.levels.INFO)
 			return
 		end
 		state.level = prev.level
@@ -176,16 +176,16 @@ local function bind_preview_keys(state, buf)
 		local content = table.concat(vim.api.nvim_buf_get_lines(buf, 0, -1, false), "\n")
 		local name = find_macro_name(content)
 		if not name then
-			vim.notify("展开结果里没有可继续展开的宏", vim.log.levels.INFO)
+			vim.notify("No further expandable macros in the expansion", vim.log.levels.INFO)
 			return
 		end
 		local pos = find_macro_in_buffer(state.bufnr, name, state.origin, state.client.offset_encoding)
 		if not pos then
 			vim.notify(
-				"源文件里找不到 `"
+				"Cannot find call site of `"
 					.. name
-					.. "!` 的调用位置 —— rust-analyzer 不支持从展开结果递归展开，"
-					.. "请把光标移到该宏上按 grm",
+					.. "!` in the source file — rust-analyzer cannot expand recursively from expansion results; "
+					.. "move the cursor onto the macro and press grm",
 				vim.log.levels.WARN
 			)
 			return
@@ -200,8 +200,8 @@ local function bind_preview_keys(state, buf)
 		M.expand(state.client, state.bufnr, pos, name)
 	end
 
-	vim.keymap.set("n", "]m", expand_nested, { buffer = buf, desc = "展开内层宏" })
-	vim.keymap.set("n", "[m", expand_prev, { buffer = buf, desc = "返回上一层展开" })
+	vim.keymap.set("n", "]m", expand_nested, { buffer = buf, desc = "Expand nested macro" })
+	vim.keymap.set("n", "[m", expand_prev, { buffer = buf, desc = "Back to previous expansion" })
 end
 
 --- 渲染预览（复用已有 buffer/窗口，只换内容，避免丢滚动位置）
@@ -295,7 +295,7 @@ function M.render(bufnr, content, macro)
 		where = string.format("%s · %s:%d", where, vim.fn.fnamemodify(fname, ":t"), state.origin.line + 1)
 	end
 	local escaped = (" " .. name .. "!  " .. where):gsub("%%", "%%%%")
-	vim.wo[win].winbar = "%#Title#  宏展开 %*%#Comment#" .. escaped .. " %*"
+	vim.wo[win].winbar = "%#Title#  Macro Expansion %*%#Comment#" .. escaped .. " %*"
 
 	-- 4) 焦点回原窗口（预览不抢焦点）
 	if win_valid(prev_win) and prev_win ~= win then
@@ -388,7 +388,7 @@ function M.setup(client, bufnr)
 
 	vim.api.nvim_buf_create_user_command(bufnr, "RustExpandMacro", function()
 		M.toggle(client, bufnr)
-	end, { desc = "切换 Rust 宏展开预览窗口" })
+	end, { desc = "Toggle Rust macro expansion preview" })
 
 	-- 源 buffer 卸载时清理
 	vim.api.nvim_create_autocmd("BufWipeout", {

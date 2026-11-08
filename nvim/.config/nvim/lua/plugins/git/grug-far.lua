@@ -33,19 +33,24 @@ return {
 			inst:when_ready(function()
 				inst:goto_input("replacement")
 			end)
-		end, { desc = "grug-far：替换光标下单词（全项目）" })
+		end, { desc = "grug-far: replace word under cursor (project-wide)" })
 
 		-- 仅当前文件
 		vim.keymap.set("n", "<leader>fR", function()
 			require("grug-far").open({ prefills = { paths = vim.fn.expand("%") } })
-		end, { desc = "grug-far：只替换当前文件" })
+		end, { desc = "grug-far: replace in current file only" })
 
 		-- AST 引擎（结构化替换）
-		vim.keymap.set("n", "<leader>fa", open({ engine = "astgrep" }), { desc = "grug-far：AST 引擎搜索替换" })
+		vim.keymap.set(
+			"n",
+			"<leader>fa",
+			open({ engine = "astgrep" }),
+			{ desc = "grug-far: search & replace with AST engine" }
+		)
 
 		-- 可视选区范围
 		vim.keymap.set({ "n", "x" }, "<leader>fi", open({ visualSelectionUsage = "auto-detect" }), {
-			desc = "grug-far：在选区内搜索替换",
+			desc = "grug-far: search & replace in selection",
 		})
 
 		-- 切换已有实例（最省事的「呼出 / 收起」）
@@ -54,10 +59,10 @@ return {
 				instanceName = "far",
 				staticTitle = "Find and Replace",
 			})
-		end, { desc = "grug-far：呼出 / 收起实例" })
+		end, { desc = "grug-far: open / close instance" })
 
 		-- 临时 buffer（关闭即删）
-		vim.keymap.set("n", "<leader>ft", open({ transient = true }), { desc = "grug-far：临时窗口" })
+		vim.keymap.set("n", "<leader>ft", open({ transient = true }), { desc = "grug-far: transient window" })
 
 		-- 用上一次搜索（@/）预填；配合 fr 形成「改一次 → 再改同类」的循环
 		vim.keymap.set({ "n", "x" }, "<leader>f/", function()
@@ -71,7 +76,7 @@ return {
 			inst:when_ready(function()
 				inst:goto_input("replacement")
 			end)
-		end, { desc = "grug-far：用上次搜索（@/）替换" })
+		end, { desc = "grug-far: replace with last search (@/)" })
 
 		----------------------------------------------------------------------
 		-- 窗口内只补插件没有的两个键位，其余全用插件默认（<localleader> 前缀）
@@ -83,13 +88,13 @@ return {
 				-- 跳回搜索输入框
 				vim.keymap.set("n", "<left>", function()
 					require("grug-far").get_instance(args.buf):goto_first_input()
-				end, { buffer = args.buf, desc = "grug-far：回到搜索框" })
+				end, { buffer = args.buf, desc = "grug-far: back to search input" })
 
 				-- 切换字面匹配（默认的 \s 是 syncLocations，别占用）
 				vim.keymap.set("n", "<localleader>F", function()
 					local state = unpack(require("grug-far").get_instance(args.buf):toggle_flags({ "--fixed-strings" }))
 					vim.notify("grug-far: --fixed-strings " .. (state and "ON" or "OFF"))
-				end, { buffer = args.buf, desc = "grug-far：切换字面匹配" })
+				end, { buffer = args.buf, desc = "grug-far: toggle literal match" })
 			end,
 		})
 	end,

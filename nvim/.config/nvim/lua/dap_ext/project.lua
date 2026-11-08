@@ -78,14 +78,14 @@ local function load_local(root)
 
 	local chunk, err = loadfile(file)
 	if not chunk then
-		vim.notify("DAP 项目配置解析失败: " .. tostring(err), vim.log.levels.WARN)
+		vim.notify("DAP project config parse failed: " .. tostring(err), vim.log.levels.WARN)
 		local_cache[root] = false
 		return nil
 	end
 
 	local ok, result = pcall(chunk)
 	if not ok or type(result) ~= "table" then
-		vim.notify("DAP 项目配置必须返回 table: " .. file, vim.log.levels.WARN)
+		vim.notify("DAP project config must return a table: " .. file, vim.log.levels.WARN)
 		local_cache[root] = false
 		return nil
 	end
@@ -200,7 +200,7 @@ function M.kind(bufnr)
 	-- 嵌入式项目且缺少本地声明时，提示一次可生成模板
 	if not local_cfg and kind == "embedded" and not nudged[root] then
 		nudged[root] = true
-		vim.notify("检测到嵌入式项目，可用 :DapProjectInit 生成 .nvim/dap.lua", vim.log.levels.INFO)
+		vim.notify("Embedded project detected; run :DapProjectInit to generate .nvim/dap.lua", vim.log.levels.INFO)
 	end
 
 	return kind
@@ -294,7 +294,7 @@ function M.init(bufnr)
 	local file = root .. "/.nvim/dap.lua"
 
 	if vim.fn.filereadable(file) == 1 then
-		vim.notify("已存在项目 DAP 配置：" .. file, vim.log.levels.INFO)
+		vim.notify("Project DAP config already exists: " .. file, vim.log.levels.INFO)
 		vim.cmd.edit(vim.fn.fnameescape(file))
 		return
 	end
@@ -305,20 +305,20 @@ function M.init(bufnr)
 	vim.fn.mkdir(root .. "/.nvim", "p")
 	local fd = io.open(file, "w")
 	if not fd then
-		vim.notify("无法写入：" .. file, vim.log.levels.ERROR)
+		vim.notify("Cannot write: " .. file, vim.log.levels.ERROR)
 		return
 	end
 	fd:write(content)
 	fd:close()
 
 	M.clear_cache()
-	vim.notify("已生成项目 DAP 模板：" .. file, vim.log.levels.INFO)
+	vim.notify("Generated project DAP template: " .. file, vim.log.levels.INFO)
 	vim.cmd.edit(vim.fn.fnameescape(file))
 end
 
 vim.api.nvim_create_user_command("DapProjectInit", function()
 	M.init(0)
-end, { desc = "生成 .nvim/dap.lua 项目模板" })
+end, { desc = "Generate .nvim/dap.lua project template" })
 
 ---清空缓存（项目类型或本地声明变更时调用）
 function M.clear_cache()

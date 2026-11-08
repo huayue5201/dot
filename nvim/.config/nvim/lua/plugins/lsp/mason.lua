@@ -87,7 +87,7 @@ return {
 			-- 先刷新注册表，`get_latest_version()` 才是最新的
 			registry.update(function(success)
 				if not success then
-					vim.notify("mason: 注册表更新失败，跳过工具更新", vim.log.levels.WARN)
+					vim.notify("mason: registry update failed, skipping tool update", vim.log.levels.WARN)
 					return
 				end
 
@@ -106,7 +106,7 @@ return {
 
 				if #outdated == 0 then
 					if force then
-						vim.notify("mason: 所有工具均为最新", vim.log.levels.INFO)
+						vim.notify("mason: all tools are up to date", vim.log.levels.INFO)
 					end
 					return
 				end
@@ -116,7 +116,7 @@ return {
 					names[#names + 1] = p.name
 				end
 				vim.notify(
-					("mason: 更新 %d 个工具\n%s"):format(#outdated, table.concat(names, ", ")),
+					("mason: updating %d tools\n%s"):format(#outdated, table.concat(names, ", ")),
 					vim.log.levels.INFO
 				)
 
@@ -133,6 +133,6 @@ return {
 
 		vim.api.nvim_create_user_command("MasonAutoUpdate", function()
 			update_outdated(true)
-		end, { desc = "检查并更新 Mason 已安装工具" })
+		end, { desc = "Check and update installed Mason tools" })
 	end,
 }

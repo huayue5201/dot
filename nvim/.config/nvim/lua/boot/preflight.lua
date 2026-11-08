@@ -37,7 +37,7 @@ function M.clean_stale_owl(limit_mb)
 		return
 	end
 	if vim.fn.delete(dir, "rf") == 0 then
-		vim.notify(string.format("清掉 rustowl 产物 %s (%dMB)", dir, math.floor(kb / 1024)), vim.log.levels.INFO)
+		vim.notify(string.format("Removed rustowl output %s (%dMB)", dir, math.floor(kb / 1024)), vim.log.levels.INFO)
 	end
 end
 

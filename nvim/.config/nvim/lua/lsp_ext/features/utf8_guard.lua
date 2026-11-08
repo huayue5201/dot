@@ -330,7 +330,7 @@ local function guard_params(client, method, params)
 		local uri = type(params) == "table" and find_uri(params, 0) or nil
 		vim.notify(
 			string.format(
-				"[lsp-utf8-guard] %s 发送 %s 含非法 UTF-8\n  uri: %s\n  首个坏字节 @ %s  (hex: %s)\n  已替换/整篇替换后发送，避免 server 退出",
+				"[lsp-utf8-guard] %s sending %s with invalid UTF-8\n  uri: %s\n  first bad byte @ %s  (hex: %s)\n  sent after replacement/full rewrite to avoid server exit",
 				client.name,
 				method,
 				uri or "<unknown>",
@@ -480,7 +480,7 @@ repair_buffer = function(bufnr)
 	buf_repairing[bufnr] = nil
 
 	if not ok then
-		vim.notify("[lsp-utf8-guard] 修复 buffer 失败: " .. tostring(err), vim.log.levels.ERROR)
+		vim.notify("[lsp-utf8-guard] failed to repair buffer: " .. tostring(err), vim.log.levels.ERROR)
 		return
 	end
 
@@ -491,7 +491,7 @@ repair_buffer = function(bufnr)
 		local h = hits[1]
 		vim.notify(
 			string.format(
-				"[lsp-utf8-guard] 检测到非法 UTF-8 并已就地修复\n  buffer: %s (第 %d 行)\n  首个坏字节 @ %s (hex: %s)\n  本次修复 %d 行",
+				"[lsp-utf8-guard] detected invalid UTF-8 and repaired in place\n  buffer: %s (line %d)\n  first bad byte @ %s (hex: %s)\n  repaired %d lines",
 				vim.api.nvim_buf_get_name(bufnr),
 				h.lnum + 1,
 				tostring(h.at),

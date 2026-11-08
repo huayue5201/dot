@@ -229,7 +229,7 @@ function M.delete_session()
 	end
 
 	if #items == 0 then
-		vim.notify("没有可删除的已保存会话", vim.log.levels.INFO)
+		vim.notify("No saved sessions to delete", vim.log.levels.INFO)
 		return
 	end
 
@@ -242,15 +242,15 @@ function M.delete_session()
 		if not item then
 			return
 		end
-		local choice = vim.fn.confirm(string.format('删除会话 "%s"？', item.name), "&Yes\n&No", 2)
+		local choice = vim.fn.confirm(string.format('Delete session "%s"?', item.name), "&Yes\n&No", 2)
 		if choice ~= 1 then
 			return
 		end
 		local ok_del, err = store.delete(item.name)
 		if ok_del then
-			vim.notify(string.format('已删除会话 "%s"', item.name))
+			vim.notify(string.format('Deleted session "%s"', item.name))
 		else
-			vim.notify(string.format("删除会话失败: %s", tostring(err)), vim.log.levels.ERROR)
+			vim.notify(string.format("Failed to delete session: %s", tostring(err)), vim.log.levels.ERROR)
 		end
 	end)
 end

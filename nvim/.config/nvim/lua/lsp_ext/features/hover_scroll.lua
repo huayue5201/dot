@@ -68,7 +68,7 @@ function M.setup()
 			vim.api.nvim_win_call(win, function()
 				vim.cmd.normal({ args = { keys.scroll }, bang = true })
 			end)
-		end, { silent = true, desc = "滚动 LSP 悬停窗" })
+		end, { silent = true, desc = "Scroll LSP hover window" })
 	end
 end
 

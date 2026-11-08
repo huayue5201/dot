@@ -71,11 +71,11 @@ return {
 		-- 切换 quickfix 窗口
 		vim.keymap.set("n", "<localleader>q", function()
 			require("quicker").toggle()
-		end, { desc = "列表: 切换 quickfix (localfix)" })
+		end, { desc = "List: toggle quickfix (localfix)" })
 
 		-- 切换 loclist 窗口
 		vim.keymap.set("n", "<localleader>l", function()
 			require("quicker").toggle({ loclist = true })
-		end, { desc = "列表: 切换 loclist (local)" })
+		end, { desc = "List: toggle loclist (local)" })
 	end,
 }

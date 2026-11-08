@@ -147,7 +147,7 @@ function M.continue_last(bufnr)
 			require("dap").run(cfg)
 			return
 		end
-		vim.notify("上次的调试配置已不存在，改为打开选择器", vim.log.levels.INFO)
+		vim.notify("Previous debug config no longer exists, opening picker", vim.log.levels.INFO)
 	end
 	require("dap").continue()
 end
@@ -205,12 +205,12 @@ function M.setup()
 	-- 5) 命令
 	vim.api.nvim_create_user_command("DapContinueLast", function()
 		M.continue_last(0)
-	end, { desc = "运行本项目上次使用的调试配置" })
+	end, { desc = "Run the last debug config used in this project" })
 
 	vim.api.nvim_create_user_command("DapForgetLast", function()
 		M.clear(0)
-		vim.notify("已清除本项目的调试配置记录", vim.log.levels.INFO)
-	end, { desc = "清除本项目的调试配置记录" })
+		vim.notify("Cleared debug config record for this project", vim.log.levels.INFO)
+	end, { desc = "Clear this project's debug config history" })
 end
 
 return M

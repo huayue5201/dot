@@ -70,9 +70,9 @@ function M.request(client, method, params, opts, cb)
 		if err and opts.notify then
 			local label = opts.what or method
 			if err == "timeout" then
-				vim.notify(string.format("[lsp] %s 超时（%dms）", label, timeout), vim.log.levels.WARN)
+				vim.notify(string.format("[lsp] %s timed out (%dms)", label, timeout), vim.log.levels.WARN)
 			else
-				vim.notify(string.format("[lsp] %s 失败: %s", label, describe(err)), vim.log.levels.ERROR)
+				vim.notify(string.format("[lsp] %s failed: %s", label, describe(err)), vim.log.levels.ERROR)
 			end
 		end
 		cb(result, err)

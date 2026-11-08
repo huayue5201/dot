@@ -21,7 +21,7 @@ local picker = require("ui.picker")
 local function file_of(buf)
 	local name = vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_name(buf) or ""
 	if name == "" then
-		return "[无文件名]"
+		return "[no file name]"
 	end
 	return vim.fn.fnamemodify(name, ":~:.")
 end
@@ -141,7 +141,7 @@ function M.open(opts)
 
 	local items = refresh()
 	if #items == 0 then
-		vim.notify(("%s 栈是空的"):format(label), vim.log.levels.INFO)
+		vim.notify(("%s stack is empty"):format(label), vim.log.levels.INFO)
 		return
 	end
 
@@ -150,18 +150,18 @@ function M.open(opts)
 			it.nr,
 			it.current and "▸" or " ",
 			it.size,
-			it.title ~= "" and it.title or "[无标题]"
+			it.title ~= "" and it.title or "[untitled]"
 		)
 	end
 
 	local function preview(it)
 		local out =
-			{ ("%s %d：%s（%d 条）"):format(label, it.nr, it.title ~= "" and it.title or "[无标题]", it.size) }
+			{ ("%s %d: %s (%d items)"):format(label, it.nr, it.title ~= "" and it.title or "[untitled]", it.size) }
 		out[#out + 1] = ""
 		local raws = list_items(kind, winid, it.nr)
 		for i, raw in ipairs(raws) do
 			if i > 200 then
-				out[#out + 1] = ("…(还有 %d 条)"):format(#raws - 200)
+				out[#out + 1] = ("…(%d more)"):format(#raws - 200)
 				break
 			end
 			out[#out + 1] = entry_text(raw)
@@ -189,7 +189,7 @@ function M.open(opts)
 		else
 			vim.fn.setqflist({}, "r", { items = {}, title = info.title })
 		end
-		vim.notify(("%s %d 已清空"):format(label, item.nr), vim.log.levels.INFO)
+		vim.notify(("%s %d cleared"):format(label, item.nr), vim.log.levels.INFO)
 		ctx.set_items(refresh())
 	end
 
@@ -199,7 +199,7 @@ function M.open(opts)
 		table.remove(lists, item.nr)
 		if #lists == 0 then
 			free_all(kind, winid)
-			vim.notify(("%s 栈已清空"):format(label), vim.log.levels.INFO)
+			vim.notify(("%s stack cleared"):format(label), vim.log.levels.INFO)
 			ctx.close()
 			return
 		end
@@ -211,18 +211,18 @@ function M.open(opts)
 			keep = cur_nr - 1
 		end
 		rebuild(kind, winid, lists, keep)
-		vim.notify(("%s %d 已删除"):format(label, item.nr), vim.log.levels.INFO)
+		vim.notify(("%s %d deleted"):format(label, item.nr), vim.log.levels.INFO)
 		ctx.set_items(refresh())
 	end
 
 	picker.pick({
-		title = label .. " 栈",
+		title = label .. " stack",
 		items = items,
 		text = text,
 		preview = preview,
 		actions = {
-			{ key = "<C-x>", desc = "清空该层", fn = clear_list },
-			{ key = "<C-d>", desc = "删除该层", fn = delete_list },
+			{ key = "<C-x>", desc = "Clear this list", fn = clear_list },
+			{ key = "<C-d>", desc = "Delete this list", fn = delete_list },
 		},
 		on_choose = function(it)
 			goto_nr(kind, winid, it.nr)
@@ -234,14 +234,14 @@ end
 function M.setup()
 	vim.api.nvim_create_user_command("QfStack", function()
 		M.open({ kind = "qf" })
-	end, { desc = "切换 / 清理 quickfix 列表栈" })
+	end, { desc = "Toggle / cleanup quickfix list stack" })
 	vim.api.nvim_create_user_command("QfStackLoc", function()
 		M.open({ kind = "loc" })
-	end, { desc = "切换 / 清理 location list 栈" })
+	end, { desc = "Toggle / cleanup location list stack" })
 
 	vim.keymap.set("n", "<localleader>Q", function()
 		M.open({ kind = "qf" })
-	end, { desc = "列表: quickfix 栈（切换/清空/删除）" })
+	end, { desc = "List: quickfix stack (toggle/clear/delete)" })
 end
 
 return M

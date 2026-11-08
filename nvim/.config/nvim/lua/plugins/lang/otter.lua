@@ -96,7 +96,7 @@ return {
 				end
 				activate_when_ready(args.buf)
 			end,
-			desc = "markdown 等宿主文件里激活嵌入语言",
+			desc = "Activate embedded languages in host files such as markdown",
 		})
 
 		if vim.tbl_contains(host_fts, vim.bo.filetype) and should_activate(vim.api.nvim_get_current_buf()) then

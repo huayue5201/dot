@@ -78,6 +78,6 @@ return {
 
 		vim.keymap.set({ "n", "v" }, "<leader>zb", function()
 			require("visual-whitespace").toggle()
-		end, { desc = "空白: 切换可视化空白字符" })
+		end, { desc = "Whitespace: toggle visible whitespace" })
 	end,
 }

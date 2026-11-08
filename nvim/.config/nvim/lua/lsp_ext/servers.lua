@@ -99,10 +99,10 @@ function M.toggle()
 	local lsp_names = registry.get_lsp_by_filetype(vim.bo.filetype)
 
 	vim.ui.select(lsp_names, {
-		prompt = "选择 LSP 客户端：",
+		prompt = "Select LSP client:",
 		format_item = function(item)
 			local enabled = M.is_enabled(item)
-			return string.format("%-20s • 状态: %s", item, enabled and "active" or "inactive")
+			return string.format("%-20s • status: %s", item, enabled and "active" or "inactive")
 		end,
 	}, function(selected)
 		if not selected then

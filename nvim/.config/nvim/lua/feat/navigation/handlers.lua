@@ -51,7 +51,7 @@ function M.next_error()
 	local error_lines = M.get_error_lines()
 
 	if #error_lines == 0 then
-		vim.notify("未找到错误位置", vim.log.levels.WARN)
+		vim.notify("Error location not found", vim.log.levels.WARN)
 		return
 	end
 
@@ -70,7 +70,7 @@ function M.prev_error()
 	local error_lines = M.get_error_lines()
 
 	if #error_lines == 0 then
-		vim.notify("未找到错误位置", vim.log.levels.WARN)
+		vim.notify("Error location not found", vim.log.levels.WARN)
 		return
 	end
 
@@ -117,7 +117,7 @@ local closed_windows = {}
 
 vim.api.nvim_create_autocmd("WinClosed", {
 	group = vim.api.nvim_create_augroup("NavSmartCloseCleanup", { clear = true }),
-	desc = "清理 smart_close 的窗口标记",
+	desc = "Clean up smart_close window marks",
 	callback = function()
 		for win in pairs(closed_windows) do
 			if not vim.api.nvim_win_is_valid(win) then
@@ -201,7 +201,7 @@ function M.smart_close(target_win, close_map)
 			ok, errmsg = pcall(vim.cmd, strategy.cmd)
 		end
 		if not ok then
-			vim.notify(string.format("关闭失败：%s", tostring(errmsg)), vim.log.levels.ERROR)
+			vim.notify(string.format("Close failed: %s", tostring(errmsg)), vim.log.levels.ERROR)
 			return -- 不记账，允许再次尝试
 		end
 		closed_windows[win] = true
@@ -228,7 +228,7 @@ function M.smart_close(target_win, close_map)
 	-- 只剩一个窗口：切到别的 buffer 再删当前
 	local other_buf = pick_fallback_buf(buf)
 	if not other_buf then
-		if vim.fn.confirm("这是最后一个窗口，确认退出 Neovim？", "&是\n&否", 2) == 1 then
+		if vim.fn.confirm("This is the last window. Quit Neovim?", "&Yes\n&No", 2) == 1 then
 			vim.cmd("qa")
 		end
 		return
@@ -237,7 +237,7 @@ function M.smart_close(target_win, close_map)
 	-- 有未保存修改时不静默丢弃（'hidden' 开启时 buf_delete 会直接丢弃改动）
 	if vim.bo[buf].modified then
 		vim.notify(
-			string.format("缓冲区 %s 有未保存修改，已取消关闭", name ~= "" and name or "[No Name]"),
+			string.format("Buffer %s has unsaved changes; close cancelled", name ~= "" and name or "[No Name]"),
 			vim.log.levels.WARN
 		)
 		return
@@ -252,9 +252,9 @@ function M.smart_close(target_win, close_map)
 		end
 		vim.notify(
 			string.format(
-				"无法关闭 %s：%s",
+				"Cannot close %s: %s",
 				vim.fn.bufname(buf),
-				ok and "缓冲区仍存在（可能有未保存修改）" or tostring(errmsg)
+				ok and "buffer still exists (possibly unsaved changes)" or tostring(errmsg)
 			),
 			vim.log.levels.WARN
 		)

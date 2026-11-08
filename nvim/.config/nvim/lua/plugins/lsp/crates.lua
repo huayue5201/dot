@@ -22,7 +22,7 @@ return {
 			expand_crate_moves_cursor = true,
 			enable_update_available_warning = true,
 			on_attach = function(bufnr) end,
-			text = { searching = "   搜索中", loading = "   加载中" },
+			text = { searching = "   Searching", loading = "   Loading" },
 			popup = { autofocus = true, hide_on_select = true, style = "minimal", border = "shadow" },
 			lsp = { enabled = true, actions = true, completion = true, hover = true },
 		})
@@ -63,7 +63,7 @@ return {
 					require("which-key").add({
 						{
 							"<localleader>c",
-							group = "依赖 (crates)",
+							group = "Dependencies (crates)",
 							icon = { icon = "󰏗 ", color = "green" },
 							buffer = args.buf,
 						},
@@ -73,29 +73,34 @@ return {
 		})
 
 		-- Crates 按键映射
-		map_cargo("n", "<localleader>ct", crates.toggle, { desc = "依赖: 切换" })
-		map_cargo("n", "<localleader>cr", crates.reload, { desc = "依赖: 重载" })
-		map_cargo("n", "<localleader>cv", crates.show_versions_popup, { desc = "依赖: 显示版本" })
-		map_cargo("n", "<localleader>cf", crates.show_features_popup, { desc = "依赖: 显示功能" })
-		map_cargo("n", "<localleader>cd", crates.show_dependencies_popup, { desc = "依赖: 显示依赖项" })
-		map_cargo("n", "<localleader>cu", crates.update_crate, { desc = "依赖: 更新当前包" })
-		map_cargo("v", "<localleader>cu", crates.update_crates, { desc = "依赖: 更新选中包" })
-		map_cargo("n", "<localleader>ca", crates.update_all_crates, { desc = "依赖: 更新所有包" })
-		map_cargo("n", "<localleader>cU", crates.upgrade_crate, { desc = "依赖: 升级当前包" })
-		map_cargo("v", "<localleader>cU", crates.upgrade_crates, { desc = "依赖: 升级选中包" })
-		map_cargo("n", "<localleader>cA", crates.upgrade_all_crates, { desc = "依赖: 升级所有包" })
+		map_cargo("n", "<localleader>ct", crates.toggle, { desc = "Dependency: toggle" })
+		map_cargo("n", "<localleader>cr", crates.reload, { desc = "Dependency: reload" })
+		map_cargo("n", "<localleader>cv", crates.show_versions_popup, { desc = "Dependency: show versions" })
+		map_cargo("n", "<localleader>cf", crates.show_features_popup, { desc = "Dependency: show features" })
+		map_cargo("n", "<localleader>cd", crates.show_dependencies_popup, { desc = "Dependency: show dependencies" })
+		map_cargo("n", "<localleader>cu", crates.update_crate, { desc = "Dependency: update current crate" })
+		map_cargo("v", "<localleader>cu", crates.update_crates, { desc = "Dependency: update selected crates" })
+		map_cargo("n", "<localleader>ca", crates.update_all_crates, { desc = "Dependency: update all crates" })
+		map_cargo("n", "<localleader>cU", crates.upgrade_crate, { desc = "Dependency: upgrade current crate" })
+		map_cargo("v", "<localleader>cU", crates.upgrade_crates, { desc = "Dependency: upgrade selected crates" })
+		map_cargo("n", "<localleader>cA", crates.upgrade_all_crates, { desc = "Dependency: upgrade all crates" })
 		map_cargo(
 			"n",
 			"<localleader>cx",
 			crates.expand_plain_crate_to_inline_table,
-			{ desc = "依赖: 展开到内联表" }
+			{ desc = "Dependency: expand to inline table" }
 		)
-		map_cargo("n", "<localleader>cX", crates.extract_crate_into_table, { desc = "依赖: 提取到独立表" })
-		map_cargo("n", "<localleader>cH", crates.open_homepage, { desc = "依赖: 打开主页" })
-		map_cargo("n", "<localleader>cR", crates.open_repository, { desc = "依赖: 打开仓库" })
-		map_cargo("n", "<localleader>cD", crates.open_documentation, { desc = "依赖: 打开文档" })
-		map_cargo("n", "<localleader>cC", crates.open_crates_io, { desc = "依赖: 打开 crates.io" })
-		map_cargo("n", "<localleader>cL", crates.open_lib_rs, { desc = "依赖: 打开 lib.rs" })
+		map_cargo(
+			"n",
+			"<localleader>cX",
+			crates.extract_crate_into_table,
+			{ desc = "Dependency: extract into separate table" }
+		)
+		map_cargo("n", "<localleader>cH", crates.open_homepage, { desc = "Dependency: open homepage" })
+		map_cargo("n", "<localleader>cR", crates.open_repository, { desc = "Dependency: open repository" })
+		map_cargo("n", "<localleader>cD", crates.open_documentation, { desc = "Dependency: open documentation" })
+		map_cargo("n", "<localleader>cC", crates.open_crates_io, { desc = "Dependency: open crates.io" })
+		map_cargo("n", "<localleader>cL", crates.open_lib_rs, { desc = "Dependency: open lib.rs" })
 
 		-- 显示文档（回退到 LSP 悬停提示）
 		local function show_documentation()
@@ -105,6 +110,6 @@ return {
 				vim.lsp.buf.hover()
 			end
 		end
-		map_cargo("n", "K", show_documentation, { desc = "依赖: 显示文档", silent = true })
+		map_cargo("n", "K", show_documentation, { desc = "Dependency: show documentation", silent = true })
 	end,
 }

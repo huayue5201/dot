@@ -42,7 +42,7 @@ end
 local function fd_find_files(root)
 	-- 如果没有 fd，直接警告
 	if vim.fn.executable("fd") ~= 1 then
-		vim.notify("未检测到 fd 命令，请先安装：brew install fd", vim.log.levels.WARN)
+		vim.notify("fd command not found, install it first: brew install fd", vim.log.levels.WARN)
 		return {}
 	end
 
@@ -82,7 +82,7 @@ function M.select_debug_file()
 	local files = fd_find_files(root)
 
 	if #files == 0 then
-		vim.notify("未找到可调试文件，没有可执行文件", vim.log.levels.WARN)
+		vim.notify("No debuggable files found (no executable)", vim.log.levels.WARN)
 		return nil
 	end
 
@@ -105,7 +105,7 @@ function M.select_debug_file()
 	end
 
 	vim.ui.select(select_items, {
-		prompt = "请选择调试文件:",
+		prompt = "Select debug file:",
 		format_item = function(item)
 			return item.display
 		end,

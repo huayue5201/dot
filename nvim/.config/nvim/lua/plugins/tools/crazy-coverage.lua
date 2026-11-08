@@ -3,9 +3,9 @@
 return {
 	"mr-u0b0dy/crazy-coverage.nvim",
 	keys = {
-		{ "<leader>tc", "<cmd>CoverageToggle<CR>", desc = "切换覆盖率" },
-		{ "<leader>tg", "<cmd>CoverageSummary<CR>", desc = "覆盖率汇总" },
-		{ "<leader>te", "<cmd>CoverageToggleNeoTree<CR>", desc = "切换neotree覆盖率" },
+		{ "<leader>tc", "<cmd>CoverageToggle<CR>", desc = "Toggle coverage" },
+		{ "<leader>tg", "<cmd>CoverageSummary<CR>", desc = "Coverage summary" },
+		{ "<leader>te", "<cmd>CoverageToggleNeoTree<CR>", desc = "Toggle neotree coverage" },
 	},
 	config = function()
 		require("crazy-coverage").setup({

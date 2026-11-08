@@ -140,7 +140,7 @@ return {
 			if vim.api.nvim_win_is_valid(current_win) then
 				vim.api.nvim_set_current_win(current_win)
 			end
-		end, { silent = true, desc = "窗口: 关闭选中的窗口（统一 smart_close）" })
+		end, { silent = true, desc = "Window: close selected window (unified smart_close)" })
 
 		vim.keymap.set("n", "<leader>ww", function()
 			local success, picker = pcall(require, "window-picker")
@@ -168,7 +168,7 @@ return {
 			})
 			if not target then
 				if abort_info and abort_info.aborted then
-					print(abort_info.source .. " 的当前窗口被 zoom 到其他 pane，选择器已跳过")
+					print(abort_info.source .. " current window is zoomed to another pane; picker skipped")
 				else
 					print("No window picked!")
 				end
@@ -178,7 +178,7 @@ return {
 			if target.kind == "nvim" then
 				vim.api.nvim_set_current_win(target.window)
 			end
-		end, { silent = true, desc = "窗口: 选择 nvim 窗口 / herdr pane" })
+		end, { silent = true, desc = "Window: select nvim window / herdr pane" })
 
 		vim.keymap.set("n", "<leader>ws", function()
 			local success, picker = pcall(require, "window-picker")
@@ -200,6 +200,6 @@ return {
 			else
 				print("No window picked!")
 			end
-		end, { silent = true, desc = "窗口: 与目标窗口交换 buffer" })
+		end, { silent = true, desc = "Window: swap buffer with target window" })
 	end,
 }

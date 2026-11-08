@@ -111,7 +111,7 @@ function M.show(locations, title)
 	end
 	local ok, items = pcall(vim.lsp.util.locations_to_items, locations, "utf-16")
 	if not ok or not items or #items == 0 then
-		notify("无法解析位置列表", vim.log.levels.ERROR)
+		notify("Cannot resolve location list", vim.log.levels.ERROR)
 		return false
 	end
 	for _, item in ipairs(items) do

@@ -254,7 +254,7 @@ end
 
 local function lang_of(path)
 	local ext = path:match("%.([%w]+)$")
-	return ext and EXT_LANG[ext:lower()] or "其他"
+	return ext and EXT_LANG[ext:lower()] or "other"
 end
 
 --- 某个目录对应的项目根（不在 git 里就退回 cwd）

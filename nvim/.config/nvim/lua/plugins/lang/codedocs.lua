@@ -35,7 +35,7 @@ return {
 			if supported(vim.bo[buf].filetype) then
 				vim.keymap.set("n", "gcd", "<cmd>Codedocs<cr>", {
 					buffer = buf,
-					desc = "插入代码注释",
+					desc = "Insert code comment",
 				})
 			end
 		end

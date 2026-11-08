@@ -13,14 +13,14 @@ return {
 			function()
 				require("comment-divider").commentLine()
 			end,
-			desc = "注释分隔线（插入到下方）",
+			desc = "Comment divider (insert below)",
 		},
 		{
 			"gc=",
 			function()
 				require("comment-divider").commentBox()
 			end,
-			desc = "注释框（插入到下方）",
+			desc = "Comment box (insert below)",
 		},
 	},
 

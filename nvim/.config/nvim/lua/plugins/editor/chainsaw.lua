@@ -40,7 +40,7 @@ return {
 			end,
 			mode = { "n", "x" },
 			ft = SUPPORTED_FTS,
-			desc = "打印：变量 (variableLog)",
+			desc = "Print: variable (variableLog)",
 		},
 		{
 			"g?o",
@@ -49,7 +49,7 @@ return {
 			end,
 			mode = { "n", "x" },
 			ft = SUPPORTED_FTS,
-			desc = "打印：对象 (objectLog)",
+			desc = "Print: object (objectLog)",
 		},
 		{
 			"g?t",
@@ -58,7 +58,7 @@ return {
 			end,
 			mode = { "n", "x" },
 			ft = SUPPORTED_FTS,
-			desc = "打印：类型 (typeLog)",
+			desc = "Print: type (typeLog)",
 		},
 		{
 			"g?a",
@@ -67,7 +67,7 @@ return {
 			end,
 			mode = { "n", "x" },
 			ft = SUPPORTED_FTS,
-			desc = "打印：断言 (assertLog)",
+			desc = "Print: assert (assertLog)",
 		},
 
 		-- 控制流 / 消息 / 声音
@@ -77,7 +77,7 @@ return {
 				require("chainsaw").emojiLog()
 			end,
 			ft = SUPPORTED_FTS,
-			desc = "打印：emoji 控制流 (emojiLog)",
+			desc = "Print: emoji control flow (emojiLog)",
 		},
 		{
 			"g?m",
@@ -85,7 +85,7 @@ return {
 				require("chainsaw").messageLog()
 			end,
 			ft = SUPPORTED_FTS,
-			desc = "打印：消息 (messageLog)",
+			desc = "Print: message (messageLog)",
 		},
 		{
 			"g?S",
@@ -93,7 +93,7 @@ return {
 				require("chainsaw").sound()
 			end,
 			ft = SUPPORTED_FTS,
-			desc = "打印：声音 (sound)",
+			desc = "Print: sound (sound)",
 		},
 
 		-- 计时 / debugger / 堆栈 / 清屏
@@ -103,7 +103,7 @@ return {
 				require("chainsaw").timeLog()
 			end,
 			ft = SUPPORTED_FTS,
-			desc = "打印：计时 (timeLog)",
+			desc = "Print: timer (timeLog)",
 		},
 		{
 			"g?d",
@@ -111,7 +111,7 @@ return {
 				require("chainsaw").debugLog()
 			end,
 			ft = SUPPORTED_FTS,
-			desc = "打印：debugger 断点 (debugLog)",
+			desc = "Print: debugger breakpoint (debugLog)",
 		},
 		{
 			"g?s",
@@ -119,7 +119,7 @@ return {
 				require("chainsaw").stacktraceLog()
 			end,
 			ft = SUPPORTED_FTS,
-			desc = "打印：堆栈 (stacktraceLog)",
+			desc = "Print: stack trace (stacktraceLog)",
 		},
 		{
 			"g?c",
@@ -127,7 +127,7 @@ return {
 				require("chainsaw").clearLog()
 			end,
 			ft = SUPPORTED_FTS,
-			desc = "打印：清屏 (clearLog)",
+			desc = "Print: clear screen (clearLog)",
 		},
 
 		-- 删除本插件插入的语句（可视模式只删选中范围内的）
@@ -138,7 +138,7 @@ return {
 			end,
 			mode = { "n", "x" },
 			ft = SUPPORTED_FTS,
-			desc = "打印：删除所有 chainsaw 语句 (removeLogs)",
+			desc = "Print: remove all chainsaw statements (removeLogs)",
 		},
 	},
 }

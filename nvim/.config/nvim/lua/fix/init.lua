@@ -33,11 +33,11 @@
 local M = {}
 
 local STATUS_LABEL = {
-	present = "仍需要",
-	updated = "上游有变动",
-	removed = "可删除",
-	changed = "需复检",
-	unknown = "无法判定",
+	present = "still needed",
+	updated = "upstream changed",
+	removed = "removable",
+	changed = "needs review",
+	unknown = "unknown",
 }
 
 -- 状态文件：记录「上次已经提醒过的 (id, rev, status)」，避免每次启动重复吵
@@ -75,7 +75,7 @@ function M.all()
 				item.module, item.file = module, path
 			else
 				item.id = name
-				item.title = "（缺少 M.meta，未纳入监控）"
+				item.title = "(missing M.meta, not monitored)"
 			end
 			out[#out + 1] = item
 		end
@@ -253,38 +253,38 @@ function M.describe(row)
 		lines[#lines + 1] = select("#", ...) > 0 and string.format(fmt, ...) or fmt
 	end
 
-	add("状态：%s（%s）", STATUS_LABEL[row.status] or row.status, row.status)
-	add("修复：%s — %s", meta.id or "?", meta.title or "")
+	add("Status: %s (%s)", STATUS_LABEL[row.status] or row.status, row.status)
+	add("Fix: %s — %s", meta.id or "?", meta.title or "")
 	if meta.issue then
-		add("上游：%s", meta.issue)
+		add("Upstream: %s", meta.issue)
 	end
 	if row.rev then
 		add(
-			"rev：%s%s",
+			"rev: %s%s",
 			row.rev:sub(1, 12),
-			row.rev_changed and ("（写 fix 时是 " .. tostring(meta.baseline_rev) .. "）") or "（未变）"
+			row.rev_changed and ("(when fix was written: " .. tostring(meta.baseline_rev) .. ")") or "(unchanged)"
 		)
 	end
 	if row.dir == nil then
-		add("插件目录：找不到 %s（改了名或没装？）", tostring(meta.plugin))
+		add("Plugin directory: cannot find %s (renamed or not installed?)", tostring(meta.plugin))
 	end
 
 	if #row.buggy_hits > 0 then
 		add("")
-		add("仍命中 bug 标记：")
+		add("Still matches bug markers:")
 		for _, h in ipairs(row.buggy_hits) do
 			add("  %s:%s  %s", h.marker.file, tostring(h.hit.line or "-"), h.marker.contains)
 		end
 	elseif #row.fixed_hits > 0 then
 		add("")
-		add("命中「已修」标记：")
+		add("Matches 'fixed' markers:")
 		for _, h in ipairs(row.fixed_hits) do
 			add("  %s:%s  %s", h.marker.file, tostring(h.hit.line or "-"), h.marker.contains)
 		end
 	end
 	if #row.missing > 0 then
 		add("")
-		add("标记文件不存在（上游可能重构过）：")
+		add("Marker files do not exist (upstream may have refactored):")
 		for _, p in ipairs(row.missing) do
 			add("  %s", p)
 		end
@@ -292,14 +292,14 @@ function M.describe(row)
 
 	if row.status == "removed" or row.status == "changed" then
 		add("")
-		add("清理步骤：")
-		add("  1. 删除 %s", vim.fn.fnamemodify(meta.file or "", ":~:."))
+		add("Cleanup steps:")
+		add("  1. Delete %s", vim.fn.fnamemodify(meta.file or "", ":~:."))
 		local sites = M.require_sites(meta.module or "")
 		if #sites == 0 then
-			add('  2. lua/plugins/ 里没找到 require("%s")（已删过？）', meta.module or "?")
+			add('  2. no require("%s") found in lua/plugins/ (already deleted?)', meta.module or "?")
 		else
 			for i, site in ipairs(sites) do
-				add('  %d. 删除 %s 里的 require("%s") 那一行', i + 1, site, meta.module)
+				add('  %d. Delete the require("%s") line in %s', i + 1, site, meta.module)
 			end
 		end
 		for _, step in ipairs(meta.cleanup or {}) do
@@ -313,7 +313,7 @@ end
 function M.report()
 	local rows = M.check()
 	if #rows == 0 then
-		vim.notify("lua/fix/ 里没有需要监控的临时修复", vim.log.levels.INFO)
+		vim.notify("No temporary fixes to monitor in lua/fix/", vim.log.levels.INFO)
 		return
 	end
 	local order = { removed = 0, changed = 1, updated = 2, unknown = 3, present = 4 }
@@ -323,7 +323,7 @@ function M.report()
 	end)
 
 	require("ui.picker").pick({
-		title = "FIX 守卫（lua/fix/ 临时修复的上游状态）",
+		title = "FIX guard (upstream status of temporary fixes in lua/fix/)",
 		items = rows,
 		text = function(row)
 			return string.format(
@@ -385,10 +385,14 @@ function M.notify_if_news(opts)
 
 	local parts = {}
 	for _, row in ipairs(news) do
-		parts[#parts + 1] = string.format("%s：%s", STATUS_LABEL[row.status] or row.status, row.meta.id or "?")
+		parts[#parts + 1] = string.format("%s: %s", STATUS_LABEL[row.status] or row.status, row.meta.id or "?")
 	end
 	vim.notify(
-		string.format("lua/fix/ 有 %d 条要处理 — %s\n:FixStatus 查看详情", #news, table.concat(parts, "；")),
+		string.format(
+			"lua/fix/ has %d item(s) to handle — %s\nSee :FixStatus for details",
+			#news,
+			table.concat(parts, "; ")
+		),
 		vim.log.levels.WARN
 	)
 	if opts and opts.open_on_news then
@@ -402,7 +406,7 @@ function M.setup(opts)
 
 	vim.api.nvim_create_user_command("FixStatus", function()
 		M.report()
-	end, { desc = "监控 lua/fix/ 里临时修复的上游状态（上游修好会提示删除）" })
+	end, { desc = "Watch upstream status of temporary fixes in lua/fix/ (prompts removal once fixed)" })
 
 	if opts.check_on_startup then
 		vim.defer_fn(function()
