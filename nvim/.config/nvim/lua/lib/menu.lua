@@ -38,6 +38,13 @@
 -- 提示文本（prompt）显示在浮窗上边框中间；输入模式时列表下方**单独浮一个输入框**
 -- （" ❯ " + 查询），跟 dropbar 的菜单一致。输入位置用一个 Cursor 高亮的格子画出来：
 -- 浮窗里的真光标在部分终端/配置下根本不显示，不能只依赖它。
+-- 颜色/图标：`vim.ui.select` 的契约只有 `format_item(item):string`，拿不到 per-item 高亮。
+-- 这里接两条事实标准（都不改契约，只把既有信息用起来）：
+--   1. `format_item` 返回**第二个值** `virt_text`：chunk 列表 `{ {text, hl_group}, ... }`
+--      （dropbar 的 utils.menu 就是这么用的），以 'eol' 虚拟文本挂在条目行尾；
+--   2. 条目本身是结构化 table（`name`/`text`/`label` + `icon`/`icon_hl`/`name_hl`，dropbar
+--      symbol 的形状）且没给 format_item 时，按字段拆出图标与名称并分别挂高亮。
+-- 需要真正的预览（整块彩色内容）请走 ui/picker，不要往这里加。
 
 local api = vim.api
 local fn = vim.fn
@@ -94,21 +101,99 @@ function M.label_width(total)
 	return math.max(2, #tostring(math.max(total, 1)))
 end
 
+--- 把 format_item 返回的第二值（virt_text chunk 列表）规整成 { {text, hl}, ... }
+--- 接受 string[][]、字符串[]、或单个字符串（默认注释色）。换行压成空格：
+--- 条目行高固定为 1 行，任何 chunk 里出现换行都会把后续条目挤下去。
+---@param raw any
+---@return string[][]
+local function sanitize_virt(raw)
+	if type(raw) == "string" then
+		return { { raw:gsub("[\r\n]+", " "), "Comment" } }
+	end
+	if type(raw) ~= "table" then
+		return {}
+	end
+	local out = {}
+	for _, chunk in ipairs(raw) do
+		local text, hl
+		if type(chunk) == "string" then
+			text = chunk
+		elseif type(chunk) == "table" then
+			text, hl = chunk[1], chunk[2]
+		end
+		if type(text) == "string" and text ~= "" then
+			out[#out + 1] = { (text:gsub("[\r\n]+", " ")), type(hl) == "string" and hl or "Comment" }
+		end
+	end
+	return out
+end
+
+--- 条目 -> 可显示文本 + 可选高亮信息
+--- 优先用调用方的 format_item（其第二返回值当 virt_text）；没有时认结构化条目
+--- （dropbar symbol 的 `icon`/`icon_hl`/`name`/`name_hl`），最后退回 tostring。
+---@param item any
+---@param format_item? fun(item: any): string, string[][]?
+---@return { text: string, virt?: string[][], icon_len: integer, icon_hl?: string, name_hl?: string }
+function M.describe(item, format_item)
+	local text, virt
+	if format_item then
+		text, virt = format_item(item)
+	end
+	local out = { text = "", icon_len = 0 }
+	if type(text) == "string" then
+		out.text = text
+	elseif type(item) == "table" then
+		local name = item.name or item.text or item.label
+		if type(name) == "string" then
+			local icon = type(item.icon) == "string" and item.icon or ""
+			out.text = icon .. name
+			out.icon_len = #icon
+			out.icon_hl = item.icon_hl
+			out.name_hl = item.name_hl
+		end
+	end
+	if out.text == "" then
+		out.text = tostring(item)
+		out.icon_len, out.icon_hl, out.name_hl = 0, nil, nil
+	end
+	if virt ~= nil then
+		local chunks = sanitize_virt(virt)
+		if #chunks > 0 then
+			out.virt = chunks
+		end
+	end
+	return out
+end
+
 ---模糊过滤（Vim 自带 matchfuzzypos，返回命中位置用于高亮）
 ---@param items any[]
 ---@param query string
----@param format_item? fun(item: any): string
----@return { item: any, idx: integer, text: string, positions: integer[] }[]
+---@param format_item? fun(item: any): string, string[][]?
+---@return { item: any, idx: integer, text: string, positions: integer[], virt?: string[][], icon_len: integer, icon_hl?: string, name_hl?: string }[]
 function M.filter(items, query, format_item)
-	local fmt = format_item or tostring
-	local texts = {}
+	local descs, texts = {}, {}
 	for i, item in ipairs(items) do
-		texts[i] = fmt(item)
+		local d = M.describe(item, format_item)
+		descs[i] = d
+		texts[i] = d.text
 	end
 	local out = {}
+	local function push(idx, positions)
+		local d = descs[idx]
+		out[#out + 1] = {
+			item = items[idx],
+			idx = idx,
+			text = d.text,
+			positions = positions,
+			virt = d.virt,
+			icon_len = d.icon_len,
+			icon_hl = d.icon_hl,
+			name_hl = d.name_hl,
+		}
+	end
 	if query == "" then
-		for i, item in ipairs(items) do
-			out[#out + 1] = { item = item, idx = i, text = texts[i], positions = {} }
+		for i = 1, #items do
+			push(i, {})
 		end
 		return out
 	end
@@ -127,7 +212,7 @@ function M.filter(items, query, format_item)
 			end
 			if idx then
 				used[idx] = true
-				out[#out + 1] = { item = items[idx], idx = idx, text = text, positions = (packed[2] or {})[n] or {} }
+				push(idx, (packed[2] or {})[n] or {})
 			end
 		end
 		if #out > 0 then
@@ -139,7 +224,7 @@ function M.filter(items, query, format_item)
 	-- 逐字节标会把多字节字符切成半个字。
 	local needle = query:lower()
 	local needle_chars = fn.strchars(needle)
-	for i, item in ipairs(items) do
+	for i = 1, #items do
 		local text = texts[i]
 		local s = text:lower():find(needle, 1, true)
 		if s then
@@ -148,7 +233,7 @@ function M.filter(items, query, format_item)
 			for n = 0, needle_chars - 1 do
 				pos[#pos + 1] = fn.byteidx(text, first + n)
 			end
-			out[#out + 1] = { item = item, idx = i, text = text, positions = pos }
+			push(i, pos)
 		end
 	end
 	return out
@@ -435,7 +520,14 @@ local function render(state)
 	for i = 1, total do
 		local entry = view[i]
 		if entry then
-			content_w = math.max(content_w, fn.strdisplaywidth(" " .. M.line(i, entry.text, label_w)))
+			local w = fn.strdisplaywidth(" " .. M.line(i, entry.text, label_w))
+			-- 行尾虚拟文本也要算进宽度，否则颜色/徽标会被浮窗边框裁掉
+			if entry.virt then
+				for _, chunk in ipairs(entry.virt) do
+					w = w + 1 + fn.strdisplaywidth(chunk[1])
+				end
+			end
+			content_w = math.max(content_w, w)
 			if content_w >= M.config.width then
 				break -- 已经到上限，不必再量
 			end
@@ -528,6 +620,33 @@ local function render(state)
 					hl_group = label_hl,
 				})
 			end
+			-- 条目自带的高亮（结构化条目的 icon/name，见 M.describe）：
+			-- 它们相对 text_start 逐段挂，不影响下面的命中高亮
+			local seg_start = text_start
+			if (entry.icon_len or 0) > 0 then
+				local icon_end = seg_start + entry.icon_len
+				if entry.icon_hl then
+					api.nvim_buf_set_extmark(state.buf, ns, lnum, seg_start, {
+						end_col = math.min(#text_line, icon_end),
+						hl_group = entry.icon_hl,
+					})
+				end
+				seg_start = icon_end
+			end
+			if entry.name_hl then
+				api.nvim_buf_set_extmark(state.buf, ns, lnum, seg_start, {
+					end_col = math.min(#text_line, seg_start + #entry.text - (entry.icon_len or 0)),
+					hl_group = entry.name_hl,
+				})
+			end
+			-- format_item 的第二返回值：附在行尾的虚拟文本（颜色/图标/补充信息）
+			if entry.virt then
+				api.nvim_buf_set_extmark(state.buf, ns, lnum, 0, {
+					virt_text = entry.virt,
+					virt_text_pos = "eol",
+				})
+			end
+
 			for _, pos in ipairs(entry.positions) do
 				local col = text_start + pos
 				if col < #text_line then
@@ -612,7 +731,7 @@ end
 
 ---打开选择菜单（vim.ui.select 兼容签名）
 ---@param items any[]
----@param opts? { prompt?: string, format_item?: fun(item:any):string, kind?: string }
+---@param opts? { prompt?: string, format_item?: fun(item:any):string, string[][]?, kind?: string }
 ---@param on_choice? fun(item: any?, idx: integer?)
 ---@return boolean 是否真的打开了（已有菜单在开时返回 false）
 function M.select(items, opts, on_choice)
