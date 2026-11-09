@@ -525,6 +525,68 @@ local function run_build(spec)
 	return true
 end
 
+----------------------------------------------------------------------
+-- build 产物与源版本的一致性
+--
+-- vim.pack 只换文件、不跑 build（:PackLocalSync、:Pack update 都一样），所以
+-- 有 build 字段的插件只要源 rev 变了，产物就是旧的（nvim-translator 的 Rust
+-- 二进制就因此和 lua 不同步）。这里记录「每个插件上一次 build 成功的 rev」，
+-- 启动时发现 rev 变了就补一次 build。
+----------------------------------------------------------------------
+
+local built_stamp = vim.fs.joinpath(vim.fn.stdpath("data"), "pack-built.json")
+
+---@param dir string
+---@return string|nil rev
+local function git_rev(dir)
+	if not vim.uv.fs_stat(dir) then
+		return nil
+	end
+	local ok, out = pcall(function()
+		return vim.system({ "git", "-C", dir, "rev-parse", "HEAD" }, { text = true }):wait(2000)
+	end)
+	if not ok or not out or out.code ~= 0 then
+		return nil
+	end
+	local rev = vim.trim(out.stdout or "")
+	return rev ~= "" and rev or nil
+end
+
+local built
+local built_dirty = false
+---第一次运行（还没有 stamp 文件）：不做任何重建，只把当前 rev 记成基线，
+---避免升级到这套机制时把所有 build 插件（含 :TSUpdate）全部重跑一遍。
+local built_missing = false
+
+---@return table<string, string> name -> rev
+local function read_built()
+	if built then
+		return built
+	end
+	built = {}
+	local ok, lines = pcall(vim.fn.readfile, built_stamp)
+	if ok and type(lines) == "table" and #lines > 0 then
+		local okj, data = pcall(vim.json.decode, table.concat(lines, "\n"))
+		if okj and type(data) == "table" then
+			built = data
+			return built
+		end
+	end
+	built_missing = true
+	return built
+end
+
+---记录某个插件当前 rev 已构建成功
+local function record_built(spec)
+	local rev = git_rev(pack_path(spec.name))
+	if not rev then
+		return
+	end
+	local data = read_built()
+	data[spec.name] = rev
+	pcall(vim.fn.writefile, { vim.json.encode(data) }, built_stamp)
+end
+
 local function run_init(spec)
 	if type(spec.init) == "function" then
 		local ok, err = pcall(spec.init, plugin_object(spec))
@@ -667,6 +729,54 @@ local function configure_spec(spec)
 	end
 end
 
+--- rev 变了（或从未记录过）说明产物可能是旧的
+---@return boolean
+local function stale_build(spec)
+	if not spec.build then
+		return false
+	end
+	local rev = git_rev(pack_path(spec.name))
+	if not rev then
+		return false
+	end
+	local data = read_built()
+	if built_missing then
+		-- 基线：认为磁盘上的产物与当前源一致，只记录下来（统一在 flush_built 落盘）。
+		data[spec.name] = rev
+		built_dirty = true
+		return false
+	end
+	return data[spec.name] ~= rev
+end
+
+---把基线 / 重建结果写回 stamp 文件（每批插件跑完一次，避免逐个写盘）
+local function flush_built()
+	if not built_dirty then
+		return
+	end
+	pcall(vim.fn.writefile, { vim.json.encode(read_built()) }, built_stamp)
+	built_dirty = false
+end
+
+--- 本地 dir 插件的 build 一般很快（cargo/make 已经很干净时是空转），直接同步跑，
+--- 保证本进程里立刻就有新产物；远程插件可能很重（:TSUpdate、下载二进制），推到
+--- 启动完成之后跑，避免卡启动。
+local function rebuild_now(spec)
+	local local_src = type(spec.src) == "string" and vim.startswith(spec.src, "/") and vim.uv.fs_stat(spec.src)
+	if local_src then
+		if run_build(spec) then
+			record_built(spec)
+		end
+		return
+	end
+	vim.schedule(function()
+		if run_build(spec) then
+			record_built(spec)
+		end
+		report_errors()
+	end)
+end
+
 --- 只激活（进 rtp + source plugin/ + 跑 build），不跑 config
 local function activate_batch(batch)
 	local paths = {}
@@ -687,10 +797,15 @@ local function activate_batch(batch)
 		end
 		-- 新装的插件先跑 build（此时 plugin/ 已 source，:TSUpdate 之类的命令才存在）
 		if fresh[spec.src] then
-			run_build(spec)
+			if run_build(spec) then
+				record_built(spec)
+			end
+		elseif stale_build(spec) then
+			rebuild_now(spec)
 		end
 		source_dir(paths[i] .. "/after/plugin")
 	end
+	flush_built()
 end
 
 --- 加载一批插件，分三步：① 整批进 rtp + source plugin/（源与 :packadd 等价，但一次赋值
@@ -964,7 +1079,11 @@ end, { desc = "清理 spec 里已移除的插件目录", bang = true })
 function M.rebuild(name)
 	for _, spec in ipairs(order) do
 		if spec.name == name then
-			return run_build(spec)
+			local ok = run_build(spec)
+			if ok then
+				record_built(spec)
+			end
+			return ok
 		end
 	end
 	return true
