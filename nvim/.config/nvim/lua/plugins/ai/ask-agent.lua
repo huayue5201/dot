@@ -1,5 +1,6 @@
 -- https://github.com/huayue5201/ask-agent.nvim
 -- 「在 nvim 里写问题，连同锚点发给外部 agent」的通道（:AskAgent / <leader>aq）。
+-- 批量模式：<leader>ab 入队（源码行留 sign + 虚拟文本）、<leader>aB 一次全发。
 -- 本地开发用 dir，稳定后改成 "huayue5201/ask-agent.nvim" 走远端。
 
 return {
@@ -18,6 +19,10 @@ return {
 				ask = "<leader>aq",
 				ask_visual = "<leader>aq",
 				alias = "<leader>ai",
+				-- 批量：<leader>ab 入队，<leader>aB 逐条全发；:AskAgentBatchList 管理队列
+				batch = "<leader>ab",
+				batch_visual = "<leader>ab",
+				batch_send = "<leader>aB",
 			},
 		})
 

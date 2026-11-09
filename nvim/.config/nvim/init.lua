@@ -35,8 +35,9 @@ require("feat.navigation").setup() -- 导航/窗口：buffer 快捷键、buffer 
 require("feat.spell").setup() -- 拼写检查：文本类 buffer 自动开，<leader>zw 手动（中文靠 cjk，技术词靠 dirtytalk）
 require("boot.autocmds") -- 加载自动命令
 require("boot.keymaps") -- 加载按键映射
--- <leader>aq：浮窗写问题，连同锚点发给外部 AI（独立插件 huayue5201/ask-agent.nvim，
--- 装载与 setup 在 lua/plugins/ai/ask-agent.lua；上下文桥由 setup 自动 attach）
+-- <leader>aq：浮窗写问题，连同锚点发给外部 AI；<leader>ab 入队、<leader>aB 批量发送
+-- （独立插件 huayue5201/ask-agent.nvim，装载与 setup 在 lua/plugins/ai/ask-agent.lua；
+--   上下文桥由 setup 自动 attach）
 require("local.textdiff").setup() -- 本地小模块：选区文本对比（:Diff / 可视模式 D、gD，见 lua/local/textdiff.lua）
 require("local.project").setup() -- 本地小模块：项目概览（:Project / <leader>ii，见 lua/local/project/）
 require("fix").setup() -- 临时修复守卫：:FixStatus 看上游修好没（见 lua/fix/init.lua）
