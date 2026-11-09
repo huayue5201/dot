@@ -129,3 +129,6 @@ for direction, base in pairs(KEYS) do
 	rex.bind("ctrl+alt+" .. base, "smart_splits_resize", { direction = direction })
 end
 
+
+-- Floating tool launcher (command palette: shift+cmd+p, category "tools").
+require("tools")
