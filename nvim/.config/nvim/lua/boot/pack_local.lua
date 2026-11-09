@@ -57,9 +57,19 @@ function M.sync(opts)
 			end
 		end
 		if #updated > 0 then
+			-- vim.pack.update 只换文件，不跑 build：有 build 字段的（如 Rust 二进制）
+			-- 需要在这里补一次，否则 lua 是新的、产物还是旧的。
+			local pack = require("boot.pack")
+			local failed = {}
+			for _, name in ipairs(updated) do
+				if not pack.rebuild(name) then
+					failed[#failed + 1] = name
+				end
+			end
+			local suffix = #failed > 0 and ("；build 失败: " .. table.concat(failed, ", ")) or ""
 			vim.notify(
-				("已同步本地插件: %s（重启 nvim 生效）"):format(table.concat(updated, ", ")),
-				vim.log.levels.INFO
+				("已同步本地插件: %s（重启 nvim 生效）%s"):format(table.concat(updated, ", "), suffix),
+				#failed > 0 and vim.log.levels.WARN or vim.log.levels.INFO
 			)
 		elseif opts.verbose then
 			vim.notify("本地插件都是最新的", vim.log.levels.INFO)

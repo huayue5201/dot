@@ -82,7 +82,10 @@ Rules:
 		-- 	marker = "Special", -- 行首标记 • / ↳
 		-- },
 		-- anki = { deck = "翻译", port = 8765, model = "translator" },
-		-- tts = { engine = "say" }, -- "say" | "google"
+		-- TTS：默认走本地神经语音（mlx-audio + Kokoro），首次朗读自动拉起服务。
+		-- 改 engine = "say" 可回退系统音色；voice 可选 af_heart / af_bella /
+		-- am_michael / bf_emma / bm_george。
+		-- tts = { engine = "local", voice = "af_heart", speed = 1.0 },
 	},
 	config = function(_, opts)
 		require("translator").setup(opts)

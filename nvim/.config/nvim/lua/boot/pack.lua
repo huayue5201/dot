@@ -495,20 +495,34 @@ end
 -- 各阶段：build / init / load(config, keys)
 ----------------------------------------------------------------------
 
+--- 在插件目录里跑 build（lazy.nvim 的语义：cwd = 插件根目录）
 local function run_build(spec)
 	local build = spec.build
 	if not build then
-		return
+		return true
 	end
+	local dir = pack_path(spec.name)
+	local cwd = vim.fn.getcwd()
 	local ok, err
 	if type(build) == "function" then
+		if vim.uv.fs_stat(dir) then
+			pcall(vim.cmd, "cd " .. vim.fn.fnameescape(dir))
+		end
 		ok, err = pcall(build, plugin_object(spec))
 	elseif type(build) == "string" then
+		if vim.uv.fs_stat(dir) then
+			pcall(vim.cmd, "cd " .. vim.fn.fnameescape(dir))
+		end
 		ok, err = pcall(vim.cmd, (build:gsub("^%s*:%%?", "")))
+	end
+	if vim.fn.getcwd() ~= cwd then
+		pcall(vim.cmd, "cd " .. vim.fn.fnameescape(cwd))
 	end
 	if not ok then
 		fail("build %s 失败: %s", spec.name, err)
+		return false
 	end
+	return true
 end
 
 local function run_init(spec)
@@ -943,6 +957,19 @@ end, { desc = "清理 spec 里已移除的插件目录", bang = true })
 
 -- dir = "~/neovim-plugins/*" 的本地插件：vim.pack 会 clone 一份副本，
 -- 改为手动触发同步（<leader>zp 或 :PackLocalSync），不阻塞启动。
+--- 重新跑某个插件的 build（本地 dir 插件同步后调用：vim.pack.update 只换文件，
+--- 不会跑 build，二进制之类的产物会留在旧版本）
+---@param name string 插件名
+---@return boolean ok
+function M.rebuild(name)
+	for _, spec in ipairs(order) do
+		if spec.name == name then
+			return run_build(spec)
+		end
+	end
+	return true
+end
+
 require("boot.pack_local").setup()
 
 return M
