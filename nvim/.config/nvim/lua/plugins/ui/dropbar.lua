@@ -162,16 +162,6 @@ return {
 						return false
 					end
 
-					-- diffbandit 主 diff 窗格不显示 winbar：右侧是真实文件 buffer，多一行会让
-					-- 色块/连接带整体错位一行；插件侧也会主动清空 winbar
-					local ok, db_state = pcall(require, "diffbandit.state")
-					if ok then
-						local session = db_state.sessions[vim.api.nvim_win_get_tabpage(win)]
-						if session and (win == session.left_win or win == session.right_win) then
-							return false
-						end
-					end
-
 					local ft = vim.bo[buf].ft
 					if ft_blacklist[ft] or vim.startswith(ft, "dapui_") then
 						return false

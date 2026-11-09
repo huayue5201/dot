@@ -109,7 +109,7 @@
       "src": "https://github.com/monaqa/dial.nvim"
     },
     "diffbandit.nvim": {
-      "rev": "f190e33d807c07a97259472e13a3bba3299f0f80",
+      "rev": "1897aea7a970b49f0687617a16bcea1f53290fbc",
       "src": "https://github.com/CoreyKaylor/diffbandit.nvim"
     },
     "dropbar.nvim": {

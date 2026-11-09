@@ -82,31 +82,6 @@ return {
 			end,
 		})
 
-		-- [diffbandit-compat] 上游 bug 兜底
-		-- 上游 bug 兜底（diffbandit f190e33，session/init.lua:218 render_overviews）：
-		-- CursorMoved 的 overview 防抖（ui.overview.debounce_ms=32）可能在 diff 窗口/标签已被关掉
-		-- 之后才触发；该函数只校验了 overview 两个窗口，却直接对 self.left_win / self.right_win
-		-- 调 nvim_win_get_height，于是报 "Invalid window id: 1041"。
-		-- 这里补上内容窗口与 tabpage 的有效性校验（窗口没了 overview 本来也画不了）。
-		-- 上游修好后可整段删掉。
-		do
-			local Session = require("diffbandit.session")
-			local orig_render_overviews = Session.render_overviews
-			function Session:render_overviews(...)
-				if self.disposed then
-					return
-				end
-				if
-					not (vim.api.nvim_tabpage_is_valid(self.tabpage) and vim.api.nvim_win_is_valid(self.left_win))
-					or not vim.api.nvim_win_is_valid(self.right_win)
-				then
-					return
-				end
-				return orig_render_overviews(self, ...)
-			end
-		end
-		-- [/diffbandit-compat]
-
 		-- [diffbandit-compat] ]c/[c 文件内循环（上游 goto_*_chunk 在边界会 confirm 跨文件）
 		-- ]c/[c 改成在文件内循环：到最后一个 hunk 后回到第一个（反向同理），不再弹
 		-- 「end of this file / already at first changed file」这类边界提示，也不自动跨文件
@@ -136,46 +111,6 @@ return {
 				end
 				return orig_prev(self)
 			end
-		end
-		-- [/diffbandit-compat]
-
-		-- [diffbandit-compat] 清掉 diff 窗格的 winbar
-		-- 上游只在 merge 视图清了 winbar（merge/init.lua:388），主 diff 视图没管：
-		-- 右侧内容是真实文件 buffer 时，dropbar 会在该窗口挂上 winbar，而左侧是 nofile buffer
-		-- 不会挂 → 右窗口多一行，色块/连接带整体错位一行。
-		-- 这里在布局完成、换右侧 buffer 之后各清一次；dropbar 自己那边另有 enable 黑名单。
-		do
-			local Layout = require("diffbandit.session.layout")
-			local function clear_winbar(session)
-				for _, win in ipairs({ session.left_win, session.right_win }) do
-					if win and vim.api.nvim_win_is_valid(win) then
-						pcall(vim.api.nvim_set_option_value, "winbar", "", { scope = "local", win = win })
-					end
-				end
-			end
-
-			local orig_open = Layout.open
-			function Layout.open(session)
-				orig_open(session)
-				clear_winbar(session)
-			end
-
-			local orig_apply_right = Layout.apply_right_source_window_options
-			function Layout.apply_right_source_window_options(session)
-				orig_apply_right(session)
-				clear_winbar(session)
-			end
-
-			-- 队列切文件 / 重新进入窗口时 dropbar 可能再次挂上（它监听 BufEnter/BufWinEnter）
-			vim.api.nvim_create_autocmd({ "BufWinEnter", "BufEnter", "WinEnter" }, {
-				group = vim.api.nvim_create_augroup("diffbandit_no_winbar", { clear = true }),
-				callback = function()
-					local session = require("diffbandit.state").sessions[vim.api.nvim_get_current_tabpage()]
-					if session then
-						clear_winbar(session)
-					end
-				end,
-			})
 		end
 		-- [/diffbandit-compat]
 
