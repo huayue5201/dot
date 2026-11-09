@@ -68,5 +68,38 @@ return {
 			"<cmd>RenderMarkdown preview<cr>",
 			{ silent = true, desc = "Render-Markdown: 侧边渲染预览" }
 		)
+
+		-- FIX(render-markdown#720): LSP hover 浮窗照样渲染，但不让上游缩窗。
+		-- https://github.com/MeanderingProgrammer/render-markdown.nvim/issues/720
+		-- 上游 compat.fix_lsp_window() 先取 nvim_win_text_height()，再逐条减去
+		-- conceal_lines 的 extmark；实测这里 text_height 已经把渲染出的 virt_lines
+		-- 算进去了（sqls 的建表 hover：18 行内容 + 1 行表框 = 19），再减一轮就把
+		-- 112x18 的浮窗压成 112x3、并顺手关掉 wrap。
+		-- 这里接管成「渲染完成后按实际显示行数改窗口高度」：只信任度量，不做减法；
+		-- nvim_win_set_height 超出屏幕时会被 Neovim 自行钳回可用行数。
+		-- 上游修复（不再做 conceal_lines 减法）后可整段删除；若函数被改名/内联，
+		-- 本补丁会静默失效（症状：hover 只剩 3 行）。
+		local ok, compat = pcall(require, "render-markdown.lib.compat")
+		if ok then
+			compat.fix_lsp_window = function(buf, win)
+				local width = 0
+				for _, line in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
+					width = math.max(width, vim.fn.strdisplaywidth(line))
+				end
+				if width <= vim.api.nvim_win_get_width(win) then
+					vim.wo[win].wrap = false
+				end
+				-- 渲染的 virt_lines 在这一轮之后才落定，延后一拍再量。
+				vim.schedule(function()
+					if not vim.api.nvim_win_is_valid(win) then
+						return
+					end
+					local target = vim.api.nvim_win_text_height(win, {}).all
+					if target ~= vim.api.nvim_win_get_height(win) then
+						pcall(vim.api.nvim_win_set_height, win, target)
+					end
+				end)
+			end
+		end
 	end,
 }
