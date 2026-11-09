@@ -15,6 +15,10 @@ return {
 			matching = "exact",
 			-- map = rex 分屏地图（默认），list = 列表
 			picker = "map",
+			-- busy 图标复用 lib/menu 的帧与节奏（list 与 map 两处 picker 都走这两个值），
+			-- 改 menu.lua 的 M.frames / M.config.tick 即可同步，不用再动插件。
+			spinner = require("lib.menu").frames,
+			tick = require("lib.menu").config.tick,
 			-- Claude Code：tmux 里的 CLI 走通用 paste+enter；busy 由它自己的 hooks 写标记
 			-- （~/.claude/ask-agent-state.sh，见 ask-agent.nvim/extensions/）。
 			-- 用 :AskAgentBackend claude 切过去。

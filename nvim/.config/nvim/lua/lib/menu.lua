@@ -77,7 +77,15 @@ M.config = {
 }
 
 -- 默认 spinner 帧（盲文点阵，与 LSP 进度同类；任意等宽字符都行）
-M.frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+-- M.frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+M.frames= {
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+}
 
 --- 取帧助手：spinner()(frame, base)。frame 为 nil（不支持的 picker / 静态场合）时回退到 base，
 --- 没给 base 就用第一帧。frames 可自定义（任意等宽字符序列），自己留一份就行。
@@ -430,10 +438,13 @@ local function render_input(state)
 	local line = prefix .. text .. " "
 	-- 宽度与列表浮窗一致：两个浮窗左右边对齐，看起来是同一个面板
 	local width = state.width or M.config.width
-	-- 列表带边框，下沿再留一行空；下面放不下就翻到列表上方
+	-- 浮窗带边框：内容在 row，顶/底边框在 row-1 / row+1。
+	-- 下面放得下（底边框不越过屏幕）就贴在菜单下方；否则对称地翻到菜单上方。
+	-- render() 已经保证这两种摆法至少有一种成立（必要时会收窄菜单视口），
+	-- 所以这里不需要再做钳制——钳制才是「输入框压住菜单边缘」的来源。
 	local row = state.row + state.height + 2
-	if row + 2 > vim.go.lines then
-		row = math.max(1, state.row - 3)
+	if row + 1 > vim.go.lines then
+		row = state.row - 3
 	end
 	local col = state.col
 
@@ -514,6 +525,21 @@ local function render(state)
 	-- nvim 只裁不缩，最后几项直接看不见
 	local height = math.min(math.max(total, 1), math.max(1, M.config.max_height))
 	height = math.min(height, math.max(1, vim.go.lines - 4))
+	-- 输入框（输入/索引模式，或带查询的导航模式）是一个独立的 3 行浮窗：
+	-- 上边框 + 一行内容 + 下边框。菜单的锚点行决定它能不能放得下：
+	--   * 放在菜单下方：需要 row + height + 3 <= lines；
+	--   * 翻到菜单上方：需要 row >= 5（内容在 row-3，上边框在 row-4）。
+	-- 光标贴近屏幕顶端时菜单只能往下长，若不预留空间就会「下面放不下 → 翻到上面」
+	-- 并压住菜单顶边框。这里只在这种情况下收窄视口，保证两种摆法至少有一种成立。
+	if state.mode == "input" or state.mode == "index" or state.query ~= "" then
+		for _ = 1, 3 do
+			local row0 = math.max(1, math.min(state.pos.row, vim.go.lines - height - 1))
+			if row0 + height + 3 <= vim.go.lines or row0 >= 5 then
+				break
+			end
+			height = math.max(1, vim.go.lines - row0 - 3)
+		end
+	end
 	local top = 1
 	if total > 0 then
 		local t = state.top or 1

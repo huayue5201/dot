@@ -82,6 +82,12 @@ return {
 		local ok, compat = pcall(require, "render-markdown.lib.compat")
 		if ok then
 			compat.fix_lsp_window = function(buf, win)
+				-- 只处理 LSP hover 浮窗：上游靠这个窗口变量识别，原补丁把它漏掉了，
+				-- 于是任何 markdown 窗口都会被「按文本行数缩高」——典型的受害者是
+				-- ask-agent 的输入浮窗（filetype=markdown，8 行 → 空内容被压成 1 行）。
+				if not pcall(vim.api.nvim_win_get_var, win, "lsp_floating_bufnr") then
+					return
+				end
 				local width = 0
 				for _, line in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
 					width = math.max(width, vim.fn.strdisplaywidth(line))
