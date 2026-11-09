@@ -45,6 +45,11 @@
 --   2. 条目本身是结构化 table（`name`/`text`/`label` + `icon`/`icon_hl`/`name_hl`，dropbar
 --      symbol 的形状）且没给 format_item 时，按字段拆出图标与名称并分别挂高亮。
 -- 需要真正的预览（整块彩色内容）请走 ui/picker，不要往这里加。
+-- 动态状态：`opts.tick`（毫秒）打开「动画模式」——菜单照旧阻塞读键，但读不到键时等 tick 毫秒就
+-- 重画一帧，`format_item(item, frame)` 的第二个参数是递增的帧号（0,1,2,…）。于是繁忙状态可以画
+-- 旋转图标（与 LSP 进度那种 spinner 一样的思路），而不是只能贴一个静态符号。每帧会重新跑一次
+-- 过滤（matchfuzzypos 只在这一小撮行上），所以动画开销落在「帧间隔」而不是按键响应上；不传 tick
+-- 的菜单完全不进这条路径，行为与性能跟以前一致。
 
 local api = vim.api
 local fn = vim.fn
@@ -134,10 +139,10 @@ end
 ---@param item any
 ---@param format_item? fun(item: any): string, string[][]?
 ---@return { text: string, virt?: string[][], icon_len: integer, icon_hl?: string, name_hl?: string }
-function M.describe(item, format_item)
+function M.describe(item, format_item, frame)
 	local text, virt
 	if format_item then
-		text, virt = format_item(item)
+		text, virt = format_item(item, frame)
 	end
 	local out = { text = "", icon_len = 0 }
 	if type(text) == "string" then
@@ -168,12 +173,13 @@ end
 ---模糊过滤（Vim 自带 matchfuzzypos，返回命中位置用于高亮）
 ---@param items any[]
 ---@param query string
----@param format_item? fun(item: any): string, string[][]?
+---@param format_item? fun(item: any, frame?: integer): string, string[][]?
+---@param frame? integer 动画帧号（opts.tick 模式下由菜单递增）
 ---@return { item: any, idx: integer, text: string, positions: integer[], virt?: string[][], icon_len: integer, icon_hl?: string, name_hl?: string }[]
-function M.filter(items, query, format_item)
+function M.filter(items, query, format_item, frame)
 	local descs, texts = {}, {}
 	for i, item in ipairs(items) do
-		local d = M.describe(item, format_item)
+		local d = M.describe(item, format_item, frame)
 		descs[i] = d
 		texts[i] = d.text
 	end
@@ -720,13 +726,32 @@ local function close(state)
 end
 
 ---读一个键（测试里可替换 M._read_key 来驱动菜单）
----@return string|nil
-function M._read_key()
-	local ok, key = pcall(fn.getcharstr)
-	if not ok or type(key) ~= "string" or key == "" then
+---`tick` 为 nil/0 时照旧阻塞到有键为止；给了 tick 就最多等这么久，超时返回 nil（动画模式）。
+---等待用 vim.wait：它跑事件循环，所以定时器/重画照常，菜单不会卡住整个 nvim。
+---@param tick? integer 毫秒
+---@return string|nil key nil 表示超时（或没有按键可读）
+function M._read_key(tick)
+	---立刻取一个键（typeahead），没有就返回 nil —— getcharstr(0) 不阻塞
+	local function peek()
+		local ok, key = pcall(fn.getcharstr, 0)
+		if ok and type(key) == "string" and key ~= "" then
+			return key
+		end
 		return nil
 	end
-	return key
+	if not tick or tick <= 0 then
+		local ok, key = pcall(fn.getcharstr)
+		if not ok or type(key) ~= "string" or key == "" then
+			return nil
+		end
+		return key
+	end
+	local key = peek()
+	if key then
+		return key
+	end
+	vim.wait(tick)
+	return peek()
 end
 
 ---打开选择菜单（vim.ui.select 兼容签名）
@@ -758,8 +783,11 @@ function M.select(items, opts, on_choice)
 		formatted = opts.format_item,
 		sel = 1,
 		pos = anchor(),
+		-- 动画模式（v1: 只有 opts.tick 一来才开）：帧号每超时一次 +1，传给 format_item
+		tick = tonumber(opts.tick) or 0,
+		frame = 0,
 	}
-	state.view = M.filter(items, state.query, state.formatted)
+	state.view = M.filter(items, state.query, state.formatted, state.frame)
 
 	M._busy = true
 
@@ -803,7 +831,7 @@ function M.select(items, opts, on_choice)
 	end
 
 	local function refilter()
-		state.view = M.filter(items, state.query, state.formatted)
+		state.view = M.filter(items, state.query, state.formatted, state.tick > 0 and state.frame or nil)
 		state.sel = 1
 		state.top = 1
 	end
@@ -834,109 +862,119 @@ function M.select(items, opts, on_choice)
 			if state.closed_externally or state.win == nil or not api.nvim_win_is_valid(state.win) then
 				break
 			end
+			-- 动画模式：每帧用新帧号重跑一次过滤（spinner 字符就是在 format_item 里按帧号取的）
+			if state.tick > 0 then
+				state.view = M.filter(items, state.query, state.formatted, state.frame)
+			end
 			render(state)
-			local key = M._read_key()
+			local key = M._read_key(state.tick > 0 and state.tick or nil)
 			if key == nil then
-				break
-			end
-			-- 读键期间窗口可能已经被关掉（WinClosed 会塞一个 Esc 解除阻塞），一律按取消处理
-			if state.closed_externally or state.win == nil or not api.nvim_win_is_valid(state.win) then
-				break
-			end
-			local k = fn.keytrans(key)
-			local kl = k:lower() -- 特殊键 keytrans 可能大写（<C-N>）
-			-- gg 的前置状态：只在「下一个键也是 g」时成立，其它任何键都会把它作废
-			-- （与 Vim 一致，无超时；gj 就是普通的下移）
-			local waiting_g = state.pending_g
-			state.pending_g = false
+				if state.tick <= 0 then
+					break -- 阻塞读键拿到 nil：没有可读的键了，按取消处理
+				end
+				-- 超时一帧：只推进帧号，下一轮重画；不处理按键（也不算作废 gg 的前置状态）
+				state.frame = state.frame + 1
+				state.pending_g = false
+			else
+				-- 读键期间窗口可能已经被关掉（WinClosed 会塞一个 Esc 解除阻塞），一律按取消处理
+				if state.closed_externally or state.win == nil or not api.nvim_win_is_valid(state.win) then
+					break
+				end
+				local k = fn.keytrans(key)
+				local kl = k:lower() -- 特殊键 keytrans 可能大写（<C-N>）
+				-- gg 的前置状态：只在「下一个键也是 g」时成立，其它任何键都会把它作废
+				-- （与 Vim 一致，无超时；gj 就是普通的下移）
+				local waiting_g = state.pending_g
+				state.pending_g = false
 
-			if kl == "<esc>" or kl == "<c-c>" then
-				if state.help then
-					state.help = false -- 帮助开着：先收帮助
-				elseif state.mode == "input" or state.mode == "index" then
-					state.mode = "normal" -- 输入/索引模式：只退回导航模式，不关菜单
-					state.num = ""
-				else
-					break
-				end
-			elseif state.help then
-				state.help = false -- 帮助开着时任何其他键都只收帮助
-			elseif kl == "<cr>" or kl == "<nl>" then
-				if state.mode == "index" then
-					local idx = tonumber(state.num)
-					if idx and pick(idx) then
-						break
-					elseif state.num == "" then
-						state.mode = "normal" -- 空着按 <CR>：当作出索引模式，不选也不关菜单
-					end
-					-- 越界：留在索引模式，接着敲数字或 <Esc> 退出
-				else
-					pick(state.sel)
-					break
-				end
-			elseif kl == "<down>" or kl == "<c-n>" then
-				move(1)
-			elseif kl == "<up>" or kl == "<c-p>" then
-				move(-1)
-			elseif kl == "<bs>" or kl == "<c-h>" then
-				if state.mode == "index" then
-					state.num = state.num:sub(1, -2) -- 只會有 ASCII 数字，按字节删安全
-					follow_index(state)
-				elseif state.query ~= "" then
-					state.query = drop_last_char(state.query)
-					refilter()
-				end
-			elseif kl == "<c-u>" then
-				if state.mode == "index" then
-					state.num = ""
-				elseif state.query ~= "" then
-					state.query = ""
-					refilter()
-				end
-			elseif kl == "<c-g>" and state.mode ~= "index" then
-				-- 导航/输入模式 → 索引模式：在**当前（可能已过滤的）结果**里按序号直达
-				state.mode = "index"
-				state.num = ""
-			elseif state.mode == "normal" then
-				-- 导航模式：只有命令键生效，其余可打印字符忽略（免得一按普通字母就进查询）
-				if kl == "j" then
-					move(1)
-				elseif kl == "k" then
-					move(-1)
-				elseif k == "G" then
-					-- 末项（shift-g；必须在 kl == "g" 之前判，否则会被当成 gg 的第一个 g）
-					if #state.view > 0 then
-						state.sel = #state.view
-					end
-				elseif kl == "g" then
-					if waiting_g then
-						if #state.view > 0 then
-							state.sel = 1
-						end
+				if kl == "<esc>" or kl == "<c-c>" then
+					if state.help then
+						state.help = false -- 帮助开着：先收帮助
+					elseif state.mode == "input" or state.mode == "index" then
+						state.mode = "normal" -- 输入/索引模式：只退回导航模式，不关菜单
+						state.num = ""
 					else
-						state.pending_g = true
-					end
-				elseif kl == "q" then
-					break
-				elseif kl == "i" or kl == "f" or kl == "/" then
-					state.mode = "input"
-				elseif kl == "?" then
-					state.help = true
-				elseif kl:match("^%d$") then
-					if pick(tonumber(kl)) then
 						break
 					end
+				elseif state.help then
+					state.help = false -- 帮助开着时任何其他键都只收帮助
+				elseif kl == "<cr>" or kl == "<nl>" then
+					if state.mode == "index" then
+						local idx = tonumber(state.num)
+						if idx and pick(idx) then
+							break
+						elseif state.num == "" then
+							state.mode = "normal" -- 空着按 <CR>：当作出索引模式，不选也不关菜单
+						end
+					-- 越界：留在索引模式，接着敲数字或 <Esc> 退出
+					else
+						pick(state.sel)
+						break
+					end
+				elseif kl == "<down>" or kl == "<c-n>" then
+					move(1)
+				elseif kl == "<up>" or kl == "<c-p>" then
+					move(-1)
+				elseif kl == "<bs>" or kl == "<c-h>" then
+					if state.mode == "index" then
+						state.num = state.num:sub(1, -2) -- 只會有 ASCII 数字，按字节删安全
+						follow_index(state)
+					elseif state.query ~= "" then
+						state.query = drop_last_char(state.query)
+						refilter()
+					end
+				elseif kl == "<c-u>" then
+					if state.mode == "index" then
+						state.num = ""
+					elseif state.query ~= "" then
+						state.query = ""
+						refilter()
+					end
+				elseif kl == "<c-g>" and state.mode ~= "index" then
+					-- 导航/输入模式 → 索引模式：在**当前（可能已过滤的）结果**里按序号直达
+					state.mode = "index"
+					state.num = ""
+				elseif state.mode == "normal" then
+					-- 导航模式：只有命令键生效，其余可打印字符忽略（免得一按普通字母就进查询）
+					if kl == "j" then
+						move(1)
+					elseif kl == "k" then
+						move(-1)
+					elseif k == "G" then
+						-- 末项（shift-g；必须在 kl == "g" 之前判，否则会被当成 gg 的第一个 g）
+						if #state.view > 0 then
+							state.sel = #state.view
+						end
+					elseif kl == "g" then
+						if waiting_g then
+							if #state.view > 0 then
+								state.sel = 1
+							end
+						else
+							state.pending_g = true
+						end
+					elseif kl == "q" then
+						break
+					elseif kl == "i" or kl == "f" or kl == "/" then
+						state.mode = "input"
+					elseif kl == "?" then
+						state.help = true
+					elseif kl:match("^%d$") then
+						if pick(tonumber(kl)) then
+							break
+						end
+					end
+				elseif state.mode == "index" then
+					-- 索引模式：数字累加到要跳转的序号上，选中行实时跟随（越界时输入框里标红）
+					if kl:match("^%d$") and #state.num < 6 then
+						state.num = state.num .. kl
+						follow_index(state)
+					end
+				elseif not is_special(k) then
+					-- 输入模式：任何可打印字符（含中文等多字节）都进查询
+					state.query = state.query .. k
+					refilter()
 				end
-			elseif state.mode == "index" then
-				-- 索引模式：数字累加到要跳转的序号上，选中行实时跟随（越界时输入框里标红）
-				if kl:match("^%d$") and #state.num < 6 then
-					state.num = state.num .. kl
-					follow_index(state)
-				end
-			elseif not is_special(k) then
-				-- 输入模式：任何可打印字符（含中文等多字节）都进查询
-				state.query = state.query .. k
-				refilter()
 			end
 		end
 	end)

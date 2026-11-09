@@ -19,6 +19,7 @@
 --   13. gg 首项 / G 末项（g 后接其它键不作数）
 --   12. 每一行都带序号，文本列对齐（第 19 项以后也一样）；输入模式下序号变暗；关菜单后 buffer 全部释放
 --   7. setup() 之后 vim.ui.select 走的是这个菜单；M.builtin 保留原实现
+--   15. 动画模式：opts.tick 超时推进帧号，format_item(item, frame) 拿到递增帧
 --
 -- 退出码：有失败 1，全通过 0。
 
@@ -643,6 +644,42 @@ check(r_filtered.item == "m02", "过滤后索引应作用于过滤结果，实�
 -- M-<pivot> 已移除：按 M-a 不再选第 10 项
 local r_ma = run(kc("<M-a>") .. kc("<CR>"), many)
 check(r_ma.item == "item01", "M-<pivot> 应已失效，实际 " .. tostring(r_ma.item))
+
+----------------------------------------------------------------------
+-- 15. 动画模式：opts.tick 超时推进帧号，format_item(item, frame) 拿到递增帧
+----------------------------------------------------------------------
+local frames15 = {}
+local idx15 = 0
+local keys15 = { nil, nil, nil, kc("<CR>") }
+local orig_rk15 = menu._read_key
+menu._read_key = function()
+	idx15 = idx15 + 1
+	return keys15[idx15]
+end
+local chosen15
+menu.select({ "busy", "idle" }, {
+	prompt = "Anim: ",
+	tick = 5,
+	format_item = function(item, frame)
+		frames15[#frames15 + 1] = frame
+		return (frame and ("frame" .. frame) or "static") .. " " .. item
+	end,
+}, function(item)
+	chosen15 = item
+end)
+menu._read_key = orig_rk15
+check(chosen15 == "busy", "动画模式仍能正常选中（实际 " .. tostring(chosen15) .. "）")
+check(#frames15 >= 6, "动画模式每帧都应重画，实际 format_item 调用 " .. #frames15 .. " 次")
+local maxf15, monotone15 = 0, true
+for _, f in ipairs(frames15) do
+	if type(f) == "number" then
+		maxf15 = math.max(maxf15, f)
+	else
+		monotone15 = false
+	end
+end
+check(maxf15 >= 2, "帧号应递增（spinner 才会转），max=" .. maxf15)
+check(monotone15, "动画模式下 format_item 每次都应拿到数字帧号")
 
 ----------------------------------------------------------------------
 -- 收尾
