@@ -24,15 +24,11 @@ local function notify(msg, level)
 	vim.notify(msg, level or vim.log.levels.INFO)
 end
 
----在终端里跑命令（与 rust 后端的 open_terminal 一致）
+---在终端里跑命令（与 rust 后端共用 nushell 包装）
 ---@param cmd string[]
 ---@param cwd string|nil
 local function open_terminal(cmd, cwd)
-	vim.cmd("botright new")
-	local buf = vim.api.nvim_get_current_buf()
-	vim.bo[buf].bufhidden = "wipe"
-	vim.fn.termopen(cmd, { cwd = cwd })
-	vim.cmd.startinsert()
+	require("lib.nushell").run(cmd, { cwd = cwd })
 end
 
 ---读取指定 uri 的行（优先用已加载的 buffer）

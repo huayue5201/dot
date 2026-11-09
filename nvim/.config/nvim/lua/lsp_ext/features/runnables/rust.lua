@@ -67,16 +67,12 @@ local function build_command(runnable)
 	return cmd, norm(a.cwd), norm(a.environment)
 end
 
----在终端中运行命令
+---在终端中运行命令（代码运行走 nushell，方便看格式化输出）
 ---@param cmd string[]
 ---@param cwd string|nil
 ---@param env table<string,string>|nil
 local function open_terminal(cmd, cwd, env)
-	vim.cmd("botright new")
-	local buf = vim.api.nvim_get_current_buf()
-	vim.bo[buf].bufhidden = "wipe"
-	vim.fn.termopen(cmd, { cwd = cwd, env = env })
-	vim.cmd.startinsert()
+	require("lib.nushell").run(cmd, { cwd = cwd, env = env })
 end
 
 ---运行一个 runnable
