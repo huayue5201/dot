@@ -21,6 +21,7 @@
 ├── jiq/           # jiq 工具配置
 ├── xray/          # xray 配置（已替换为占位符）
 ├── pi/            # pi 编码代理配置（settings/mcp，密钥走环境变量）
+├── claude/        # Claude Code 钩子脚本（把 busy/idle 写给 ask-agent.nvim）
 └── install_dev_tools.sh  # 开发工具安装脚本
 ```
 
@@ -46,7 +47,12 @@ stow -t ~ tmux
 stow -t ~ rex        # 只含 ~/.config/rex/init.lua
 stow -t ~/.local bin   # 自制脚本 → ~/.local/bin
 stow --no-folding -t ~ pi
+stow -t ~ claude     # 只含 ~/.claude/ask-agent-state.sh
 ```
+
+> `claude/` 只放钩子脚本；`~/.claude/settings.json` 里的 hooks 配置不纳入仓库（含本机权限等），
+> 需要手动加：`UserPromptSubmit` → `ask-agent-state.sh busy`，`Stop` / `SessionStart` /
+> `SessionEnd` → `ask-agent-state.sh idle`（`/bin/sh -c '~/.claude/ask-agent-state.sh busy'`）。
 
 > 注意：部分配置（如 xray、nvim 的 DAP 路径）为占位符或示例值，部署后需按本机实际情况修改。
 >

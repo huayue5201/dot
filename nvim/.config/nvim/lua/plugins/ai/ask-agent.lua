@@ -15,6 +15,10 @@ return {
 			matching = "exact",
 			-- map = rex 分屏地图（默认），list = 列表
 			picker = "map",
+			-- Claude Code：tmux 里的 CLI 走通用 paste+enter；busy 由它自己的 hooks 写标记
+			-- （~/.claude/ask-agent-state.sh，见 ask-agent.nvim/extensions/）。
+			-- 用 :AskAgentBackend claude 切过去。
+			extra = { require("ask_agent.backends.claude").new() },
 		})
 
 		-- 映射：aq 直接提问，ab 入队（源码行留 sign + 虚拟文本），aB 逐条全发，
