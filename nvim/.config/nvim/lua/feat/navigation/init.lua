@@ -61,6 +61,7 @@ M.buf_keymaps = {
 		msgmore = { cmd = "quit", desc = "关闭消息窗口" },
 		FunctionReferences = { cmd = "quit", desc = "关闭引用窗口" },
 		checkhealth = { cmd = "close", desc = "关闭健康检查" },
+		["nvim-pack"] = { cmd = "close", desc = "关闭 pack界面" },
 		better_term = { cmd = "close", desc = "关闭终端" },
 		["grug-far"] = { cmd = "bdelete", desc = "关闭搜索替换" },
 		["dap-repl"] = { cmd = "close", desc = "关闭 DAP REPL" },
