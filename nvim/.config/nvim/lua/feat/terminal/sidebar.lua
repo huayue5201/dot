@@ -38,17 +38,17 @@ end
 
 --- 把「前缀 + 序号 + 名字」裁到 cols 显示宽，再把关闭按钮右对齐到行尾
 --- 右边故意留一列：窗口最后一列在分屏里可能被当成分隔线（点上去会变成拖拽分屏）
+--- 现在行尾还要放 shell 名字（虚拟文本），所以关闭按钮本身的位置由 render 排
 ---@param text string
----@param glyph string
 ---@param cols integer 名字可用的显示宽度
----@return string line, integer close_byte 关闭按钮的起始字节（0-based）
-local function with_close(text, glyph, cols)
+---@return string body, string pad
+local function clip_pad(text, cols)
 	local body = text
 	while body ~= "" and fn.strdisplaywidth(body) > cols do
 		body = fn.strcharpart(body, 0, fn.strchars(body) - 1)
 	end
 	local pad = string.rep(" ", math.max(cols - fn.strdisplaywidth(body), 0) + 1)
-	return body .. pad .. glyph, #body + #pad
+	return body, pad
 end
 
 --- 全局唯一的侧栏 buffer（内容永远是全量终端，和 tab 无关）
@@ -176,6 +176,8 @@ function M.render()
 	local lines = {}
 	local hl = {}
 	local map = {}
+	--- shell 图标 / 名字的虚拟文本（buffer 写完后才能挂）
+	local marks = {}
 
 	for _, tab in ipairs(state.tabs()) do
 		local list = state.list(tab)
@@ -191,9 +193,22 @@ function M.render()
 			for _, bufnr in ipairs(list) do
 				local is_cur = tab == cur_tab and bufnr == active
 				local prefix = is_cur and "▏" or " "
-				local label = ("%s%d %s"):format(prefix, vim.b[bufnr].tw_term_index or 0, term_label(bufnr))
-				-- 行尾一律给关闭按钮留一列（名字太长就裁名字，不裁按钮）
-				local line, close_byte = with_close(label, glyph, cols)
+				local index = vim.b[bufnr].tw_term_index or 0
+				local label = ("%s%d %s"):format(prefix, index, term_label(bufnr))
+				local shell = M.host.shell_info and M.host.shell_info(bufnr) or { name = "", icon = "" }
+				local icon = shell.icon or ""
+				local tag = shell.name or ""
+				-- 图标后面跟一个空格，别和终端名贴在一起
+				local icon_text = icon ~= "" and (icon .. " ") or ""
+				local iconw = fn.strdisplaywidth(icon_text)
+				local tagw = fn.strdisplaywidth(tag)
+				-- 左边图标（inline 挤开名字）、右边 shell 名（盖在预留的空格上），两者都是虚拟文本；
+				-- 名字可用的宽度要先扣掉它们，行尾就永远是「…名字  shell ✕」
+				local name_cols = math.max(cols - iconw - tagw - 1, 1)
+				local body, pad = clip_pad(label, name_cols)
+				local gap = string.rep(" ", tagw + 1)
+				local line = body .. pad .. gap .. glyph
+				local close_byte = #body + #pad + #gap
 				lines[#lines + 1] = line
 				if is_cur then
 					hl[#hl + 1] = "TwTermSbActive"
@@ -203,6 +218,21 @@ function M.render()
 					hl[#hl + 1] = "TwTermSbItem"
 				end
 				map[#lines - 1] = { tab = tab, bufnr = bufnr, close_byte = close_byte, close_hl = is_cur }
+				if icon ~= "" then
+					marks[#marks + 1] = {
+						line = #lines - 1,
+						icon = icon_text,
+						icon_byte = #prefix + #tostring(index) + 1,
+					}
+				end
+				if tag ~= "" then
+					marks[#marks + 1] = {
+						line = #lines - 1,
+						tag = tag,
+						-- inline 图标把后面的字整体撑开了 iconw 列，行内坐标要跟着加
+						tag_col = fn.strdisplaywidth(body .. pad) + iconw,
+					}
+				end
 			end
 		end
 	end
@@ -233,6 +263,23 @@ function M.render()
 			api.nvim_buf_set_extmark(buf, NS, line, item.close_byte, {
 				end_col = item.close_byte + #glyph,
 				hl_group = item.close_hl and "TwTermSbCloseActive" or "TwTermSbClose",
+			})
+		end
+	end
+
+	-- shell 标识：左边图标用 inline（把名字往右挤），右边名字用 win_col 盖在预留空格上
+	for _, m in ipairs(marks) do
+		if m.icon then
+			api.nvim_buf_set_extmark(buf, NS, m.line, m.icon_byte, {
+				virt_text = { { m.icon, "TwTermSbShellIcon" } },
+				virt_text_pos = "inline",
+				hl_mode = "combine",
+			})
+		elseif m.tag then
+			api.nvim_buf_set_extmark(buf, NS, m.line, 0, {
+				virt_text = { { m.tag, "TwTermSbShellTag" } },
+				virt_text_win_col = m.tag_col,
+				hl_mode = "combine",
 			})
 		end
 	end

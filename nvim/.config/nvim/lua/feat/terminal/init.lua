@@ -18,6 +18,47 @@ local M = {}
 
 local FT = "tw_terminal"
 
+----------------------------------------------------------------------
+-- shell 标识（侧栏每行的图标 + 名字）
+----------------------------------------------------------------------
+
+-- nerd font 字形；没有品牌字形的 shell 用通用终端图标，靠右边的名字区分
+local SHELL_ICONS = {
+	bash = "\u{f1183}", -- nf-md-bash
+	zsh = "\u{f489}", -- nf-oct-terminal
+	fish = "\u{e795}", -- nf-dev-terminal
+	nu = "\u{f120}", -- nf-fa-terminal
+	nushell = "\u{f120}",
+	pwsh = "\u{f1184}", -- nf-md-powershell
+	powershell = "\u{f1184}",
+	cmd = "\u{f1184}",
+}
+
+local SHELL_ICON_DEFAULT = "\u{ebe8}" -- nf-cod-terminal
+
+---把当时启动终端用的 argv 记到 buffer 上（侧栏据此显示 shell）
+---@param bufnr integer
+---@param cmd string[]
+local function set_term_cmd(bufnr, cmd)
+	vim.b[bufnr].tw_term_cmd = cmd
+end
+
+---该终端的 shell 信息：图标 + 名字
+---@param bufnr integer
+---@return { name: string, icon: string }
+function M.shell_info(bufnr)
+	local cmd = vim.b[bufnr].tw_term_cmd
+	local exe = (type(cmd) == "table" and type(cmd[1]) == "string") and cmd[1] or vim.o.shell
+	local base = fn.fnamemodify(exe, ":t")
+	if base == "" then
+		base = exe
+	end
+	return {
+		name = base,
+		icon = SHELL_ICONS[base] or SHELL_ICON_DEFAULT,
+	}
+end
+
 ---@class FeatTerminalConfig
 ---@field position "bot"|"top"
 ---@field size integer
@@ -30,6 +71,7 @@ local FT = "tw_terminal"
 ---@field tab_icon string 每个终端 chip 前的图标
 ---@field close_icon string chip 右侧的关闭按钮
 ---@field bufname_format fun(prefix: string, index: integer): string
+---@field quick_shell? { key: string, cmd: string[], desc?: string } 单独一个键位：用指定 argv 开终端
 
 ---@type FeatTerminalConfig
 local opts = {
@@ -38,16 +80,18 @@ local opts = {
 	startinsert = true,
 	show_tabs = true,
 	prefix = "Term",
-	new_tab_icon = "+",
+	new_tab_icon = "",
 	sidebar = true,
 	-- 色素全在 highlights.lua 里从当前配色推导（换主题自动跟随）
 	bar_hl = "TwTermBar",
 	tab_icon = "", -- nf-cod-terminal
-	close_icon = "☓", -- nf-md-close
+	close_icon = "", -- nf-md-close
 	--- 缓冲名格式，与 betterTerm 的 "Term (1)" 一致
 	bufname_format = function(prefix, index)
 		return ("%s (%d)"):format(prefix, index)
 	end,
+	--- 单键「特殊 shell」终端：默认 <leader>Tu 开 nushell，不影响其它键位与全局 &shell
+	quick_shell = { key = "<leader>Tu", cmd = { "nu" }, desc = "终端: 新建 nushell" },
 }
 
 -- winbar 里 %@v:lua.xxx@ 只能引用全局函数路径，所以点击回调挂在这里。
@@ -399,17 +443,20 @@ end
 --- 在当前 tab 里新建终端（不显示）
 ---@param tab integer
 ---@param cwd string|nil 工作目录（缺省用当前窗口的，:tcd 之后 getcwd() 就是本 tab 的根目录）
+---@param cmd string[]|nil 启动命令 argv（缺省 = 全局 &shell）
 ---@return integer bufnr
-local function create(tab, cwd)
+local function create(tab, cwd, cmd)
 	cwd = cwd or fn.getcwd()
+	cmd = cmd or { vim.o.shell }
 	local bufnr = api.nvim_create_buf(true, false)
 	local index = state.next_index()
 	-- 先打标记再 termopen：TermOpen 的 autocmd 会据此判断是不是本模块创建的
 	vim.b[bufnr].tw_term = true
 	vim.b[bufnr].tw_term_index = index
 	vim.b[bufnr].tw_term_cwd = cwd
+	set_term_cmd(bufnr, cmd)
 	api.nvim_buf_call(bufnr, function()
-		fn.termopen(vim.o.shell, { cwd = cwd })
+		fn.termopen(cmd, { cwd = cwd })
 	end)
 	pcall(api.nvim_buf_set_name, bufnr, term_name(index))
 	vim.bo[bufnr].filetype = FT
@@ -445,10 +492,11 @@ end
 
 --- 新终端并显示
 ---@param cwd? string 工作目录；缺省 = 当前文件所属的根（主根或辅助根）
+---@param cmd? string[] 启动命令 argv（缺省 = 全局 &shell）；例：M.new(nil, { "nu" })
 ---@return integer bufnr
-function M.new(cwd)
+function M.new(cwd, cmd)
 	local tab = api.nvim_get_current_tabpage()
-	local bufnr = create(tab, cwd or terminal_cwd(tab))
+	local bufnr = create(tab, cwd or terminal_cwd(tab), cmd)
 	open_panel(bufnr, tab)
 	if opts.startinsert and fn.mode() ~= "t" then
 		vim.cmd.startinsert()
@@ -787,6 +835,7 @@ function M.setup(o)
 				vim.b[bufnr].tw_term = true
 				vim.b[bufnr].tw_term_index = index
 				vim.b[bufnr].tw_term_cwd = fn.getcwd()
+				set_term_cmd(bufnr, { vim.o.shell })
 				pcall(api.nvim_buf_set_name, bufnr, term_name(index))
 				vim.bo[bufnr].filetype = FT
 				vim.bo[bufnr].buflisted = false
@@ -820,6 +869,12 @@ function M.setup(o)
 	vim.keymap.set("n", "<leader>TN", function()
 		M.new()
 	end, { desc = "终端: 新建（当前工作区目录）" })
+	if opts.quick_shell then
+		local qs = opts.quick_shell
+		vim.keymap.set("n", qs.key, function()
+			M.new(nil, qs.cmd)
+		end, { desc = qs.desc or ("终端: 新建 " .. table.concat(qs.cmd, " ")) })
+	end
 	vim.keymap.set("n", "<leader>To", function()
 		M.toggle()
 	end, { desc = "终端: 切换终端窗口" })

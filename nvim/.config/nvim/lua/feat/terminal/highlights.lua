@@ -176,6 +176,10 @@ function M.apply()
 	-- 行尾的关闭按钮：平时是暗色，当前终端那行亮一点，看得出「能点」
 	api.nvim_set_hl(0, "TwTermSbClose", { fg = c.chip_close, bg = c.sb_bg })
 	api.nvim_set_hl(0, "TwTermSbCloseActive", { fg = M.blend(c.active_bg, c.fg, 0.5), bg = c.active_bg })
+	-- 侧栏每行的 shell 标识：左边图标、右边名字，都是虚拟文本。
+	-- 只给 fg（虚拟文本用 hl_mode="combine"，底色沿用所在行的 TwTermSb* 组）
+	api.nvim_set_hl(0, "TwTermSbShellIcon", { fg = M.blend(c.sb_bg, c.green, 0.75) })
+	api.nvim_set_hl(0, "TwTermSbShellTag", { fg = c.dim })
 end
 
 ----------------------------------------------------------------------
