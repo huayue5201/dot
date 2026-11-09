@@ -17,7 +17,7 @@ return {
 			picker = "map",
 		})
 
-		-- 映射：aq 直接提问，ab 入队（源码行留 sign + 虚拟文本），aB 逐条全发，ai 命名实例。
+		-- 映射：aq 直接提问，ab 入队（源码行留 sign + 虚拟文本），aB 逐条全发，ar 命名实例。
 		-- 批量队列管理用命令：:AskAgentBatchList / :AskAgentBatchClear。
 		local map = vim.keymap.set
 		map("n", "<leader>aq", function()
@@ -35,7 +35,7 @@ return {
 		map("n", "<leader>aB", function()
 			ask.batch_send()
 		end, { desc = "AI: 发送全部入队提问" })
-		map("n", "<leader>ai", "<cmd>AskAgentAlias<cr>", { desc = "AI: 给 agent 实例命名" })
+		map("n", "<leader>ar", "<cmd>AskAgentAlias<cr>", { desc = "AI: 给 agent 实例命名" })
 
 		-- 上下文桥的扩展动作：让外部 agent 能拉「项目概览」紧凑摘要。
 		-- 这个摘要依赖本配置里的 local.project，所以留在配置侧注册。
