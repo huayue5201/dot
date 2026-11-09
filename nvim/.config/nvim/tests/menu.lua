@@ -648,6 +648,15 @@ check(r_ma.item == "item01", "M-<pivot> 应已失效，实际 " .. tostring(r_ma
 ----------------------------------------------------------------------
 -- 15. 动画模式：opts.tick 超时推进帧号，format_item(item, frame) 拿到递增帧
 ----------------------------------------------------------------------
+-- 15a. spinner 助手：帧号取模、无帧时回退到 base / 第一帧、自定义帧序列
+local spin15 = menu.spinner()
+check(spin15(nil, "◐") == "◐", "无帧时应回退到 base")
+check(spin15(nil) == menu.frames[1], "无帧且没 base 时用第一帧")
+check(spin15(0) == menu.frames[1] and spin15(1) == menu.frames[2], "帧号应从第一帧开始")
+check(spin15(#menu.frames) == menu.frames[1], "帧号应对帧数取模（循环）")
+local spin15b = menu.spinner({ "a", "b" })
+check(spin15b(3) == "b" and spin15b(nil, "x") == "x", "自定义帧序列应生效")
+
 local frames15 = {}
 local idx15 = 0
 local keys15 = { nil, nil, nil, kc("<CR>") }
@@ -659,7 +668,7 @@ end
 local chosen15
 menu.select({ "busy", "idle" }, {
 	prompt = "Anim: ",
-	tick = 5,
+	tick = true, -- 用 M.config.tick
 	format_item = function(item, frame)
 		frames15[#frames15 + 1] = frame
 		return (frame and ("frame" .. frame) or "static") .. " " .. item

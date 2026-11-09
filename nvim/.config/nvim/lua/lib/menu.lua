@@ -45,11 +45,23 @@
 --   2. 条目本身是结构化 table（`name`/`text`/`label` + `icon`/`icon_hl`/`name_hl`，dropbar
 --      symbol 的形状）且没给 format_item 时，按字段拆出图标与名称并分别挂高亮。
 -- 需要真正的预览（整块彩色内容）请走 ui/picker，不要往这里加。
--- 动态状态：`opts.tick`（毫秒）打开「动画模式」——菜单照旧阻塞读键，但读不到键时等 tick 毫秒就
--- 重画一帧，`format_item(item, frame)` 的第二个参数是递增的帧号（0,1,2,…）。于是繁忙状态可以画
+-- 动态状态：`opts.tick` 打开「动画模式」——菜单照旧阻塞读键，但读不到键时等一帧就重画，
+-- `format_item(item, frame)` 的第二个参数是递增的帧号（0,1,2,…）。于是繁忙状态可以画
 -- 旋转图标（与 LSP 进度那种 spinner 一样的思路），而不是只能贴一个静态符号。每帧会重新跑一次
 -- 过滤（matchfuzzypos 只在这一小撮行上），所以动画开销落在「帧间隔」而不是按键响应上；不传 tick
 -- 的菜单完全不进这条路径，行为与性能跟以前一致。
+--
+-- 给其它插件用的接口（都很小，不掺业务）：
+--   opts.tick = 90 | true   true = 用 M.config.tick（默认 90ms）；数字 = 自定义帧间隔
+--   format_item(item, frame) -> 第二参是帧号；frame 为 nil 的实现（telescope 等）当静态用
+--   M.spinner(frames?) -> function(frame?, base?)  取帧助手：给静态 base 就在无帧时回退到它
+--   M.frames                                        默认盲文帧，可整体替换
+-- 例：
+--   local spin = require("lib.menu").spinner()
+--   vim.ui.select(items, {
+--     tick = true,
+--     format_item = function(it, frame) return spin(frame, it.busy and "◐" or "●") .. " " .. it.name end,
+--   }, on_choice)
 
 local api = vim.api
 local fn = vim.fn
@@ -61,7 +73,25 @@ M.config = {
 	min_width = 30, -- 浮窗最小宽度（列）：只有一两个字的条目也不该缩成一条缝
 	max_height = 14, -- 视口最多显示多少项（超出后滚动）
 	border = "rounded",
+	tick = 90, -- 动画帧间隔（毫秒）：opts.tick = true 时用它
 }
+
+-- 默认 spinner 帧（盲文点阵，与 LSP 进度同类；任意等宽字符都行）
+M.frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+
+--- 取帧助手：spinner()(frame, base)。frame 为 nil（不支持的 picker / 静态场合）时回退到 base，
+--- 没给 base 就用第一帧。frames 可自定义（任意等宽字符序列），自己留一份就行。
+---@param frames? string[]
+---@return fun(frame?: integer, base?: string): string
+function M.spinner(frames)
+	frames = frames or M.frames
+	return function(frame, base)
+		if type(frame) ~= "number" then
+			return base or frames[1]
+		end
+		return frames[frame % #frames + 1]
+	end
+end
 
 -- 同一时间只允许一个菜单：重复按键直接取消新请求，不再叠一层
 M._busy = false
@@ -784,7 +814,7 @@ function M.select(items, opts, on_choice)
 		sel = 1,
 		pos = anchor(),
 		-- 动画模式（v1: 只有 opts.tick 一来才开）：帧号每超时一次 +1，传给 format_item
-		tick = tonumber(opts.tick) or 0,
+		tick = (opts.tick == true and M.config.tick) or tonumber(opts.tick) or 0,
 		frame = 0,
 	}
 	state.view = M.filter(items, state.query, state.formatted, state.frame)
