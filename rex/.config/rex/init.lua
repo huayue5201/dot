@@ -50,6 +50,37 @@ local function focused_block(ctx)
 end
 
 -- True when the program in front of the block owns the chord itself.
+local function active_window(ctx)
+	local view = rex.session.view({ session_id = ctx.session_id })
+	if type(view) ~= "table" then
+		return nil
+	end
+	for _, window in ipairs(view.windows or {}) do
+		if window.window_id == view.active_window_id then
+			return window
+		end
+	end
+	return nil
+end
+
+-- The zoomed block in the active window, if any. Zoom is per window, so
+-- changing tabs/windows keeps it; moving focus inside the window clears it.
+local function zoomed_block(ctx)
+	local window = active_window(ctx)
+	return window and window.zoomed_block_id or nil
+end
+
+local function keep_zoom(ctx, zoomed, before)
+	local after = focused_block(ctx)
+	if zoomed and after and after ~= before then
+		rex.session.zoom_block({
+			session_id = ctx.session_id,
+			block_id = after,
+			zoom = true,
+		})
+	end
+end
+
 local function forwards(block_id)
 	if not block_id then
 		return false
@@ -94,11 +125,13 @@ rex.action({
 			forward(key)
 			return
 		end
+		local zoomed = zoomed_block(ctx)
 		rex.session.focus_direction({
 			session_id = ctx.session_id,
 			direction = direction,
 			wrap = false,
 		})
+		keep_zoom(ctx, zoomed, block)
 		if focused_block(ctx) == block then
 			-- No neighbour: give the key back so the shell keeps it.
 			forward(key)
@@ -124,10 +157,33 @@ rex.action({
 	end,
 })
 
+-- Cycle through panes while keeping a zoomed pane maximized.
+rex.action({
+	name = "smart_splits_cycle",
+	title = "Cycle Pane Keeping Zoom",
+	description = "Focus the next or previous pane; if the window is zoomed, zoom the new pane too.",
+	category = "smart-splits",
+	keywords = "pane focus next previous cycle zoom maximize",
+	args = { step = "string" },
+	run = function(ctx, args)
+		local before = ctx.block_id or focused_block(ctx)
+		local zoomed = zoomed_block(ctx)
+		if args.step == "previous" then
+			rex.session.focus_previous_pane({ session_id = ctx.session_id })
+		else
+			rex.session.focus_next_pane({ session_id = ctx.session_id })
+		end
+		keep_zoom(ctx, zoomed, before)
+	end,
+})
+
 for direction, base in pairs(KEYS) do
 	rex.bind("ctrl+" .. base, "smart_splits_navigate", { direction = direction })
 	rex.bind("ctrl+alt+" .. base, "smart_splits_resize", { direction = direction })
 end
+
+rex.bind("cmd+]", "smart_splits_cycle", { step = "next" })
+rex.bind("cmd+[", "smart_splits_cycle", { step = "previous" })
 
 
 -- Floating tool launcher (command palette: shift+cmd+p, category "tools").
