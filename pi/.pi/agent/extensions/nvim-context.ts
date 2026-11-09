@@ -137,6 +137,18 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 	// ---- 反向通道：nvim 浮窗 (`<leader>aq`) 把「问题 + 锚点」发进来 ----
 	let inbox: net.Server | undefined;
 	let busy = false;
+	/** 登记文件的当前内容；busy 变化时重写，nvim 侧据 `busy` 字段显示「空闲/处理中」 */
+	let reg: Record<string, unknown> | undefined;
+
+	/** 重写登记文件（删掉/未注册时静默跳过；失败不影响 session） */
+	async function writeReg(): Promise<void> {
+		if (!reg) return;
+		try {
+			await writeFile(ASK_REG, JSON.stringify(reg));
+		} catch {
+			// 登记失败只影响 nvim 侧的状态显示，不该打断当前会话
+		}
+	}
 
 	async function handleAsk(line: string, socket: net.Socket): Promise<void> {
 		let payload: AskPayload;
@@ -189,27 +201,28 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 			inbox!.once("error", reject);
 			inbox!.listen(ASK_SOCK, () => resolve());
 		});
-		await writeFile(
-			ASK_REG,
-			JSON.stringify({
-				pid: PID,
-				sock: ASK_SOCK,
-				cwd: process.cwd(),
-				ts: Math.floor(Date.now() / 1000),
-				embedded: EMBEDDED,
-				// 跑在 rex 里时把所在 session/block 一起登记：nvim 侧据此把这个实例
-				// 映射到终端分屏里的具体位置（浮窗地图选目标用）。不在 rex 里就是 undefined。
-				rex:
-					process.env.REX_SESSION && process.env.REX_BLOCK
-						? { session: process.env.REX_SESSION, block: process.env.REX_BLOCK }
-						: undefined,
-			}),
-		);
+		reg = {
+			pid: PID,
+			sock: ASK_SOCK,
+			cwd: process.cwd(),
+			ts: Math.floor(Date.now() / 1000),
+			embedded: EMBEDDED,
+			// nvim 侧用来区分「空闲」和「正在处理任务（新消息会排队）」
+			busy,
+			// 跑在 rex 里时把所在 session/block 一起登记：nvim 侧据此把这个实例
+			// 映射到终端分屏里的具体位置（浮窗地图选目标用）。不在 rex 里就是 undefined。
+			rex:
+				process.env.REX_SESSION && process.env.REX_BLOCK
+					? { session: process.env.REX_SESSION, block: process.env.REX_BLOCK }
+					: undefined,
+		};
+		await writeReg();
 	}
 
 	async function stopInbox(): Promise<void> {
 		inbox?.close();
 		inbox = undefined;
+		reg = undefined;
 		await unlink(ASK_REG).catch(() => {});
 		await unlink(ASK_SOCK).catch(() => {});
 	}
@@ -227,9 +240,13 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 	});
 	pi.on("agent_start", () => {
 		busy = true;
+		if (reg) reg.busy = true;
+		void writeReg();
 	});
 	pi.on("agent_settled", () => {
 		busy = false;
+		if (reg) reg.busy = false;
+		void writeReg();
 	});
 
 	async function pickInteractive(ctx: any): Promise<Instance | undefined> {
