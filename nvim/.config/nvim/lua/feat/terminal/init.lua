@@ -24,17 +24,17 @@ local FT = "tw_terminal"
 
 -- nerd font 字形；没有品牌字形的 shell 用通用终端图标，靠右边的名字区分
 local SHELL_ICONS = {
-	bash = "\u{f1183}", -- nf-md-bash
-	zsh = "\u{f489}", -- nf-oct-terminal
-	fish = "\u{e795}", -- nf-dev-terminal
-	nu = "\u{f120}", -- nf-fa-terminal
-	nushell = "\u{f120}",
-	pwsh = "\u{f1184}", -- nf-md-powershell
-	powershell = "\u{f1184}",
-	cmd = "\u{f1184}",
+	bash = "3", -- nf-md-bash
+	zsh = "", -- nf-oct-terminal
+	fish = "", -- nf-dev-terminal
+	nu = "", -- nf-fa-terminal
+	nushell = "",
+	pwsh = "4", -- nf-md-powershell
+	powershell = "4",
+	cmd = "4",
 }
 
-local SHELL_ICON_DEFAULT = "\u{ebe8}" -- nf-cod-terminal
+local SHELL_ICON_DEFAULT = "" -- nf-cod-terminal
 
 ---把当时启动终端用的 argv 记到 buffer 上（侧栏据此显示 shell）
 ---@param bufnr integer
