@@ -66,7 +66,7 @@ return {
 		})
 
 		-- 映射：aq 直接提问，ab 入队（源码行留 sign + 虚拟文本），aB 逐条全发，
-		-- aD 删除光标行的入队项，au 反悔最近一次删除/清空，ar 命名实例。
+		-- ad 状态面板（高频），ac 删光标行入队项，au 反悔最近一次删除/清空，ar 命名实例。
 		-- 批量队列管理用命令：:AskAgentBatchList / :AskAgentBatchClear。
 		local map = vim.keymap.set
 		map("n", "<leader>aq", function()
@@ -89,7 +89,7 @@ return {
 		map("n", "<leader>ar", "<cmd>AskAgentRename<cr>", { desc = "AI: 给 agent 实例命名" })
 		-- 状态面板：所有实例按「谁在等我」排序；<CR> 跳过去、s 发、S 发该实例名下队列、
 		-- a 确认完成、C 看输出（rex）。状态栏的 ⚠✓✗◐ 段也来自同一个状态层。
-		map("n", "<leader>aD", "<cmd>AskAgentDashboard<cr>", { desc = "AI: agent 状态面板" })
+		map("n", "<leader>ad", "<cmd>AskAgentDashboard<cr>", { desc = "AI: agent 状态面板" })
 
 		-- 上下文桥的扩展动作：让外部 agent 能拉「项目概览」紧凑摘要。
 		-- project-overview.nvim 提供 digest，所以在配置侧注册。

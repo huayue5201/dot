@@ -24,7 +24,7 @@ return {
 		{ "<leader>at", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "AI: 聊天 (DeepSeek)" },
 		{ "<leader>an", "<cmd>CodeCompanionChat<cr>", desc = "AI: 新聊天 (DeepSeek)" },
 		{ "<leader>ap", "<cmd>CodeCompanionChat adapter=pi<cr>", desc = "AI: pi Agent (ACP)" },
-		{ "<leader>ad", "<cmd>CodeCompanionChat Add<cr>", mode = { "n", "v" }, desc = "AI: 加入上下文" },
+		{ "<leader>aA", "<cmd>CodeCompanionChat Add<cr>", mode = { "n", "v" }, desc = "AI: 加入上下文" },
 		{ "<leader>ae", "<cmd>CodeCompanion<cr>", mode = { "n", "v" }, desc = "AI: 内联改写" },
 	},
 	opts = {

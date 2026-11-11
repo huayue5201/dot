@@ -1,5 +1,7 @@
 -- https://github.com/stevearc/overseer.nvim
--- 任务框架：构建/测试/lint/一次性命令。常驻多服务由 procman 管（见 tools/procman.lua）。
+-- 任务框架：构建/测试/lint/一次性命令与常驻进程（:OverseerShell / builtin cargo 模板），
+-- 输出落在 terminal buffer。曾由 procman 分担「常驻多服务」，因本项目没有多服务工程、
+-- 自动发现对 Rust 只给一条 cargo run，已移除。
 -- 模板：builtin（make/npm/cargo/just/vscode tasks.json…）+ 本配置 lua/overseer/template/user/*
 --       + 工作区声明的 w.task()（见 ~/neovim-plugins/tab-workspace.nvim/lua/tab_workspace/local_settings.lua:251）。
 -- dap = true 是 overseer 默认值（lua/overseer/config.lua:3），配合 nvim-dap 可一键调试任务。

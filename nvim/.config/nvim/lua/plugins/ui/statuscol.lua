@@ -29,7 +29,6 @@ return {
 				"ui_picker_preview",
 				"ui_picker_prompt",
 				"neotest-summary",
-				"procman-panel",
 				"dap-repl",
 				"dap-disassembly",
 				"ask-agent-dashboard",
