@@ -8,14 +8,14 @@
 -- 这里只用 resession 文档化的三个钩子（is_win_supported / save_win / load_win），不碰
 -- 它的内部实现：万一哪天扩展机制变了，本文件失效 = 退回修之前的行为（布局丢弃），
 -- 不会连带把别的东西弄坏。终端进程本身没法存盘，恢复时起新 shell，位置/尺寸交给
--- resession 还原（见 lua/feat/terminal/init.lua 的 M.restore_win 与 sidebar 的同名函数）。
+-- resession 还原（见 tab-terminal.nvim 的 init.lua 的 M.restore_win 与 sidebar 的同名函数）。
 local M = {}
 
 ---@param winid integer
 ---@param bufnr integer
 ---@return boolean
 function M.is_win_supported(winid, bufnr)
-	if vim.w[winid].tw_term_sidebar or vim.w[winid].tw_term_panel then
+	if vim.w[winid].tab_term_sidebar or vim.w[winid].tab_term_panel then
 		return true
 	end
 	return vim.bo[bufnr].buftype == "terminal"
@@ -25,10 +25,10 @@ end
 ---@return table
 function M.save_win(winid)
 	-- sidebar / panel 是本模块的窗口，普通窗口里放终端（用户自己 :terminal）也记一笔
-	if vim.w[winid].tw_term_sidebar then
+	if vim.w[winid].tab_term_sidebar then
 		return { kind = "sidebar" }
 	end
-	return { kind = vim.w[winid].tw_term_panel and "panel" or "term" }
+	return { kind = vim.w[winid].tab_term_panel and "panel" or "term" }
 end
 
 ---@param winid integer
@@ -41,16 +41,16 @@ function M.load_win(winid, config)
 	local ok
 	if config.kind == "sidebar" then
 		ok = pcall(function()
-			require("feat.terminal.sidebar").restore_win(winid)
+			require("tab_terminal.sidebar").restore_win(winid)
 		end)
 	else
 		ok = pcall(function()
-			require("feat.terminal").restore_win(winid, config.kind == "panel")
+			require("tab_terminal").restore_win(winid, config.kind == "panel")
 		end)
 	end
 	if not ok then
 		-- 恢复失败就让 resession 保留这个空窗口（与没有扩展时的降级一致），不打断整个 load
-		vim.notify("[tw_terminal] 终端窗口恢复失败", vim.log.levels.WARN)
+		vim.notify("[tab_terminal] 终端窗口恢复失败", vim.log.levels.WARN)
 	end
 	return winid
 end

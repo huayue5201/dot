@@ -1089,6 +1089,81 @@ function M.rebuild(name)
 	return true
 end
 
+----------------------------------------------------------------------
+-- 热重载：改完 spec 不想重启 nvim（<leader>rl / :ConfigReload）
+----------------------------------------------------------------------
+
+--- 重新加载一个 spec 文件，并重跑其中已有插件的 init/config/keys。
+---
+--- 只是「重跑」，不是「重新安装」：新增/删除插件、改 version/build 仍需重启；
+--- 只有 config / opts / init / keys 这类每次启动都会重新求值的字段会被刷新。
+--- 副作用：config 里的 autocmd 会再注册一遍（同 group 需要插件自己 clear），
+--- 全局映射是覆盖；已打开 buffer 里被删掉的 ft 键位不会回收（要 :e 或重开）。
+---@param mod string 模块名，如 "plugins.dap.nvim-dap-view"
+---@return boolean ok, string[]? names 重跑的插件名
+function M.reload_spec(mod)
+	package.loaded[mod] = nil
+	local ok, ret = pcall(require, mod)
+	if not ok then
+		vim.notify(("reload %s 失败: %s"):format(mod, ret), vim.log.levels.ERROR)
+		return false
+	end
+	if type(ret) ~= "table" then
+		vim.notify(("reload %s: spec 文件应返回 table"):format(mod), vim.log.levels.WARN)
+		return false
+	end
+
+	local items = is_single_spec(ret) and { ret } or ret
+	local names = {}
+	for _, raw in ipairs(items) do
+		local fresh = normalize_spec(vim.deepcopy(raw), 0)
+		if not fresh then
+			-- nil 条目（条件禁用之类）直接跳过
+		else
+			local spec = by_src[fresh.src]
+			if not spec then
+				vim.notify(
+					("reload %s: %s 本次启动未注册（新增插件请重启）"):format(mod, fresh.name),
+					vim.log.levels.WARN
+				)
+			else
+				spec.config = fresh.config
+				spec.opts = fresh.opts
+				spec.init = fresh.init
+				spec.keys = fresh.keys
+				-- 让 apply_keys 重新登记：否则 key_owner 去重会让新键位永远装不上
+				for lhs, owner in pairs(key_owner) do
+					if owner == spec.name then
+						key_owner[lhs] = nil
+					end
+				end
+				for i = #ft_pending, 1, -1 do
+					if ft_pending[i].spec == spec.name then
+						table.remove(ft_pending, i)
+					end
+				end
+				run_init(spec)
+				configure_spec(spec)
+				names[#names + 1] = spec.name
+			end
+		end
+	end
+
+	-- fail() 只是把错误攒着等启动结束时统一报，重载时要立刻让用户看到
+	report_errors()
+
+	if #names == 0 then
+		return false, names
+	end
+	return true, names
+end
+
+--- spec 目录（给外部做「当前文件属于哪个 spec」推断用）
+---@return string
+function M.spec_dir()
+	return spec_dir
+end
+
 require("boot.pack_local").setup()
 
 return M

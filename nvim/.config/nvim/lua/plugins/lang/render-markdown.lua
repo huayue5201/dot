@@ -13,7 +13,7 @@
 --   markdown                         正常渲染
 --   codecompanion（chat 浮窗）       强制渲染（buftype=nofile 已由上游 buftype 覆盖处理）
 --   ~/.todo-files/、*.todo.md        不渲染 —— 由 ignore() 在 attach 阶段直接拒掉
---   project:// （:Project 概览）      不渲染 —— 那张表是数据，二次排版只是噪音
+--   project-overview:// （:Project 概览）  不渲染 —— 那张表是数据，二次排版只是噪音
 --
 -- 用 ignore() 而不是「attach 后再 disable」：不 attach 就不会动 conceallevel /
 -- concealcursor，也不会给 buffer 装一堆 autocmd，todo2 自己那套 conceal 渲染完全不受影响。
@@ -36,8 +36,8 @@ local function should_ignore(buf)
 			return true
 		end
 	end
-	-- :Project 的项目概览（lua/local/project/ui.lua 建的 project:// 名字的 nofile buffer）
-	if name:match("^project://") then
+	-- :Project 的项目概览（project-overview.nvim 建的 project-overview:// nofile buffer）
+	if name:match("^project%-overview://") then
 		return true
 	end
 	return false
@@ -55,7 +55,7 @@ return {
 		})
 
 		-- <leader>z = 工具分组（zm 是 mdkite 浏览器预览、zt 是 tirenvi 表格视图）
-		-- 全局开关不会波及 todo2 / project:// —— 它们压根没 attach。
+		-- 全局开关不会波及 todo2 / project-overview:// —— 它们压根没 attach。
 		vim.keymap.set(
 			"n",
 			"<leader>zM",

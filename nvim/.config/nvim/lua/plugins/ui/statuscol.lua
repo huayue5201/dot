@@ -30,6 +30,9 @@ return {
 				"ui_picker_prompt",
 				"neotest-summary",
 				"procman-panel",
+				"dap-repl",
+				"dap-disassembly",
+				"ask-agent-dashboard",
 			},
 			-- 每行同类 sign 只显示 1 个；colwidth = 1，配合插件「去掉图标内空白」
 			-- 的行为（sign_text:gsub('%s','')），像 " " 这种带尾随空格的图标

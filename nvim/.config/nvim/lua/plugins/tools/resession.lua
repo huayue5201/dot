@@ -1,30 +1,30 @@
 -- https://github.com/stevearc/resession.nvim
 --
--- 所有 resession 的配置/内部适配都收在 feat/tab_workspace/store.lua，
+-- 所有 resession 的配置/内部适配都收在 tab-workspace.nvim/lua/tab_workspace/store.lua，
 -- 这里只保留插件加载时机与用户键位。
 return {
 	"stevearc/resession.nvim",
 	config = function()
-		require("feat.tab_workspace.store").setup()
-		local store = require("feat.tab_workspace.store")
+		require("tab_workspace.store").setup()
+		local store = require("tab_workspace.store")
 
 		-- 快捷键配置：会话属于 tab / 工作区域，统一放在 <leader>ls
 		vim.keymap.set("n", "<leader>lss", function()
 			store.save_tab()
 		end, { desc = "会话: 保存当前标签" })
 		vim.keymap.set("n", "<leader>lst", function()
-			require("feat.tab_workspace").save_session()
+			require("tab_workspace").save_session()
 		end, { desc = "会话: 保存当前会话" })
 		-- 删除统一走 tab_workspace.delete_session：带确认、显示根目录、跳过当前会话
 		vim.keymap.set("n", "<leader>lsd", function()
-			require("feat.tab_workspace").delete_session()
+			require("tab_workspace").delete_session()
 		end, { desc = "会话: 删除已保存会话" })
 
 		-- 带归属校验的 autosave（定时器 + VimLeavePre）
-		require("feat.tab_workspace.session_guard").setup_autosave({ interval = 60, notify = false })
+		require("tab_workspace.session_guard").setup_autosave({ interval = 60, notify = false })
 
 		-- tab_workspace 的 post_load 钩子必须在 resession 加载后才能挂（init 阶段 require 不到）
-		if not require("feat.tab_workspace").attach_resession() then
+		if not require("tab_workspace").attach_resession() then
 			vim.notify("tab_workspace: resession 钩子挂接失败，工作区恢复不可用", vim.log.levels.WARN)
 		end
 

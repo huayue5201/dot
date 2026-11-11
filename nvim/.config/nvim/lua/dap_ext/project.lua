@@ -26,10 +26,15 @@ local nudged = {}
 local FALLBACK_MARKERS = { ".git", "Cargo.toml", "Makefile", "CMakeLists.txt" }
 
 ---定位项目根：优先 nvim-store3（已处理软链/尾斜杠），否则本地兜底
----@param bufnr number|nil
+---@param target? number|string bufnr / 文件或目录路径；nil = 当前 buffer（没名字则 cwd）
 ---@return string
-function M.root(bufnr)
-	local name = bufnr and vim.api.nvim_buf_get_name(bufnr) or ""
+function M.root(target)
+	local name
+	if type(target) == "string" then
+		name = target
+	else
+		name = target and vim.api.nvim_buf_get_name(target) or ""
+	end
 	if name == "" then
 		name = vim.fn.getcwd()
 	end
@@ -183,11 +188,12 @@ local function looks_embedded(root)
 	return false
 end
 
----当前缓冲区的项目类型
----@param bufnr number|nil
+---项目类型
+---@param target? number|string bufnr / 文件或目录路径；nil = 当前 buffer
+---@param opts { quiet?: boolean }? quiet=true 时不弹「可生成模板」提示（供键位判定等后台调用使用）
 ---@return "desktop"|"embedded"
-function M.kind(bufnr)
-	local root = M.root(bufnr)
+function M.kind(target, opts)
+	local root = M.root(target)
 	local cached = kind_cache[root]
 	if cached then
 		return cached
@@ -198,7 +204,7 @@ function M.kind(bufnr)
 	kind_cache[root] = kind
 
 	-- 嵌入式项目且缺少本地声明时，提示一次可生成模板
-	if not local_cfg and kind == "embedded" and not nudged[root] then
+	if not local_cfg and kind == "embedded" and not nudged[root] and not (opts and opts.quiet) then
 		nudged[root] = true
 		vim.notify("检测到嵌入式项目，可用 :DapProjectInit 生成 .nvim/dap.lua", vim.log.levels.INFO)
 	end
@@ -326,6 +332,10 @@ function M.clear_cache()
 	env_cache = {}
 	local_cache = {}
 	nudged = {}
+	-- 项目类型可能变了，重新评估按 ft/kind 收窄的 DAP 键位
+	pcall(function()
+		require("dap_ext.ft_keys").refresh()
+	end)
 end
 
 -- 相关文件写入后自动失效缓存

@@ -57,22 +57,6 @@ require("feat.save_panel").setup() -- :SavePanel 命令
 -- 和 quicker.nvim（<localleader>q / l）互补：那边看全貌，这边按标题挑一层
 require("ui.qf").setup()
 
--- 📌 执行流锚点（core/exec-flow.lua）：分析代码时按执行顺序打编号，按顺序跳
--- quicker 的 quickfix/loclist 切换已挪到 <localleader>xq / <localleader>xl，leader x 归执行流
-local exec_flow = require("feat.exec_flow")
-exec_flow.setup() -- :ExecFlowAdd / List / Clear / Qf
-vim.keymap.set("n", "<leader>xa", exec_flow.add, { silent = true, desc = "ExecFlow: 标记执行顺序" })
-vim.keymap.set("n", "<leader>xl", exec_flow.panel, { silent = true, desc = "ExecFlow: 列表" })
-vim.keymap.set("n", "<leader>xd", exec_flow.delete, { silent = true, desc = "ExecFlow: 删除当前行锚点" })
-vim.keymap.set("n", "<leader>xc", exec_flow.clear, { silent = true, desc = "ExecFlow: 清空" })
-vim.keymap.set("n", "<leader>xq", exec_flow.qf, { silent = true, desc = "ExecFlow: 导出 quickfix" })
-vim.keymap.set("n", "]x", function()
-	exec_flow.jump(1)
-end, { silent = true, desc = "ExecFlow: 下一个锚点" })
-vim.keymap.set("n", "[x", function()
-	exec_flow.jump(-1)
-end, { silent = true, desc = "ExecFlow: 上一个锚点" })
-
 -- 关闭当前 buffer：有分屏时先收掉当前窗口（不动其它分屏），
 -- buffer 不再被任何窗口显示后再交给 tab_workspace 删除（含共享归属 / 未保存确认）。
 -- 不能用 `:bd` / `:bp | bd #`：它们会把窗口换成别的文件（分屏看起来“没关掉”），
@@ -80,7 +64,7 @@ end, { silent = true, desc = "ExecFlow: 上一个锚点" })
 -- noice.nvim 等插件会常驻隐藏浮窗（[Cmd]/[Msg]/[Dialog]/[Pager]），
 -- nvim_tabpage_list_wins 会把浮窗也算进去，导致“多窗口”误判、win_close 关不动。
 -- 因此这里只统计当前 tab 里真正参与布局的（非浮动）窗口。
-local tw_util = require("feat.tab_workspace.util")
+local tw_util = require("tab_workspace.util")
 
 local function real_wins()
 	local wins = {}
@@ -150,7 +134,7 @@ local function close_buffer()
 	if alt ~= -1 and alt ~= buf and vim.api.nvim_buf_is_valid(alt) and vim.bo[alt].buflisted then
 		vim.cmd("buffer " .. alt)
 	end
-	require("feat.tab_workspace").close_buffer(buf)
+	require("tab_workspace").close_buffer(buf)
 end
 
 -- 只用 <leader>bq：<D-w> 是终端关闭 tab 的默认键，<c-esc> 终端只发裸 ESC（分不出来）。
@@ -211,40 +195,40 @@ vim.keymap.set("n", "<leader>ltc", "<cmd>tabclose<cr>", {
 	desc = "Tab: 关闭（不保存会话，工作区版见 <leader>lwc）",
 })
 vim.keymap.set("n", "<leader>lws", function()
-	require("feat.tab_workspace").prompt_root()
+	require("tab_workspace").prompt_root()
 end, { silent = true, desc = "Tab: 设置工作区根目录" })
 vim.keymap.set("n", "<leader>lwn", function()
-	require("feat.tab_workspace").new_workspace()
+	require("tab_workspace").new_workspace()
 end, { silent = true, desc = "工作区: 新建（保存会话 + 新 tab + 设置根目录）" })
 vim.keymap.set("n", "<leader>lwc", function()
-	require("feat.tab_workspace").close_workspace()
+	require("tab_workspace").close_workspace()
 end, { silent = true, desc = "工作区: 关闭（保存会话 + 关闭 tab）" })
 vim.keymap.set("n", "<leader>lwa", function()
-	require("feat.tab_workspace").alternate()
+	require("tab_workspace").alternate()
 end, { silent = true, desc = "工作区: 切换到上一个 tab" })
 vim.keymap.set("n", "<leader>lwe", function()
-	require("feat.tab_workspace").edit_local_settings()
+	require("tab_workspace").edit_local_settings()
 end, { silent = true, desc = "工作区: 编辑本地配置 (.nvim.lua)" })
 vim.keymap.set("n", "<leader>lwN", function()
-	require("feat.tab_workspace").rename_workspace()
+	require("tab_workspace").rename_workspace()
 end, { silent = true, desc = "工作区: 重命名（留空回车 = 恢复默认）" })
 vim.keymap.set("n", "<leader>lwl", function()
-	require("feat.tab_workspace").picker()
+	require("tab_workspace").picker({ select = require("ui.picker").select })
 end, { silent = true, desc = "工作区: 列表/切换（打开中 + 已保存 + 新目录）" })
 vim.keymap.set("n", "<leader>lw+", function()
-	require("feat.tab_workspace").attach_root()
+	require("tab_workspace").attach_root()
 end, { silent = true, desc = "工作区: 附加辅助根（多根，cwd 仍是主根）" })
 vim.keymap.set("n", "<leader>lw-", function()
-	require("feat.tab_workspace").detach_root()
+	require("tab_workspace").detach_root()
 end, { silent = true, desc = "工作区: 移除辅助根" })
 vim.keymap.set("n", "<leader>lwt", function()
-	require("feat.tab_workspace").workspace_tree()
+	require("tab_workspace").workspace_tree()
 end, { silent = true, desc = "工作区: 多根树（主根 + 辅助根）" })
 vim.keymap.set("n", "<leader>lwr", function()
-	require("feat.tab_workspace").root_back()
+	require("tab_workspace").root_back()
 end, { silent = true, desc = "工作区: 根目录回到上一个（并锁定）" })
 vim.keymap.set("n", "<leader>lwR", function()
-	require("feat.tab_workspace").root_unpin()
+	require("tab_workspace").root_unpin()
 end, { silent = true, desc = "工作区: 解除根目录锁定（恢复自动跟随）" })
 vim.keymap.set("n", "<leader>lta", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
 
@@ -264,6 +248,14 @@ vim.keymap.set(
 
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>rte", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
+-- <leader>rl：重载当前配置文件（清模块缓存 + 重跑引用它的插件 config），见 lua/feat/config_reload.lua
+require("feat.config_reload").setup()
+vim.keymap.set(
+	"n",
+	"<leader>rl",
+	"<cmd>ConfigReload<cr>",
+	{ silent = true, desc = "Config: 重载当前文件的模块缓存 + 插件 config" }
+)
 
 -- 🔍 Search
 vim.keymap.set("x", "/", "<C-\\><C-n>`</\\%V", { desc = "Search: forward in visual range" })
@@ -315,7 +307,7 @@ end, { silent = true, desc = "Path: copy filename" })
 -- 终端 / 交换文件（原 after/plugin/keymaps.vim 迁移而来）
 -- ============================================================================
 
--- 终端模式 <C-l> 清屏（betterTerm 的 buffer-local <C-l> 会覆盖它，两者互不影响）
+-- 终端模式 <C-l> 清屏
 vim.keymap.set(
 	"t",
 	"<C-l>",

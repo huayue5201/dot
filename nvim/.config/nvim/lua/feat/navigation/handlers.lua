@@ -1,7 +1,7 @@
 -- 导航逻辑：错误行跳转（支持 . 重复）+ 智能关窗（按 filetype/buftype 选策略）
 local M = {}
 
-local tw_util = require("feat.tab_workspace.util")
+local tw_util = require("tab_workspace.util")
 
 -- ============================
 -- 错误行跳转

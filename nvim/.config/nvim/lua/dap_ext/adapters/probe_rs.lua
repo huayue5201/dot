@@ -175,9 +175,16 @@ function M.setup(dap)
 	vim.api.nvim_create_user_command("DapProbeRs", function()
 		M.launch(0)
 	end, { desc = "probe-rs 调试（缺芯片/ELF 时手动选）" })
-	vim.keymap.set("n", "<leader>dE", function()
+	-- 只在嵌入式项目的 rust/c/cpp 文件里出现：桌面 Rust 项目里这条映射没有意义
+	require("dap_ext.ft_keys").map("<leader>dE", function()
 		M.launch(0)
-	end, { desc = "[D]ap [E]mbedded probe-rs（自动/手动选芯片）" })
+	end, {
+		filetypes = { "rust", "c", "cpp" },
+		desc = "[D]ap [E]mbedded probe-rs（自动/手动选芯片）",
+		cond = function(bufnr)
+			return project.kind(bufnr, { quiet = true }) == "embedded"
+		end,
+	})
 end
 
 return M

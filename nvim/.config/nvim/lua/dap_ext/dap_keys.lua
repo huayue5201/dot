@@ -3,6 +3,7 @@
 --
 -- dap_ext 目录分工：
 --   dap_keys.lua           键位与其直接触发的交互（本文件）
+--   ft_keys.lua            按 filetype/project kind 收窄的 buffer-local 键位
 --   breakpoint_state.lua   断点状态同步（原生断点 + dap-extensions 自定义断点）
 --   project.lua            项目类型判定 + <root>/.nvim/dap.lua 本地配置
 --   persist.lua            项目级「上次运行配置」记忆

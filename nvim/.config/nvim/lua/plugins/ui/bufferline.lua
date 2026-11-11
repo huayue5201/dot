@@ -24,7 +24,7 @@ return {
 
 		-- 关闭按钮/右键：先判断是否被其他 tab 共享，共享则只移除不删除
 		local function close_buffer(bufnr)
-			require("feat.tab_workspace").close_buffer(bufnr)
+			require("tab_workspace").close_buffer(bufnr)
 		end
 
 		-- bufferline.setup(require("real-icons.integrations.bufferline").opts({
@@ -162,7 +162,7 @@ return {
 				-- 用 buffer_source 而不是 custom_filter：后者对每个 buffer 调一次，
 				-- 这里每次渲染只调一次。
 				buffer_source = function()
-					return require("feat.tab_workspace").visible_buffers()
+					return require("tab_workspace").visible_buffers()
 				end,
 
 				-- 名称格式化函数
@@ -201,6 +201,15 @@ return {
 						text_align = "center",
 						separator = true,
 						highlight = "TodoDrawerFileHeader",
+					},
+					{
+						-- ask-agent 控制面侧边栏（filetype=ask-agent-dashboard，右侧 vsplit）。
+						-- 宽度同样由 bufferline 读取窗口实际宽度；面板关掉后 offset 自动消失。
+						filetype = "ask-agent-dashboard",
+						text = "Agents",
+						text_align = "center",
+						separator = true,
+						highlight = "AskAgentHelpKey",
 					},
 					{
 						-- CodeCompanion 聊天窗口（默认 vertical 布局，filetype=codecompanion）。

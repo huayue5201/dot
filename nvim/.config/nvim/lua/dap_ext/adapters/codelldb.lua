@@ -13,6 +13,7 @@ Rust / C / C++ 的统一 LLDB 调试配置模块
 --]]
 
 local project = require("dap_ext.project")
+local prompt = require("dap_ext.prompt")
 
 return {
 	setup = function(dap)
@@ -99,8 +100,9 @@ return {
 			local targets = get_targets(cmd)
 
 			if #targets == 0 then
-				-- 无可执行文件，手动输入
-				return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+				-- 无可执行文件，手动输入；取消则中止本次运行
+				local path = prompt.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+				return path or dap.ABORT
 			elseif #targets == 1 then
 				-- 单一目标，自动选择
 				return targets[1]
@@ -130,13 +132,13 @@ return {
 					choice_made = true
 				end)
 
-				-- 等待用户选择完成（阻塞式）
+				-- 等待用户选择完成（阻塞式）；取消选择同样中止
 				while not choice_made do
 					vim.wait(50)
 				end
 
 				---@diagnostic disable-next-line: return-type-mismatch
-				return choice
+				return choice or dap.ABORT
 			end
 		end
 
@@ -144,7 +146,11 @@ return {
 		-- 5. 工具函数：读取命令行参数
 		----------------------------------------------------------------------
 		local function read_args()
-			local input = vim.fn.input("Enter args: ")
+			local input = prompt.input("Enter args: ")
+			-- Esc 视为取消启动，而不是「无参数」
+			if input == nil then
+				return dap.ABORT
+			end
 			return vim.split(input, " ", { trimempty = true })
 		end
 
@@ -155,13 +161,13 @@ return {
 		local c_configs = {
 			vim.tbl_extend("force", cfg, {
 				program = function()
-					return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+					return prompt.input("Path to executable: ", vim.fn.getcwd() .. "/", "file") or dap.ABORT
 				end,
 			}),
 			vim.tbl_extend("force", cfg, {
 				name = "Debug (+args)",
 				program = function()
-					return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+					return prompt.input("Path to executable: ", vim.fn.getcwd() .. "/", "file") or dap.ABORT
 				end,
 				args = read_args,
 			}),
@@ -213,7 +219,11 @@ return {
 					return select_target({ "cargo", "test", "--no-run", "--message-format=json" })
 				end,
 				args = function()
-					return vim.list_extend(read_args(), { "--test-threads=1" })
+					local args = read_args()
+					if args == dap.ABORT then
+						return dap.ABORT
+					end
+					return vim.list_extend(args, { "--test-threads=1" })
 				end,
 			}),
 

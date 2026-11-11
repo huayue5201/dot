@@ -15,7 +15,7 @@
 local M = {}
 
 local api = vim.api
-local tw_util = require("feat.tab_workspace.util")
+local tw_util = require("tab_workspace.util")
 
 --- 由本模块识别的、需要保护的窗口（插件状态窗口）。
 ---@param ft string

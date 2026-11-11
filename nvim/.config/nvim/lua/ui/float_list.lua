@@ -2,7 +2,7 @@
 --[[
 浮窗列表（内部共享库，不对外发布）
 ==================================
-lsp_ext/panel.lua、core/save-panel.lua 原本各抄了一份「圆角居中浮窗 + j/k
+lsp_ext/panel.lua、feat/save_panel.lua 原本各抄了一份「圆角居中浮窗 + j/k
 + 数字跳转 + <CR> 执行 + ? 帮助 + q/Esc 关闭」，行为已经漂移。这里把这份交互
 收成一个可复用实例：（dap_ext/exception-breakpoints.lua 已改用 nvim-dap-view，不再需要）
 

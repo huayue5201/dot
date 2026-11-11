@@ -1,4 +1,5 @@
 local picker = require("dap_ext.debug-file-picker")
+local prompt = require("dap_ext.prompt")
 
 return {
 	setup = function(dap)
@@ -19,8 +20,10 @@ return {
 		local function select_target(cmd)
 			local targets = get_targets(cmd)
 			if #targets == 0 then
-				-- fallback 到 picker
-				return picker.option() or vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+				-- fallback 到 picker；取消输入则中止本次运行
+				return picker.option()
+					or prompt.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+					or dap.ABORT
 			elseif #targets == 1 then
 				return targets[1]
 			else
@@ -46,13 +49,16 @@ return {
 				while not choice_made do
 					vim.wait(50)
 				end
-				return choice
+				return choice or dap.ABORT
 			end
 		end
 
 		-- 输入命令行参数
 		local function read_args()
-			local input = vim.fn.input("Enter args: ")
+			local input = prompt.input("Enter args: ")
+			if input == nil then
+				return dap.ABORT
+			end
 			return vim.split(input, " ", { trimempty = true })
 		end
 
@@ -88,7 +94,10 @@ return {
 					return select_target({ "cargo", "build", "--bins", "--quiet", "--message-format=json" })
 				end,
 				pid = function()
-					local name = vim.fn.input("Executable name (filter): ")
+					local name = prompt.input("Executable name (filter): ")
+					if name == nil then
+						return dap.ABORT
+					end
 					return require("dap.utils").pick_process({ filter = name })
 				end,
 				cwd = "${workspaceFolder}",

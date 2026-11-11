@@ -25,13 +25,25 @@ end
 ---@param elf string
 ---@return table
 local function missing_elf(elf)
-	return { cmd = { "echo", "没有找到 .elf / 可执行文件：请在参数里填写路径（当前：" .. elf .. "）" } }
+	return {
+		cmd = {
+			"echo",
+			"没有找到 .elf / 可执行文件：请在参数里填写路径（当前：" .. elf .. "）",
+		},
+	}
 end
 
 ---@type overseer.TemplateFileProvider
 return {
 	condition = { filetype = { "c", "cpp", "rust" } },
 	generator = function(opts, cb)
+		-- 项目隔离：probe-rs 只属于嵌入式工程，桌面 C/C++/Rust 项目不显示烧录任务
+		-- （判定逻辑与 DAP 侧共用 lua/dap_ext/project.lua：自动特征 + .nvim/dap.lua 覆盖）
+		if require("dap_ext.project").kind(opts.dir, { quiet = true }) ~= "embedded" then
+			cb({})
+			return
+		end
+
 		if vim.fn.executable("probe-rs") == 0 then
 			return 'Command "probe-rs" not found（brew install probe-rs-tools / cargo binstall probe-rs-tools）'
 		end

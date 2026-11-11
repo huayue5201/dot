@@ -62,8 +62,8 @@ return {
 			-- ========== 基础设置 ==========
 			sources = {
 				"filesystem",
-				-- 多根源（主根 + 辅助根）：模块在 lua/feat/tab_workspace/neo_tree.lua
-				"feat.tab_workspace.neo_tree",
+				-- 多根源（主根 + 辅助根）：模块在 ~/neovim-plugins/tab-workspace.nvim/lua/tab_workspace/integrations/neo_tree.lua
+				"tab_workspace.integrations.neo_tree",
 				-- "buffers",
 				"git_status",
 				"document_symbols",
@@ -128,7 +128,7 @@ return {
 			},
 
 			-- ========== 多根源（主根 + 辅助根）==========
-			-- 根由 feat.tab_workspace.roots 管理（<leader>lw+ / <leader>lw-），
+			-- 根由 tab_workspace.roots 管理（<leader>lw+ / <leader>lw-），
 			-- 顶层是并排的根目录，展开后与 filesystem 源完全一致。
 			workspace = {
 				-- cwd 只有一个，多根不跟着 cwd 跑
@@ -166,7 +166,7 @@ return {
 				end,
 
 				open_terminal_at = function(state)
-					require("feat.terminal").new_for_node(state.tree:get_node())
+					require("tab_terminal").new_for_node(state.tree:get_node())
 				end,
 
 				open_and_clear_filter = function(state)

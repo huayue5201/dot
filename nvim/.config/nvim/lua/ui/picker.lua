@@ -647,4 +647,30 @@ function M.pick(opts)
 	vim.cmd("startinsert!")
 end
 
+--- vim.ui.select 兼容适配器：给支持 `opts.select` 的 API 用（如 tab_workspace.picker）。
+--- 只做签名翻译，不接管全局 vim.ui.select，也不改 quickfix。
+---@param items table[]
+---@param opts? { prompt?: string, title?: string, format_item?: fun(item): string, preview?: fun(item): string|string[]|nil }
+---@param on_choice fun(item: any, idx?: integer)
+function M.select(items, opts, on_choice)
+	opts = opts or {}
+	local index = {}
+	for i, item in ipairs(items) do
+		index[item] = i
+	end
+	local format = opts.format_item or tostring
+	M.pick({
+		title = opts.title or opts.prompt or "select",
+		items = items,
+		text = format,
+		preview = opts.preview,
+		on_choose = function(item)
+			on_choice(item, index[item])
+		end,
+		on_cancel = function()
+			on_choice(nil)
+		end,
+	})
+end
+
 return M

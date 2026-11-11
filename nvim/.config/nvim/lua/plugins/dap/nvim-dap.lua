@@ -114,6 +114,10 @@ return {
 		-- 调试配置项目级记忆（记住上次配置 + 项目模板）
 		require("dap_ext.persist").setup()
 
+		-- 告诉终端模块「dap 的集成终端/console 不是普通 shell 终端」
+		-- （通用归属机制见 tab-terminal.nvim 的 foreign.lua）
+		require("dap_ext.terminal_guard").setup()
+
 		vim.api.nvim_create_autocmd({ "VimLeave" }, {
 			callback = function()
 				-- 通过系统命令关闭 OpenOCD

@@ -26,7 +26,7 @@
 local M = {}
 
 local api = vim.api
-local tw_util = require("feat.tab_workspace.util")
+local tw_util = require("tab_workspace.util")
 
 --- 声明式尺寸：key(filetype 或 buftype) -> { width?, height? }，值也可为函数。
 ---@type table<string, fun():table|table>
@@ -143,7 +143,9 @@ local function desired(win)
 	end
 	local ov = override[win] or {}
 	local size = declared[key_of(win)] and resolve(declared[key_of(win)]) or {}
-	return ov.w or size.width, ov.h or size.height
+	-- 只回归声明里管着的维度：声明 width 的面板，高度是邻居分摊出来的副产品，
+	-- 拿它去 set_height 会把整列（进而整个 tab frame）压矮，关窗后留下空白带。
+	return size.width and (ov.w or size.width), size.height and (ov.h or size.height)
 end
 
 --- 记录当前所有窗口尺寸，作为识别用户 resize 的基准。
@@ -175,14 +177,16 @@ local function learn()
 	for _, tab in ipairs(api.nvim_list_tabpages()) do
 		for _, win in ipairs(api.nvim_tabpage_list_wins(tab)) do
 			if real(win) and declared[key_of(win)] and not shared(win) then
+				local size = resolve(declared[key_of(win)]) or {}
 				local prev = last[win]
 				if prev then
 					local w, h = api.nvim_win_get_width(win), api.nvim_win_get_height(win)
 					local ov = override[win] or {}
-					if w ~= prev.w then
+					-- 同理：只记声明管着的维度，别把连带变化的另一维记成用户意图。
+					if size.width and w ~= prev.w then
 						ov.w = w
 					end
-					if h ~= prev.h then
+					if size.height and h ~= prev.h then
 						ov.h = h
 					end
 					if ov.w or ov.h then
@@ -191,6 +195,51 @@ local function learn()
 				end
 			end
 		end
+	end
+end
+
+--- tab 内非浮窗的包围盒（0 基，右/下为开区间）。
+---@param tab integer
+---@return integer left, integer top, integer right, integer bottom
+local function bounds(tab)
+	local left, top, right, bottom = math.huge, math.huge, -1, -1
+	for _, win in ipairs(api.nvim_tabpage_list_wins(tab)) do
+		if real(win) then
+			local pos = api.nvim_win_get_position(win)
+			left = math.min(left, pos[2])
+			top = math.min(top, pos[1])
+			right = math.max(right, pos[2] + api.nvim_win_get_width(win))
+			bottom = math.max(bottom, pos[1] + api.nvim_win_get_height(win))
+		end
+	end
+	return left, top, right, bottom
+end
+
+--- 写一次尺寸，并在这次修改把窗口占用的区域「缩」掉时立刻撤销。
+---
+--- `cmdheight=0` 时 Neovim 会把窗口让出的行直接变成命令行/消息区：屏幕上出现
+--- 一整块纯背景的空白带，而且不会自己收回（连 `wincmd =` 都救不回来）。宽度上
+--- 对应的故障是 frame 右边界缩进、右侧留死列。两者都必须从源头拒绝，所以这里
+--- 改完立刻核对：命令行区变高、或包围盒变窄 → 写回旧尺寸（写回去命令行区会跟着
+--- 收回）。只撤销自己这一次的写入，不会和别人的布局改动打架。
+---@param win integer
+---@param dim "w"|"h"
+---@param value integer
+local function resize_safely(win, dim, value)
+	local set = dim == "w" and api.nvim_win_set_width or api.nvim_win_set_height
+	local get = dim == "w" and api.nvim_win_get_width or api.nvim_win_get_height
+	local old = get(win)
+	if old == value then
+		return
+	end
+
+	local tab = api.nvim_win_get_tabpage(win)
+	local cmd, right = vim.o.cmdheight, select(3, bounds(tab))
+	if not pcall(set, win, value) then
+		return
+	end
+	if vim.o.cmdheight > cmd or select(3, bounds(tab)) < right then
+		pcall(set, win, old)
 	end
 end
 
@@ -205,11 +254,11 @@ local function enforce()
 
 				-- 每个窗口单独判断「谁能接空间」：目标窗口本身不算，否则在没有弹性
 				-- 兄弟时会发起注定失败（pcall 静默）的 resize。
-				if want_w and has_donor(tab, "w", win) and api.nvim_win_get_width(win) ~= want_w then
-					pcall(api.nvim_win_set_width, win, want_w)
+				if want_w and has_donor(tab, "w", win) then
+					resize_safely(win, "w", want_w)
 				end
-				if want_h and has_donor(tab, "h", win) and api.nvim_win_get_height(win) ~= want_h then
-					pcall(api.nvim_win_set_height, win, want_h)
+				if want_h and has_donor(tab, "h", win) then
+					resize_safely(win, "h", want_h)
 				end
 			end
 		end

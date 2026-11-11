@@ -28,6 +28,7 @@ M.icon = {
 
 	-- TODO2 标记数量
 	todo = "", -- nf-fa-list_ul U+EF2F
+	ai = "󰚩", -- nf-md-robot U+F06A9 AI agent 状态（⚠ 等你 / ✓ 完成 / ✗ 失败 / ◐ 工作中）
 
 	-- 数据库工作台：winfixbuf 锁定后的后缀「·locked」
 	db_lock = "·", -- 中点 U+00B7

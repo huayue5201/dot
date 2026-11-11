@@ -10,7 +10,7 @@ return {
 	sem_version = "*",
 	config = function()
 		local ignore_ft = {
-			tw_terminal = true,
+			tab_terminal = true,
 			snacks_dashboard = true,
 			snacks_picker = true,
 			dashboard = true,
@@ -22,7 +22,7 @@ return {
 			oil = true,
 			trouble = true,
 			prompt = true,
-			tw_term_sidebar = true,
+			tab_term_sidebar = true,
 		}
 
 		---@param bufnr integer

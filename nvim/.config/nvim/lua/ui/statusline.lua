@@ -131,6 +131,24 @@ local function get_scrollbar()
 end
 
 -- ================================
+-- ⭐ AI agent 状态（ask_agent 状态层）
+-- ================================
+-- ⚠ 等你（permission/question）/ ✓ 完成未看 / ✗ 失败 / ◐ 工作中；空串表示没有
+-- 需要关注的实例，段自动消失。数据来自插件里的唯一状态层（:AskAgentDashboard
+-- 看详情），这里只读数，不触发任何探测。
+local function ai_status()
+	local ok, ask = pcall(require, "ask_agent")
+	if not ok then
+		return ""
+	end
+	local out = ask.statusline()
+	if out == "" then
+		return ""
+	end
+	return string.format("%%#StatuslineIcon#%s%%* %s ", ICONS.ai, out)
+end
+
+-- ================================
 -- ⭐ TODO 标记数量显示
 -- ================================
 local function todo_markers()
@@ -209,7 +227,7 @@ function M.db()
 end
 
 -- ================================
--- 工作区锚点（每个 tab = 一个工作区，根目录见 feat/tab_workspace/root.lua）
+-- 工作区锚点（每个 tab = 一个工作区，根目录见 ~/neovim-plugins/tab-workspace.nvim/lua/tab_workspace/root.lua）
 -- ================================
 -- 状态栏是全局字符串，切 tab 不会自动重算，靠下方 TabEnter / DirChanged 刷新。
 -- 颜色槽位固定为 StlWs1..6：同一个根目录永远同一个颜色，且不动态创建高亮组。
@@ -235,28 +253,25 @@ local function workspace()
 			tab = vim.api.nvim_win_get_tabpage(win)
 		end
 		local number = vim.api.nvim_tabpage_get_number(tab)
-		local ok_root, root = pcall(require, "feat.tab_workspace.root")
-		if not ok_root then
+		local ok_ws, ws = pcall(require, "tab_workspace")
+		if not ok_ws then
 			return ""
 		end
-		local dir = (root.cwd(tab):gsub("/+$", ""))
-		local name = (root.name(tab):gsub("%%", "%%%%"))
+		local dir = (ws.root(tab):gsub("/+$", ""))
+		local name = (ws.workspace_name(tab):gsub("%%", "%%%%"))
 
 		-- 只高亮图标，名字用普通文本（避免整段彩色块）
 		local parts = { string.format("%%#StlWs%d#%s%%* %s", ws_slot(dir), ICONS.ws, name) }
 
 		-- 已锁定（<leader>lws 显式设根 / <leader>lwr 回退）：自动跟随不再改它
-		if root.pin_of(tab) ~= nil then
+		if ws.root_pinned(tab) then
 			table.insert(parts, "%#StlSep#" .. ICONS.ws_lock .. "%*")
 		end
 
 		-- 附加了辅助根（多根工作区）：+N；用 <leader>ew 看并列的多根树
-		local ok_roots, roots = pcall(require, "feat.tab_workspace.roots")
-		if ok_roots then
-			local extra = #roots.aux(tab)
-			if extra > 0 then
-				table.insert(parts, string.format("%%#StlSep#+%d%%*", extra))
-			end
+		local extra = #ws.aux_roots(tab)
+		if extra > 0 then
+			table.insert(parts, string.format("%%#StlSep#+%d%%*", extra))
 		end
 
 		local tabs = #vim.api.nvim_list_tabpages()
@@ -278,6 +293,7 @@ local builders = {
 	ws = workspace,
 	save = save_status,
 	lsp = lsp,
+	ai = ai_status,
 	todo = todo_markers,
 	dap = dap,
 	vcs = vcs,
@@ -347,7 +363,15 @@ end
 
 local function compose()
 	local tail = "%l:%c  " .. state.scroll .. " " .. "%p"
-	local right = join({ state.todo, state.dap, "%{%v:lua.Statusline.db()%}", state.vcs, state.upstream, tail }, SEP)
+	local right = join({
+		state.ai,
+		state.todo,
+		state.dap,
+		"%{%v:lua.Statusline.db()%}",
+		state.vcs,
+		state.upstream,
+		tail,
+	}, SEP)
 
 	-- 工作区固定在最左（自带文件夹图标 + 按根目录哈希的配色）：切 tab 第一眼
 	-- 看到的就是「我在哪个项目」；状态模块全空时也不会留下悬空分隔符
@@ -445,6 +469,16 @@ vim.api.nvim_create_autocmd("User", {
 	group = statusline_group,
 	callback = function()
 		enqueue("ws")
+		apply()
+	end,
+})
+
+-- ask_agent 状态变化：插件已经做了 2s 轮询 + 事件，这里只重绘，不额外探测
+vim.api.nvim_create_autocmd("User", {
+	pattern = "AskAgentStateChanged",
+	group = statusline_group,
+	callback = function()
+		enqueue("ai")
 		apply()
 	end,
 })

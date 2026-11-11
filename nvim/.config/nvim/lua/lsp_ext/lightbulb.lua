@@ -14,7 +14,7 @@
 --     长行（行末在屏幕外）也不会被裁掉；水平方向对齐光标那一列（原插件行为），
 --     上方无空间时翻到光标下方。
 --
--- 触发：CursorHold / CursorHoldI（'updatetime' 已经负责空闲去抖，见 core/settings.lua），
+-- 触发：CursorHold / CursorHoldI（'updatetime' 已经负责空闲去抖，见 boot/settings.lua），
 -- 这里只额外做「同一行同一 changedtick 不重复请求」+ 请求取消，避免重请求型 server
 -- （rust-analyzer / pyright）被反复打。
 -- 光标一移动就隐藏灯泡，再次停下才重新判断 —— 不做每行灯泡（那需要 virt_text）。

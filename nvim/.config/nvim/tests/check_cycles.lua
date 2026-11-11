@@ -4,8 +4,8 @@
 --
 -- 只统计「模块加载期」的依赖，即行首（无缩进）的 require：
 --
---   local sidebar = require("feat.terminal.sidebar")   ← 算
---     return require("feat.terminal").close_icon()     ← 不算（函数体里，调用期才解析）
+--   local sidebar = require("ui_menu.bar")   ← 算
+--     return require("ui_menu").close_icon()     ← 不算（函数体里，调用期才解析）
 --
 -- 函数体内的 require 是延迟解析，构不成加载期的环；但它一旦被提到文件顶部，
 -- 环就立刻成立。所以这里只保证「加载图无环」，并在一处留了提示。

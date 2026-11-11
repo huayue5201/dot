@@ -60,6 +60,11 @@ return {
 		return find_cfg(opts) or DEFAULT_ARGS
 	end,
 	generator = function(opts, cb)
+		-- 项目隔离：OpenOCD 只属于嵌入式工程
+		if require("dap_ext.project").kind(opts.dir, { quiet = true }) ~= "embedded" then
+			cb({})
+			return
+		end
 		if vim.fn.executable("openocd") == 0 then
 			return 'Command "openocd" not found'
 		end
@@ -70,7 +75,8 @@ return {
 		---@type overseer.TemplateDefinition[]
 		local tasks = {
 			{
-				name = cfg and "OpenOCD: 启动调试服务器（项目 cfg）" or "OpenOCD: 启动调试服务器（默认 STM32/stlink）",
+				name = cfg and "OpenOCD: 启动调试服务器（项目 cfg）"
+					or "OpenOCD: 启动调试服务器（默认 STM32/stlink）",
 				tags = { TAG.RUN },
 				builder = function()
 					return {

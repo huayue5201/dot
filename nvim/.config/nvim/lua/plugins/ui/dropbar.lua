@@ -210,7 +210,7 @@ return {
 				prompt = "%#htmlTag# :",
 			},
 		})
-		-- vim.ui.select 由 lib/menu.lua 接管（浮窗菜单，零依赖模糊匹配）
+		-- vim.ui.select 由 ui-menu.nvim 接管（浮窗菜单，零依赖模糊匹配）
 		local dropbar_api = require("dropbar.api")
 		vim.keymap.set("n", "<Leader>s;", dropbar_api.pick, { desc = "dropbar: Pick symbols in winbar" })
 		vim.keymap.set("n", "[;", dropbar_api.goto_context_start, { desc = "dropbar: Go to start of current context" })

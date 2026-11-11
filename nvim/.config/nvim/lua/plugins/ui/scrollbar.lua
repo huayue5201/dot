@@ -39,7 +39,7 @@ return {
 				"noice",
 				"prompt",
 				"TelescopePrompt",
-				"lib-menu",
+				"ui-menu",
 				"lazy",
 				"mason",
 				"OverseerList",

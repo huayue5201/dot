@@ -28,16 +28,16 @@ M.settings = {
 			return { width = ok and width or 42 }
 		end,
 	},
-	["tw_terminal"] = {
-		-- 一 tab 一组终端，面板高度由 feat.terminal 决定
+	["tab_terminal"] = {
+		-- 一 tab 一组终端，面板高度由 tab-terminal.nvim 决定
 		size = function()
-			return { height = require("feat.terminal").panel_size() }
+			return { height = require("tab_terminal").panel_size() }
 		end,
 	},
-	["tw_term_sidebar"] = {
+	["tab_term_sidebar"] = {
 		-- 终端侧栏：贴在终端面板右侧的窄竖栏
 		size = function()
-			return { width = require("feat.terminal.sidebar").config.width }
+			return { width = require("tab_terminal.sidebar").config.width }
 		end,
 	},
 	["sqmeow-result"] = {
@@ -70,9 +70,9 @@ M.buf_keymaps = {
 		["dap-view"] = { cmd = "DapViewClose", desc = "关闭 DAP 视图" },
 		["gitsigns-blame"] = { cmd = "bdelete!", desc = "关闭 blame" },
 		terminal = { cmd = "bdelete", desc = "关闭终端" },
-		tw_terminal = {
+		tab_terminal = {
 			cmd = function()
-				require("feat.terminal").toggle()
+				require("tab_terminal").toggle()
 			end,
 			desc = "收起终端面板",
 		},

@@ -120,6 +120,34 @@ return {
 			-- 可以是布尔值，也可以是一个函数动态决定
 			-- 如果是函数，接收当前会话的适配器名称作为参数
 			follow_tab = false,
+
+			-----------------------------------------------------------
+			-- 键位配置：只在 dap-view 面板的 buffer 里生效
+			-----------------------------------------------------------
+			-- next/prev view 用 <> （面板里正常模式 < > 本来就只做缩进，
+			-- 而视图 buffer 不可改，所以借来翻页最顺手）。
+			-- 面板外想直接跳某个视图用 <leader>dj（选择器）。
+			keymaps = {
+				base = {
+					next_view = ">",
+					prev_view = "<",
+				},
+			},
+		})
+
+		-- dap-view 只给内置视图（dap-view / dap-view-term）挂 base 键位；
+		-- 自定义视图（如 nvim-dap-disasm 注册的 "disassembly"，ft=dap-disassembly）
+		-- 用自己的 buffer，拿不到 < >，这里补上，保证整个面板内翻页一致。
+		vim.api.nvim_create_autocmd("FileType", {
+			pattern = "dap-disassembly",
+			callback = function(ev)
+				vim.keymap.set("n", ">", function()
+					require("dap-view").navigate({ count = vim.v.count1, wrap = true })
+				end, { buffer = ev.buf, nowait = true, desc = "DAP View: 下一个视图" })
+				vim.keymap.set("n", "<", function()
+					require("dap-view").navigate({ count = -vim.v.count1, wrap = true })
+				end, { buffer = ev.buf, nowait = true, desc = "DAP View: 上一个视图" })
+			end,
 		})
 
 		-- 切换 DAP 视图显示/隐藏
@@ -206,14 +234,5 @@ return {
 				end
 			end)
 		end, { desc = "DAP: Select view to jump to" })
-
-		-- 循环导航（允许从最后一个回到第一个）
-		vim.keymap.set("n", "<C-=>", function()
-			require("dap-view").navigate({ count = 1, wrap = true })
-		end, { desc = "DAP View: Focus next view (wrap)" })
-
-		vim.keymap.set("n", "<C-->", function()
-			require("dap-view").navigate({ count = -1, wrap = true })
-		end, { desc = "DAP View: Focus previous view (wrap)" })
 	end,
 }

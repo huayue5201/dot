@@ -13,7 +13,7 @@ vim.o.confirm = true -- 未保存退出确认
 
 -- ================ 项目本地配置与会话 ================
 -- 项目本地配置不走 'exrc'：它只认启动目录且无法回滚，与「一 tab 一工作区」冲突。
--- <工作区根>/.nvim.lua 由 feat/tab_workspace/local_settings.lua 独占加载与回滚。
+-- <工作区根>/.nvim.lua 由 ~/neovim-plugins/tab-workspace.nvim/lua/tab_workspace/local_settings.lua 独占加载与回滚。
 -- 不设置 shadafile：使用 Neovim 默认的全局 shada（~/.local/state/nvim/shada/main.shada）
 -- 多项目 tab / resession 场景下无法按项目隔离 shada，统一使用全局文件最稳定。
 -- 不包含 options/localoptions：避免把 tabline/statusline/winbar 等含 v:lua 动态表达式的

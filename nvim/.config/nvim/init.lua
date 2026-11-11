@@ -12,7 +12,6 @@ vim.keymap.set({ "n", "v" }, "<space>", "<Nop>", { silent = true })
 -- 立即加载基础配置
 require("boot.compat") -- 只吞掉上游插件的 `client.supports_method` 弃用提示
 require("boot.settings") -- 基础 Neovim 选项
-require("lib.menu").setup() -- 浮窗选择菜单（接管 vim.ui.select，见 lua/lib/menu.lua 顶部说明）
 require("boot.dotenv").load() -- 环境变量（须早于 boot.pack，见 ~/.env）
 
 -- 启动前修补：LSP 日志轮转（mason bin 进 PATH 由 mason.setup() 自己 prepend，见 mason/settings.lua:17）
@@ -27,17 +26,12 @@ require("boot.pack") -- 原生 vim.pack 安装 + 自带 eager 加载器（见 lu
 require("lsp_ext").setup() --lsp
 require("feat.fork_upstream").setup() -- 上游状态组件（状态栏 + :ForkUpstream），须早于状态栏以复用磁盘缓存
 require("ui.statusline") -- 状态栏（加载即自动构建并设置，无需手动调用 active）
-require("feat.tab_workspace").setup() -- 一个 tab 一个工作区（切 tab 隔离 buffer + 每 tab cwd + neo-tree 跟随）
-require("feat.terminal").setup() -- 一个 tab 一组终端（底部 panel + winbar 标签，替代 betterTerm，见 lua/feat/terminal.lua）
+-- 一个 tab 一个工作区（切 tab 隔离 buffer + 每 tab cwd + neo-tree 跟随），配置见 lua/plugins/ui/tab-workspace.lua
 
 -- 导航/窗口、自动命令、按键映射（三者合计仅 ~1.6ms，同步加载以避免启动后 300ms 内按键映射缺失）
 require("feat.navigation").setup() -- 导航/窗口：buffer 快捷键、buffer 设置、窗口尺寸守卫
 require("feat.spell").setup() -- 拼写检查：文本类 buffer 自动开，<leader>zw 手动（中文靠 cjk，技术词靠 dirtytalk）
 require("boot.autocmds") -- 加载自动命令
 require("boot.keymaps") -- 加载按键映射
--- <leader>aq：浮窗写问题，连同锚点发给外部 AI；<leader>ab 入队、<leader>aB 批量发送
--- （独立插件 huayue5201/ask-agent.nvim，装载与 setup 在 lua/plugins/ai/ask-agent.lua；
---   上下文桥由 setup 自动 attach）
 require("local.textdiff").setup() -- 本地小模块：选区文本对比（:Diff / 可视模式 D、gD，见 lua/local/textdiff.lua）
-require("local.project").setup() -- 本地小模块：项目概览（:Project / <leader>ii，见 lua/local/project/）
 require("fix").setup() -- 临时修复守卫：:FixStatus 看上游修好没（见 lua/fix/init.lua）
