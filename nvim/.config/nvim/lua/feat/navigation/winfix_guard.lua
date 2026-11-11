@@ -10,9 +10,11 @@
 -- 每次布局变化后，把这个窗口塞回期望尺寸，释放/需要的空间交给 Neovim
 -- 分给「非目标窗口」（弹性窗口）。
 --
--- 做法二（手动调整）：用户主动 resize 一个声明窗口时，记下这个尺寸作为该
--- 窗口的 override，之后关窗回滚到 override 而不是声明值；窗口关闭后 override
--- 失效，重新回到声明值。识别方式：WinResized 事件里，若没有伴随 WinNew /
+-- 做法二（手动调整）：用户主动 resize 一个声明窗口时，记下这个尺寸作为该类
+-- 窗口的 override（按 filetype/buftype 记，不按 win 句柄），之后布局变化都回滚
+-- 到 override 而不是声明值。override 存在会话级全局表里：窗口关闭、buffer 重开、
+-- 模块被 reload 都仍然有效，只有重启 Neovim 或 :WinfixGuardReset 才清空。
+-- 识别方式：WinResized 事件里，若没有伴随 WinNew /
 -- WinClosed 等拓扑变化，且尺寸相对上次快照发生变化，就当作用户手动调整。
 -- 额外用 vim.on_key 观察 <C-w>>,<C-w><,<C-w>+,<C-w>-,<C-w>=,<C-w>|,<C-w>_ 这类
 -- resize 按键，命中就置一个 hint；hint 未过期时无视「拓扑变化后 500ms」的歧义
@@ -32,9 +34,14 @@ local tw_util = require("tab_workspace.util")
 ---@type table<string, fun():table|table>
 local declared = {}
 
---- 用户手动调整后的尺寸，优先于声明值。win -> { w?, h? }，窗口关闭即失效。
----@type table<integer, { w: integer|nil, h: integer|nil }>
-local override = {}
+--- 用户手动调整后的尺寸，优先于声明值。key(filetype/buftype) -> { w?, h? }。
+--- 挂全局表：本模块被 reload（require 缓存清掉）后记忆仍然有效。
+---@type table<string, { w: integer|nil, h: integer|nil }>
+local override = rawget(_G, "__winfix_guard_override")
+if type(override) ~= "table" then
+	override = {}
+	rawset(_G, "__winfix_guard_override", override)
+end
 
 --- 上次稳定后的尺寸快照，用来识别用户 resize：win -> { w, h }。
 ---@type table<integer, { w: integer, h: integer }>
@@ -60,6 +67,9 @@ local config = {
 	settle_ms = 500,
 	--- resize 按键 hint 的有效期。
 	hint_ms = 1500,
+	--- 'winresized'（仅旧版 Neovim）：尺寸变化达到多少行/列才投递 WinResized。
+	--- 新版已无此选项，恒投递。鼠标拖边框、:resize 等无按键 hint 的调整靠它兜底。
+	winresized = 2,
 }
 
 --- 声明一个窗口的期望尺寸。size 可以是表或返回表的函数。
@@ -141,8 +151,9 @@ local function desired(win)
 	if shared(win) then
 		return nil
 	end
-	local ov = override[win] or {}
-	local size = declared[key_of(win)] and resolve(declared[key_of(win)]) or {}
+	local key = key_of(win)
+	local ov = override[key] or {}
+	local size = declared[key] and resolve(declared[key]) or {}
 	-- 只回归声明里管着的维度：声明 width 的面板，高度是邻居分摊出来的副产品，
 	-- 拿它去 set_height 会把整列（进而整个 tab frame）压矮，关窗后留下空白带。
 	return size.width and (ov.w or size.width), size.height and (ov.h or size.height)
@@ -159,15 +170,10 @@ local function snapshot()
 			end
 		end
 	end
-	-- 窗口消失后，快照与 override 一并清理：重开的窗口回到声明值。
+	-- 窗口消失后只清快照；override 按类型记忆，跨窗口、跨 buffer 一直有效。
 	for win in pairs(last) do
 		if not seen[win] then
 			last[win] = nil
-		end
-	end
-	for win in pairs(override) do
-		if not seen[win] then
-			override[win] = nil
 		end
 	end
 end
@@ -176,12 +182,13 @@ end
 local function learn()
 	for _, tab in ipairs(api.nvim_list_tabpages()) do
 		for _, win in ipairs(api.nvim_tabpage_list_wins(tab)) do
-			if real(win) and declared[key_of(win)] and not shared(win) then
-				local size = resolve(declared[key_of(win)]) or {}
+			local key = real(win) and key_of(win)
+			if key and declared[key] and not shared(win) then
+				local size = resolve(declared[key]) or {}
 				local prev = last[win]
 				if prev then
 					local w, h = api.nvim_win_get_width(win), api.nvim_win_get_height(win)
-					local ov = override[win] or {}
+					local ov = override[key] or {}
 					-- 同理：只记声明管着的维度，别把连带变化的另一维记成用户意图。
 					if size.width and w ~= prev.w then
 						ov.w = w
@@ -190,7 +197,7 @@ local function learn()
 						ov.h = h
 					end
 					if ov.w or ov.h then
-						override[win] = ov
+						override[key] = ov
 					end
 				end
 			end
@@ -267,6 +274,15 @@ local function enforce()
 	applying = false
 end
 
+--- 清空本次会话记住的手动尺寸，所有声明窗口回到声明值。
+function M.reset()
+	for key in pairs(override) do
+		override[key] = nil
+	end
+	snapshot()
+	enforce()
+end
+
 ---@param opts { settle_ms?: integer, hint_ms?: integer }|nil
 ---@param settings? table 带 size 的条目（feat.navigation.settings）
 function M.setup(opts, settings)
@@ -276,6 +292,21 @@ function M.setup(opts, settings)
 		end
 	end
 	load_declared(settings)
+
+	-- 'winresized' 只在旧版 Neovim 里存在（默认 0 = 事件永不投递）；新版已移除该选项，
+	-- WinResized 恒定在刷新后投递。两代都要能用，所以先探再设。
+	if vim.fn.exists("+winresized") == 1 then
+		pcall(function()
+			if vim.o.winresized == 0 then
+				vim.o.winresized = config.winresized
+			end
+		end)
+	end
+
+	pcall(api.nvim_del_user_command, "WinfixGuardReset")
+	api.nvim_create_user_command("WinfixGuardReset", function()
+		M.reset()
+	end, { desc = "清空 winfix 守卫记住的手动窗口尺寸" })
 
 	local group = api.nvim_create_augroup("WinfixGuard", { clear = true })
 
@@ -291,9 +322,12 @@ function M.setup(opts, settings)
 		end)
 	end
 
-	--- 观察一次布局：刚发生拓扑变化就回滚，静止期则把用户改动记成 override。
+	--- 观察一次布局：刚发生拓扑变化就回滚，静止期则仅在「强证据」下把用户改动记成
+	--- override（WinResized 事件，或 resize 按键 hint）。其余观察点只刷新基线：
+	--- 插件重排/切 buffer 时闪一下的尺寸不会被写进整场会话的 override。
 	--- 合并同一批事件（observing 去重），避免重复调度。
-	local function observe()
+	---@param event string 触发本次观察的事件名（hint 路径传空串）
+	local function observe(event)
 		if applying or observing then
 			return
 		end
@@ -308,7 +342,9 @@ function M.setup(opts, settings)
 			if not hinted and now - last_topology < config.settle_ms then
 				enforce()
 			else
-				learn()
+				if hinted or event == "WinResized" then
+					learn()
+				end
 				if hinted then
 					user_hint_at = 0
 				end
@@ -338,7 +374,9 @@ function M.setup(opts, settings)
 	api.nvim_create_autocmd({ "WinResized", "WinEnter", "BufEnter", "ModeChanged", "CursorHold", "CursorHoldI" }, {
 		group = group,
 		desc = "区分用户手动 resize 与布局变化",
-		callback = observe,
+		callback = function(args)
+			observe(args.event)
+		end,
 	})
 
 	-- 不重映射任何按键，只旁路观察 <C-w> 后的 resize 键，置 hint。
@@ -350,6 +388,11 @@ function M.setup(opts, settings)
 			pending_ctrl_w = false
 			if resize_keys[key] then
 				user_hint_at = vim.uv.now()
+				-- 按键还没执行，等这一批输入跑完再观察；顺带覆盖 WinResized 不投递的
+				-- 环境（headless / 未 attach UI）。
+				vim.schedule(function()
+					observe("")
+				end)
 			end
 		elseif key == "\23" then -- CTRL-W
 			pending_ctrl_w = true
