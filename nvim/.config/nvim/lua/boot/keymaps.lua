@@ -190,9 +190,9 @@ vim.keymap.set("n", "<leader>ltl", ":+tabmove<CR>", {
 	desc = "Tab: 右移",
 })
 
-vim.keymap.set("n", "<leader>ltc", "<cmd>tabclose<cr>", {
+vim.keymap.set("n", "<leader>ltq", "<cmd>tabclose<cr>", {
 	silent = true,
-	desc = "Tab: 关闭（不保存会话，工作区版见 <leader>lwc）",
+	desc = "Tab: 关闭（不保存会话，工作区版见 <leader>lwq）",
 })
 vim.keymap.set("n", "<leader>lws", function()
 	require("tab_workspace").prompt_root()
@@ -200,16 +200,16 @@ end, { silent = true, desc = "Tab: 设置工作区根目录" })
 vim.keymap.set("n", "<leader>lwn", function()
 	require("tab_workspace").new_workspace()
 end, { silent = true, desc = "工作区: 新建（保存会话 + 新 tab + 设置根目录）" })
-vim.keymap.set("n", "<leader>lwc", function()
+vim.keymap.set("n", "<leader>lwq", function()
 	require("tab_workspace").close_workspace()
 end, { silent = true, desc = "工作区: 关闭（保存会话 + 关闭 tab）" })
-vim.keymap.set("n", "<leader>lwa", function()
+vim.keymap.set("n", "<leader>ltp", function()
 	require("tab_workspace").alternate()
-end, { silent = true, desc = "工作区: 切换到上一个 tab" })
+end, { silent = true, desc = "Tab: 切换到上一个（alternate）" })
 vim.keymap.set("n", "<leader>lwe", function()
 	require("tab_workspace").edit_local_settings()
 end, { silent = true, desc = "工作区: 编辑本地配置 (.nvim.lua)" })
-vim.keymap.set("n", "<leader>lwN", function()
+vim.keymap.set("n", "<leader>lwr", function()
 	require("tab_workspace").rename_workspace()
 end, { silent = true, desc = "工作区: 重命名（留空回车 = 恢复默认）" })
 vim.keymap.set("n", "<leader>lwl", function()
@@ -224,13 +224,13 @@ end, { silent = true, desc = "工作区: 移除辅助根" })
 vim.keymap.set("n", "<leader>lwt", function()
 	require("tab_workspace").workspace_tree()
 end, { silent = true, desc = "工作区: 多根树（主根 + 辅助根）" })
-vim.keymap.set("n", "<leader>lwr", function()
+vim.keymap.set("n", "<leader>lwb", function()
 	require("tab_workspace").root_back()
 end, { silent = true, desc = "工作区: 根目录回到上一个（并锁定）" })
 vim.keymap.set("n", "<leader>lwR", function()
 	require("tab_workspace").root_unpin()
 end, { silent = true, desc = "工作区: 解除根目录锁定（恢复自动跟随）" })
-vim.keymap.set("n", "<leader>lta", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: close other tabs" })
+vim.keymap.set("n", "<leader>lto", "<cmd>tabonly<cr>", { silent = true, desc = "Tab: 关闭其他 tab" })
 
 -- 🌐 Upstream 状态（feat.fork_upstream，属于 <leader>h git 分组）
 vim.keymap.set(
@@ -248,11 +248,12 @@ vim.keymap.set(
 
 -- 📜 Messages & reload
 vim.keymap.set("n", "<leader>rte", "<cmd>edit<cr>", { silent = true, desc = "Basic: reload buffer" })
--- <leader>rl：重载当前配置文件（清模块缓存 + 重跑引用它的插件 config），见 lua/feat/config_reload.lua
+-- <leader>rtR：重载当前配置文件（清模块缓存 + 重跑引用它的插件 config），见 lua/feat/config_reload.lua
+-- 不用 rl：Lua buffer 里 rl 是「运行 Lua（osv）」，见 lua/dap_ext/adapters/nlua.lua
 require("feat.config_reload").setup()
 vim.keymap.set(
 	"n",
-	"<leader>rl",
+	"<leader>rtR",
 	"<cmd>ConfigReload<cr>",
 	{ silent = true, desc = "Config: 重载当前文件的模块缓存 + 插件 config" }
 )
@@ -381,8 +382,8 @@ end
 
 vim.keymap.set(
 	"n",
-	"<leader>csw",
+	"<leader>csd",
 	delete_current_swap,
 	{ silent = true, desc = "Swap: 删除当前文件交换文件" }
 )
-vim.keymap.set("n", "<leader>csW", delete_all_swaps, { silent = true, desc = "Swap: 删除所有交换文件" })
+vim.keymap.set("n", "<leader>csD", delete_all_swaps, { silent = true, desc = "Swap: 删除所有交换文件" })

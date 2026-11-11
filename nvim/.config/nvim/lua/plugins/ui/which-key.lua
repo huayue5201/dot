@@ -15,7 +15,7 @@ return {
 		wk.add({
 			-- 一级分组
 			{ "<leader>a", group = "AI / Agent", icon = { icon = "󰚩 ", color = "green" } },
-			{ "<leader>c", group = "关闭 / 清理", icon = { icon = "󰅖 ", color = "red" } },
+			{ "<leader>c", group = "清理 / 交换文件", icon = { icon = "󰅖 ", color = "red" } },
 			{ "<leader>d", group = "调试 DAP", icon = { icon = "󰃤 ", color = "red" } },
 			{ "<leader>D", group = "Docker / DevContainer", icon = { icon = "󰡨 ", color = "blue" } },
 			{ "<leader>e", group = "资源管理器", icon = { icon = "󰙅 ", color = "azure" } },
@@ -29,7 +29,7 @@ return {
 			{ "<leader>n", group = "笔记 (Obsidian)", icon = { icon = "󰠮 ", color = "purple" } },
 			{ "<leader>o", group = "格式 / 对齐", icon = { icon = "󰉢 ", color = "cyan" } },
 			{ "<leader>i", group = "项目信息", icon = { icon = "󰋜 ", color = "azure" } },
-			{ "<leader>r", group = "重构 / 运行 / 切换", icon = { icon = "󰐊", color = "green" } },
+			{ "<leader>r", group = "运行 / 调试 / 任务", icon = { icon = "󰐊", color = "green" } },
 			{ "<leader>R", group = "REST 请求 (nurl)", icon = { icon = "󰖟 ", color = "cyan" } },
 			{ "<leader>s", group = "符号 / 查询", icon = { icon = "󰅴 ", color = "yellow" } },
 			{ "<leader>S", group = "代码片段", icon = { icon = "󰅩 ", color = "orange" } },
@@ -61,7 +61,7 @@ return {
 			{ "<leader>mt", group = "任务操作" },
 			{ "<leader>mv", group = "查看 / 打开" },
 			{ "<leader>rS", group = "SnipRun 运行" },
-			{ "<leader>rt", group = "切换 / 重载" },
+			{ "<leader>rt", group = "重载 / 重启 / 开关" },
 			{ "<leader>sa", group = "LSP 符号" },
 			{ "<leader>sc", group = "LSP 调用 / ctags" },
 			{ "<leader>ss", group = "跳转符号" },

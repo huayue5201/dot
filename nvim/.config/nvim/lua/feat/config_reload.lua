@@ -1,4 +1,4 @@
--- 不重启 nvim 应用配置改动（<leader>rl / :ConfigReload）
+-- 不重启 nvim 应用配置改动（<leader>rtR / :ConfigReload）
 --
 -- 本仓库没用 lazy.nvim，插件由 lua/boot/pack.lua（原生 vim.pack + 全 eager）加载，
 -- 所以没有 :Lazy reload。这里按「当前 buffer 在配置里的位置」决定怎么重载：

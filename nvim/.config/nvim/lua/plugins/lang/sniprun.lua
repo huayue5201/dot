@@ -25,7 +25,7 @@ return {
 			{ desc = "SnipRun: 切换 Live 模式（每次改动即运行）" }
 		)
 		vim.keymap.set("n", "<leader>rSi", "<cmd>SnipInfo<CR>", { desc = "SnipRun: 查看解释器/REPL 状态" })
-		vim.keymap.set("n", "<leader>rSc", "<cmd>SnipClose<CR>", { desc = "SnipRun: 关闭结果窗口" })
+		vim.keymap.set("n", "<leader>rSq", "<cmd>SnipClose<CR>", { desc = "SnipRun: 关闭结果窗口" })
 		vim.keymap.set("n", "<leader>rSx", "<cmd>SnipReset<CR>", { desc = "SnipRun: 重置所有解释器/REPL" })
 	end,
 }

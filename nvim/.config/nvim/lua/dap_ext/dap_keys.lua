@@ -301,7 +301,7 @@ function M.setup()
 				vim.notify(string.format("✓ Removed line breakpoint at line %d", line), "info")
 			end
 		end
-	end, { desc = "[D]ap [T]oggle breakpoint (智能切换)" })
+	end, { desc = "[D]ap 断点开关（智能）" })
 
 	-- 列断点：adapter 需要实测 setBreakpoints 才知是否支持 → 必须先有会话
 	vim.keymap.set(
@@ -349,7 +349,7 @@ function M.setup()
 	-- 启用/禁用断点
 	vim.keymap.set("n", "<leader>dt", function()
 		dap_ext.commands.toggle_breakpoint_enabled()
-	end, { desc = "[D]ap [T]oggle breakpoint enabled/disabled" })
+	end, { desc = "[D]ap 启用 / 禁用断点" })
 
 	-- 删除当前行断点
 	vim.keymap.set("n", "<leader>dD", function()

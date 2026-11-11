@@ -30,7 +30,7 @@ return {
 			border_color = hl_hex("FloatBorder"),
 			title_color = hl_hex("FloatTitle"),
 			-- 键盘模式：默认关（K 已是 hover、grd 已是诊断浮窗，再占 <Tab> 会和补全候选冲突），
-			-- 只留 <leader>rth 手动唤起
+			-- 只留 <leader>sh 手动唤起
 			keyboard_mode = true,
 			mouse_mode = true,
 			-- LSP 信息默认开启：没有 LSP attach 的文件会自动只显示诊断
@@ -39,7 +39,7 @@ return {
 			close_on_cmd = true,
 		})
 
-		vim.keymap.set("n", "<leader>rth", "<cmd>EagleWin<CR>", {
+		vim.keymap.set("n", "<leader>sh", "<cmd>EagleWin<CR>", {
 			noremap = true,
 			silent = true,
 			desc = "LSP: 光标处浮窗（诊断 + hover）",

@@ -112,7 +112,7 @@ return {
 			},
 		})
 
-		vim.keymap.set("n", "<leader>cw", function()
+		vim.keymap.set("n", "<leader>wq", function()
 			-- 尝试加载 window-picker 插件
 			local ok, picker = pcall(require, "window-picker")
 			if not ok then

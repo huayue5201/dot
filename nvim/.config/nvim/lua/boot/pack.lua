@@ -1090,7 +1090,7 @@ function M.rebuild(name)
 end
 
 ----------------------------------------------------------------------
--- 热重载：改完 spec 不想重启 nvim（<leader>rl / :ConfigReload）
+-- 热重载：改完 spec 不想重启 nvim（<leader>rtR / :ConfigReload）
 ----------------------------------------------------------------------
 
 --- 重新加载一个 spec 文件，并重跑其中已有插件的 init/config/keys。

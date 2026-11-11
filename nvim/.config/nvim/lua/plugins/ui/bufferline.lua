@@ -301,13 +301,13 @@ return {
 		-- 移动缓冲区位置
 		map(
 			"n",
-			"<leader>bP",
+			"<leader>b<",
 			"<Cmd>BufferLineMovePrev<CR>",
 			vim.tbl_extend("force", opts, { desc = "向左移动缓冲区" })
 		)
 		map(
 			"n",
-			"<leader>bn",
+			"<leader>b>",
 			"<Cmd>BufferLineMoveNext<CR>",
 			vim.tbl_extend("force", opts, { desc = "向右移动缓冲区" })
 		)
@@ -401,9 +401,9 @@ return {
 		)
 		map(
 			"n",
-			"<leader>bc",
+			"<leader>bQ",
 			"<Cmd>BufferLinePickClose<CR>",
-			vim.tbl_extend("force", opts, { desc = "缓冲区选择删除模式" })
+			vim.tbl_extend("force", opts, { desc = "选择并关闭缓冲区" })
 		)
 
 		-- 排序命令
