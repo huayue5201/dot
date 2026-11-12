@@ -31,6 +31,10 @@ return {
 			notify_style = true,
 			-- 每次通知响终端警告声；:set belloff=all 可临时静音
 			notify_sound = true,
+			-- 面板树线 + 指向「运行中任务」的动态路径。两者都用虚线字符
+			-- （tree 里的 branch/corner/horizontal），dash 只负责沿这些格子走高亮。
+			tree_lines = true,
+			running_line = "dash",
 			-- 图标全在这里：扁平字符串 = 某个 agent 的图标（键为 backend/实例 id，缺省回落
 			-- fallback），ui 组 = 面板/状态栏/通知上的所有标记。下面是默认值，按需改。
 			icons = {
@@ -54,8 +58,18 @@ return {
 					},
 					-- 面板树里每条任务的标记
 					task = { queued = "◐", done = "✓", error = "✗" },
-					-- 树的折叠/展开/空行装饰
-					tree = { collapsed = "▸", expanded = "▾", leaf = "·" },
+					-- 树的折叠/展开/空行装饰 + 连接线。连接线全部用虚线字符：
+					-- 与 running_line = "dash" 的高亮虚线动画同一套视觉语言，
+					-- 也和 mini.indentscope 的 ┊ 导轨对得上。
+					tree = {
+						collapsed = "▸",
+						expanded = "▾",
+						leaf = "·",
+						vertical = "┊", -- 竖直导轨
+						branch = "┆", -- 中间的竖直分叉
+						corner = "╰", -- 最后一个子项的圆角
+						horizontal = "┄", -- 横向连接
+					},
 					-- 忙碌 spinner 帧（改了这里就不用再看上面的 spinner 选项；
 					-- 顶层的 spinner = require("ui_menu").frames 优先级更高）
 					spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
@@ -67,6 +81,8 @@ return {
 
 		-- 映射：aq 直接提问，ab 入队（源码行留 sign + 虚拟文本），aB 逐条全发，
 		-- ad 状态面板（高频），ax 删光标行入队项，au 反悔最近一次删除/清空，ar 命名实例。
+		-- ah 历史提问（可搜索/重发/跳回），ap prompt 模板选择，aP 选区存为模板，
+		-- av 审查最近一轮变更，aV 审查整个工作区 vs HEAD。
 		-- 批量队列管理用命令：:AskAgentBatchList / :AskAgentBatchClear。
 		local map = vim.keymap.set
 		map("n", "<leader>aq", function()
@@ -90,6 +106,17 @@ return {
 		-- 状态面板：所有实例按「谁在等我」排序；<CR> 跳过去、s 发、S 发该实例名下队列、
 		-- a 确认完成、C 看输出（rex）。状态栏的 ⚠✓✗◐ 段也来自同一个状态层。
 		map("n", "<leader>ad", "<cmd>AskAgentDashboard<cr>", { desc = "AI: agent 状态面板" })
+
+		-- 历史：发送成功的提问都带锚点记在本地，可搜索、原样重发、跳回当时那一行。
+		map("n", "<leader>ah", "<cmd>AskAgentHistory<cr>", { desc = "AI: 历史提问（搜索/重发/跳回）" })
+		-- prompt 库：全局模板 + 可提交到仓库的 .ask-agent/prompts.json。
+		-- 占位符在发送时按当前锚点渲染：{{file}} {{line}} {{selection}} {{cwd}} …
+		map("n", "<leader>ap", "<cmd>AskAgentPrompt<cr>", { desc = "AI: prompt 模板" })
+		map("v", "<leader>ap", "<cmd>AskAgentPrompt!<cr>", { desc = "AI: prompt 模板（含选区）" })
+		map("v", "<leader>aP", ":<C-u>AskAgentPromptSave ", { desc = "AI: 选区存为 prompt 模板（输入名字）" })
+		-- 变更审查：两条 git tree 的 diff，渲染交给 diffbandit / nvim.difftool / codediff。
+		map("n", "<leader>av", "<cmd>AskAgentDiff<cr>", { desc = "AI: 审查最近一轮变更" })
+		map("n", "<leader>aV", "<cmd>AskAgentDiff head<cr>", { desc = "AI: 审查工作区 vs HEAD" })
 
 		-- 上下文桥的扩展动作：让外部 agent 能拉「项目概览」紧凑摘要。
 		-- project-overview.nvim 提供 digest，所以在配置侧注册。

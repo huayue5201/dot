@@ -260,6 +260,10 @@ return {
 			"<cmd>TodoContext<cr>",
 			{ desc = "复制任务上下文 Markdown（抽屉 c）" }
 		)
+		-- 把当前任务派给 ask-agent（上下文 + 代码锚点 + 完成回写）
+		vim.keymap.set("n", "<leader>mta", function()
+			require("todo2.integrations.ask_agent").ask()
+		end, { desc = "任务派给 agent（抽屉 K / 行内 \\a）" })
 		vim.keymap.set("n", "<leader>mtl", "<cmd>TodoLink<cr>", { desc = "把代码位置关联到任务" })
 		vim.keymap.set("n", "<leader>mtf", "<cmd>TodoFilter<cr>", { desc = "筛选（抽屉 f）" })
 		vim.keymap.set("n", "<leader>mtF", "<cmd>TodoFilter!<cr>", { desc = "清除筛选（抽屉 F）" })

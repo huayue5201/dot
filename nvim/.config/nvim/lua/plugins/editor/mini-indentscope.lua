@@ -36,7 +36,9 @@ return {
 		end
 
 		require("mini.indentscope").setup({
-			symbol = "│",
+			-- 虚线导轨，和 ask-agent 面板里 running_line = "dash" 的虚线路径统一
+			-- （纯实线 ¦ 会把动态路径衬得突兀）。用 ┊（light quadruple dash）。
+			symbol = "┊",
 			draw = {
 				predicate = function(scope)
 					if scope.body.is_incomplete then
