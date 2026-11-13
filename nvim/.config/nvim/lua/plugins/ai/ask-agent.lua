@@ -23,29 +23,100 @@ return {
 			-- （~/.claude/ask-agent-state.sh，见 ask-agent.nvim/extensions/）。
 			-- 用 :AskAgentBackend claude 切过去。
 			extra = { require("ask_agent.backends.claude").new() },
+			-- 答案回写（默认关）：打开后 agent 本轮的最后一条回复会按 task_id 回到发出它的
+			-- 那条任务上——面板里 o 看问答、v 看这一轮的 diff（不再依赖插件自己记的 turn）。
+			-- pi：走 socket 回传（改了 extensions/nvim-context.ts，需重启 pi 才生效）；
+			-- Claude：走 Stop hook 的 done 模式写文件邮箱（见 ~/.claude/settings.json）。
+			results = true,
 			-- 状态层（:AskAgentDashboard / 状态栏 ⚠✓✗◐ 的唯一数据源）每 2s 探一次；
 			-- rex 里的实例直接读 OSC 7501，比 busy 标记准。完成/等待确认会通知一次。
 			state_interval = 2000,
 			state_notify = true,
 			-- 通知样式：按级别取 Diagnostic 色并加粗（装了 nvim-notify 等则交给它渲染）
 			notify_style = true,
-			-- 每次通知响终端警告声；:set belloff=all 可临时静音
+			-- 其余通知（发送失败、命令报错等）也响一声。
+			-- 注意：neovim 默认 :set belloff=all，插件自己的 sound 开关才是静音开关，
+			-- 所以这里不需要动 belloff；想恢复「belloff 说了算」就设 notify_belloff = true。
 			notify_sound = true,
+			-- 终端铃在很多终端里是静音的，用系统音效更靠谱（macOS 自带音效目录）。
+			notify_sound_cmd = "afplay /System/Library/Sounds/Glass.aiff",
+			-- 状态通知浮一张小卡片在右上角，3s 自动消失：cmdline 那一行太容易被下一次重绘盖掉。
+			notify_popup = true,
+			notify_popup_ms = 3000,
+			-- 状态通知：每个状态一条可自定义的文案 + 级别 + 铃声。
+			--   占位符 {backend} 后端名、{name} 实例名、{msg} agent 自己说的话（自带「: 」前缀，
+			--   没说话就是空串）、{state}/{kind}/{was} 原始状态与「退出时在干什么」。
+			--   level 用 vim.log.levels 的名字；sound 单独控制这条是否响铃。
+			--   传字符串 = 只换文案；传 false = 这个状态彻底不通知。
+			-- idle / working / unknown 是轮询噪声，插件本身就不通知。
+			notify = {
+				-- 干完了：不响，一天几十次会烦；想响就 sound = true
+				done = {
+					text = "✓ {name} 已完成{msg}",
+					level = "INFO",
+					sound = true,
+				},
+				-- 卡在等你（未知原因）：必须响，否则你就忘了它还在等
+				blocked = {
+					text = "⏸ {name} 正在等你：去它的终端看一眼{msg}",
+					level = "WARN",
+					sound = true,
+				},
+				-- 要权限（改文件、跑命令的最常见卡点）
+				permission = {
+					text = "⚠ {name} 请求权限：允许/拒绝要在它自己的终端里点{msg}",
+					level = "WARN",
+					sound = true,
+				},
+				-- 要你回答（选择题/追问）
+				question = {
+					text = "❓ {name} 有个问题要你回答{msg}",
+					level = "WARN",
+					sound = true,
+				},
+				-- 要凭据（登录过期、要 token）
+				auth = {
+					text = "🔑 {name} 需要凭据：去终端里登录或补 token{msg}",
+					level = "WARN",
+					sound = true,
+				},
+				-- 真出错：文案说清是谁、错在哪（agent 的 error 消息跟在后面）
+				error = {
+					text = "✗ {name} 出错了{msg}",
+					level = "ERROR",
+					sound = true,
+				},
+				-- 进程没了，且当时还欠你东西（在跑 / 在等）
+				gone = {
+					text = "○ {name} 退出了，它当时{was}{msg}",
+					level = "WARN",
+					sound = false,
+				},
+				-- {was} 的中文；{msg} 永远是 agent 自己的原话
+				was = { blocked = "在等你", working = "在干活" },
+			},
+			-- 同一个 agent 的 done/error/gone 最多每 20s 一条（默认 30s）；
+			-- blocked 系列永不节流——每次进入等待都值得说一次。
+			notify_gap = 20000,
 			-- 面板树线 + 指向「运行中任务」的动态路径。两者都用虚线字符
 			-- （tree 里的 branch/corner/horizontal），dash 只负责沿这些格子走高亮。
 			tree_lines = true,
 			running_line = "dash",
+			-- <CR> 浮窗查看 agent：第二显示端，不是副本——agent 仍在原 session/pane 里跑，
+			-- 关窗只是 detach。打开时是 normal 模式，按 i 才把按键送进去；
+			-- readonly = true 则连 i 也不放行（tmux 加 -r；rex 永远只读，输入回 Rex）。
+			view = { readonly = false, width = 0.8, height = 0.75 },
 			-- 图标全在这里：扁平字符串 = 某个 agent 的图标（键为 backend/实例 id，缺省回落
 			-- fallback），ui 组 = 面板/状态栏/通知上的所有标记。下面是默认值，按需改。
 			icons = {
 				-- agent 图标
 				pi = "π",
-				claude = vim.fn.nr2char(0x273B), -- Claude Code 的星号
-				generic = vim.fn.nr2char(0xF120), -- nf-fa-terminal
-				fallback = vim.fn.nr2char(0xF06A9), -- nf-md-robot（未知 agent）
+				claude = "✻", -- Claude Code 的星号
+				generic = "", -- nf-fa-terminal
+				fallback = "󰚩", -- nf-md-robot（未知 agent）
 				ui = {
 					-- dashboard winbar 与通知前缀
-					header = vim.fn.nr2char(0xF06A9),
+					header = "󰚩", -- nf-md-robot
 					-- 状态栏 / 面板里每个 agent 的状态标记
 					state = {
 						blocked = "⚠", -- 等你确认/回答
@@ -72,7 +143,14 @@ return {
 					},
 					-- 忙碌 spinner 帧（改了这里就不用再看上面的 spinner 选项；
 					-- 顶层的 spinner = require("ui_menu").frames 优先级更高）
-					spinner = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" },
+					spinner = {
+						"",
+						"",
+						"",
+						"",
+						"",
+						"",
+					},
 				},
 			},
 			-- agent 图标品牌色（hex），键与 icons 里的 agent 一致
@@ -82,7 +160,7 @@ return {
 		-- 映射：aq 直接提问，ab 入队（源码行留 sign + 虚拟文本），aB 逐条全发，
 		-- ad 状态面板（高频），ax 删光标行入队项，au 反悔最近一次删除/清空，ar 命名实例。
 		-- ah 历史提问（可搜索/重发/跳回），ap prompt 模板选择，aP 选区存为模板，
-		-- av 审查最近一轮变更，aV 审查整个工作区 vs HEAD。
+		-- av 审查最近一轮变更，aV 审查整个工作区 vs HEAD，ao 浮窗查看 agent 终端。
 		-- 批量队列管理用命令：:AskAgentBatchList / :AskAgentBatchClear。
 		local map = vim.keymap.set
 		map("n", "<leader>aq", function()
@@ -103,9 +181,36 @@ return {
 		map("n", "<leader>ax", "<cmd>AskAgentBatchDelete<cr>", { desc = "AI: 删除光标行的入队提问" })
 		map("n", "<leader>au", "<cmd>AskAgentBatchUndo<cr>", { desc = "AI: 反悔（恢复刚删的入队提问）" })
 		map("n", "<leader>ar", "<cmd>AskAgentRename<cr>", { desc = "AI: 给 agent 实例命名" })
-		-- 状态面板：所有实例按「谁在等我」排序；<CR> 跳过去、s 发、S 发该实例名下队列、
-		-- a 确认完成、C 看输出（rex）。状态栏的 ⚠✓✗◐ 段也来自同一个状态层。
+		-- 状态面板：所有实例按「谁在等我」排序；<CR> 浮窗查看该 agent（再 <CR> 到代码锚点）、
+		-- v 看这条任务对应的那一轮 diff、o 看它的问题和答案（答案需 results = true）、
+		-- s 发、S 发该实例名下队列、a 确认完成。状态栏的 ⚠✓✗◐ 段也来自同一个状态层。
 		map("n", "<leader>ad", "<cmd>AskAgentDashboard<cr>", { desc = "AI: agent 状态面板" })
+		-- 不进面板也能看：选一个实例，在浮窗里显示它的终端（rex / tmux / herdr 自动匹配）。
+		map("n", "<leader>ao", function()
+			local agents = ask.agents()
+			if #agents == 0 then
+				return vim.notify("[ask_agent] no agent instances", vim.log.levels.WARN)
+			end
+			vim.ui.select(agents, {
+				prompt = "View agent",
+				format_item = function(a)
+					return ("%s  %s  %s"):format(a.id, ask.alias_of(a.target) or "", a.state)
+				end,
+			}, function(choice)
+				if not choice then
+					return
+				end
+				-- ask.view 是后加的 API；如果这次会话在它出现之前就 require 过 ask_agent，
+				-- 模块是旧的，重开 nvim 才能拿到（配置 reload 不会刷新 Lua 模块缓存）。
+				if type(ask.view) ~= "function" then
+					return vim.notify("[ask_agent] viewer API missing — restart Neovim", vim.log.levels.WARN)
+				end
+				local ok, err = ask.view(choice.target)
+				if not ok then
+					vim.notify("[ask_agent] " .. tostring(err), vim.log.levels.WARN)
+				end
+			end)
+		end, { desc = "AI: 浮窗查看 agent 终端" })
 
 		-- 历史：发送成功的提问都带锚点记在本地，可搜索、原样重发、跳回当时那一行。
 		map("n", "<leader>ah", "<cmd>AskAgentHistory<cr>", { desc = "AI: 历史提问（搜索/重发/跳回）" })
@@ -113,7 +218,12 @@ return {
 		-- 占位符在发送时按当前锚点渲染：{{file}} {{line}} {{selection}} {{cwd}} …
 		map("n", "<leader>ap", "<cmd>AskAgentPrompt<cr>", { desc = "AI: prompt 模板" })
 		map("v", "<leader>ap", "<cmd>AskAgentPrompt!<cr>", { desc = "AI: prompt 模板（含选区）" })
-		map("v", "<leader>aP", ":<C-u>AskAgentPromptSave ", { desc = "AI: 选区存为 prompt 模板（输入名字）" })
+		map(
+			"v",
+			"<leader>aP",
+			":<C-u>AskAgentPromptSave ",
+			{ desc = "AI: 选区存为 prompt 模板（输入名字）" }
+		)
 		-- 变更审查：两条 git tree 的 diff，渲染交给 diffbandit / nvim.difftool / codediff。
 		map("n", "<leader>av", "<cmd>AskAgentDiff<cr>", { desc = "AI: 审查最近一轮变更" })
 		map("n", "<leader>aV", "<cmd>AskAgentDiff head<cr>", { desc = "AI: 审查工作区 vs HEAD" })
