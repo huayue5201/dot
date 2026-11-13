@@ -483,6 +483,17 @@ vim.api.nvim_create_autocmd("User", {
 	end,
 })
 
+-- 转动 ◐：插件在有 agent 干活时按 ~120ms 发这个事件，只在帧变了才重设
+-- statusline（compose/update 里已有字符串比较），停手后插件自己停表，无空转
+vim.api.nvim_create_autocmd("User", {
+	pattern = "AskAgentStatuslineTick",
+	group = statusline_group,
+	callback = function()
+		enqueue("ai")
+		apply()
+	end,
+})
+
 -- gitsigns 更新（status_dict 变了但 buffer 没动，如后台 fetch / index 完成）
 vim.api.nvim_create_autocmd("User", {
 	pattern = "GitSignsUpdate",
