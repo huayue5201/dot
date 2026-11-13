@@ -15,6 +15,20 @@ return {
 			matching = "exact",
 			-- map = rex 分屏地图（默认），list = 列表
 			picker = "map",
+			-- 小地图：画布大小 = 屏幕的 width/height 比例，再夹到 min/max_* 个字符格；
+			-- 只有光标所在那一格会从字母换成 agent 名字（放不下就用 … 截断，
+			-- 再放不下回到字母），其它格始终是一个字母，名字再长也不会把地图挤变形。
+			map = {
+				width = 0.25, -- 编辑器宽度的 25%
+				min_width = 12, -- 太小的屏幕上至少 12 列，否则地图看不清
+				max_width = 32, -- 再大的屏幕上最多 32 列，避免地图铺满视野
+				height = 0.20, -- 编辑器高度的 20%
+				min_height = 3,
+				max_height = 9,
+				name = true, -- false = 只显示字母
+				name_min = 3, -- 截断后不足 3 列就退回字母（少于 3 列读不出信息）
+				name_over_badge = true, -- 名字和状态徽标抢地方时，先丢徽标保住名字
+			},
 			-- busy 图标复用 ui-menu 的帧与节奏（list 与 map 两处 picker 都走这两个值），
 			-- 改 ui_menu 的 M.frames / M.config.tick 即可同步，不用再动插件。
 			spinner = require("ui_menu").frames,
