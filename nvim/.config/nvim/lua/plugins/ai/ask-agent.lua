@@ -42,6 +42,12 @@ return {
 			-- pi：走 socket 回传（改了 extensions/nvim-context.ts，需重启 pi 才生效）；
 			-- Claude：走 Stop hook 的 done 模式写文件邮箱（见 ~/.claude/settings.json）。
 			results = true,
+			-- 提问时携带的上下文：未保存 buffer / 无路径 buffer（diff）会把光标上下
+			-- total 行源码一起发出去（存盘的普通文件不复制，agent 自己读更准）；
+			-- 选区超长会截断并标 (clipped)。根目录/分支/光标行诊断总是带上。
+			context_lines = 20, -- 0 = 不内联源码
+			max_selection = 200, -- 选区最多 200 行 / 8KB
+			max_selection_bytes = 8192,
 			-- 状态层（:AskAgentDashboard / 状态栏 ⚠✓✗◐ 的唯一数据源）每 2s 探一次；
 			-- rex 里的实例直接读 OSC 7501，比 busy 标记准。完成/等待确认会通知一次。
 			state_interval = 2000,
