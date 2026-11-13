@@ -48,6 +48,10 @@ return {
 			context_lines = 20, -- 0 = 不内联源码
 			max_selection = 200, -- 选区最多 200 行 / 8KB
 			max_selection_bytes = 8192,
+			-- 提问时顺带一份「这是什么项目」的概要（project-overview.nvim 提供）：
+			-- 结构/规模/构建入口/约定，没有源码。发送那一刻取，按 root 缓存 5 分钟，
+			-- 省掉 agent 一轮 find/grep。没装该插件或采集失败就自动不带，不影响提问。
+			project = { enabled = true, wait_ms = 1500, full = false, ttl = 300 },
 			-- 状态层（:AskAgentDashboard / 状态栏 ⚠✓✗◐ 的唯一数据源）每 2s 探一次；
 			-- rex 里的实例直接读 OSC 7501，比 busy 标记准。完成/等待确认会通知一次。
 			state_interval = 2000,
