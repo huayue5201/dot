@@ -1,94 +1,74 @@
--- 让 `dir = "~/neovim-plugins/xxx"` 这类本地插件保持同步。
+-- 本地插件（spec 里写 `dir = "~/neovim-plugins/x"`）现在由 boot/pack.lua 直接插进
+-- 'runtimepath'，不再交给 vim.pack：
 --
--- vim.pack 把本地路径当作「安装源」，会 git clone 一份到 pack/core/opt/<name>，
--- 并以 detached HEAD 钉在锁文件的 rev 上；nvim 实际加载的是那份副本。
--- 所以在 ~/neovim-plugins 里提交后，需要走 `vim.pack.update` 才能让副本跟上
---（它会 fetch、检出最新 rev 并改写锁文件）。这里改为手动触发：<leader>zp
---（工具分组），或执行 :PackLocalSync。
+--   * 改完代码重启就好 —— 没有 clone 副本、没有锁文件 rev、没有「commit + 同步」
+--   * 忘了同步就加载旧代码这类坑从根上消失（lazy.nvim 的 dev 模式是同一个思路）
+--   * build 仍然会跑（首次与 git rev 变化时），cwd 就是工作区目录
+--
+-- 这个模块只剩一件事：vim.pack 时代给本地插件留下的副本还在 pack/core/opt 下，
+-- `:PackLocalSync` 会列出它们，`:PackLocalSync!` 删除（源码在工作区，删副本不会丢东西）。
 
 local M = {}
 
----收集 src 是本地目录的已安装插件
----@return string[] names
-local function local_plugin_names()
-	local names = {}
-	for _, p in ipairs(vim.pack.get(nil, { info = false })) do
-		local src = p.spec.src
-		if type(src) == "string" and src:sub(1, 1) == "/" and vim.uv.fs_stat(src) then
-			names[#names + 1] = p.spec.name
+---本地插件在 vim.pack 里遗留的克隆副本目录
+---@return string[]
+local function stale_clones()
+	local pack = require("boot.pack")
+	local root = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "core", "opt")
+	local dirs = {}
+	for _, name in ipairs(pack.dev_names()) do
+		local dir = vim.fs.joinpath(root, name)
+		if vim.uv.fs_stat(dir) then
+			dirs[#dirs + 1] = dir
 		end
 	end
-	return names
+	return dirs
 end
 
----当前锁文件里每个插件钉住的 rev
----（info=false 时 vim.pack.get 返回的 rev 就是锁文件的值，不必自己解析 json）
----@return table<string, string>
-local function lock_revs()
-	local revs = {}
-	for _, p in ipairs(vim.pack.get(nil, { info = false })) do
-		revs[p.spec.name] = p.rev
-	end
-	return revs
-end
-
----把所有本地插件的 pack 副本更新到源仓库的最新提交
----@param opts? { verbose?: boolean }
+---@param opts? { verbose?: boolean, force?: boolean }
 function M.sync(opts)
 	opts = opts or {}
-	local names = local_plugin_names()
-	if #names == 0 then
+	local dirs = stale_clones()
+	if #dirs == 0 then
+		if opts.verbose then
+			vim.notify("本地插件直接读工作区，没有副本需要同步", vim.log.levels.INFO)
+		end
 		return
 	end
-
-	local before = lock_revs()
-	local ok, err = pcall(vim.pack.update, names, { force = true })
-
-	vim.schedule(function()
-		if not ok then
-			vim.notify("本地插件同步失败: " .. tostring(err), vim.log.levels.WARN)
-			return
+	if not opts.force then
+		vim.notify(
+			("本地插件已改为直接加载（改完重启即可），这些旧副本可以删：\n%s\n:PackLocalSync! 删除"):format(
+				table.concat(dirs, "\n")
+			),
+			vim.log.levels.WARN
+		)
+		return
+	end
+	local failed = {}
+	for _, dir in ipairs(dirs) do
+		local ok = pcall(vim.fn.delete, dir, "rf")
+		if not ok or vim.uv.fs_stat(dir) then
+			failed[#failed + 1] = dir
 		end
-		local after = lock_revs()
-		local updated = {}
-		for _, name in ipairs(names) do
-			if before[name] ~= after[name] then
-				updated[#updated + 1] = name
-			end
-		end
-		if #updated > 0 then
-			-- vim.pack.update 只换文件，不跑 build：有 build 字段的（如 Rust 二进制）
-			-- 需要在这里补一次，否则 lua 是新的、产物还是旧的。
-			local pack = require("boot.pack")
-			local failed = {}
-			for _, name in ipairs(updated) do
-				if not pack.rebuild(name) then
-					failed[#failed + 1] = name
-				end
-			end
-			local suffix = #failed > 0 and ("；build 失败: " .. table.concat(failed, ", ")) or ""
-			vim.notify(
-				("已同步本地插件: %s（重启 nvim 生效）%s"):format(table.concat(updated, ", "), suffix),
-				#failed > 0 and vim.log.levels.WARN or vim.log.levels.INFO
-			)
-		elseif opts.verbose then
-			vim.notify("本地插件都是最新的", vim.log.levels.INFO)
-		end
-	end)
+	end
+	if #failed > 0 then
+		vim.notify("删除副本失败:\n" .. table.concat(failed, "\n"), vim.log.levels.ERROR)
+	else
+		vim.notify(("已删除 %d 个旧副本（本地插件继续读工作区）"):format(#dirs), vim.log.levels.INFO)
+	end
 end
 
 ---@param opts? { keymap?: string|false }
 function M.setup(opts)
 	opts = opts or {}
-	vim.api.nvim_create_user_command("PackLocalSync", function()
-		M.sync({ verbose = true })
-	end, { desc = "同步本地 dir 插件（vim.pack.update）" })
+	vim.api.nvim_create_user_command("PackLocalSync", function(cmd)
+		M.sync({ verbose = true, force = cmd.bang })
+	end, { desc = "本地插件的旧 vim.pack 副本（! 删除）", bang = true })
 
-	-- 不自动同步：只在需要时手动触发（工具分组 <leader>z + p(pack)）
 	if opts.keymap ~= false then
 		vim.keymap.set("n", opts.keymap or "<leader>zp", function()
 			M.sync({ verbose = true })
-		end, { silent = true, desc = "Pack: 同步本地 dir 插件（重启生效）" })
+		end, { silent = true, desc = "Pack: 本地插件副本检查（! 删除）" })
 	end
 end
 

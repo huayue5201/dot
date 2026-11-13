@@ -116,6 +116,10 @@ local function normalize_spec(raw, order)
 	local src = source
 	if is_local_path(source) then
 		src = (vim.fn.fnamemodify(vim.fn.expand(source), ":p"):gsub("/+$", ""))
+		-- 本地目录（dir = "~/neovim-plugins/x"）直接进 rtp，不交给 vim.pack：
+		-- clone 副本 + 锁文件 rev 会让「改完代码重启就好」变成「commit + 同步 + 重启」，
+		-- 而且忘了同步时加载的还是旧代码。dev 插件本来就该读工作区。
+		spec._dev = true
 	elseif not is_git_url(source) then
 		src = "https://github.com/" .. source
 	end
@@ -364,6 +368,13 @@ local function pack_path(name)
 	return vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "core", "opt", name)
 end
 
+--- 插件在磁盘上的目录：dev 插件读工作区，其余读 vim.pack 的克隆副本
+---@param spec table
+---@return string
+local function plugin_dir(spec)
+	return spec._dev and spec.src or pack_path(spec.name)
+end
+
 -- :packadd 做两件事：把插件目录插进 'runtimepath'（位置在 packpath 的
 -- <data>/site 那一项之后，后加入的排在更前面），再 source 它的 plugin/**。
 -- 这里把两件事拆开自己做：104 个插件逐个 :packadd 共 65ms，主要是每条 Ex 命令的
@@ -488,7 +499,7 @@ end
 --- 传给 init / build / config / opts 的 plugin 对象。只给 spec 文件真正用得上的两个字段
 --- （lazy.nvim 那套 path / spec / dependencies 没有任何 spec 用，不复制）
 local function plugin_object(spec)
-	return { name = spec.name, dir = pack_path(spec.name) }
+	return { name = spec.name, dir = plugin_dir(spec) }
 end
 
 ----------------------------------------------------------------------
@@ -501,7 +512,7 @@ local function run_build(spec)
 	if not build then
 		return true
 	end
-	local dir = pack_path(spec.name)
+	local dir = plugin_dir(spec)
 	local cwd = vim.fn.getcwd()
 	local ok, err
 	if type(build) == "function" then
@@ -528,7 +539,7 @@ end
 ----------------------------------------------------------------------
 -- build 产物与源版本的一致性
 --
--- vim.pack 只换文件、不跑 build（:PackLocalSync、:Pack update 都一样），所以
+-- vim.pack 只换文件、不跑 build（:Pack update 统一这样），所以
 -- 有 build 字段的插件只要源 rev 变了，产物就是旧的（nvim-translator 的 Rust
 -- 二进制就因此和 lua 不同步）。这里记录「每个插件上一次 build 成功的 rev」，
 -- 启动时发现 rev 变了就补一次 build。
@@ -578,7 +589,7 @@ end
 
 ---记录某个插件当前 rev 已构建成功
 local function record_built(spec)
-	local rev = git_rev(pack_path(spec.name))
+	local rev = git_rev(plugin_dir(spec))
 	if not rev then
 		return
 	end
@@ -735,7 +746,7 @@ local function stale_build(spec)
 	if not spec.build then
 		return false
 	end
-	local rev = git_rev(pack_path(spec.name))
+	local rev = git_rev(plugin_dir(spec))
 	if not rev then
 		return false
 	end
@@ -781,16 +792,22 @@ end
 local function activate_batch(batch)
 	local paths = {}
 	for i, spec in ipairs(batch) do
-		paths[i] = pack_path(spec.name)
+		paths[i] = plugin_dir(spec)
 	end
 	-- enter_rtp 失败 = rtp 里找不到 packpath 的 site 项（非常规环境），退回逐个 :packadd。
 	-- :packadd 自己会 source plugin/，所以这条分支不再调 source_dir。
 	local via_packadd = not enter_rtp(paths)
 	for i, spec in ipairs(batch) do
 		if via_packadd then
-			local ok, err = pcall(vim.cmd.packadd, { spec.name })
-			if not ok then
-				fail("packadd %s 失败: %s", spec.name, err)
+			-- 退回 :packadd 时 dev 插件不在 pack 里，自己插 rtp + source plugin/
+			if spec._dev then
+				vim.opt.runtimepath:prepend(paths[i])
+				source_dir(paths[i] .. "/plugin")
+			else
+				local ok, err = pcall(vim.cmd.packadd, { spec.name })
+				if not ok then
+					fail("packadd %s 失败: %s", spec.name, err)
+				end
 			end
 		else
 			source_dir(paths[i] .. "/plugin")
@@ -829,16 +846,19 @@ local function main()
 	phase("collect+normalize", collect)
 
 	-- 装上还没装的（load = false 等价 :packadd!，只进 rtp 不 source plugin/）
+	-- dev 插件（src 是本地目录）不装：直接读工作区，没有副本要同步
 	local to_install = {}
 	for _, spec in ipairs(order) do
 		if is_enabled(spec) then
-			local entry = { src = spec.src, name = spec.name }
-			if spec.version then
-				entry.version = spec.version
-			end
-			if not vim.uv.fs_stat(pack_path(spec.name)) then
-				fresh[spec.src] = true
-				to_install[#to_install + 1] = entry
+			if not spec._dev then
+				local entry = { src = spec.src, name = spec.name }
+				if spec.version then
+					entry.version = spec.version
+				end
+				if not vim.uv.fs_stat(pack_path(spec.name)) then
+					fresh[spec.src] = true
+					to_install[#to_install + 1] = entry
+				end
 			end
 		else
 			spec._disabled = true
@@ -1070,10 +1090,10 @@ vim.api.nvim_create_user_command("PackPrune", function(cmd)
 	end
 end, { desc = "清理 spec 里已移除的插件目录", bang = true })
 
--- dir = "~/neovim-plugins/*" 的本地插件：vim.pack 会 clone 一份副本，
--- 改为手动触发同步（<leader>zp 或 :PackLocalSync），不阻塞启动。
---- 重新跑某个插件的 build（本地 dir 插件同步后调用：vim.pack.update 只换文件，
---- 不会跑 build，二进制之类的产物会留在旧版本）
+-- dir = "~/neovim-plugins/*" 的本地插件直接读工作区（见 normalize_spec 的 spec._dev），
+-- 没有 clone 副本要同步；:PackLocalSync 只剩清理旧副本这一个用途。
+--- 重新跑某个插件的 build（改完本地插件想立刻重建时用：重启虽然也会自动补，
+--- 但那是启动路径上的同步操作）
 ---@param name string 插件名
 ---@return boolean ok
 function M.rebuild(name)
@@ -1156,6 +1176,18 @@ function M.reload_spec(mod)
 		return false, names
 	end
 	return true, names
+end
+
+--- dev 插件（src 是本地目录）的名字，供清理 vim.pack 遗留副本用
+---@return string[]
+function M.dev_names()
+	local names = {}
+	for _, spec in ipairs(order) do
+		if spec._dev then
+			names[#names + 1] = spec.name
+		end
+	end
+	return names
 end
 
 --- spec 目录（给外部做「当前文件属于哪个 spec」推断用）
