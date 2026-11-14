@@ -14,7 +14,7 @@ return {
 			vim.defer_fn(function()
 				-- Names must be Mason package names
 				-- 只留 mason 真正不可替代的：DAP 适配器（压缩包发布，brew 没有）
-				-- lua-language-server / marksman / shfmt / bash-language-server / taplo 已迁到 brew
+				-- lua-language-server / shfmt / bash-language-server / taplo 已迁到 brew
 				local ensure_installed = {
 					"codelldb",
 					"cortex-debug",

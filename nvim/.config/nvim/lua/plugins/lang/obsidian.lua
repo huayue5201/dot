@@ -11,13 +11,13 @@
 --   * link.style = "wiki"  —— 和 Obsidian app 一致，写 [[文件名]] 而不是 [x](y.md)
 --   * note_id_func = title_id —— 文件名就是标题（Obsidian 的默认行为）。
 --     默认的 zettel_id 会生成 "1762345678-ABCD" 这种 ID，和 app 里看到的文件名对不上。
---   * statusline / ui 都关掉：状态栏是 lua/ui/statusline.lua 自己组装的，
---     渲染是 render-markdown.nvim 负责的，两套同时开只会互相覆盖 conceal。
+--   * statusline / ui 都关掉：状态栏是 lua/ui/statusline.lua 自己组装的；
+--     markdown 不做原地渲染（原 render-markdown 已移除，表格走 lua/feat/table_align.lua
+--     的源码对齐），两套同时开只会互相覆盖 conceal。
 --   * picker 不设 name → 落回 vim.ui.select（本配置没装 telescope/fzf-lua/snacks/mini.pick）。
 --
--- 和 marksman 的关系：lsp/marksman.lua 也会挂到 markdown 上，[[ ]] 的补全项会和
--- obsidian-ls 重名。不去 detach（lsp_ext/servers.lua 的 doautoall(FileType) 会把它重新贴上），
--- 真觉得吵就在 vault 里 :LspToggle 把 marksman 关掉——那个状态是按项目持久化的。
+-- markdown 的 LSP 只有 obsidian-ls（vault 里）和任何按项目 :LspToggle 打开的 server。
+-- marksman 已删：它的 [[ ]] 补全与 obsidian-ls 重名，且不给主线程带来收益。
 
 local WORKSPACES = {
 	{ name = "notes", path = "~/notes" },

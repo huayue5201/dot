@@ -90,7 +90,7 @@ return {
 		-- 因为事件触发时当前窗口未必就是目标窗口。
 		local special_stc = {
 			qf = "%@v:lua.ScSa@%s%T%=%@v:lua.ScLa@%{v:lnum} %T",
-			codecompanion = "%{v:lnum} %T",
+			-- codecompanion = "%{v:lnum} %T",
 		}
 		-- statuscol 写进的是 window-local 选项的「全局值」，setup() 之后读到的就是它的表达式；
 		-- 'statuscolumn'/'signcolumn' 都是 local to window，所以 vim.o.* 在别的窗口里读到的

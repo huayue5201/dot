@@ -2,7 +2,7 @@
  * Neovim Context Bridge (pi extension)
  *
  * 让 pi 读取"活着的 nvim"的上下文：未保存 buffer、光标位置、visual 选区、
- * LSP 诊断、quickfix。数据来自 nvim 侧的 lua/local/ai/pi_bridge.lua（dotfiles 里），
+ * LSP 诊断、quickfix。数据来自 nvim 侧的 lua/lua/ask_agent/bridge.lua（dotfiles 里），
  * 它把 RPC socket 登记在 ~/.cache/nvim/pi-ctx/<pid>.json。
  *
  * 绑定实例：`/nvim-pin`（手动选）。未 pin 时若只有一个候选会自动绑定。
@@ -11,7 +11,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { execFile } from "node:child_process";
-import { mkdir, readdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import * as net from "node:net";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -27,7 +27,7 @@ type Instance = {
 
 const CACHE_ROOT = process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache");
 const REG_DIR = path.join(CACHE_ROOT, "nvim", "pi-ctx");
-/** nvim 侧 lua/local/ai/init.lua 往里写问题；本扩展在此监听 */
+/** nvim 侧 lua/ask_agent/init.lua 往里写问题；本扩展在此监听 */
 const ASK_DIR = path.join(CACHE_ROOT, "pi-agent", "ask");
 const PID = process.pid;
 const ASK_SOCK = path.join(ASK_DIR, `${PID}.sock`);
@@ -39,46 +39,104 @@ const ASK_REG = path.join(ASK_DIR, `${PID}.json`);
  */
 const EMBEDDED = process.argv.some((a, i, argv) => a === "--mode" && argv[i + 1] === "rpc");
 
-type AskPayload = {
-	/** nvim 侧已经渲染好的整条消息（新协议，优先使用） */
-	text?: string;
-	/** 旧协议：问题正文 + 锚点，由本扩展拼装 */
-	prompt?: string;
-	anchor?: {
-		cwd?: string;
-		tab?: number;
-		path?: string;
-		line?: number;
-		col?: number;
-		filetype?: string;
-		modified?: boolean;
-		visual?: { start_line: number; end_line: number; lines: string[] };
-	};
+/** nvim 的 context.capture 抓下来的锚点（结构见 lua/ask_agent/context.lua） */
+type AnchorPayload = {
+	cwd?: string;
+	root?: string;
+	/** 相对 root 的路径；有它就不用 cwd 相对路径 */
+	rel?: string;
+	branch?: string;
+	tab?: number;
+	path?: string;
+	/** 非文件 buffer 的 scheme（codediff://、fugitive:// …） */
+	virtual?: string;
+	bufname?: string;
+	/** 从 diff 里抽出来的临时文件 */
+	snapshot?: string;
+	line?: number;
+	col?: number;
+	filetype?: string;
+	modified?: boolean;
+	visual?: { start_line: number; end_line: number; lines?: string[]; clipped?: boolean };
+	selection?: { start_line: number; end_line: number; lines?: string[]; clipped?: boolean };
+	context?: { start_line: number; end_line: number; lines?: string[]; clipped?: boolean };
+	diagnostics?: { line?: number; severity?: string; source?: string; message?: string }[];
+	/** 项目概览摘要（project-overview.nvim 提供），"这是什么项目" */
+	digest?: string;
 };
 
-/** nvim 发来的 {问题 + 锚点} 拼成一条用户消息 */
-function renderAsk(payload: AskPayload): string {
-	const a = payload.anchor ?? {};
-	const question = (payload.prompt ?? "").trim();
-	const head: string[] = [question || "(空问题)"];
+type AskPayload = {
+	/** 问题正文（新协议里不含上下文块，块由本扩展按 anchor 渲染） */
+	text?: string;
+	/**
+	 * nvim 生成的、不透明的任务 id：结束一轮时原样带回（bridge 的 action=result），
+	 * 让问题和答案配对，不必解析 transcript。旧协议没有这个字段。
+	 */
+	task_id?: string;
+	/** 旧协议：问题正文 + 锚点，由本扩展拼装 */
+	prompt?: string;
+	anchor?: AnchorPayload;
+};
 
-	const where = [
-		a.path ? `${a.path}:${a.line ?? 1}` : "<无文件名>",
-		a.tab ? `tab ${a.tab}` : null,
-		a.modified ? "未保存" : null,
-	].filter(Boolean);
+/** 一条 assistant 消息里的可见文本（content 可能是字符串或 part 数组） */
+function assistantText(message: any): string | undefined {
+	if (!message || message.role !== "assistant") return undefined;
+	const content = message.content;
+	if (typeof content === "string") return content;
+	if (!Array.isArray(content)) return undefined;
+	const text = content
+		.filter((p: any) => p?.type === "text" && typeof p.text === "string")
+		.map((p: any) => p.text)
+		.join("");
+	return text === "" ? undefined : text;
+}
 
-	head.push("", `<nvim-context ${where.join(" · ")}>`);
-	if (a.cwd) head.push(`cwd: ${a.cwd}`);
-	if (a.visual) {
-		const fence = a.filetype && a.filetype !== "" ? a.filetype : "";
-		head.push(`selection ${a.visual.start_line}-${a.visual.end_line}:`);
-		head.push(`\`\`\`${fence}`);
-		head.push(...(a.visual.lines ?? []));
-		head.push("\`\`\`");
+/**
+ * 把结构化锚点渲染成 <nvim-context> 块（可能带 <project-overview>）。
+ * 与 lua/ask_agent/message.lua 的 M.block 保持同一格式：锚点走协议字段，
+ * 排版只在这里和那里各一份。
+ */
+function renderBlock(a: AnchorPayload): string {
+	const out: string[] = [];
+	if (typeof a.digest === "string" && a.digest.trim() !== "") {
+		out.push("<project-overview>", ...a.digest.replace(/\n+$/, "").split("\n"), "</project-overview>", "");
 	}
-	head.push("</nvim-context>");
-	return head.join("\n");
+	const where: string[] = [];
+	if (a.rel) where.push(`${a.rel}:${a.line ?? 1}`);
+	else if (a.path) where.push(`${a.path}:${a.line ?? 1}`);
+	else if (a.virtual) where.push(a.bufname ?? a.virtual + "://");
+	else where.push("<无文件名>");
+	if (a.snapshot) where.push(`a diff snapshot of ${a.snapshot}`);
+	if (a.branch) where.push(`branch ${a.branch}`);
+	if (a.tab) where.push(`tab ${a.tab}`);
+	if (a.modified) where.push("unsaved");
+
+	out.push(`<nvim-context ${where.join(" · ")}>`);
+	if (a.cwd) out.push(`cwd: ${a.cwd}`);
+	if (a.root) out.push(`root: ${a.root}`);
+	if (a.snapshot) {
+		out.push("note: that path is a copy extracted for a diff, not the file in the project — read it, don't edit it");
+	}
+	if (a.diagnostics && a.diagnostics.length > 0) {
+		out.push("diagnostics:");
+		for (const d of a.diagnostics) {
+			out.push(`  ${d.source ?? "lsp"}:${d.line ?? 0}: ${d.severity ?? "warn"}: ${d.message ?? ""}`);
+		}
+	}
+	const fence = a.filetype && a.filetype !== "" ? a.filetype : "";
+	if (a.context && (a.context.lines?.length ?? 0) > 0) {
+		out.push(
+			`context (lines ${a.context.start_line}-${a.context.end_line}${a.context.clipped ? ", clipped" : ""}):`,
+		);
+		out.push("```" + fence, ...(a.context.lines ?? []), "```");
+	}
+	const sel = a.visual ?? a.selection;
+	if (sel && (sel.lines?.length ?? 0) > 0) {
+		out.push(`selection ${sel.start_line}-${sel.end_line}${sel.clipped ? " (clipped)" : ""}:`);
+		out.push("```" + fence, ...(sel.lines ?? []), "```");
+	}
+	out.push("</nvim-context>");
+	return out.join("\n");
 }
 
 async function instances(): Promise<Instance[]> {
@@ -101,10 +159,10 @@ async function instances(): Promise<Instance[]> {
 	return out.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0));
 }
 
-/** 调 nvim 侧 local.ai.pi_bridge.handle(base64(json))；socket 死了就抛错 */
+/** 调 nvim 侧 ask_agent.bridge.handle(base64(json))；socket 死了就抛错 */
 function rpc<T = any>(sock: string, request: Record<string, unknown>, timeoutMs = 8000): Promise<T> {
 	const b64 = Buffer.from(JSON.stringify(request), "utf8").toString("base64");
-	const expr = `v:lua.require("local.ai.pi_bridge").handle("${b64}")`;
+	const expr = `v:lua.require("ask_agent.bridge").handle("${b64}")`;
 	return new Promise<T>((resolve, reject) => {
 		execFile(
 			"nvim",
@@ -137,18 +195,12 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 	// ---- 反向通道：nvim 浮窗 (`<leader>aq`) 把「问题 + 锚点」发进来 ----
 	let inbox: net.Server | undefined;
 	let busy = false;
-	/** 登记文件的当前内容；busy 变化时重写，nvim 侧据 `busy` 字段显示「空闲/处理中」 */
-	let reg: Record<string, unknown> | undefined;
-
-	/** 重写登记文件（删掉/未注册时静默跳过；失败不影响 session） */
-	async function writeReg(): Promise<void> {
-		if (!reg) return;
-		try {
-			await writeFile(ASK_REG, JSON.stringify(reg));
-		} catch {
-			// 登记失败只影响 nvim 侧的状态显示，不该打断当前会话
-		}
-	}
+	/** 发出、但还没把答案带回 nvim 的任务（按发送时间先进先出） */
+	let pending: { task_id: string; at: number }[] = [];
+	/** 当前这一轮里最后一条 assistant 文本，`agent_start` 清空 */
+	let runText: string | undefined;
+	/** 这一轮何时开始：只认开始之后才发出的任务，避免把上一轮的答案记到新问题上 */
+	let runStartedAt = 0;
 
 	async function handleAsk(line: string, socket: net.Socket): Promise<void> {
 		let payload: AskPayload;
@@ -159,13 +211,49 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 			return;
 		}
 		try {
-			// 新协议：nvim 已渲染好整条消息；旧协议回落 renderAsk
-			const text = typeof payload.text === "string" ? payload.text : renderAsk(payload);
+			// 正文是问题（旧协议是整条渲染好的消息）；上下文块按结构化锚点在这里渲染，
+			// 这样 agent 的 transcript 里问题本身是干净的。
+			const question =
+				typeof payload.text === "string" ? payload.text : (payload.prompt ?? "").trim() || "(空问题)";
+			const block = payload.anchor ? renderBlock(payload.anchor) : "";
+			const text = block ? `${question}\n\n${block}` : question;
+			if (typeof payload.task_id === "string" && payload.task_id !== "") {
+				pending.push({ task_id: payload.task_id, at: Date.now() });
+			}
 			// busy 时当跟进消息排队，避免打断当前工具链
 			await pi.sendUserMessage(text, busy ? { deliverAs: "followUp" } : undefined);
 			socket.write(JSON.stringify({ ok: true }) + "\n");
 		} catch (e) {
 			socket.write(JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e) }) + "\n");
+		}
+	}
+
+	/**
+	 * 重写登记文件：`busy` 是 nvim 判断“这一轮还在跑”的唯一依据 —— 没有它，
+	 * 每个 pi 实例永远被看成 idle，面板里的任务就永远停在运行态。
+	 * 先写临时文件再 rename，免得 nvim 读到写了一半的 JSON。
+	 */
+	async function writeRegistry(): Promise<void> {
+		const entry = {
+			pid: PID,
+			sock: ASK_SOCK,
+			cwd: process.cwd(),
+			ts: Math.floor(Date.now() / 1000),
+			embedded: EMBEDDED,
+			busy,
+			// 跑在 rex 里时把所在 session/block 一起登记：nvim 侧据此把这个实例
+			// 映射到终端分屏里的具体位置（浮窗地图选目标用）。不在 rex 里就是 undefined。
+			rex:
+				process.env.REX_SESSION && process.env.REX_BLOCK
+					? { session: process.env.REX_SESSION, block: process.env.REX_BLOCK }
+					: undefined,
+		};
+		const tmp = `${ASK_REG}.tmp`;
+		try {
+			await writeFile(tmp, JSON.stringify(entry));
+			await rename(tmp, ASK_REG);
+		} catch {
+			// 登记失败只是让 nvim 看不见这个实例，绝不打断 session
 		}
 	}
 
@@ -201,28 +289,12 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 			inbox!.once("error", reject);
 			inbox!.listen(ASK_SOCK, () => resolve());
 		});
-		reg = {
-			pid: PID,
-			sock: ASK_SOCK,
-			cwd: process.cwd(),
-			ts: Math.floor(Date.now() / 1000),
-			embedded: EMBEDDED,
-			// nvim 侧用来区分「空闲」和「正在处理任务（新消息会排队）」
-			busy,
-			// 跑在 rex 里时把所在 session/block 一起登记：nvim 侧据此把这个实例
-			// 映射到终端分屏里的具体位置（浮窗地图选目标用）。不在 rex 里就是 undefined。
-			rex:
-				process.env.REX_SESSION && process.env.REX_BLOCK
-					? { session: process.env.REX_SESSION, block: process.env.REX_BLOCK }
-					: undefined,
-		};
-		await writeReg();
+		await writeRegistry();
 	}
 
 	async function stopInbox(): Promise<void> {
 		inbox?.close();
 		inbox = undefined;
-		reg = undefined;
 		await unlink(ASK_REG).catch(() => {});
 		await unlink(ASK_SOCK).catch(() => {});
 	}
@@ -240,13 +312,55 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 	});
 	pi.on("agent_start", () => {
 		busy = true;
-		if (reg) reg.busy = true;
-		void writeReg();
+		runText = undefined;
+		runStartedAt = Date.now();
+		void writeRegistry();
+	});
+	// 收集中间消息：最后一轮的 assistant 文本就是这个任务的答案
+	pi.on("message_end", (event: any) => {
+		const text = assistantText(event?.message);
+		if (text !== undefined) runText = text;
+	});
+	// 一轮结束：把答案交回原来的 nvim 实例。失败只是没有记录，从不打断 agent。
+	pi.on("agent_end", async (event: any) => {
+		const idx = pending.findIndex((p) => p.at <= runStartedAt);
+		if (idx < 0) return;
+		// `agent_end.messages` 是本轮的权威消息，优先用它；没有就退回 message_end 攒下的
+		const messages: any[] = Array.isArray(event?.messages) ? event.messages : [];
+		let text = runText;
+		for (const message of messages) {
+			const candidate = assistantText(message);
+			if (candidate !== undefined) text = candidate;
+		}
+		const [done] = pending.splice(idx, 1);
+		// 没有 assistant 文本也要把“这轮结束了”交回去：nvim 靠它把任务收尾，
+		// 否则那一行会一直转圈（答案为空时 results 只是不存文本）
+		text = text ?? "";
+		try {
+			const inst = await resolve();
+			if (!inst) {
+				// 没有实例可送：留着，下一轮再试（答案总比没有强）
+				pending.splice(idx, 0, done);
+				return;
+			}
+			const reply = await rpc<{ ok?: boolean; error?: string }>(
+				inst.sock,
+				// history caps it anyway; this only keeps the RPC small
+				{ action: "result", task_id: done.task_id, text: text.slice(0, 20000), ts: Date.now() },
+				8000,
+			);
+			// `ok=false` is the normal answer when the user did not opt into results
+			if (reply?.ok === false && reply.error && !reply.error.includes("disabled")) {
+				console.error(`[nvim-context] result rejected: ${reply.error}`);
+			}
+		} catch (e) {
+			// nvim 关了/重启了：这条答案就没了，但别把它算到下一个任务头上
+			console.error(`[nvim-context] result not delivered: ${e instanceof Error ? e.message : String(e)}`);
+		}
 	});
 	pi.on("agent_settled", () => {
 		busy = false;
-		if (reg) reg.busy = false;
-		void writeReg();
+		void writeRegistry();
 	});
 
 	async function pickInteractive(ctx: any): Promise<Instance | undefined> {
@@ -381,7 +495,7 @@ export default function nvimContextExtension(pi: ExtensionAPI) {
 					content: [
 						{
 							type: "text",
-							text: `nvim RPC 失败（${instance.sock}）：${msg}\n该实例可能已退出，或 nvim 侧没有加载 lua/local/ai/pi_bridge.lua。`,
+							text: `nvim RPC 失败（${instance.sock}）：${msg}\n该实例可能已退出，或 nvim 侧没有加载 lua/lua/ask_agent/bridge.lua。`,
 						},
 					],
 					details: { error: msg },

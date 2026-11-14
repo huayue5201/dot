@@ -74,15 +74,14 @@ return {
 			},
 
 			keymap = {
-				-- 分工：<CR> 永远是原生换行（不再落字），只有 <Tab> 才接受补全项。
+				-- 分工：<Tab> / <S-Tab> 只移动高亮，<CR> 才落字。
 				-- preselect = false + auto_insert = false → 菜单打开时没有选中项、也不预览；
-				-- <Tab> 用 select_and_accept：没显式选中时接受第一个，选中了则接受当前项。
-				-- 想换一项先用 <S-Tab> / <C-n> / <C-p> / <Up> / <Down> 移动高亮。
-				-- <CR> 只保留 fallback：交回原生缩进 / autopairs 的 <CR>，不再吞回车落字。
+				-- 第一次 <Tab> 选第一项，再按往下走；<S-Tab> 往回走；<CR> 接受当前项。
+				-- 菜单没打开时 <Tab> 仍走 snippet 跳转 / 原生缩进，<CR> 交回 autopairs。
 				preset = "default",
-				["<CR>"] = { "fallback" },
+				["<CR>"] = { "accept", "fallback" },
 				["<Tab>"] = {
-					"select_and_accept",
+					"select_next",
 					"snippet_forward",
 					"fallback",
 				},

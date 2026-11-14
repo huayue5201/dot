@@ -265,6 +265,7 @@ return {
 			require("todo2.integrations.ask_agent").ask()
 		end, { desc = "任务派给 agent（抽屉 K / 行内 \\a）" })
 		vim.keymap.set("n", "<leader>mtl", "<cmd>TodoLink<cr>", { desc = "把代码位置关联到任务" })
+		vim.keymap.set("n", "<a-j>", "<cmd>TodoJump<cr>", { desc = "TODO ↔ 代码跳转" })
 		vim.keymap.set("n", "<leader>mtf", "<cmd>TodoFilter<cr>", { desc = "筛选（抽屉 f）" })
 		vim.keymap.set("n", "<leader>mtF", "<cmd>TodoFilter!<cr>", { desc = "清除筛选（抽屉 F）" })
 		vim.keymap.set("n", "<leader>mtO", "<cmd>TodoSort<cr>", { desc = "同级按状态排序（抽屉 O）" })

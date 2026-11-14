@@ -31,6 +31,7 @@ require("ui.statusline") -- 状态栏（加载即自动构建并设置，无需�
 -- 导航/窗口、自动命令、按键映射（三者合计仅 ~1.6ms，同步加载以避免启动后 300ms 内按键映射缺失）
 require("feat.navigation").setup() -- 导航/窗口：buffer 快捷键、buffer 设置、窗口尺寸守卫
 require("feat.spell").setup() -- 拼写检查：文本类 buffer 自动开，<leader>zw 手动（中文靠 cjk，技术词靠 dirtytalk）
+require("feat.table_align").setup() -- markdown 表格就地对齐（org-mode 式，:TableAlign）
 require("boot.autocmds") -- 加载自动命令
 require("boot.keymaps") -- 加载按键映射
 require("local.textdiff").setup() -- 本地小模块：选区文本对比（:Diff / 可视模式 D、gD，见 lua/local/textdiff.lua）

@@ -20,7 +20,7 @@
 | [`ui/`](ui/) | 界面外壳：状态列、标签栏、侧栏、取景器、主题 | 24 |
 | [`editor/`](editor/) | 编辑动作：补全、环绕、跳转、滚动动画 | 27 |
 | [`lang/`](lang/) | 语言/文件类型相关：treesitter、markdown、拼写、中文 | 18 |
-| [`tools/`](tools/) | 独立工具窗：测试、会话、数据库、日志 | 14 |
+| [`tools/`](tools/) | 独立工具窗：测试、会话、数据库、日志、求值 | 24 |
 
 ## ai/
 
@@ -68,6 +68,7 @@
 | --- | --- | --- |
 | [git/atlas.lua](git/atlas.lua) | emrearmagan/atlas.nvim | GitHub PR / issue 浏览与评审（gh CLI，非 AI） |
 | [git/gitsigns.lua](git/gitsigns.lua) | lewis6991/gitsigns.nvim | 状态列 git 标记 / hunk 暂存回滚 |
+| [git/difftsigns.lua](git/difftsigns.lua) | janbuchar/difftsigns.nvim | 结构化 diff 上色：dim 掉纯格式噪音（`<leader>hD` 预览） |
 | [git/neogit.lua](git/neogit.lua) | NeogitOrg/neogit | Magit 风格 git 界面 |
 | [git/neogit-ai-commit.lua](git/neogit-ai-commit.lua) | huayue5201/neogit-ai-commit.nvim | 让 AI 生成 commit message（本地 fork） |
 | [git/git-conflict.lua](git/git-conflict.lua) | akinsho/git-conflict.nvim | 冲突标记与解决键位 |
@@ -88,7 +89,6 @@
 | [ui/colorful-menu.lua](ui/colorful-menu.lua) | xzbdmw/colorful-menu.nvim | 补全菜单按语法着色 |
 | [ui/fff.lua](ui/fff.lua) | dmtrKovalenko/fff | 模糊文件查找器（Rust 后端） |
 | [ui/glance.lua](ui/glance.lua) | DNLHC/glance.nvim | LSP peek 预览窗 |
-| [ui/eagle.lua](ui/eagle.lua) | soulis-1256/eagle.nvim | 鼠标悬停浮窗：诊断 + LSP hover |
 | [ui/scrollbar.lua](ui/scrollbar.lua) | petertriho/nvim-scrollbar | 右边缘滚动条：位置 + 诊断/git 刻度（固定 v1 分支） |
 | [ui/neo-tree.lua](ui/neo-tree.lua) | nvim-neo-tree/neo-tree.nvim | 文件树侧栏 |
 | [ui/nvim-window-picker.lua](ui/nvim-window-picker.lua) | huayue5201/nvim-window-picker | 窗口选择器（本地 fork） |
@@ -140,22 +140,18 @@
 
 | 文件 | 插件 | 用途 |
 | --- | --- | --- |
+| [lang/assembly.lua](lang/assembly.lua) | 0xdeadf1sh/AssemblyForNeovim | 查看 C/C++/Rust 函数的汇编（`<leader>ra`） |
 | [lang/treesitter.lua](lang/treesitter.lua) | nvim-treesitter/nvim-treesitter | 语法树：高亮 / 折叠 / 对象 |
 | [lang/nvim-treesitter-textobjects.lua](lang/nvim-treesitter-textobjects.lua) | nvim-treesitter/nvim-treesitter-textobjects | 语法级 textobject 与跳转 |
-| [lang/otter.lua](lang/otter.lua) | jmbuhr/otter.nvim | 让 markdown 代码块也有 LSP |
 | [lang/rustowl.lua](lang/rustowl.lua) | cordx56/rustowl | Rust 所有权 / 生命周期可视化 |
 | [lang/krut.lua](lang/krut.lua) | alexpasmantier/krust.nvim | Rust crate 依赖浮窗（`grk`） |
 | [lang/jieba.lua](lang/jieba.lua) | kkew3/jieba.vim | 中文分词（按词移动 / 删除） |
 | [lang/im-select.lua](lang/im-select.lua) | hughfenghen/fenghen-im-select.nvim | 进出 insert 自动切输入法 |
-| [lang/spellwand.lua](lang/spellwand.lua) | chaneyzorn/spellwand.nvim | 把原生 spell 包成进程内 LSP |
 | [lang/dirtytalk.lua](lang/dirtytalk.lua) | psliwka/vim-dirtytalk | 代码词表（给 spell 用） |
 | [lang/nvim-translator.lua](lang/nvim-translator.lua) | huayue5201/nvim-translator | 翻译（本地 fork） |
-| [lang/sniprun.lua](lang/sniprun.lua) | michaelb/sniprun | 行 / 选区级多语言运行 |
 | [lang/markmap.lua](lang/markmap.lua) | Zeioth/markmap.nvim | Markdown → 思维导图 |
 | [lang/mdkite.lua](lang/mdkite.lua) | selimacerbas/mdkite.nvim | Markdown 预览（mermaid，`<leader>zm`） |
 | [lang/obsidian.lua](lang/obsidian.lua) | obsidian-nvim/obsidian.nvim | Obsidian vault 前端 |
-| [lang/render-markdown.lua](lang/render-markdown.lua) | MeanderingProgrammer/render-markdown.nvim | Markdown 原地渲染 |
-| [lang/tirenvi.lua](lang/tirenvi.lua) | kibi2/tirenvi.nvim | Markdown / CSV / TSV 表格结构化编辑 |
 | [lang/videre.lua](lang/videre.lua) | huayue5201/videre.nvim | JSON / YAML / TOML 画成连线图 |
 | [lang/codedocs.lua](lang/codedocs.lua) | jeangiraldoo/codedocs.nvim | 一键插入文档注释（`gcd`） |
 
@@ -167,6 +163,7 @@
 | [tools/genghis.lua](tools/genghis.lua) | chrisgrieser/nvim-genghis | 轻量文件操作（`<leader>F`） |
 | [tools/gentags.lua](tools/gentags.lua) | linrongbin16/gentags.nvim | 生成 / 更新 ctags |
 | [tools/overseer.lua](tools/overseer.lua) | stevearc/overseer.nvim | 任务运行器 |
+| [tools/conjure.lua](tools/conjure.lua) | Olical/conjure | 多语言 REPL 求值（`<leader>v`，buffer-local） |
 | [tools/neotest.lua](tools/neotest.lua) | nvim-neotest/neotest | 测试运行框架 |
 | [tools/crazy-coverage.lua](tools/crazy-coverage.lua) | mr-u0b0dy/crazy-coverage.nvim | 覆盖率显示（`<leader>tc`） |
 | [tools/sqmeow.lua](tools/sqmeow.lua) | 2giosangmitom/sqmeow.nvim | 数据库工作台（SQL / NoSQL） |

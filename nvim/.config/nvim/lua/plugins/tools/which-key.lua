@@ -42,6 +42,8 @@ return {
 			{ "<leader>b", group = "缓冲区", icon = { icon = " ", color = "yellow" } },
 			{ "<leader>l", group = "标签页 / 工作区", icon = { icon = "󱦞 ", color = "green" } },
 			{ "<leader>u", group = "撤销 / 历史", icon = { icon = "󰣜 ", color = "cyan" } },
+			-- conjure 的映射是 buffer-local（只在它的 filetype 里注册），全局树里这个前缀是空的
+			{ "<leader>v", group = "REPL / 求值 (conjure)", icon = { icon = "󰆍 ", color = "green" } },
 
 			-- 非 leader 前缀分组：调试打印 (nvim-chainsaw)
 			{ "g?", group = "调试打印 (chainsaw)", icon = { icon = "󰹈 ", color = "orange" } },
@@ -60,11 +62,12 @@ return {
 			{ "<leader>ml", group = "双链标记" },
 			{ "<leader>mt", group = "任务操作" },
 			{ "<leader>mv", group = "查看 / 打开" },
-			{ "<leader>rS", group = "SnipRun 运行" },
 			{ "<leader>rt", group = "重载 / 重启 / 开关" },
 			{ "<leader>sa", group = "LSP 符号" },
 			{ "<leader>sc", group = "LSP 调用 / ctags" },
 			{ "<leader>ss", group = "跳转符号" },
+			{ "<leader>ve", group = "求值 (eval)" },
+			{ "<leader>vl", group = "REPL 日志 (log)" },
 
 			-- localleader 分组（<localleader> 没设过，就是默认的 \）
 			-- 注意：which-key 会删掉「没有任何子映射」的分组节点，所以这里只登记

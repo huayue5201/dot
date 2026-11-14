@@ -100,6 +100,12 @@ brew_safe_upgrade() {
     run_with_retry "brew update" || true
     # upgrade 可能输出某些 Cask 错误，允许包含 conflicts_with 之类的文本并继续
     run_with_retry "brew upgrade" "conflicts_with|Calling conflicts_with|is disabled" || true
+    # HEAD 安装的 formula（版本形如 HEAD-<sha>，无 bottle）：普通 brew upgrade 不会跟进上游，
+    # 必须显式 --fetch-HEAD，否则永远停在安装当天（如 neovim nightly）。
+    for head_formula in $(brew list --formula --versions 2>/dev/null | awk '$2 ~ /^HEAD/ {print $1}'); do
+      log "🔧 HEAD 安装：${head_formula} → brew upgrade --fetch-HEAD"
+      run_with_retry "brew upgrade --fetch-HEAD ${head_formula}" "conflicts_with|is disabled" || true
+    done
     run_with_retry "brew cleanup -s" || true
     run_with_retry "brew autoremove" || true
     log "${GREEN}✅ Homebrew 更新与清理完成${RESET}"

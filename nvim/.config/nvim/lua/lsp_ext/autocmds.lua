@@ -20,6 +20,9 @@ local buffer_states = {}
 ---------------------------------------------------------
 local function auto_diagnostic()
 	vim.api.nvim_create_autocmd("ModeChanged", {
+		-- 必须归组 clear：setup() 在 :ConfigReload 时会再跑一遍，不 clear 就叠加成
+		-- 两个回调，诊断被禁/启用两次
+		group = vim.api.nvim_create_augroup("LspAutoDiagnostic", { clear = true }),
 		pattern = { "n:i", "v:s", "i:n", "s:v" },
 		desc = "插入/选择模式禁用/启用诊断",
 		callback = function(args)
@@ -109,7 +112,10 @@ local function setup_settings_watcher()
 		end
 
 		for _, client in ipairs(vim.lsp.get_clients()) do
-			for _, bufnr in ipairs(client.attached_buffers or {}) do
+			-- attached_buffers 是 table<integer,string>（bufnr -> languageId）：
+			-- 用 ipairs 会把 languageId 字符串当 bufnr 传下去，直接抛
+			-- "buf: expected number, got string"
+			for bufnr in pairs(client.attached_buffers or {}) do
 				if key == "lsp.inlay_hints" then
 					vim.lsp.inlay_hint.enable(enabled, { bufnr = bufnr })
 					if buffer_states[bufnr] then
@@ -261,6 +267,18 @@ local function setup_ready_refresh()
 	})
 end
 
+--- FileType autocmd 必须在配置重载后重建：pattern 是 setup 时算好的一份快照
+local function setup_filetype_autocmd()
+	vim.api.nvim_create_autocmd("FileType", {
+		group = vim.api.nvim_create_augroup("LspFileType", { clear = true }),
+		desc = "根据文件类型启动或停止 LSP",
+		pattern = registry.get_lsp_config("filetypes"),
+		callback = function(args)
+			servers.apply_for_buffer(args.buf)
+		end,
+	})
+end
+
 ---------------------------------------------------------
 -- 注册全部 autocmd
 ---------------------------------------------------------
@@ -285,13 +303,8 @@ function M.setup()
 	end)
 
 	-- FileType：按项目状态启停 server
-	vim.api.nvim_create_autocmd("FileType", {
-		desc = "根据文件类型启动或停止 LSP",
-		pattern = registry.get_lsp_config("filetypes"),
-		callback = function(args)
-			servers.apply_for_buffer(args.buf)
-		end,
-	})
+	-- 独立成函数是因为 lsp/*.lua 热重载后 pattern 必须重建（见下面的 BufWritePost）
+	setup_filetype_autocmd()
 
 	-- LSP 客户端附加
 	setup_lsp_attach()
@@ -309,13 +322,33 @@ function M.setup()
 
 	-- lsp/*.lua 改动后重载配置
 	vim.api.nvim_create_autocmd("BufWritePost", {
-		pattern = { "lsp/*.lua", "after/lsp/*.lua" },
+		-- 注意：pattern 里带 "/" 时 Vim 拿完整路径匹配，"lsp/*.lua" 只能匹配相对路径，
+		-- 实际编辑 /Users/…/lsp/foo.lua 永远不触发
+		pattern = { "**/lsp/*.lua", "**/after/lsp/*.lua" },
 		group = vim.api.nvim_create_augroup("LSPConfigAutoReload", { clear = true }),
 		callback = function()
 			local _, count = registry.reload_lsp_configs()
+			-- 光刷缓存不够：FileType pattern 与已开 buffer 的 server 都是旧快照
+			setup_filetype_autocmd()
+			for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+				if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype ~= "" then
+					pcall(servers.apply_for_buffer, buf)
+				end
+			end
 			vim.notify(string.format("LSP configurations reloaded (%d configs total)", count), vim.log.levels.INFO)
 		end,
 	})
+end
+
+--- 按「当前 buffer 该是什么状态」重算开关。
+--- 调试结束时由 lua/dap_ext/dap_keys.lua 调用：原来那里直接 vim.diagnostic.enable(true)
+--- 全局打开，会把用户在特定项目里关掉的诊断/内联提示全部复活。
+function M.refresh()
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_loaded(buf) then
+			apply_buffer_settings(buf)
+		end
+	end
 end
 
 return M

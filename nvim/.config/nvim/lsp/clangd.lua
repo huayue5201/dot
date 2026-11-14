@@ -22,15 +22,14 @@ return {
 	settings = {
 		workspace = {
 			didChangeWatchedFiles = {
-				enabled = "true",
+				enabled = true, -- 必须是 boolean，"true" 字符串是非法配置
 			},
 		},
 		-- 启用标准库索引
 		index = {
-			StandardLibrary = "Yes", -- 启用标准库索引
-			Background = "Build", -- 启用背景索引
-			BackgroundIndex = "true", -- 确保启用完全背景索引
-			BackgroundWait = "true", -- 等待索引完成
+			StandardLibrary = true, -- 启用标准库索引
+			Background = "build", -- 允许值: Skip / Background / Build
+			-- BackgroundIndex / BackgroundWait 不是 clangd 配置项（见本文件顶部的 CLI flag）
 		},
 	},
 }

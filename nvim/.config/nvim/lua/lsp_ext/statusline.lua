@@ -138,6 +138,9 @@ local function prune_dead_clients()
 end
 
 vim.api.nvim_create_autocmd("LspProgress", {
+	-- 归组 clear：这个模块被 require 两次（:ConfigReload 重跑 lsp_ext.setup）时
+	-- 不会叠加出两个进度处理器
+	group = vim.api.nvim_create_augroup("LspProgressStatus", { clear = true }),
 	callback = function(ev)
 		local data = ev.data or {}
 		local val = data.params and data.params.value

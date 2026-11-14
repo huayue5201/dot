@@ -57,31 +57,10 @@ local function clear_cache(mod)
 	return cleared
 end
 
----spec 文件列表（规则与 boot/pack.lua 的 collect() 保持一致：
----目录下有 init.lua 时，该目录本身算一个 spec，不再递归进去）
+---spec 文件列表（规则在 boot/pack.lua 的 M.spec_files，两边共用同一份实现）
 ---@return string[] relpaths, string dir
 local function spec_files()
-	local dir = require("boot.pack").spec_dir()
-	local files = {}
-	local function walk(rel)
-		local path = rel == "" and dir or vim.fs.joinpath(dir, rel)
-		for entry, kind in vim.fs.dir(path) do
-			local relpath = rel == "" and entry or (rel .. "/" .. entry)
-			if kind == "file" and entry:match("%.lua$") then
-				if entry ~= "init.lua" then
-					files[#files + 1] = relpath
-				end
-			elseif kind == "directory" then
-				if vim.fn.filereadable(vim.fs.joinpath(dir, relpath, "init.lua")) == 1 then
-					files[#files + 1] = relpath
-				else
-					walk(relpath)
-				end
-			end
-		end
-	end
-	walk("")
-	return files, dir
+	return require("boot.pack").spec_files()
 end
 
 ---找引用该模块的 spec 文件：完整模块名和各级父模块都算（dap_ext/project.lua 的
@@ -99,9 +78,26 @@ local function find_owners(mod)
 		prefixes[#prefixes + 1] = table.concat(segs, ".", 1, i)
 	end
 
+	--- spec 可能是文件，也可能是「目录 + 里面的 init.lua」（spec_files 两种都返回）。
+	--- 直接 readfile 目录会抛 E17；400 行的上限也会把长 spec 截断（命中即漏报）。
+	local function read_spec(rel)
+		local path = vim.fs.joinpath(dir, rel)
+		if vim.fn.isdirectory(path) == 1 then
+			path = vim.fs.joinpath(path, "init.lua")
+		end
+		local ok, lines = pcall(vim.fn.readfile, path)
+		return ok and table.concat(lines, "\n") or ""
+	end
+
+	--- 模块名出现在字符串里才算引用（"dap_ext.project"），并按边界收尾，
+	--- 避免 "dap_ext.projectual" 之类的前缀误命中
+	local function mentions(content, prefix)
+		return content:find("['\"]" .. vim.pesc(prefix) .. "[%w_.]*['\"]") ~= nil
+	end
+
 	local contents = {}
 	for _, rel in ipairs(files) do
-		contents[rel] = table.concat(vim.fn.readfile(vim.fs.joinpath(dir, rel), "", 400), "\n")
+		contents[rel] = read_spec(rel)
 	end
 
 	local hits, seen = {}, {}
@@ -110,7 +106,7 @@ local function find_owners(mod)
 		local level = {}
 		for _, rel in ipairs(files) do
 			local content = contents[rel]
-			if content:find('"' .. prefix, 1, true) or content:find("'" .. prefix, 1, true) then
+			if mentions(content, prefix) then
 				level[#level + 1] = rel
 			end
 		end

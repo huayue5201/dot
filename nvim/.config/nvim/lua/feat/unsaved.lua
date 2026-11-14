@@ -31,9 +31,6 @@ M.ignore = {
 	},
 	bufname = {
 		"dap-terminal",
-		-- otter.nvim 为 markdown 代码块建的影子 buffer（.otter.rs / .otter.py / .otter.lua），
-		-- 内容是嵌入代码的副本，永远 modified，不能算进「未保存」
-		"%.otter%.[%w]+$",
 	},
 }
 

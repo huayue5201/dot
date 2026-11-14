@@ -8,7 +8,8 @@ return {
 	"leoluz/nvim-dap-go",
 	dependencies = {
 		"mfussenegger/nvim-dap",
-		"igorlfs/nvim-dap-view",
+		-- 不要写成 "igorlfs/nvim-dap-view"：它与 nvim-dap-view.lua 里 dir 指向的本地
+		-- fork 同名不同源，会让 vim.pack 把远端副本也装进 opt 并写进锁文件
 	},
 	config = function(_, opts)
 		require("dap-go").setup(opts)

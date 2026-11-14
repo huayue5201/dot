@@ -16,6 +16,7 @@
 --     utf8_guard.lua         非法 UTF-8 广播守卫
 --     external_docs.lua      外部文档（gro）
 --     hover_scroll.lua       LSP hover 浮窗滚动（不进入浮窗）
+--     hover.lua              鼠标悬停浮窗（诊断 + hover，替代 eagle.nvim）
 local M = {}
 
 function M.setup()
@@ -24,6 +25,7 @@ function M.setup()
 	require("lsp_ext.autocmds").setup() -- 所有 autocmd（含 FileType 启停 / LspAttach）
 	require("lsp_ext.keys").global() -- 全局按键映射
 	require("lsp_ext.features.hover_scroll").setup() -- hover 浮窗不进入也能滚
+	require("lsp_ext.features.hover").setup() -- 鼠标悬停浮窗（诊断 + hover）
 	require("lsp_ext.panel").setup() -- :LspPanel 控制面板命令
 	require("lsp_ext.lightbulb").setup() -- code action 灯泡浮窗（CursorHold 全局触发，非按 client 装配）
 end

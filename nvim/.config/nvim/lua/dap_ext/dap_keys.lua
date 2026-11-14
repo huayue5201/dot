@@ -648,8 +648,11 @@ function M.setup()
 
 			vim.g.dap_active = false
 			require("lib.context").set_debug(false)
-			pcall(vim.lsp.inlay_hint.enable, true)
-			pcall(vim.diagnostic.enable, true)
+			-- 不要全局 enable(true)：会绕过 per-project/per-buffer 的设置。交回
+			-- lsp_ext 按状态重算（state.get("lsp.diagnostics"/"lsp.inlay_hints")）
+			pcall(function()
+				require("lsp_ext.autocmds").refresh()
+			end)
 			pcall(function()
 				require("dap-view").virtual_text_disable()
 			end)

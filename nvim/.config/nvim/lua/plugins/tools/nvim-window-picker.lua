@@ -1,10 +1,9 @@
 -- https://github.com/huayue5201/nvim-window-picker
 --
--- 本地目录模式：vim.pack 把下面的绝对路径当作安装源，clone 一份副本到
--- stdpath("data")/site/pack/core/opt/nvim-window-picker，nvim 实际加载的是副本。
--- 所以改完 ~/neovim-plugins/nvim-window-picker 并 push 后，要执行
--- :PackLocalSync（<leader>zp）让副本跟上新 rev，再重启生效。
--- 必须写绝对路径：lua/boot/pack_local.lua 靠本地插件的 src 以 "/" 开头来识别它。
+-- 本地开发模式：写绝对路径时加载器直接读 ~/neovim-plugins/nvim-window-picker
+-- （不克隆副本、不跑锁文件 rev），改完重启即生效。
+-- 只有 vim.pack 时代留下的旧副本才需要 :PackLocalSync（<leader>zp）清理。
+-- 识别逻辑在 lua/boot/pack.lua 的 is_local_path（以 / ~ . 开头即视为本地目录）。
 return {
 	dir = "/Users/lijia/neovim-plugins/nvim-window-picker",
 	-- VeryLazy 提前加载：setup() 里会给 herdr/rex 源挂后台预取 autocmd，

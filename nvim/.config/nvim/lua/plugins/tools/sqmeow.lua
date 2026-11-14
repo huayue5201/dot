@@ -4,12 +4,12 @@
 --   没有对应预编译包时回退 `cargo build`（需本机有 Rust）。
 -- 键位统一收纳在 <leader>g 分组（数据库操作较常用，占用空格前缀；原 grug-far 让位到 <localleader>g）。
 return {
-	-- 本地目录模式：vim.pack 把绝对路径当作安装源，clone 一份副本到
-	-- stdpath("data")/site/pack/core/opt 下，nvim 实际加载的是副本。改完源码后
-	-- `:PackLocalSync`（<leader>zp）同步副本，重启生效。
+	-- 本地开发模式：写 dir = "~/neovim-plugins/sqmeow.nvim" 时加载器直接读工作区
+	-- （不克隆副本、不跑锁文件 rev），改完源码重启即生效，无需任何同步命令。
+	-- 只有 vim.pack 时代留下的旧副本才需要 :PackLocalSync（<leader>zp，! 删除）。
 	-- dir = "~/neovim-plugins/sqmeow.nvim",
 	-- 本地仓库 ~/neovim-plugins/sqmeow.nvim 只用于开发/提 PR；要临时试本地改动时，
-	-- 再加回 dir = "~/neovim-plugins/sqmeow.nvim" 并 :PackLocalSync，试完删掉。
+	-- 再加回 dir = "~/neovim-plugins/sqmeow.nvim"，重启即可。
 	"2giosangmitom/sqmeow.nvim",
 	dependencies = { "MunifTanjim/nui.nvim" },
 	keys = {

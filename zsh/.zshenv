@@ -9,7 +9,8 @@ export GOPROXY=https://goproxy.cn,direct
 export PATH="/opt/homebrew/opt/python@3.14/libexec/bin:/opt/homebrew/opt/llvm/bin:/opt/homebrew/Cellar/gcc/13.2.0/bin:/opt/homebrew/bin:$PATH"
 
 # Neovim
-export PATH="$PATH:$HOME/Downloads/nvim-macos-arm64/bin"
+# 旧的 nightly tarball 备份（brew 装的 neovim 优先生效，需要时取消注释：nvim 坏了可回退）
+# export PATH="$PATH:$HOME/.local/nvim/bin"
 
 # 编辑器
 export EDITOR=nvim

@@ -53,5 +53,17 @@ return {
 			},
 			quick_shell = { key = "<leader>Tu", cmd = { "nu" }, desc = "终端: 新建 nushell" },
 		})
+
+		-- lib.nushell.run 的运行 / 测试输出终端不是「用户 shell 终端」：不能收编。
+		-- 不注册的话它会在 TermOpen 后被改成 Term (N)、ft=tab_terminal，成为本 tab
+		-- 的活动终端，按 <C-;> 时把这个输出窗口就地变成终端面板（还会被 winfix_guard
+		-- 当面板维持高度、q 被重映射成 toggle）。判定看 lib/nushell.lua 打的标记。
+		require("tab_terminal").register_foreign_rule({
+			name = "local-run-output",
+			desc = "lib.nushell.run 的运行/测试输出终端",
+			match = function(ctx)
+				return vim.b[ctx.bufnr].run_output == true or ctx.ft == "run-output"
+			end,
+		})
 	end,
 }

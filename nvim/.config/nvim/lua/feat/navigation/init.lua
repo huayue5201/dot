@@ -70,6 +70,7 @@ M.buf_keymaps = {
 		["dap-view"] = { cmd = "DapViewClose", desc = "关闭 DAP 视图" },
 		["gitsigns-blame"] = { cmd = "bdelete!", desc = "关闭 blame" },
 		terminal = { cmd = "bdelete", desc = "关闭终端" },
+		["run-output"] = { cmd = "close", desc = "关闭运行输出" },
 		tab_terminal = {
 			cmd = function()
 				require("tab_terminal").toggle()

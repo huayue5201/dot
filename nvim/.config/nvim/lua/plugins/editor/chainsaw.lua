@@ -16,15 +16,23 @@ local SUPPORTED_FTS = {
 	"css",
 	"go",
 	"javascript",
+	"javascriptreact",
 	"lua",
+	"less",
 	"nvim_lua",
 	"python",
 	"ruby",
 	"rust",
+	"sass",
+	"scss",
 	"sh",
+	"svelte",
 	"swift",
 	"typescript",
+	"typescriptreact",
+	"vue",
 	"zsh",
+	"fish",
 }
 
 return {

@@ -1,8 +1,8 @@
--- 拼写检查的「词典层」：spelllang / spellfile / 种子词 / zg 后的 mkspell
+-- 拼写检查：spelllang / spellfile / 种子词 / zg 后的 mkspell + 文本类 buffer 自动开原生高亮
 --
--- 注意：markdown 等文本 buffer 的**显示**交给 spellwand.nvim（见 lsp/spellwand.lua），
--- 那边把同一个 spell 引擎包成 LSP，出 diagnostics + code action，不再有红波浪线。
--- 所以这里不再 vim.wo.spell = true；<leader>zw 保留作应急（原生高亮 + z=）。
+-- 显示走 Neovim 原生 spell（红波浪线）：文本类 filetype 自动 `spell`，切到代码 buffer 自动关。
+-- （曾用 spellwand.nvim 包成进程内 LSP 出 diagnostics，已删：它给每个错词算 spellsuggest
+--   拼「did you mean」，本机实测 ~9ms/词 × max_errors(200) ≈ 2s 主线程卡顿。）
 --
 -- 两个关键点：
 --   1. `cjk` 是 vim 内置的 «东亚洲字符不标红» 支持（:h spell-cjk），中文注释能忍全靠它；
@@ -10,9 +10,8 @@
 --   2. 技术词（neovim / quicksort / DynamoDB）由 vim-dirtytalk 的词表补上，
 --      见 lua/plugins/lang/dirtytalk.lua + M.build()（上游的 :DirtytalkUpdate 依赖 Vim 专有的
 --      spellfile#WritableSpellDir()，Neovim 里没有这个函数，跑起来是 E117）。
---   3. 原生 zg/zw 只改词典不改文本，spellwand 收不到 didChange，旧诊断会挂着；
---      M.watch() 盯 spellfile 目录，改完就 refresh_add + spellwand.refresh。
---      （gra 里的「加入词典」自己会 republish，不需要这条旁路。）
+--   3. 原生 zg/zw 只改词典不改文本，所以改了词典要（FocusGained 时）mkspell 重建 .add.spl，
+--      否则新加的词当前会话不生效。
 
 local M = {}
 
@@ -98,72 +97,6 @@ function M.refresh_add(add)
 	vim.cmd("silent! mkspell! " .. vim.fn.fnameescape(spl) .. " " .. vim.fn.fnameescape(add))
 end
 
---- 让 spellwand 重新出诊断（空 didChange，插件内部 300ms 去抖后重扫）
-local function refresh_spellwand()
-	local ok, spellwand = pcall(require, "spellwand")
-	if ok and type(spellwand.refresh) == "function" then
-		pcall(spellwand.refresh)
-	end
-end
-
-local watch_timer
-
---- 停掉 spellfile 监听（setup 重入 / 测试收尾）
-function M.stop_watch()
-	if watch_timer then
-		watch_timer:stop()
-		watch_timer:close()
-		watch_timer = nil
-	end
-	if M._watcher then
-		M._watcher:stop()
-		M._watcher:close()
-		M._watcher = nil
-	end
-end
-
---- 监听 spellfile 的变化，补上原生 zg/zw 缺失的那次诊断刷新。
----
---- 为什么需要：zg/zw 只改词典、不改文本，spellwand 收不到 didChange，旧诊断会一直挂着；
---- 而 gra 里的「加入词典」自己会 republish，所以只有原生命令需要这条旁路。
---- 盯目录而不是文件：Neovim 写 .add 是原子 rename（fs_event 给 rename=true），盯 inode 会一次失效。
---- @param opts? { dir?: string, add?: string, debounce?: integer }
---- @return table|nil handle { stop = fun() }
-function M.watch(opts)
-	opts = opts or {}
-	local dir = opts.dir or SPELL_DIR
-	local add = opts.add or ADD_FILE
-	local base = vim.fn.fnamemodify(add, ":t") -- 只认 en.utf-8.add，忽略 .add.spl 与自己 mkspell 的回写
-	local debounce = opts.debounce or 80
-	local uv = vim.uv or vim.loop
-
-	M.stop_watch()
-	local ev = uv.new_fs_event()
-	if not ev then
-		return
-	end
-
-	local ok = ev:start(dir, {}, vim.schedule_wrap(function(err, fname)
-		if err or fname ~= base or watch_timer then
-			return
-		end
-		watch_timer = uv.new_timer()
-		watch_timer:start(debounce, 0, vim.schedule_wrap(function()
-			watch_timer:close()
-			watch_timer = nil
-			M.refresh_add(add)
-			refresh_spellwand()
-		end))
-	end))
-	if not ok then
-		ev:close()
-		return
-	end
-
-	M._watcher = ev
-	return { stop = M.stop_watch }
-end
-
 --- 由 wordlists/*.words 生成 spell/programming.utf-8.spl（config 目录在 rtp 里，能被 spelllang 找到）
 --- @param dir string vim-dirtytalk 的插件目录（build 时由 pack 传入）
 function M.build(dir)
@@ -204,11 +137,16 @@ function M.setup()
 		group = group,
 		pattern = vim.tbl_keys(TEXT_FT),
 		callback = function()
-			-- 不再开原生高亮（spellwand 负责显示），只保证词典选项就位
 			vim.bo.spellfile = ADD_FILE
 			vim.bo.spelllang = spelllang()
 			-- camel：只在文档里拆驼峰（DynamicConfig → Dynamic + Config），代码里拆了反而更吵
 			vim.bo.spelloptions = "camel"
+			-- 大文件不开：原生高亮的检查是按行跑的，几百 KB 的文档逐屏重绘会明显拖慢
+			local name = vim.api.nvim_buf_get_name(0)
+			if name == "" or vim.fn.getfsize(name) <= 150 * 1024 then
+				vim.wo.spell = true
+				vim.w.spell_auto = true
+			end
 		end,
 	})
 
@@ -231,9 +169,6 @@ function M.setup()
 			M.refresh_add()
 		end,
 	})
-
-	-- zg/zw 改词典 → 立刻重扫 spellwand 诊断（不必等下次输入或 gra）
-	M.watch()
 
 	vim.keymap.set("n", "<leader>zw", function()
 		vim.bo.spellfile = ADD_FILE

@@ -122,7 +122,7 @@ local function resolve_executable(cargo_args, extra_args, cwd, env, cb)
 		end
 
 		local exes, seen = {}, {}
-		for _, exe in ipairs(res.artifacts) do
+		for _, exe in ipairs((res.data and res.data.artifacts) or {}) do
 			if not seen[exe] then
 				seen[exe] = true
 				exes[#exes + 1] = exe

@@ -53,8 +53,10 @@ return {
 			process_spinner = false,
 			-- Allows a different telescope sorter. Defaults to 'fuzzy_with_index_bias'. The example below will use the native fzf
 			-- sorter instead. By default, this function returns `nil`.
+			-- 本配置没装 telescope.nvim（只有 telescope-fzf-native，被 dropbar 带进来），
+			-- 这里返回非 nil 会让 neogit 的每个 picker 都 require 失败
 			telescope_sorter = function()
-				return require("telescope").extensions.fzf.native_fzf_sorter()
+				return nil
 			end,
 		})
 

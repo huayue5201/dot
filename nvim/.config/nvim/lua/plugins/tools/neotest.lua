@@ -75,7 +75,7 @@ return {
 
 		vim.keymap.set("n", "<leader>tr", function()
 			neotest.run.run()
-		end, { desc = "运行当前文件测试" })
+		end, { desc = "运行最近测试" })
 
 		vim.keymap.set("n", "<leader>tf", function()
 			neotest.run.run(vim.fn.expand("%"))

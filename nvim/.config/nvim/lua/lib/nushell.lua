@@ -66,6 +66,11 @@ function M.run(cmd, opts)
 	vim.cmd("botright new")
 	local buf = vim.api.nvim_get_current_buf()
 	vim.bo[buf].bufhidden = "wipe"
+	-- 标记「这是运行输出，不是用户 shell」：tab-terminal.nvim 的 TermOpen 收编
+	-- 只认 ft 为空的裸终端，不加标记的话它会把这里改成 Term (N)、ft=tab_terminal，
+	-- 并当成本 tab 的活动终端，后续 <C-;> 会把这个窗口就地 attach 成终端面板。
+	vim.b[buf].run_output = true
+	vim.bo[buf].filetype = "run-output"
 	vim.fn.termopen(M.available() and wrap(cmd) or cmd, (opts and next(opts)) and opts or vim.empty_dict())
 	vim.cmd.startinsert()
 	return buf

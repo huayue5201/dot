@@ -53,6 +53,12 @@ return {
 			end,
 			-- map our new command to z
 			z = "grug_far_replace",
+			-- 关掉默认的 w = open_with_window_picker：
+			-- 选完窗口后 neo-tree 会无条件 nvim_win_set_cursor 跳到节点的
+			-- extra.position（document_symbols 等），选中的窗口里不是那个文件时
+			-- 就报 E5108: Invalid cursor line: out of range（
+			-- sources/common/commands.lua:1092）。直接用 o/<CR> 打开即可。
+			w = "noop",
 			-- 在该节点目录开终端（文件节点用所在目录）；多根树里也就能从辅助根开
 			["<C-t>"] = "open_terminal_at",
 		}

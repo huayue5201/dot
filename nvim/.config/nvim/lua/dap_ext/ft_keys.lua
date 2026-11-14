@@ -80,6 +80,17 @@ local function unapply(spec, bufnr)
 	spec.applied[bufnr] = nil
 end
 
+-- 文件类型变了（rust -> markdown、buffer 被 :setfiletype 改成别的）时回收：
+-- FileType 只会「匹配时 apply」，不匹配时没有任何回调，映射会一直留在 buffer 上
+vim.api.nvim_create_autocmd("FileType", {
+	group = group,
+	callback = function(ev)
+		for _, spec in ipairs(specs) do
+			unapply(spec, ev.buf)
+		end
+	end,
+})
+
 ---注册一条只在指定 filetype 的 buffer 中存在的键位
 ---@param lhs string
 ---@param rhs string|function

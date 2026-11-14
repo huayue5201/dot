@@ -406,14 +406,14 @@ return {
 			vim.tbl_extend("force", opts, { desc = "选择并关闭缓冲区" })
 		)
 
-		-- 排序命令
+		-- 排序命令（本地 fork 只提供 SortByExtension / SortByDirectory /
+		-- SortByRelativeDirectory / SortByTabs，没有按编号/按名称的那种）
 		map(
 			"n",
 			"<leader>bsn",
-			"<Cmd>BufferLineSortByBufferNumber<CR>",
-			vim.tbl_extend("force", opts, { desc = "按缓冲区编号排序" })
+			"<Cmd>BufferLineSortByTabs<CR>",
+			vim.tbl_extend("force", opts, { desc = "按标签页排序" })
 		)
-		-- map("n", "gbbn", "<Cmd>BufferLineSortByName<CR>", vim.tbl_extend("force", opts, { desc = "按名称排序" }))
 		map(
 			"n",
 			"<leader>bsd",

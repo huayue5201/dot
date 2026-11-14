@@ -1,7 +1,8 @@
 -- 插件管理：安装 / 更新 / 锁文件 / 版本全部交给 Neovim 自带的 vim.pack。
 -- 加载策略是「全 eager」：启动时把所有插件都激活（进 rtp + source plugin/）并跑 config，
--- 不使用任何懒加载代理。唯一例外是「第二波」（DEFER_HEAVY）：少数重插件的 config 推到
--- 首帧之后再跑（插件本身仍然在启动时激活完毕，命令/映射/require 全部可用）。
+-- 不使用任何懒加载代理。唯一例外是「第二波」（见下面的 deferred 表）：少数重插件的
+-- config 推到首帧之后再跑。插件本身仍然在启动时激活完毕，命令/require 立即可用，
+-- 但它们在 spec 里声明的 keys 是跟着 config 一起装的，所以同样要等到第二波。
 --
 -- 为什么不再用 zpack：它的 cmd / keys / module 代理会引入一类很难查的 bug
 -- （首次按键只加载不执行、命令代理丢 register/range、module 懒加载走 :packadd!
@@ -29,6 +30,7 @@ if vim.fn.exists("+packlockfile") == 1 then
 end
 
 local errors = {}
+local had_errors = false -- 本次会话是否报过错（prune 门禁用，errors 报完就清）
 
 -- NVIM_PACK_PROFILE=1 nvim  打印每个插件加载耗时（调试用，平时零开销）
 local profile = vim.env.NVIM_PACK_PROFILE == "1"
@@ -46,10 +48,11 @@ local function phase(name, fn, ...)
 	return a, b, c
 end
 
--- 本次启动新装的插件（src 集合）：只有它们需要跑 build
+-- 本次启动新装的插件（name 集合）：只有它们需要跑 build
 local fresh = {}
 
 local function fail(fmt, ...)
+	had_errors = true
 	errors[#errors + 1] = fmt:format(...)
 end
 
@@ -58,6 +61,7 @@ local function report_errors()
 		return
 	end
 	local msg = table.concat(errors, "\n")
+	errors = {} -- 清空：否则同一批错误会在每轮 report_errors 里重复弹（reload 时还会把启动期的旧错误再报一遍）
 	vim.schedule(function()
 		vim.notify("插件加载有问题:\n" .. msg, vim.log.levels.ERROR)
 	end)
@@ -129,33 +133,60 @@ local function normalize_spec(raw, order)
 	spec.name = name
 	spec.version = normalize_version(spec)
 	spec._order = order
+	-- 归一化一次，加载排序就不用每次比较都现算（priority 是静态字段）
+	spec._priority = type(spec.priority) == "number" and spec.priority or 50
+	if spec.enabled == false then
+		spec._disabled = true
+	end
 
 	return spec
 end
 
-local by_src = {}
+local by_name = {} -- name -> spec（vim.pack 的安装目录就是 name，同名只能有一份）
+local by_src = {} -- src -> spec（热重载按 src 找 spec）
 local order = {}
 
+--- 同名插件只留一份：dependency 里写 "igorlfs/nvim-dap-view"、另处又用 dir 指向本地工作区时，
+--- 两份各自装一遍，副本就会出现在 opt 里（删掉下次启动还会被 vim.pack 按锁文件造回来）。
+--- 本地 fork 优先，其余字段「先到先得 + dependencies 追加」；冲突的标量字段报出来。
+local CONFLICT_FIELDS = { "enabled", "priority", "main", "version", "build" }
 local function register(spec)
 	if not spec then
 		return nil
 	end
-	local existing = by_src[spec.src]
-	if existing then
-		-- 同一插件被多个文件声明：补全缺失字段，dependencies 追加
-		for k, v in pairs(spec) do
-			if k == "dependencies" then
-				existing.dependencies = existing.dependencies or {}
-				vim.list_extend(existing.dependencies, v)
-			elseif existing[k] == nil then
-				existing[k] = v
-			end
-		end
-		return existing
+	local existing = by_name[spec.name]
+	if not existing then
+		spec._order = #order + 1 -- 单调递增：同 priority 下的排序才稳定
+		by_name[spec.name] = spec
+		by_src[spec.src] = spec
+		order[#order + 1] = spec
+		return spec
 	end
-	by_src[spec.src] = spec
-	order[#order + 1] = spec
-	return spec
+	if spec._dev and not existing._dev then
+		by_src[existing.src] = nil -- 换了 src，旧键不留（reload_spec 会按它误命中）
+		existing.src = spec.src
+		existing.dir = spec.dir
+		existing._dev = true
+		by_src[existing.src] = existing
+	end
+	for k, v in pairs(spec) do
+		if k == "dependencies" then
+			existing.dependencies = existing.dependencies or {}
+			vim.list_extend(existing.dependencies, v)
+		elseif k ~= "src" and k ~= "dir" and k ~= "_dev" and existing[k] == nil then
+			existing[k] = v
+		elseif existing[k] ~= v and vim.tbl_contains(CONFLICT_FIELDS, k) then
+			fail(
+				"spec %s 的 %s 声明了两次且不同（%s → %s），已用第一份",
+				spec.name,
+				k,
+				tostring(existing[k]),
+				tostring(v)
+			)
+		end
+	end
+	by_src[spec.src] = existing
+	return existing
 end
 
 -- 一个 spec 文件可能返回「单个 spec」或「spec 列表」。判定依据：
@@ -166,6 +197,8 @@ end
 -- 整个 spec 的 dependencies / config / keys 全部丢失。
 local SPEC_FIELDS = {
 	"dir",
+	"src",
+	"url",
 	"name",
 	"main",
 	"config",
@@ -180,8 +213,6 @@ local SPEC_FIELDS = {
 	"priority",
 	"enabled",
 	"keys",
-	"cond",
-	"virtual",
 }
 local function is_single_spec(t)
 	if type(t[1]) == "string" then
@@ -198,14 +229,17 @@ local function is_single_spec(t)
 	return false
 end
 
---- 收集 spec 模块，支持任意层级的分类子目录（lua/plugins/<类>/<插件>.lua）。
+--- spec 目录下的全部 spec 文件，支持任意层级的分类子目录（lua/plugins/<类>/<插件>.lua）。
 ---
 --- 目录名只是给人看的标签，不参与加载排序：仍按「文件名」排序，因此 priority
 --- 相同时的声明次序与全部平铺时代完全一致（路径仅作同名文件的次级排序键）。
 --- 例外：某目录下存在 init.lua 时，该目录本身视为一个 spec 模块（与顶层一致），
 --- 不再递归进去，避免把它的内部辅助 lua 文件误当 spec。
----@return string[] 相对 spec_dir 的路径，如 { "ui/colorscheme.lua", "dap/nvim-dap.lua" }
-local function collect()
+---
+--- lua/feat/config_reload.lua 也走这里（它需要同一份文件清单），所以导出而不是留在
+--- collect 内部，避免两套递归实现各自漂移。
+---@return string[] relpaths, string dir
+function M.spec_files()
 	local files = {}
 	---@param rel string 相对 spec_dir 的子目录（"" 表示根）
 	local function walk(rel)
@@ -234,36 +268,70 @@ local function collect()
 		end
 		return a < b
 	end)
+	return files, spec_dir
+end
 
-	for i, file in ipairs(files) do
+--- 收集 spec 模块并归一化
+local function collect()
+	for i, file in ipairs(M.spec_files()) do
 		local mod = "plugins." .. file:gsub("%.lua$", ""):gsub("/", ".")
 		local ok, ret = pcall(require, mod)
 		if not ok then
 			fail("spec %s 加载失败: %s", mod, ret)
-		elseif type(ret) == "table" then
-			local items = is_single_spec(ret) and { ret } or ret
-			for _, raw in ipairs(items) do
-				register(normalize_spec(raw, i))
+		elseif type(ret) ~= "table" then
+			-- 条件禁用写成 `if not x then return end` 会落到这里：不报的话插件根本没声明，
+			-- 启动期 prune 还会把它目录删掉
+			fail("spec %s 返回了 %s（需要 table）", mod, type(ret))
+		else
+			local single = is_single_spec(ret)
+			if not single and next(ret) ~= nil and ret[1] == nil then
+				-- 顶层字段一个都不认识（写了不支持的键名）：静默丢弃是最坏的结果
+				fail("spec %s 既不像单个 spec 也不像列表（字段: %s）", mod, table.concat(vim.tbl_keys(ret), ","))
+			else
+				local items = single and { ret } or ret
+				-- 用 pairs+排序而不是 ipairs：列表里出现 nil 洞（条件禁用写成
+				-- nil 条目）时 ipairs 会在洞处截断，后面的 spec 全部丢失
+				local idx = {}
+				for kk in pairs(items) do
+					if type(kk) == "number" then
+						idx[#idx + 1] = kk
+					end
+				end
+				table.sort(idx)
+				for _, kk in ipairs(idx) do
+					register(normalize_spec(items[kk], i))
+				end
 			end
 		end
 	end
 
-	-- 展开 dependencies（字符串 / 内联 spec 都可以），并记录边
-	local i = 1
-	while i <= #order do
-		local spec = order[i]
-		local list = spec.dependencies
-		spec._deps = {}
-		if list then
-			list = type(list) == "table" and list or { list }
-			for _, dep in ipairs(list) do
-				local dep_spec = register(normalize_spec(dep, spec._order))
-				if dep_spec then
-					spec._deps[#spec._deps + 1] = dep_spec
+	-- 展开 dependencies（字符串 / 内联 spec 都可以），并记录边。
+	-- 合并同名 spec 时可能给对方追加 dependencies，所以跑到不动点（通常 1 轮就停）。
+	for _ = 1, 5 do
+		local changed = false
+		local i = 1
+		while i <= #order do
+			local spec = order[i]
+			local list = spec.dependencies
+			local deps = {}
+			if list then
+				list = type(list) == "table" and list or { list }
+				for _, dep in ipairs(list) do
+					local dep_spec = register(normalize_spec(dep, spec._order))
+					if dep_spec then
+						deps[#deps + 1] = dep_spec
+					end
 				end
 			end
+			if #deps ~= #(spec._deps or {}) then
+				changed = true
+			end
+			spec._deps = deps
+			i = i + 1
 		end
-		i = i + 1
+		if not changed then
+			break
+		end
 	end
 end
 
@@ -278,7 +346,6 @@ end
 -- 只在「裸启动」时延后：带文件参数（nvim foo.md）或脚本化（-c/-S/-l/--cmd/+cmd）时，
 -- VimEnter 之前就已经在读文件、跑命令，延后会让 FileType 自动命令或 -c 找不到插件，
 -- 所以那些情况一律保持全 eager。
-local DEFER_HEAVY = true
 local deferred = {
 	["obsidian.nvim"] = true,
 	["codecompanion.nvim"] = true,
@@ -320,14 +387,13 @@ local function should_defer()
 	if vim.env.NVIM_PACK_EAGER == "1" then
 		return false -- 调试/脚本：强制全 eager
 	end
-	if vim.env.NVIM_PACK_DEFER == "1" then
-		return true -- 调试：强制延后
-	end
-	if not DEFER_HEAVY then
+	-- 开了文件就必须 eager：它的 FileType 在 VimEnter 之前就触发，延后等于插件没生效。
+	-- 这条要排在 NVIM_PACK_DEFER 之前（调试开关不该绕过正确性）
+	if vim.fn.argc() > 0 then
 		return false
 	end
-	if vim.fn.argc() > 0 then
-		return false -- 启动时就打开了文件，它的 FileType 在 VimEnter 之前就触发了
+	if vim.env.NVIM_PACK_DEFER == "1" then
+		return true -- 调试：强制延后
 	end
 	for _, arg in ipairs(vim.v.argv) do
 		if arg == "-c" or arg == "--cmd" or arg == "-S" or arg == "-l" or arg == "-lua" then
@@ -340,32 +406,19 @@ local function should_defer()
 	return true
 end
 
-local function priority_of(spec)
-	return type(spec.priority) == "number" and spec.priority or 50
-end
-
 --- priority 降序；同 priority 按声明的 spec 文件顺序，保证加载次序稳定可复现
 local function by_priority(a, b)
-	if priority_of(a) ~= priority_of(b) then
-		return priority_of(a) > priority_of(b)
+	if a._priority ~= b._priority then
+		return a._priority > b._priority
 	end
 	return (a._order or 0) < (b._order or 0)
 end
 
-local function is_enabled(spec)
-	local v = spec.enabled
-	if v == nil then
-		return true
-	end
-	if type(v) == "function" then
-		local ok, res = pcall(v)
-		return ok and res ~= false
-	end
-	return v ~= false
-end
+--- vim.pack 的克隆副本根目录（本地 dev 插件直接读工作区，不走这里）
+local pack_root = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "core", "opt")
 
 local function pack_path(name)
-	return vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "core", "opt", name)
+	return vim.fs.joinpath(pack_root, name)
 end
 
 --- 插件在磁盘上的目录：dev 插件读工作区，其余读 vim.pack 的克隆副本
@@ -385,7 +438,9 @@ end
 -- 开头（packadd 的两个动作，rtp 里实测验证过）。两处都是后加载的排在前面。
 local function enter_rtp(paths)
 	local site = vim.fs.joinpath(vim.fn.stdpath("data"), "site")
-	local ps = vim.split(vim.o.runtimepath, ",", { plain = true })
+	-- 用选项的 list 形式取/写：路径里含逗号时 vim.o.runtimepath 的逗号转义会被
+	-- 手写 split/concat 拆坏
+	local ps = vim.opt.runtimepath:get()
 	local idx
 	for i, p in ipairs(ps) do
 		if p == site then
@@ -407,18 +462,14 @@ local function enter_rtp(paths)
 	for i = idx + 1, #ps do
 		tail[#tail + 1] = ps[i]
 	end
-	local added = 0
 	for i = #paths, 1, -1 do
 		local p = paths[i]
 		if not seen[p] then
 			seen[p] = true
 			head[#head + 1] = p
-			added = added + 1
 		end
 	end
-	if added == 0 then
-		return true
-	end
+	-- added == 0 时也继续处理 after/：两者是独立的两件事，一起跳过会让 after/ 变成半死代码
 	-- after 段起点：第一个以 /after 结尾的项
 	local after_at
 	for i, p in ipairs(tail) do
@@ -441,7 +492,7 @@ local function enter_rtp(paths)
 			table.insert(tail, at, afters[i])
 		end
 	end
-	vim.o.runtimepath = table.concat(head, ",") .. "," .. table.concat(tail, ",")
+	vim.opt.runtimepath = vim.list_extend(head, tail)
 	return true
 end
 
@@ -467,8 +518,35 @@ local function normalize_mod_name(name)
 	return (name:lower():gsub("^n?vim%-", ""):gsub("%.n?vim$", ""):gsub("[%.%-_]", ""))
 end
 
--- 多个 spec 声明同一个 lhs 时，第一个生效，避免互相覆盖后找不到来源
+-- 多个 spec 声明同一个 lhs + mode + ft 集合时，第一个生效，避免互相覆盖后找不到来源。
+-- id -> { owner = spec.name }：全局键与 ft 键都走 key_id()。
 local key_owner = {}
+
+--- mode 也是身份的一部分：同一 lhs 在 n / x 下是两个独立映射
+--- （如 assembly 的 <leader>ra：normal 看函数、visual 走 :Asm 选区）。
+--- mode 可以是字符串或字符串数组（lazy.nvim 写法），统一成排序后的逗号串做 id
+local function mode_id(k)
+	local m = k.mode or "n"
+	if type(m) == "table" then
+		local t = vim.deepcopy(m)
+		table.sort(t)
+		return table.concat(t, ",")
+	end
+	return m
+end
+
+---@param k table
+---@param ft_list? string[]
+---@return string
+local function key_id(k, ft_list)
+	local mode = mode_id(k)
+	if not ft_list then
+		return "g:" .. mode .. "|" .. k[1]
+	end
+	local fts = vim.deepcopy(ft_list)
+	table.sort(fts)
+	return "ft:" .. mode .. "|" .. k[1] .. "|" .. table.concat(fts, ",")
+end
 
 local function resolve_main(spec, path)
 	if spec.main then
@@ -514,17 +592,20 @@ local function run_build(spec)
 	end
 	local dir = plugin_dir(spec)
 	local cwd = vim.fn.getcwd()
+	-- cd 失败不能静默：否则 build 跑在用户当前目录，产物散落到项目里
+	if vim.uv.fs_stat(dir) and not pcall(vim.cmd, "cd " .. vim.fn.fnameescape(dir)) then
+		fail("build %s: 无法进入 %s，build 将在当前目录执行", spec.name, dir)
+	end
 	local ok, err
 	if type(build) == "function" then
-		if vim.uv.fs_stat(dir) then
-			pcall(vim.cmd, "cd " .. vim.fn.fnameescape(dir))
-		end
 		ok, err = pcall(build, plugin_object(spec))
 	elseif type(build) == "string" then
-		if vim.uv.fs_stat(dir) then
-			pcall(vim.cmd, "cd " .. vim.fn.fnameescape(dir))
-		end
 		ok, err = pcall(vim.cmd, (build:gsub("^%s*:%%?", "")))
+	else
+		-- lazy.nvim 风格的 { "cmd", "arg" } 之类：以前什么都没跑，还静默算成功
+		fail("build %s: 不支持的类型 %s（需要 function 或 string）", spec.name, type(build))
+		ok = false
+		err = "unsupported build type"
 	end
 	if vim.fn.getcwd() ~= cwd then
 		pcall(vim.cmd, "cd " .. vim.fn.fnameescape(cwd))
@@ -570,6 +651,43 @@ local built_dirty = false
 local built_missing = false
 
 ---@return table<string, string> name -> rev
+--- 直接读锁文件，不用 vim.pack.get：后者会走 lock_sync，对「锁里有、目录没了」的
+--- 条目先 clone 回来（confirm=true 时还会弹模态框），prune 会先复原再删除，白费一次网络
+--- 还可能和用户的选择打架。
+---@return table<string, { src: string?, rev: string? }>
+local function lock_plugins()
+	local ok, lines = pcall(vim.fn.readfile, vim.go.packlockfile)
+	if not ok or type(lines) ~= "table" then
+		return {}
+	end
+	local okj, data = pcall(vim.json.decode, table.concat(lines, "\n"))
+	if not okj or type(data) ~= "table" or type(data.plugins) ~= "table" then
+		return {}
+	end
+	return data.plugins
+end
+
+--- 记账用的「源标识」：rev + dev 标记 + 工作区是否脏。
+--- 只用 name 当键时，dev fork 与远端版共用一条记录；dev 不改 commit 时
+--- (改了代码没提交) rev 不变，build 就永远不会重跑。
+local function build_stamp_of(spec)
+	local rev = git_rev(plugin_dir(spec))
+	if not rev then
+		return nil
+	end
+	if not spec._dev then
+		return rev
+	end
+	local ok, out = pcall(function()
+		return vim.system(
+			{ "git", "-C", plugin_dir(spec), "status", "--porcelain", "--", "." },
+			{ text = true }
+		):wait(1000)
+	end)
+	local dirty = ok and out and out.code == 0 and vim.trim(out.stdout or "") ~= ""
+	return rev .. (dirty and "+dirty" or "")
+end
+
 local function read_built()
 	if built then
 		return built
@@ -587,15 +705,14 @@ local function read_built()
 	return built
 end
 
----记录某个插件当前 rev 已构建成功
+---记录某个插件当前 rev 已构建成功（只标脏，落盘统一由 flush_built 做）
 local function record_built(spec)
-	local rev = git_rev(plugin_dir(spec))
+	local rev = build_stamp_of(spec)
 	if not rev then
 		return
 	end
-	local data = read_built()
-	data[spec.name] = rev
-	pcall(vim.fn.writefile, { vim.json.encode(data) }, built_stamp)
+	read_built()[spec.name] = rev
+	built_dirty = true
 end
 
 local function run_init(spec)
@@ -656,15 +773,31 @@ local function key_opts(k, buf)
 	return opts
 end
 
+local function set_key(spec_name, k, lhs, rhs, buf)
+	local ok, err = pcall(vim.keymap.set, k.mode or "n", lhs, rhs, key_opts(k, buf))
+	if not ok then
+		fail("keymap %s (%s) 失败: %s", lhs, spec_name, err)
+	end
+end
+
 local function install_ft_keys(buf)
 	local ft = vim.bo[buf].filetype
 	for _, item in ipairs(ft_pending) do
 		if item.fts[ft] then
-			local ok, err =
-				pcall(vim.keymap.set, item.entry.mode or "n", item.entry[1], item.entry[2], key_opts(item.entry, buf))
-			if not ok then
-				fail("keymap %s (%s) 失败: %s", item.entry[1], item.spec, err)
-			end
+			set_key(item.spec, item.entry, item.entry[1], item.entry[2], buf)
+		end
+	end
+end
+
+--- 启动时已经打开的 buffer（FileType 早就触发过，等不到 autocmd）补装一次。
+--- 只在一批 spec 全部登记完之后跑：每登记一个键就全量扫一遍 buffer 是白做 N 倍。
+local function backfill_ft_keys()
+	if #ft_pending == 0 then
+		return
+	end
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_is_loaded(buf) then
+			install_ft_keys(buf)
 		end
 	end
 end
@@ -684,29 +817,23 @@ local function ensure_ft_autocmd()
 end
 
 local function register_ft_key(spec, k, ft_list)
+	local id = key_id(k, ft_list)
+	if key_owner[id] then
+		return -- 同 lhs + 同 ft 集合只登记一次
+	end
+	key_owner[id] = { owner = spec.name }
 	local fts = {}
 	for _, ft in ipairs(ft_list) do
 		fts[ft] = true
 	end
-	-- 去重：同一个 spec 里同 lhs + 同 ft 集合只登记一次
-	local dedup = "ft:" .. k[1] .. "|" .. table.concat(ft_list, ",")
-	if key_owner[dedup] then
-		return
-	end
-	key_owner[dedup] = spec.name
 	ft_pending[#ft_pending + 1] = { fts = fts, entry = k, spec = spec.name }
 	ensure_ft_autocmd()
-	-- 已经打开的 buffer（FileType 早已触发过）补一遍
-	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-		if vim.api.nvim_buf_is_loaded(buf) then
-			install_ft_keys(buf)
-		end
-	end
 end
 
 local function apply_keys(spec)
 	local keys = spec.keys
-	if not keys then
+	-- keys = {} 会被下面包成 { {} } 然后报一条「缺少 lhs/rhs」的假错误
+	if not keys or (type(keys) == "table" and next(keys) == nil) then
 		return
 	end
 
@@ -720,11 +847,11 @@ local function apply_keys(spec)
 			fail("keys %s: 缺少 lhs/rhs，已跳过（分组标签请写进 which-key.lua）", tostring(lhs))
 		elseif type(fts) == "table" then
 			register_ft_key(spec, k, fts)
-		elseif not key_owner[lhs] then
-			key_owner[lhs] = spec.name
-			local ok, err = pcall(vim.keymap.set, k.mode or "n", lhs, rhs, key_opts(k))
-			if not ok then
-				fail("keymap %s (%s) 失败: %s", lhs, spec.name, err)
+		else
+			local id = key_id(k, nil)
+			if not key_owner[id] then
+				key_owner[id] = { owner = spec.name }
+				set_key(spec.name, k, lhs, rhs)
 			end
 		end
 	end
@@ -742,11 +869,12 @@ end
 
 --- rev 变了（或从未记录过）说明产物可能是旧的
 ---@return boolean
+
 local function stale_build(spec)
 	if not spec.build then
 		return false
 	end
-	local rev = git_rev(plugin_dir(spec))
+	local rev = build_stamp_of(spec)
 	if not rev then
 		return false
 	end
@@ -765,27 +893,60 @@ local function flush_built()
 	if not built_dirty then
 		return
 	end
-	pcall(vim.fn.writefile, { vim.json.encode(read_built()) }, built_stamp)
-	built_dirty = false
+	local ok = pcall(vim.fn.writefile, { vim.json.encode(read_built()) }, built_stamp)
+	if ok then
+		built_dirty = false
+	else
+		fail("写 %s 失败：每次启动都会重建已构建的插件", built_stamp)
+	end
+end
+
+--- build 成功后记账：全文件唯一的「跑 build + 记 rev」入口
+local function build_and_record(spec)
+	if run_build(spec) then
+		record_built(spec)
+		return true
+	end
+	return false
 end
 
 --- 本地 dir 插件的 build 一般很快（cargo/make 已经很干净时是空转），直接同步跑，
 --- 保证本进程里立刻就有新产物；远程插件可能很重（:TSUpdate、下载二进制），推到
 --- 启动完成之后跑，避免卡启动。
 local function rebuild_now(spec)
-	local local_src = type(spec.src) == "string" and vim.startswith(spec.src, "/") and vim.uv.fs_stat(spec.src)
-	if local_src then
-		if run_build(spec) then
-			record_built(spec)
-		end
+	if spec._dev then
+		build_and_record(spec)
 		return
 	end
 	vim.schedule(function()
-		if run_build(spec) then
-			record_built(spec)
-		end
+		build_and_record(spec)
+		flush_built()
 		report_errors()
 	end)
+end
+
+---helptags 的产物不该让第三方仓库变脏。vim.pack 每次 checkout 都会删掉 doc/tags
+---再 `:helptags` 重新生成，但仓库通常没忽略它：于是每个插件都多出「未跟踪文件」，
+---下一次 `git checkout` 若目标提交里有这个文件就直接失败（bufferline.nvim 的副本
+---就是这样每次都更新失败）。写进仓库自己的 .git/info/exclude（不进版本库、也不改
+---上游文件）一次就永久生效。
+---@param dir string
+local function ignore_generated_tags(dir)
+	local exclude = dir .. "/.git/info/exclude"
+	if vim.uv.fs_stat(exclude) == nil then
+		return -- 不是 git clone（dev 插件读的是用户自己的工作区，不去动）
+	end
+	local ok, lines = pcall(vim.fn.readfile, exclude)
+	if not ok or type(lines) ~= "table" then
+		return
+	end
+	for _, l in ipairs(lines) do
+		if l == "doc/tags" then
+			return
+		end
+	end
+	lines[#lines + 1] = "doc/tags"
+	pcall(vim.fn.writefile, lines, exclude)
 end
 
 --- 只激活（进 rtp + source plugin/ + 跑 build），不跑 config
@@ -801,7 +962,9 @@ local function activate_batch(batch)
 		if via_packadd then
 			-- 退回 :packadd 时 dev 插件不在 pack 里，自己插 rtp + source plugin/
 			if spec._dev then
-				vim.opt.runtimepath:prepend(paths[i])
+				-- append 而不是 prepend：prepend 会让 dev 插件抢到最高优先级，
+				-- 而且倒序遍历时相对顺序也反了
+				vim.opt.runtimepath:append(paths[i])
 				source_dir(paths[i] .. "/plugin")
 			else
 				local ok, err = pcall(vim.cmd.packadd, { spec.name })
@@ -811,12 +974,19 @@ local function activate_batch(batch)
 			end
 		else
 			source_dir(paths[i] .. "/plugin")
-		end
-		-- 新装的插件先跑 build（此时 plugin/ 已 source，:TSUpdate 之类的命令才存在）
-		if fresh[spec.src] then
-			if run_build(spec) then
-				record_built(spec)
+			if not spec._dev then
+				ignore_generated_tags(paths[i])
 			end
+		end
+		-- 新装的插件先跑 build（此时 plugin/ 已 source，:TSUpdate 之类的命令才存在）。
+		-- 但 :TSUpdate / jieba 安装这类要几十秒，别卡住首屏：延后到启动完成后跑
+		-- （build 不是加载的前置条件，插件本身已经能用了）
+		if fresh[spec.name] then
+			vim.schedule(function()
+				build_and_record(spec)
+				flush_built()
+				report_errors()
+			end)
 		elseif stale_build(spec) then
 			rebuild_now(spec)
 		end
@@ -847,29 +1017,42 @@ local function main()
 
 	-- 装上还没装的（load = false 等价 :packadd!，只进 rtp 不 source plugin/）
 	-- dev 插件（src 是本地目录）不装：直接读工作区，没有副本要同步
+	local locked = lock_plugins()
 	local to_install = {}
 	for _, spec in ipairs(order) do
-		if is_enabled(spec) then
-			if not spec._dev then
-				local entry = { src = spec.src, name = spec.name }
-				if spec.version then
-					entry.version = spec.version
-				end
-				if not vim.uv.fs_stat(pack_path(spec.name)) then
-					fresh[spec.src] = true
-					to_install[#to_install + 1] = entry
-				end
+		if not spec._disabled and not spec._dev then
+			local entry = { src = spec.src, name = spec.name }
+			if spec.version then
+				entry.version = spec.version
 			end
-		else
-			spec._disabled = true
+			local lock = locked[spec.name]
+			-- 目录在但 src 换了（换 fork / 本地 fork 改回上游）也要重装：只看目录存在的话
+			-- 会永远用旧 src 的 clone，锁文件也还是旧 src，:Pack update 也修不回来
+			if not vim.uv.fs_stat(pack_path(spec.name)) or (lock and lock.src ~= nil and lock.src ~= spec.src) then
+				fresh[spec.name] = true
+				to_install[#to_install + 1] = entry
+			end
 		end
 	end
 
 	if #to_install > 0 then
+		if not vim.pack then
+			fail("需要 Neovim 0.12+（本版没有 vim.pack）")
+			return
+		end
 		local ok, err = phase("vim.pack.add", pcall, vim.pack.add, to_install, { confirm = false, load = false })
 		if not ok then
+			-- 不能 return：已装好的插件仍该进 rtp，而且错误必须看得见
 			fail("vim.pack.add 失败: %s", err)
-			return
+			report_errors()
+		end
+		-- add（:packadd!）把新装插件塞在 site 之后的最前面，顺序和 priority 无关；
+		-- 先摘掉，下面 activate_batch 会按排序重新插
+		for _, spec in ipairs(order) do
+			if fresh[spec.name] and not spec._dev then
+				vim.opt.runtimepath:remove(pack_path(spec.name))
+				vim.opt.runtimepath:remove(pack_path(spec.name) .. "/after")
+			end
 		end
 	end
 
@@ -896,6 +1079,14 @@ local function main()
 	table.sort(roots, by_priority)
 	for _, spec in ipairs(roots) do
 		visit(spec)
+	end
+
+	-- deferred 里写的是插件名：插件改名/删除后这里会静默失效（延后变成不延后，没人发现），
+	-- 所以显式对一遍名字，对不上就报出来。
+	for name in pairs(deferred) do
+		if not by_name[name] then
+			fail("deferred 里的 %s 不在本次加载的插件里（改名或已删除？）", name)
+		end
 	end
 
 	-- init 先全部跑一遍（lazy.nvim 语义：init 在插件加载前，用于设置 vim.g）
@@ -939,6 +1130,7 @@ local function main()
 	end
 
 	phase("wave1", load_batch, now)
+	backfill_ft_keys()
 
 	if #later > 0 then
 		-- 时间分片加载：每片最多 4ms，然后让出一次事件循环。
@@ -964,6 +1156,9 @@ local function main()
 					configure_slice(i)
 				end)
 			else
+				-- 分片跑完才 backfill：分片续跑是在 vim.schedule 里，提前 backfill 会漏掉
+				-- 后续分片登记的 ft 键对应的已打开 buffer
+				backfill_ft_keys()
 				report_errors()
 			end
 		end
@@ -975,13 +1170,17 @@ local function main()
 			configure_slice(1)
 		end
 
-		vim.api.nvim_create_autocmd("VimEnter", {
-			once = true,
-			callback = function()
-				vim.schedule(start_later)
-			end,
-			desc = "首帧之后再加载重插件（见 pack.lua 的 DEFER_HEAVY）",
-		})
+		if vim.v.vim_did_enter == 1 then
+			vim.schedule(start_later)
+		else
+			vim.api.nvim_create_autocmd("VimEnter", {
+				once = true,
+				callback = function()
+					vim.schedule(start_later)
+				end,
+				desc = "首帧之后再加载重插件（见 pack.lua 的 deferred）",
+			})
+		end
 	end
 
 	if profile then
@@ -1019,17 +1218,25 @@ local function stale_names()
 		declared[spec.name] = true
 	end
 	local names = {}
-	-- 必须 info=false：默认 info=true 会对每个插件跑 git（branches/tags/manifest/revision），
-	-- 117 个插件实测 2810ms，全部卡在启动主线程上。info=false 只读锁文件，0ms。
-	for _, p in ipairs(vim.pack.get(nil, { info = false })) do
-		-- p.active = 本次启动 add 过的；declared 里的（含 enabled=false 被停用的）都保留目录
-		if not p.active and not declared[p.spec.name] then
-			names[#names + 1] = p.spec.name
+	for name in pairs(lock_plugins()) do
+		-- declared 里的（含 enabled=false 被停用的）都保留目录
+		if not declared[name] and vim.uv.fs_stat(pack_path(name)) then
+			names[#names + 1] = name
+		end
+	end
+	-- dev 插件（src 是本地目录）读的是工作区，但历史遗留的副本仍被 :packupdate 当普通
+	-- 插件去更新：只要工作区里有 build 产物或未跟踪文件，checkout 就被挡住，于是
+	-- 「每次更新都是同样的几个插件」。工作区还在就一并回收这份副本。
+	for _, spec in ipairs(order) do
+		if spec._dev and vim.uv.fs_stat(spec.src) and vim.uv.fs_stat(pack_path(spec.name)) then
+			names[#names + 1] = spec.name
 		end
 	end
 	table.sort(names)
 	return names
 end
+
+local NO_STALE = "没有需要清理的插件"
 
 --- 删除 spec 里已移除的插件目录
 --- @param opts? { dry_run?: boolean, force?: boolean, quiet?: boolean }
@@ -1039,7 +1246,7 @@ function M.prune(opts)
 	local names = stale_names()
 	if #names == 0 then
 		if not opts.quiet then
-			vim.notify("没有需要清理的插件", vim.log.levels.INFO)
+			vim.notify(NO_STALE, vim.log.levels.INFO)
 		end
 		return names
 	end
@@ -1060,14 +1267,17 @@ function M.prune(opts)
 	return names
 end
 
--- 启动时自动清理；NVIM_PACK_NO_PRUNE=1 可关闭
-if vim.env.NVIM_PACK_NO_PRUNE ~= "1" then
+-- 启动时自动清理；NVIM_PACK_NO_PRUNE=1 可关闭。
+-- 有 spec 加载/安装错误时一律不清：那时 order 缺的是「没读到」而不是「已删除」，
+-- 照常 prune 会把人家目录删掉（改错一个 spec 文件就把插件的 bin/ 和 clone 一起清了）。
+if vim.env.NVIM_PACK_NO_PRUNE ~= "1" and not had_errors then
 	pcall(M.prune, { quiet = true })
 end
 
 ----------------------------------------------------------------------
--- 原生 :packupdate / :packdel 已经够用，这里只补原生没有的两件事：
---   :PackStatus 看已注册数量；:PackPrune 回收 spec 里已移除的目录。
+-- 原生 :packupdate / :packdel 已经够用，这里只补原生没有的几件事：
+--   :PackStatus 看已注册数量；:PackPrune 回收 spec 里已移除的目录；
+--   :PackLocalSync（在 lua/boot/pack_local.lua 里）删掉 vim.pack 时代留下的本地副本。
 vim.api.nvim_create_user_command("PackStatus", function()
 	vim.notify(("已注册 %d 个插件"):format(#vim.pack.get(nil, { info = false })), vim.log.levels.INFO)
 end, { desc = "查看插件数量" })
@@ -1081,7 +1291,7 @@ vim.api.nvim_create_user_command("PackPrune", function(cmd)
 	end
 	local names = M.prune({ dry_run = true, quiet = true })
 	if #names == 0 then
-		vim.notify("没有需要清理的插件", vim.log.levels.INFO)
+		vim.notify(NO_STALE, vim.log.levels.INFO)
 	else
 		vim.notify(
 			("将删除 %d 个未使用插件（:PackPrune! 执行）:\n%s"):format(#names, table.concat(names, "\n")),
@@ -1092,22 +1302,7 @@ end, { desc = "清理 spec 里已移除的插件目录", bang = true })
 
 -- dir = "~/neovim-plugins/*" 的本地插件直接读工作区（见 normalize_spec 的 spec._dev），
 -- 没有 clone 副本要同步；:PackLocalSync 只剩清理旧副本这一个用途。
---- 重新跑某个插件的 build（改完本地插件想立刻重建时用：重启虽然也会自动补，
---- 但那是启动路径上的同步操作）
----@param name string 插件名
----@return boolean ok
-function M.rebuild(name)
-	for _, spec in ipairs(order) do
-		if spec.name == name then
-			local ok = run_build(spec)
-			if ok then
-				record_built(spec)
-			end
-			return ok
-		end
-	end
-	return true
-end
+-- （以前这里有个 M.rebuild，全仓无人调用：改完本地插件重启即可，启动路径会自己补 build）
 
 ----------------------------------------------------------------------
 -- 热重载：改完 spec 不想重启 nvim（<leader>rtR / :ConfigReload）
@@ -1117,8 +1312,9 @@ end
 ---
 --- 只是「重跑」，不是「重新安装」：新增/删除插件、改 version/build 仍需重启；
 --- 只有 config / opts / init / keys 这类每次启动都会重新求值的字段会被刷新。
---- 副作用：config 里的 autocmd 会再注册一遍（同 group 需要插件自己 clear），
---- 全局映射是覆盖；已打开 buffer 里被删掉的 ft 键位不会回收（要 :e 或重开）。
+--- 副作用：config 里的 autocmd 会再注册一遍（同 group 需要插件自己 clear）；
+--- 键位只加不删：改过的 lhs 会用新 rhs 覆盖，但 spec 里删掉的键（全局的和 ft 的）
+--- 都不会被回收，要重启才能消失。
 ---@param mod string 模块名，如 "plugins.dap.nvim-dap-view"
 ---@return boolean ok, string[]? names 重跑的插件名
 function M.reload_spec(mod)
@@ -1133,28 +1329,91 @@ function M.reload_spec(mod)
 		return false
 	end
 
+	-- dependencies 只会影响加载顺序/config 里的 require，热重载做不到，只能判「变了没有」
+	local function dep_names(spec)
+		local set, n = {}, 0
+		local list = spec and spec.dependencies
+		if list == nil then
+			return set, 0
+		end
+		if type(list) ~= "table" or (list[1] == nil and (list.dir or list.src or list.name)) then
+			list = { list }
+		end
+		for _, dep in ipairs(list) do
+			local d = normalize_spec(dep, 0)
+			if d and not set[d.name] then
+				set[d.name] = true
+				n = n + 1
+			end
+		end
+		return set, n
+	end
+
+	local function same_deps(a, b)
+		local sa, na = dep_names(a)
+		local sb, nb = dep_names(b)
+		if na ~= nb then
+			return false
+		end
+		for k in pairs(sa) do
+			if not sb[k] then
+				return false
+			end
+		end
+		return true
+	end
+
 	local items = is_single_spec(ret) and { ret } or ret
 	local names = {}
 	for _, raw in ipairs(items) do
-		local fresh = normalize_spec(vim.deepcopy(raw), 0)
-		if not fresh then
+		local new_spec = normalize_spec(vim.deepcopy(raw), 0)
+		if not new_spec then
 			-- nil 条目（条件禁用之类）直接跳过
 		else
-			local spec = by_src[fresh.src]
+			local spec = by_src[new_spec.src] or by_name[new_spec.name]
 			if not spec then
 				vim.notify(
-					("reload %s: %s 本次启动未注册（新增插件请重启）"):format(mod, fresh.name),
+					("reload %s: %s 本次启动未注册（新增插件请重启）"):format(mod, new_spec.name),
 					vim.log.levels.WARN
 				)
 			else
-				spec.config = fresh.config
-				spec.opts = fresh.opts
-				spec.init = fresh.init
-				spec.keys = fresh.keys
+				-- 结构性字段（源/依赖/启停/优先级/main）改了必须重启，照常热重载只会
+				-- 把新旧状态混在一起（config 重跑，但 rtp 里的插件还是旧的）
+				local changed = {}
+				if new_spec.src ~= spec.src then
+					changed[#changed + 1] = "src/dir"
+				end
+				if (new_spec._disabled or false) ~= (spec._disabled or false) then
+					changed[#changed + 1] = "enabled"
+				end
+				if new_spec._priority ~= spec._priority then
+					changed[#changed + 1] = "priority"
+				end
+				if (new_spec.main or "") ~= (spec.main or "") then
+					changed[#changed + 1] = "main"
+				end
+				if not same_deps(new_spec, spec) then
+					changed[#changed + 1] = "dependencies"
+				end
+				if #changed > 0 then
+					vim.notify(
+						("reload %s: %s 的 %s 改了，需重启 nvim 生效（本次跳过）"):format(
+							mod,
+							spec.name,
+							table.concat(changed, "/")
+						),
+						vim.log.levels.WARN
+					)
+					goto continue
+				end
+				spec.config = new_spec.config
+				spec.opts = new_spec.opts
+				spec.init = new_spec.init
+				spec.keys = new_spec.keys
 				-- 让 apply_keys 重新登记：否则 key_owner 去重会让新键位永远装不上
-				for lhs, owner in pairs(key_owner) do
-					if owner == spec.name then
-						key_owner[lhs] = nil
+				for id, rec in pairs(key_owner) do
+					if rec.owner == spec.name then
+						key_owner[id] = nil
 					end
 				end
 				for i = #ft_pending, 1, -1 do
@@ -1165,11 +1424,13 @@ function M.reload_spec(mod)
 				run_init(spec)
 				configure_spec(spec)
 				names[#names + 1] = spec.name
+				::continue::
 			end
 		end
 	end
 
 	-- fail() 只是把错误攒着等启动结束时统一报，重载时要立刻让用户看到
+	backfill_ft_keys()
 	report_errors()
 
 	if #names == 0 then
@@ -1180,6 +1441,12 @@ end
 
 --- dev 插件（src 是本地目录）的名字，供清理 vim.pack 遗留副本用
 ---@return string[]
+---锁文件内容（name -> { src, rev }）：pack_local 判断「删目录后会不会被重建」用
+---@return table<string, {src: string?, rev: string?}>
+function M.lock_plugins()
+	return lock_plugins()
+end
+
 function M.dev_names()
 	local names = {}
 	for _, spec in ipairs(order) do
@@ -1196,6 +1463,6 @@ function M.spec_dir()
 	return spec_dir
 end
 
-require("boot.pack_local").setup()
+require("boot.pack_local").setup({ dev_names = M.dev_names, pack_root = pack_root })
 
 return M

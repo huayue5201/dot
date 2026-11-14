@@ -47,9 +47,21 @@ local M = {
 -- `test "${HERDR_ENV:-}" = 1`），并顺带注入 HERDR_SOCKET_PATH / HERDR_PANE_ID 等。
 -- 注意「变量存在」不能当判据：外部遗留的 HERDR_ENV="" 也会被继承下来，
 -- 而 Neovim 的 vim.env 连空串都读成 nil，所以只认具体的值。
+--
+-- herdr-core（Herdr Core.app，0.9.x 的 core 宿主）起的 pane 只注入 HC_* 一组
+-- （HC_TERMINAL_ID / HC_TERMINAL_SOCKET / HC_SCOPE），**不**注入 HERDR_ENV，
+-- 但 `herdr pane *  --current` 在那种 pane 里仍能解析到当前 pane。只认 HERDR_ENV
+-- 会漏掉这类 pane，于是 setup 时就报 "none of the configured backends detected"。
 -- 协议要求：便宜、无副作用、不 shell out。
+local function in_herdr_core()
+	return (vim.env.HC_TERMINAL_ID or "") ~= "" and (vim.env.HC_TERMINAL_SOCKET or "") ~= ""
+end
+
 function M.detect()
-	return vim.env.HERDR_ENV == "1" and vim.fn.executable(herdr_bin()) == 1
+	if vim.fn.executable(herdr_bin()) ~= 1 then
+		return false
+	end
+	return vim.env.HERDR_ENV == "1" or in_herdr_core()
 end
 
 ---@param direction "left"|"right"|"up"|"down"
@@ -99,6 +111,8 @@ function M.health()
 
 	if env == "1" then
 		vim.health.ok("herdr env markers present; running inside herdr")
+	elseif in_herdr_core() then
+		vim.health.ok("herdr-core env markers present (HC_TERMINAL_ID/HC_TERMINAL_SOCKET); running inside herdr-core")
 	elseif env ~= nil then
 		vim.health.warn(('HERDR_ENV=%q is not "1" (stale/herdr-less env)'):format(env))
 	else
