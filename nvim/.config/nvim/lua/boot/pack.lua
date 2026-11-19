@@ -1,7 +1,8 @@
 -- 插件管理：安装 / 更新 / 锁文件 / 版本全部交给 Neovim 自带的 vim.pack。
 -- 加载策略是「全 eager」：启动时把所有插件都激活（进 rtp + source plugin/）并跑 config，
--- 不使用任何懒加载代理。唯一例外是「第二波」（见下面的 deferred 表）：少数重插件的
--- config 推到首帧之后再跑。插件本身仍然在启动时激活完毕，命令/require 立即可用，
+-- 不使用任何懒加载代理。唯一例外是「第二波」（见下面的 deferred_cmd / deferred_ft 表）：
+-- 少数重插件的 config 推到首帧之后再跑（两级，带文件启动也能延后命令触发那一级）。
+-- 插件本身仍然在启动时激活完毕，命令/require 立即可用，
 -- 但它们在 spec 里声明的 keys 是跟着 config 一起装的，所以同样要等到第二波。
 --
 -- 为什么不再用 zpack：它的 cmd / keys / module 代理会引入一类很难查的 bug
@@ -343,21 +344,38 @@ end
 -- 能省掉 ~200ms 白屏时间。它们写在 plugin/ 里的命令/映射在启动时就已经 source 好了，
 -- 晚一点 setup 只影响"第一次用之前要已经 setup 完"，不影响命令存在性。
 --
--- 只在「裸启动」时延后：带文件参数（nvim foo.md）或脚本化（-c/-S/-l/--cmd/+cmd）时，
--- VimEnter 之前就已经在读文件、跑命令，延后会让 FileType 自动命令或 -c 找不到插件，
--- 所以那些情况一律保持全 eager。
-local deferred = {
-	["obsidian.nvim"] = true,
+-- 分两级，判据只有一条：config 有没有在这个 buffer 的 FileType 上挂钩子。
+--
+--   deferred_cmd  只由命令 / 界面触发（git 界面、调试、测试、AI 面板、附属 UI），config
+--     不碰 FileType。带文件参数启动时照样延后：等你敲出 :Neogit / <leader>db 时，首帧
+--     之后那几片（每片 ≤4ms）早就 setup 完了。
+--   deferred_ft   config 会给某个 filetype/buftype 装 buffer-local 的东西（obsidian 之于
+--     markdown、crates 之于 Cargo.toml、minuet 之于插入模式补全、tiny-inline-diagnostic
+--     之于诊断渲染）。`nvim foo.md` 的 FileType 在 VimEnter 之前就触发，延后等于插件对
+--     这个 buffer 没生效 —— 所以这一类只在「裸启动」或「本次要开的文件跟它无关」时延后。
+--     值写它必然影响的 filetype 列表，"*" = 任何 buffer 都要用（补全/诊断渲染），
+--     带文件参数时这类一律 eager。filetype 用 vim.filetype.match 从命令行参数算，
+--     算不出来（目录、未知扩展名）就整张表面都当 eager，宁可慢一点也不能少 setup。
+--
+-- 脚本化（-c/-S/-l/--cmd/+cmd）时一律全 eager：脚本在 VimEnter 前后直接调命令，
+-- 延后会让 -c 找不到插件。
+local deferred_cmd = {
+	-- AI：面板 / 对话都由命令或键位打开，不参与启动时的 buffer 处理
 	["codecompanion.nvim"] = true,
+	["ask-agent.nvim"] = true,
+	-- 编辑动作：全局键位 + 命令
 	["treesj"] = true,
+	["nvim-hlslens"] = true,
+	["nvim-origami"] = true,
+	["nvim-chainsaw"] = true,
+	-- 测试 / 覆盖率的独立窗口
 	["neotest"] = true,
-	["codediff.nvim"] = true,
-	["diffbandit.nvim"] = true,
+	["crazy-coverage.nvim"] = true,
+	-- git 界面
 	["neogit"] = true,
 	["atlas.nvim"] = true,
-	["cash.nvim"] = true,
-	["nurl.nvim"] = true,
-	["crates.nvim"] = true,
+	["codediff.nvim"] = true,
+	["diffbandit.nvim"] = true,
 	-- 调试链路：不开始调试就完全用不到（statusline 的 dap 段自己会判断
 	-- package.loaded["dap"]，见 lua/ui/statusline.lua 的 dap()）
 	["nvim-dap"] = true,
@@ -366,44 +384,73 @@ local deferred = {
 	["nvim-dap-image"] = true,
 	["nvim-dap-python"] = true,
 	["nvim-dap-go"] = true,
-	["crazy-coverage.nvim"] = true,
 	["nvim-dev-container"] = true,
 	["mason.nvim"] = true,
-	-- 只在特定 buffer/事件里生效的工具，setup 晚一点不影响（裸启动时没有 buffer）
-	["image.nvim"] = true,
-	["fidget.nvim"] = true,
-	["minuet-ai.nvim"] = true,
-	["nvim-chainsaw"] = true,
+	-- 顶层 UI / 取景器 / 附属面板
+	["neo-tree.nvim"] = true,
+	["cash.nvim"] = true,
+	["nurl.nvim"] = true,
 	["namu.nvim"] = true,
 	["focal.nvim"] = true,
-	["nvim-translator"] = true,
 	["overseer.nvim"] = true,
-	["nvim-origami"] = true,
-	["nvim-hlslens"] = true,
-	["tiny-inline-diagnostic.nvim"] = true,
+	["fidget.nvim"] = true,
+	["nvim-translator"] = true,
 }
 
-local function should_defer()
+-- 会碰 FileType / buffer 的：本次要开的文件命中它的 filetype 时必须先 setup 完
+local deferred_ft = {
+	["obsidian.nvim"] = { "markdown" }, -- markdown 的 buffer 选项 / 键位 / 命令
+	["crates.nvim"] = { "toml" }, -- Cargo.toml 才有意义
+	["minuet-ai.nvim"] = "*", -- 插入模式补全，任何 buffer 都可能触发
+	["tiny-inline-diagnostic.nvim"] = "*", -- buffer 诊断渲染
+	-- image.nvim 靠 buffer 内容/扩展名渲图（图片文件、markdown 里的图）：它排不在哪一类
+	-- 都要在首帧前就位，否则开局那张图不会渲染。代价只有 ~3ms。
+	["image.nvim"] = "*",
+}
+
+---本次启动要延后哪一批 config：
+---  "all"  全部（裸启动）
+---  "file" 只有 deferred_cmd + 跟本次要开的文件无关的 deferred_ft
+---  "none" 全 eager（脚本化启动）
+local function defer_mode()
 	if vim.env.NVIM_PACK_EAGER == "1" then
-		return false -- 调试/脚本：强制全 eager
+		return "none" -- 调试/脚本：强制全 eager
 	end
-	-- 开了文件就必须 eager：它的 FileType 在 VimEnter 之前就触发，延后等于插件没生效。
-	-- 这条要排在 NVIM_PACK_DEFER 之前（调试开关不该绕过正确性）
-	if vim.fn.argc() > 0 then
-		return false
-	end
-	if vim.env.NVIM_PACK_DEFER == "1" then
-		return true -- 调试：强制延后
-	end
+	-- 脚本化启动要排在最前：它比「带了文件」更需要 eager
 	for _, arg in ipairs(vim.v.argv) do
 		if arg == "-c" or arg == "--cmd" or arg == "-S" or arg == "-l" or arg == "-lua" then
-			return false
+			return "none"
 		end
 		if arg:sub(1, 1) == "+" then
-			return false -- nvim +cmd
+			return "none" -- nvim +cmd
 		end
 	end
-	return true
+	if vim.env.NVIM_PACK_DEFER == "1" then
+		return "all" -- 调试：强制延后
+	end
+	-- 带了文件：FileType 已经在 VimEnter 之前触发过
+	return vim.fn.argc() > 0 and "file" or "all"
+end
+
+---命令行参数里的文件会开出哪些 filetype。
+---返回 nil = 算不出来（目录 / 未知扩展名），调用方按「deferred_ft 全都 eager」处理。
+---@return table<string, true>|nil
+local function arg_filetypes()
+	local ok, args = pcall(vim.fn.argv)
+	if not ok or type(args) ~= "table" or #args == 0 then
+		return nil
+	end
+	local fts = {}
+	for _, arg in ipairs(args) do
+		if arg ~= "" then
+			local okm, ft = pcall(vim.filetype.match, { filename = arg })
+			if not okm or not ft then
+				return nil
+			end
+			fts[ft] = true
+		end
+	end
+	return fts
 end
 
 --- priority 降序；同 priority 按声明的 spec 文件顺序，保证加载次序稳定可复现
@@ -869,7 +916,6 @@ end
 
 --- rev 变了（或从未记录过）说明产物可能是旧的
 ---@return boolean
-
 local function stale_build(spec)
 	if not spec.build then
 		return false
@@ -923,6 +969,39 @@ local function rebuild_now(spec)
 		flush_built()
 		report_errors()
 	end)
+end
+
+---待检查 build 产物的插件（首帧之后再跑，见 activate_batch）
+local build_queue = {}
+
+---首帧之后统一检查「源 rev 变了但产物没重建」的插件。
+---分片加载的 deferred 批次也会走到这里（那时 vim_did_enter 已经是 1）。
+local function schedule_build_checks()
+	if #build_queue == 0 then
+		return
+	end
+	local queue = build_queue
+	build_queue = {}
+	local function run()
+		for _, spec in ipairs(queue) do
+			if stale_build(spec) then
+				rebuild_now(spec)
+			end
+		end
+		flush_built()
+		report_errors()
+	end
+	if vim.v.vim_did_enter == 1 then
+		vim.schedule(run)
+	else
+		vim.api.nvim_create_autocmd("VimEnter", {
+			once = true,
+			callback = function()
+				vim.schedule(run)
+			end,
+			desc = "首帧之后再检查 build 产物是否过期",
+		})
+	end
 end
 
 ---helptags 的产物不该让第三方仓库变脏。vim.pack 每次 checkout 都会删掉 doc/tags
@@ -987,12 +1066,16 @@ local function activate_batch(batch)
 				flush_built()
 				report_errors()
 			end)
-		elseif stale_build(spec) then
-			rebuild_now(spec)
+		elseif spec.build then
+			-- 「产物是否过期」要跟一次 git 子进程（每插件 ~8ms，有 build 字段的 10 个就是
+			-- ~80ms），而且完全不护着首帧：产物旧一点不影响本次启动能不能用。
+			-- 先排队，首帧之后再统一比对 + 重建（见 schedule_build_checks）。
+			build_queue[#build_queue + 1] = spec
 		end
 		source_dir(paths[i] .. "/after/plugin")
 	end
 	flush_built()
+	schedule_build_checks()
 end
 
 --- 加载一批插件，分三步：① 整批进 rtp + source plugin/（源与 :packadd 等价，但一次赋值
@@ -1081,11 +1164,13 @@ local function main()
 		visit(spec)
 	end
 
-	-- deferred 里写的是插件名：插件改名/删除后这里会静默失效（延后变成不延后，没人发现），
-	-- 所以显式对一遍名字，对不上就报出来。
-	for name in pairs(deferred) do
-		if not by_name[name] then
-			fail("deferred 里的 %s 不在本次加载的插件里（改名或已删除？）", name)
+	-- deferred_* 里写的是插件名：插件改名/删除后这里会静默失效（延后变成不延后，没人发现），
+	-- 所以显式对一遍名字，对不上就报出来。两张表都查，与本次启动是否延后无关。
+	for _, set in ipairs({ deferred_cmd, deferred_ft }) do
+		for name in pairs(set) do
+			if not by_name[name] then
+				fail("deferred 里的 %s 不在本次加载的插件里（改名或已删除？）", name)
+			end
 		end
 	end
 
@@ -1096,13 +1181,30 @@ local function main()
 		end
 	end)
 
-	local defer = should_defer()
+	local mode = defer_mode()
 	-- 传播：依赖被延后的插件自己也必须延后，否则 config 里的 require("dap") 会踩空
 	-- （nvim-dap-disasm → nvim-dap 就是这种情况）。依赖关系可能多层，跑到不动为止。
 	local postponed = {}
-	if defer then
-		for name in pairs(deferred) do
+	if mode ~= "none" then
+		for name in pairs(deferred_cmd) do
 			postponed[name] = true
+		end
+		-- 带了文件时，deferred_ft 里只有「本次不会开这种 filetype」的才敢延后；
+		-- filetype 算不出来（fts == nil）就全都 eager。
+		local fts = mode == "file" and arg_filetypes() or nil
+		for name, spec_fts in pairs(deferred_ft) do
+			local needed = spec_fts == "*" or fts == nil
+			if not needed then
+				for _, ft in ipairs(spec_fts) do
+					if fts[ft] then
+						needed = true
+						break
+					end
+				end
+			end
+			if not needed then
+				postponed[name] = true
+			end
 		end
 		local changed = true
 		while changed do
@@ -1178,7 +1280,7 @@ local function main()
 				callback = function()
 					vim.schedule(start_later)
 				end,
-				desc = "首帧之后再加载重插件（见 pack.lua 的 deferred）",
+				desc = "首帧之后再加载重插件（见 pack.lua 的 deferred_cmd / deferred_ft）",
 			})
 		end
 	end
