@@ -50,7 +50,9 @@ return {
 					return
 				end
 				local function on_format(err)
-					if err and err:match("timeout$") then
+					-- 新版 conform 的 err 是 conform.Error 表 { code, message }，旧版是字符串
+					local msg = type(err) == "table" and err.message or err
+					if msg and msg:match("timeout$") then
 						slow_format_filetypes[vim.bo[bufnr].filetype] = true
 					end
 				end

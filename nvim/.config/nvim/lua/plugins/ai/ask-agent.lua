@@ -16,6 +16,10 @@ return {
 			-- map = rex 分屏地图（默认），list = 列表
 			picker = "map",
 			-- 小地图：画布大小 = 屏幕的 width/height 比例，再夹到 min/max_* 个字符格；
+			-- 分屏很密时画布会自动长到放得下（fit=true，每格带 3 列），上限仍是 max_*。
+			-- 会话里每个 rex window 都是画布上的一个 tab：首行条 `1 dev  2 logs`，
+			-- 数字键只切 tab、永不选中，字母全局固定（同一个字母始终是同一个 agent），
+			-- 打开时落在 nvim 自己所在的 window。
 			-- 只有光标所在那一格会从字母换成 agent 名字（放不下就用 … 截断，
 			-- 再放不下回到字母），其它格始终是一个字母，名字再长也不会把地图挤变形。
 			map = {
@@ -28,6 +32,7 @@ return {
 				name = true, -- false = 只显示字母
 				name_min = 3, -- 截断后不足 3 列就退回字母（少于 3 列读不出信息）
 				name_over_badge = true, -- 名字和状态徽标抢地方时，先丢徽标保住名字
+				fit = true, -- 分屏密集时自动放大画布（false = 永远用上面的尺寸）
 			},
 			-- busy 图标复用 ui-menu 的帧与节奏（list 与 map 两处 picker 都走这两个值），
 			-- 改 ui_menu 的 M.frames / M.config.tick 即可同步，不用再动插件。
@@ -140,7 +145,7 @@ return {
 				fallback = "󰚩", -- nf-md-robot（未知 agent）
 				ui = {
 					-- dashboard winbar 与通知前缀
-					header = "󰚩", -- nf-md-robot
+					header = "🤖", -- nf-md-robot
 					-- 状态栏 / 面板里每个 agent 的状态标记
 					state = {
 						blocked = "⚠", -- 等你确认/回答
@@ -160,7 +165,7 @@ return {
 						collapsed = "▸",
 						expanded = "▾",
 						leaf = "·",
-						vertical = "┊", -- 竖直导轨
+						vertical = "", -- 竖直导轨
 						branch = "┆", -- 中间的竖直分叉
 						corner = "╰", -- 最后一个子项的圆角
 						horizontal = "┄", -- 横向连接
@@ -240,8 +245,8 @@ return {
 		map("n", "<leader>ah", "<cmd>AskAgentHistory<cr>", { desc = "AI: 历史提问（搜索/重发/跳回）" })
 		-- prompt 库：全局模板 + 可提交到仓库的 .ask-agent/prompts.json。
 		-- 占位符在发送时按当前锚点渲染：{{file}} {{line}} {{selection}} {{cwd}} …
-		map("n", "<leader>ap", "<cmd>AskAgentPrompt<cr>", { desc = "AI: prompt 模板" })
-		map("v", "<leader>ap", "<cmd>AskAgentPrompt!<cr>", { desc = "AI: prompt 模板（含选区）" })
+		map("n", "<leader>ak", "<cmd>AskAgentPrompt<cr>", { desc = "AI: prompt 模板" })
+		map("v", "<leader>ak", "<cmd>AskAgentPrompt!<cr>", { desc = "AI: prompt 模板（含选区）" })
 		map(
 			"v",
 			"<leader>aP",

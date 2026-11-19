@@ -10,31 +10,32 @@ function M.setup()
 		-- 必须关闭内置的 virtual_text / virtual_lines，否则会与插件重复渲染
 		virtual_text = false,
 		virtual_lines = false,
-		-- 浮动窗口
+		-- 浮动窗口（:lua vim.diagnostic.open_float() / <leader>e 等触发）
 		float = {
-			border = "rounded",
+			border = "rounded", -- 圆角边框，配色跟随当前主题
 			source = "always", -- 显示来源（LSP 名称）
-			header = "",
-			prefix = "",
-			focusable = false,
+			header = "", -- 不显示标题栏
+			prefix = "", -- 消息前缀留空（默认是 "● "）
+			focusable = false, -- 窗口不可聚焦，避免抢走光标
 		},
+		-- 行号左侧的符号与高亮
 		signs = {
-			text = {
+			text = { -- 每个严重级别对应的图标
 				[vim.diagnostic.severity.ERROR] = icons.ERROR,
 				[vim.diagnostic.severity.WARN] = icons.WARN,
 				[vim.diagnostic.severity.HINT] = icons.HINT,
 				[vim.diagnostic.severity.INFO] = icons.INFO,
 			},
-			numhl = {
+			numhl = { -- 按严重级别给行号上高亮色
 				[vim.diagnostic.severity.ERROR] = "ErrorMsg",
 				[vim.diagnostic.severity.WARN] = "WarningMsg",
 			},
 		},
-		underline = true,
-		update_in_insert = true,
-		severity_sort = true,
+		underline = true, -- 用下划线标出问题代码段
+		update_in_insert = true, -- 插入模式下也实时刷新诊断
+		severity_sort = true, -- 同一行/同一窗口内按严重级别排序（错误优先）
 	})
-	vim.lsp.log.set_level(4) -- 日志等级，只记录错误输出
+	vim.lsp.log.set_level(4) -- 日志等级：4=WARN 及以上，只记录警告/错误，避免日志膨胀
 end
 
 return M

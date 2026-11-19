@@ -244,6 +244,38 @@ return {
 			require("neo-tree").setup(opts)
 		end
 
+		-- ========== 运行时保护：过滤/搜索在 state.tree 为 nil 时不崩 ==========
+		-- 现象：按 / 或 f 报
+		--   E5108: .../neo-tree/sources/filesystem/lib/filter.lua:109:
+		--   ui/renderer.lua:631: attempt to index local 'tree' (a nil value)
+		-- 原因：filter.show_filter 开头会无条件调用
+		--   renderer.get_expanded_nodes(state.tree) 记录"过滤前的展开项"，
+		-- 但窗口的 state 与树可能脱节（state 由 winid 新建、刚切 tab、
+		-- 自定义 workspace 源空根 navigate、renderer.show_nodes 因 tab 不匹配早退等），
+		-- 此时 state.tree 为 nil，renderer 里 tree:get_nodes() 直接报错。
+		-- 这里只做一层守卫：拦住同一次崩溃并打印现场信息（方便判断触发场景），
+		-- 其余行为完全交给原实现。确认上游修好后整段可删。
+		local filesystem_filter = require("neo-tree.sources.filesystem.lib.filter")
+		local orig_show_filter = filesystem_filter.show_filter
+		filesystem_filter.show_filter = function(state, ...)
+			if not (state and state.tree) then
+				vim.notify(
+					string.format(
+						"neo-tree: filter skipped, no tree (source=%s tabid=%s curtab=%s winid=%s curwin=%s cur_src=%s)",
+						tostring(state and state.name),
+						tostring(state and state.tabid),
+						tostring(vim.api.nvim_get_current_tabpage()),
+						tostring(state and state.winid),
+						tostring(vim.api.nvim_get_current_win()),
+						tostring(vim.b.neo_tree_source) -- 当前 buffer 属于哪个源（非 neo-tree buffer 时为 nil）
+					),
+					vim.log.levels.WARN
+				)
+				return
+			end
+			return orig_show_filter(state, ...)
+		end
+
 		-- ========== 快捷键映射 ==========
 		vim.keymap.set("n", "<leader>ef", "<Cmd>Neotree toggle<CR>")
 		vim.keymap.set("n", "<leader>ee", "<Cmd>Neotree filesystem reveal<CR>")

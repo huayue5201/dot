@@ -60,7 +60,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 	end,
 })
 
--- 拼写词典的 .add → .add.spl 同步见 lua/feat/spell.lua（FocusGained）
+-- 拼写词典的 .add → .add.spl 同步见 lua/feat/spell/init.lua（FocusGained / VimLeavePre）
 
 -- Scale windows with the screen, which Nvim only offers as `wincmd =`.
 

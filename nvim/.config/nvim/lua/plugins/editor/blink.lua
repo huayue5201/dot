@@ -40,9 +40,17 @@ return {
 				list = { selection = { preselect = false, auto_insert = false } },
 				menu = {
 					border = "rounded",
+					-- 菜单本体显示成原生补全框（等价 cmp 的 window.completion.winhighlight）
+					winhighlight = "Normal:Pmenu,FloatBorder:Pmenu,CursorLine:PmenuSel,Search:None",
 					draw = {
 						padding = { 0, 1 },
-						columns = { { "item_idx" }, { "kind_icon" }, { "label", gap = 1 }, { "kind" } },
+						columns = {
+							{ "item_idx" },
+							{ "kind_icon" },
+							{ "label", gap = 1 },
+							{ "source_name" },
+							{ "kind" },
+						},
 						components = {
 							item_idx = {
 								text = function(ctx)
@@ -50,9 +58,14 @@ return {
 								end,
 								highlight = "BlinkCmpItemIdx",
 							},
+							-- 图标按 kind 上底色（原 cmp 的 CmpItemKind*Icon 那套配色）
+							-- priority 必须 > 10000，否则选中行的 cursorline（priority 10000）会盖掉底色
 							kind_icon = {
 								text = function(ctx)
-									return " " .. ctx.kind_icon .. ctx.icon_gap .. ""
+									return " " .. ctx.kind_icon .. " "
+								end,
+								highlight = function(ctx)
+									return { { group = "BlinkCmpKindIcon" .. ctx.kind, priority = 10001 } }
 								end,
 							},
 							label = {
@@ -62,6 +75,20 @@ return {
 								highlight = function(ctx)
 									return require("colorful-menu").blink_components_highlight(ctx)
 								end,
+							},
+							-- cmp formatting.fields 里的 "menu"（来源名）
+							source_name = {
+								text = function(ctx)
+									return "[" .. ctx.source_name .. "]"
+								end,
+								highlight = "BlinkCmpSourceName",
+							},
+							-- cmp 里 kind = "(Function)" 的括号写法
+							kind = {
+								text = function(ctx)
+									return "(" .. ctx.kind .. ")"
+								end,
+								highlight = "BlinkCmpKind",
 							},
 						},
 					},
@@ -290,5 +317,36 @@ return {
 				},
 			},
 		})
+
+		-- ── 补全菜单配色（从 nvim-cmp 的 CmpItemKind*Icon 迁移）──────────────────
+		-- cmp 的 CmpItemKind* 组在 blink 里完全不生效，这里按 kind 生成 BlinkCmpKindIcon<Kind>。
+		local icon_colors = {
+			{ bg = "#B5585F", fg = "#EED8DA", kinds = { "Field", "Property", "Event" } },
+			{ bg = "#9FBD73", fg = "#C3E88D", kinds = { "Text", "Enum", "Keyword" } },
+			{ bg = "#D4BB6C", fg = "#FFE082", kinds = { "Constant", "Constructor", "Reference" } },
+			{ bg = "#A377BF", fg = "#EADFF0", kinds = { "Function", "Struct", "Class", "Module", "Operator" } },
+			{ bg = "#7E8294", fg = "#C5CDD9", kinds = { "Variable", "File" } },
+			{ bg = "#D4A959", fg = "#F5EBD9", kinds = { "Unit", "Snippet", "Folder" } },
+			{ bg = "#6C8ED4", fg = "#DDE5F5", kinds = { "Method", "Value", "EnumMember" } },
+			{ bg = "#58B5A8", fg = "#D8EEEB", kinds = { "Interface", "Color", "TypeParameter" } },
+		}
+
+		local function set_cmp_highlights()
+			for _, spec in ipairs(icon_colors) do
+				for _, kind in ipairs(spec.kinds) do
+					vim.api.nvim_set_hl(0, "BlinkCmpKindIcon" .. kind, { fg = spec.fg, bg = spec.bg })
+				end
+			end
+			-- 非图标部分交给主题，只有来源名手工上色（对齐 cmp 的 CmpItemMenu）
+			vim.api.nvim_set_hl(0, "BlinkCmpSourceName", { fg = "#C792EA", italic = true })
+			vim.api.nvim_set_hl(0, "BlinkCmpKind", { fg = "#C5CDD9" })
+			-- 原 cmp 配置里的 Pmenu / PmenuSel：菜单浮窗通过 winhighlight 链到这两个组
+			vim.api.nvim_set_hl(0, "Pmenu", { fg = "#C5CDD9", bg = "#22252A" })
+			vim.api.nvim_set_hl(0, "PmenuSel", { fg = "NONE", bg = "#282C34" })
+		end
+
+		set_cmp_highlights()
+		-- colorscheme 切换会清空自定义组，重新应用
+		vim.api.nvim_create_autocmd("ColorScheme", { callback = set_cmp_highlights })
 	end,
 }
