@@ -1378,8 +1378,7 @@ end
 
 ----------------------------------------------------------------------
 -- 原生 :packupdate / :packdel 已经够用，这里只补原生没有的几件事：
---   :PackStatus 看已注册数量；:PackPrune 回收 spec 里已移除的目录；
---   :PackLocalSync（在 lua/boot/pack_local.lua 里）删掉 vim.pack 时代留下的本地副本。
+--   :PackStatus 看已注册数量；:PackPrune 回收 spec 里已移除的目录。
 vim.api.nvim_create_user_command("PackStatus", function()
 	vim.notify(("已注册 %d 个插件"):format(#vim.pack.get(nil, { info = false })), vim.log.levels.INFO)
 end, { desc = "查看插件数量" })
@@ -1403,7 +1402,7 @@ vim.api.nvim_create_user_command("PackPrune", function(cmd)
 end, { desc = "清理 spec 里已移除的插件目录", bang = true })
 
 -- dir = "~/neovim-plugins/*" 的本地插件直接读工作区（见 normalize_spec 的 spec._dev），
--- 没有 clone 副本要同步；:PackLocalSync 只剩清理旧副本这一个用途。
+-- 没有 clone 副本要同步。
 -- （以前这里有个 M.rebuild，全仓无人调用：改完本地插件重启即可，启动路径会自己补 build）
 
 ----------------------------------------------------------------------
@@ -1541,30 +1540,10 @@ function M.reload_spec(mod)
 	return true, names
 end
 
---- dev 插件（src 是本地目录）的名字，供清理 vim.pack 遗留副本用
----@return string[]
----锁文件内容（name -> { src, rev }）：pack_local 判断「删目录后会不会被重建」用
----@return table<string, {src: string?, rev: string?}>
-function M.lock_plugins()
-	return lock_plugins()
-end
-
-function M.dev_names()
-	local names = {}
-	for _, spec in ipairs(order) do
-		if spec._dev then
-			names[#names + 1] = spec.name
-		end
-	end
-	return names
-end
-
 --- spec 目录（给外部做「当前文件属于哪个 spec」推断用）
 ---@return string
 function M.spec_dir()
 	return spec_dir
 end
-
-require("boot.pack_local").setup({ dev_names = M.dev_names, pack_root = pack_root })
 
 return M

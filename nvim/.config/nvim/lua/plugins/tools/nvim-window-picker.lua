@@ -2,7 +2,6 @@
 --
 -- 本地开发模式：写绝对路径时加载器直接读 ~/neovim-plugins/nvim-window-picker
 -- （不克隆副本、不跑锁文件 rev），改完重启即生效。
--- 只有 vim.pack 时代留下的旧副本才需要 :PackLocalSync（<leader>zp）清理。
 -- 识别逻辑在 lua/boot/pack.lua 的 is_local_path（以 / ~ . 开头即视为本地目录）。
 return {
 	dir = "/Users/lijia/neovim-plugins/nvim-window-picker",

@@ -6,7 +6,6 @@
 return {
 	-- 本地开发模式：写 dir = "~/neovim-plugins/sqmeow.nvim" 时加载器直接读工作区
 	-- （不克隆副本、不跑锁文件 rev），改完源码重启即生效，无需任何同步命令。
-	-- 只有 vim.pack 时代留下的旧副本才需要 :PackLocalSync（<leader>zp，! 删除）。
 	-- dir = "~/neovim-plugins/sqmeow.nvim",
 	-- 本地仓库 ~/neovim-plugins/sqmeow.nvim 只用于开发/提 PR；要临时试本地改动时，
 	-- 再加回 dir = "~/neovim-plugins/sqmeow.nvim"，重启即可。

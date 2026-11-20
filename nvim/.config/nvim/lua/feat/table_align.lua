@@ -688,7 +688,7 @@ function M.setup()
 		end,
 	})
 
-	-- <leader>z 是工具分组（zm/zp/zx/zX/zz/zb/zs/zd/zw 已被占用）
+	-- <leader>z 是工具分组（zm/zx/zX/zz/zb/zs/zd/zw 已被占用）
 	vim.keymap.set(
 		"n",
 		"<leader>za",
