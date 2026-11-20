@@ -17,9 +17,10 @@
 --   2. 按兄弟图宽度并排：treesitter 给的是字节列，CJK 表格里 | 左 | 右 | 的第二列
 --      字节列 26 而屏幕列只有 7，且单元格只有几列宽，并排后图被压到不可读。
 --
--- 本方案：把同一锚点行的多张图用 ImageMagick 纵向拼成一张 PNG，只渲染这一张。
---   * 像素高度直接相加，由 image.nvim 的 max_height_window_percentage 等比缩小，
---     两张图缩放一致，不会一张大一张小。
+-- 本方案：把同一锚点行的多张图用 ImageMagick 横向拼成一张 PNG（中间留空隙），
+-- 只渲染这一张。表格里 `| ![a] | ![b] |` 本来就是并排语义，拼成横向才符合排版。
+--   * 拼接后宽度/高度由 image.nvim 的 max_*_window_percentage 等比缩小，
+--     几张图缩放一致，不会一张大一张小。
 --   * 只有一个 extmark / 一份 virt_lines / 一次滚动重排，排版与普通单图完全一致。
 --   * 合成结果缓存在 stdpath("cache")/image-stack/<hash>.png，key 含每个源的
 --     路径 + mtime + size，源文件变了自动重拼。
@@ -58,8 +59,9 @@ M._installed = false
 M._composites = {} -- key -> Image
 M._building = {} -- key -> true
 
-local CACHE_SUBDIR = "image-stack"
+local CACHE_SUBDIR = "image-stack-h"
 local MAX_SOURCE_WIDTH = 2000
+local GAP_PX = 24
 local BUILD_RETRY_LIMIT = 20
 
 ---尺寸/位置只对这些图有意义
@@ -115,6 +117,7 @@ end
 
 ---@param group table[] 已按 x 升序
 local function build_composite(group, out_path, on_done)
+	local gap = math.floor(GAP_PX / 2)
 	local args = { magick_bin() }
 	for _, member in ipairs(group) do
 		local src = member.original_path or member.path
@@ -122,15 +125,20 @@ local function build_composite(group, out_path, on_done)
 		args[#args + 1] = src
 		args[#args + 1] = "-resize"
 		args[#args + 1] = MAX_SOURCE_WIDTH .. "x>"
+		-- 每张图左右各留 gap/2 的透明边，拼起来中间就是 GAP_PX 的空隙
+		args[#args + 1] = "-bordercolor"
+		args[#args + 1] = "none"
+		args[#args + 1] = "-border"
+		args[#args + 1] = ("%dx0"):format(gap)
 		args[#args + 1] = ")"
 	end
 	local tmp = ("%s.%s.png"):format(out_path, tostring(vim.uv.hrtime()))
 	args[#args + 1] = "-background"
 	args[#args + 1] = "none"
-	-- 两张图宽度不同时居中，避免小图贴左边
+	-- 高度不一致时垂直居中
 	args[#args + 1] = "-gravity"
 	args[#args + 1] = "center"
-	args[#args + 1] = "-append"
+	args[#args + 1] = "+append"
 	args[#args + 1] = tmp
 
 	vim.system(args, { text = true }, function(res)
