@@ -60,7 +60,7 @@ M._composites = {} -- key -> Image
 M._building = {} -- key -> true
 
 local CACHE_SUBDIR = "image-stack-h"
-local MAX_SOURCE_WIDTH = 2000
+local MAX_SOURCE_WIDTH = 3000
 local GAP_PX = 24
 local BUILD_RETRY_LIMIT = 20
 
@@ -294,6 +294,16 @@ local function patch_image(img)
 		end
 
 		self._bp_stack_retries = 0
+		-- 像浏览器一样：宽度贴合窗口剩余宽度，高度由内容自己决定（最多占满窗口）。
+		-- renderer 只会用 math.min 做上限、不会放大，所以小于原始像素的图保持原样，
+		-- 大图按比例缩到放得下；窗口尺寸变化时这里重新算，图会跟着缩放。
+		local win = self.window
+		if win and vim.api.nvim_win_is_valid(win) then
+			local win_width = math.max(1, vim.api.nvim_win_get_width(win))
+			local avail = math.max(4, win_width - math.min(col, win_width - 4))
+			composite.max_width_window_percentage = math.min(100, math.floor(avail * 100 / win_width))
+			composite.max_height_window_percentage = 100
+		end
 		-- 这张图之前若单独画过，先把旧的后端画面撤掉，避免和合成图同时可见
 		if self.is_rendered then
 			self.global_state.backend.clear(self.id, true)
