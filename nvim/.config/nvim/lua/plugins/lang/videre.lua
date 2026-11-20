@@ -1,10 +1,11 @@
--- https://github.com/huayue5201/videre.nvim
+-- https://github.com/Owen-Dechow/videre.nvim
 --
 -- 把 JSON / TOML / YAML / XML 画成「表格连线图」，在 terminal 风格的浮窗里展开/折叠/跳转，
 -- 不用离开编辑器去开 JSON Crack。
 --
--- 用这个 fork 而不是上游 Owen-Dechow/videre.nvim：它只多一个提交，
--- `fix: 正确处理宽字符/多字节的显示列到字节转换`——中文键值不会错位，正是我们需要的。
+-- 中文宽字符对齐的修复已提交上游（Owen-Dechow/videre.nvim PR #41）。
+-- 合并后把 spec 改回上游 "Owen-Dechow/videre.nvim" 并 :Pack update 即可；
+-- 在那之前先继续用这个 fork（内容 = 上游 + 那一个修复提交）。
 --
 -- 解析器是可选的：JSON 走内置 vim.json，其余三种各是一个小插件。缺哪个只是该文件类型
 -- 用不了（:Videre 会提示 `xxx is not a valid Videre data type.`），不会报启动错误。

@@ -92,7 +92,7 @@
 | [ui/scrollbar.lua](ui/scrollbar.lua) | petertriho/nvim-scrollbar | 右边缘滚动条：位置 + 诊断/git 刻度（固定 v1 分支） |
 | [ui/neo-tree.lua](ui/neo-tree.lua) | nvim-neo-tree/neo-tree.nvim | 文件树侧栏 |
 | [ui/nvim-window-picker.lua](ui/nvim-window-picker.lua) | huayue5201/nvim-window-picker | 窗口选择器（本地 fork） |
-| [ui/buffer-preview.lua](ui/buffer-preview.lua) | propilideno/buffer-preview.nvim | 切 buffer 前预览内容 |
+| [tools/buffer-preview.lua](tools/buffer-preview.lua) | huayue5201/buffer-preview.nvim | PDF/PPT/SQLite 预览（本地 fork，异步渲染 + 窗口自适应） |
 | [ui/atone.lua](ui/atone.lua) | XXiaoA/atone.nvim | 树状图侧栏（调用/引用图） |
 | [ui/bento.lua](ui/bento.lua) | serhez/bento.nvim | 菜单 / 仪表盘（浮窗或 tabline） |
 | [ui/nvim-web-devicons.lua](ui/nvim-web-devicons.lua) | nvim-tree/nvim-web-devicons | 文件类型图标 |
