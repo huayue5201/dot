@@ -12,6 +12,7 @@ local TERM = "com.superlogical.terminal"
 
 local TOOLS = {
 	{ id = "lazygit", title = "lazygit", cmd = { "lazygit" }, keep_open = false, keywords = "git" },
+	{ id = "posting", title = "posting", cmd = { "posting" }, keep_open = false, keywords = "api http" },
 	{ id = "nvim", title = "Neovim", cmd = { "nvim" }, keep_open = false, keywords = "editor vim" },
 	{ id = "btop", title = "btop", cmd = { "btop" }, keep_open = false, keywords = "monitor process cpu" },
 }
