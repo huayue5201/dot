@@ -76,6 +76,7 @@ return {
 			"html",
 			"css",
 			"json",
+			"xml", -- feed.nvim 解析 Atom/RSS（atom 用 treesitter xml 解析，缺了报 invalid XML）
 			"http", -- 手写 .http 文件时的高亮（nurl 用 Lua 请求文件，不依赖它）
 			"markdown",
 			"markdown_inline",

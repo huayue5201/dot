@@ -171,6 +171,7 @@
 | [tools/todo2.lua](tools/todo2.lua) | huayue5201/todo2 | TODO 管理（本地插件） |
 | [tools/cash.lua](tools/cash.lua) | nullromo/cash.nvim | 寄存器 / 剪贴板浏览（`<c-/>`） |
 | [tools/nurl.lua](tools/nurl.lua) | rodrigoscc/nurl.nvim | 用 Lua 写 HTTP 请求（替代 kulala） |
+| [tools/feed.lua](tools/feed.lua) | neo451/feed.nvim | RSS/Atom 阅读器：订阅插件发版（`:Feed` 打开索引） |
 | [tools/juan-logs.lua](tools/juan-logs.lua) | minigian/juan-logs.nvim | 大日志文件查看（>100MB） |
 | [tools/hexinspector.lua](tools/hexinspector.lua) | Punity122333/hexinspector.nvim | 数字进制 / 位模式查看 |
 | [tools/bitwise-visualizer.lua](tools/bitwise-visualizer.lua) | wellatleastitried/bitwise-visualizer.nvim | 位运算可视化 |
