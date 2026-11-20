@@ -7,19 +7,24 @@
 -- 问题：markdown 里同一行出现多张图（典型：表格 `| ![a](a.png) | ![b](b.png) |`）
 -- 时，image.nvim 的 markdown 集成按 treesitter 节点渲染
 --   lua/image/utils/document.lua: render_image -> image:render({ x = start_col, y = start_row })
--- 两张图 start_row 相同（实测 row=4 col=2 / row=4 col=28），于是绝对 y 相同、
--- 整体重叠，只剩上层那张可见；且两张图各自往锚点行插 virt_lines，padding 却是
--- 正确的两倍行数 —— 表现就是「图叠在一起，下面又空出一大块」。
+-- 两张图 start_row 相同，于是绝对 y 相同、整体重叠，只剩上层那张可见。
 --
--- 修法：不改上游代码，在 config 里包装 document 集成传进来的 api，
--- 对带 virtual padding 的图对象替换 Image:render：
---   1. 同锚点行、x 更小的兄弟图已渲染高度累加 => render_offset_top（下移绘制位置）
---   2. overlap = offset + 1（让 reserved_lines = 自身高度，padding 不重复累加）
---   3. x 偏移大的图按剩余窗口宽度设 max_width_window_percentage，避免右缘裁切
---   4. 首轮兄弟图高度未知时先不画，defer 重试；渲染完跑一次 settle() 把
---      因高度变化而失配的成员重渲染（深度上限 8 防递归）
--- 依据：renderer.lua 的 absolute_y += render_offset_top、get_overlap_scroll_position、
---       image.lua 的 get_reserved_lines(height, offset, overlap)。
+-- 曾试过的方案（都失败，别回头）：
+--   1. render_offset_top + overlap：overlap 会被
+--      lua/image/utils/virtual_padding.lua:37 get_overlap_scroll_position 用来把图「钉」
+--      在 winrow + offset - scrolled_lines，滚动时图跟着 buffer 慢慢上移、压在正文上，
+--      而 virt_lines 又无法被部分滚动（<C-e> 整块跳过），所以永远对不齐。
+--   2. 按兄弟图宽度并排：treesitter 给的是字节列，CJK 表格里 | 左 | 右 | 的第二列
+--      字节列 26 而屏幕列只有 7，且单元格只有几列宽，并排后图被压到不可读。
+--
+-- 本方案：把同一锚点行的多张图用 ImageMagick 纵向拼成一张 PNG，只渲染这一张。
+--   * 像素高度直接相加，由 image.nvim 的 max_height_window_percentage 等比缩小，
+--     两张图缩放一致，不会一张大一张小。
+--   * 只有一个 extmark / 一份 virt_lines / 一次滚动重排，排版与普通单图完全一致。
+--   * 合成结果缓存在 stdpath("cache")/image-stack/<hash>.png，key 含每个源的
+--     路径 + mtime + size，源文件变了自动重拼。
+--   * 组内非首张成员 render 直接返回 false（不画、不占行）；文件里的图变少时
+--     及时 clear 掉旧的合成图。
 --
 -- 清理方式（上游修复后）：
 --   1. 删除 lua/fix/image_nvim_markdown_image_stack.lua
@@ -40,8 +45,22 @@ M.meta = {
 }
 
 M._installed = false
-M._depth = 0
-local RETRY_LIMIT = 12
+-- 调试开关：在 lua 里 _G.bp_debug = true 后，渲染决策会写进 _G.bp
+local function trace(fmt, ...)
+	if not _G.bp_debug then
+		return
+	end
+	_G.bp = _G.bp or {}
+	_G.bp[#_G.bp + 1] = fmt:format(...)
+end
+
+M._installed = false
+M._composites = {} -- key -> Image
+M._building = {} -- key -> true
+
+local CACHE_SUBDIR = "image-stack"
+local MAX_SOURCE_WIDTH = 2000
+local BUILD_RETRY_LIMIT = 20
 
 ---尺寸/位置只对这些图有意义
 ---@param img table
@@ -49,92 +68,147 @@ local function is_stack_candidate(img)
 	return img.buffer ~= nil and img.inline and img.with_virtual_padding and img.geometry ~= nil
 end
 
----同一锚点行、同 buffer 同 namespace 的其它内联图
+---同一锚点行、同 buffer 同 namespace 的所有内联图（含自身），按 x 升序
 ---@param img table
 ---@param row integer
-local function siblings_of(img, row)
-	local out = {}
+local function group_of(img, row)
+	local group = { img }
 	for _, other in pairs(img.global_state.images) do
-		if is_stack_candidate(other) and other ~= img and other.buffer == img.buffer and other.namespace == img.namespace and other.geometry.y == row then
-			out[#out + 1] = other
+		if
+			is_stack_candidate(other)
+			and other ~= img
+			and other.buffer == img.buffer
+			and other.namespace == img.namespace
+			and other.geometry.y == row
+		then
+			group[#group + 1] = other
 		end
 	end
-	return out
-end
-
----@return integer before 需要在自身绘制位置上追加的行数
----@return boolean pending 有更靠左的兄弟图还没渲染出高度
-local function measure(img, row, col)
-	local before, pending = 0, false
-	for _, other in ipairs(siblings_of(img, row)) do
-		if (other.geometry.x or 0) < col then
-			local h = other.rendered_geometry and other.rendered_geometry.height
-			if h then
-				before = before + h
-			else
-				pending = true
-			end
-		end
-	end
-	return before, pending
-end
-
----宽度按「窗口剩余列数」压，免得第二列的图被右缘裁掉
-local function clamp_width(img, col)
-	local win = img.window
-	if not win or not vim.api.nvim_win_is_valid(win) then
-		return
-	end
-	local win_width = vim.api.nvim_win_get_width(win)
-	local avail = win_width - math.min(col, win_width - 4)
-	if avail < 4 then
-		return
-	end
-	img.max_width_window_percentage = math.max(1, math.floor(avail * 100 / win_width))
-end
-
-local function apply_layout(img, row, col)
-	local before, pending = measure(img, row, col)
-	img.render_offset_top = before
-	img.overlap = before > 0 and before + 1 or nil
-	if before > 0 then
-		clamp_width(img, col)
-	end
-	return pending
-end
-
----首位成员之后的高度变化会让后面成员的 offset 失配，这里只重渲染失配的那些
-local function settle(img, row)
-	if M._depth > 8 then
-		return
-	end
-
-	local group = siblings_of(img, row)
-	group[#group + 1] = img
 	table.sort(group, function(a, b)
 		return (a.geometry.x or 0) < (b.geometry.x or 0)
 	end)
+	return group
+end
 
-	local acc, stale = 0, {}
+local function cache_dir()
+	local dir = vim.fn.stdpath("cache") .. "/" .. CACHE_SUBDIR
+	if vim.fn.isdirectory(dir) == 0 then
+		pcall(vim.fn.mkdir, dir, "p")
+	end
+	return dir
+end
+
+local function magick_bin()
+	return vim.fn.executable("magick") == 1 and "magick" or "convert"
+end
+
+---key 里带上每个源的 mtime/size，源文件改动后自然失效
+local function group_key(group)
+	local parts = {}
 	for _, member in ipairs(group) do
-		local want_overlap = acc > 0 and acc + 1 or nil
-		if member.render_offset_top ~= acc or member.overlap ~= want_overlap then
-			member.render_offset_top = acc
-			member.overlap = want_overlap
-			stale[#stale + 1] = member
+		local path = member.original_path or member.path or ""
+		local stat = path ~= "" and vim.uv.fs_stat(path) or nil
+		parts[#parts + 1] = ("%s:%d:%d"):format(path, stat and stat.mtime.sec or 0, stat and stat.size or 0)
+	end
+	return vim.fn.sha256(table.concat(parts, "|")):sub(1, 20)
+end
+
+---@param group table[] 已按 x 升序
+local function build_composite(group, out_path, on_done)
+	local args = { magick_bin() }
+	for _, member in ipairs(group) do
+		local src = member.original_path or member.path
+		args[#args + 1] = "("
+		args[#args + 1] = src
+		args[#args + 1] = "-resize"
+		args[#args + 1] = MAX_SOURCE_WIDTH .. "x>"
+		args[#args + 1] = ")"
+	end
+	local tmp = ("%s.%s.png"):format(out_path, tostring(vim.uv.hrtime()))
+	args[#args + 1] = "-background"
+	args[#args + 1] = "none"
+	-- 两张图宽度不同时居中，避免小图贴左边
+	args[#args + 1] = "-gravity"
+	args[#args + 1] = "center"
+	args[#args + 1] = "-append"
+	args[#args + 1] = tmp
+
+	vim.system(args, { text = true }, function(res)
+		vim.schedule(function()
+			if res.code ~= 0 then
+				pcall(vim.fn.delete, tmp)
+				on_done(("ImageMagick exited %d: %s"):format(res.code, (res.stderr or ""):gsub("\n.*", "")))
+				return
+			end
+			local ok = pcall(vim.uv.fs_rename, tmp, out_path)
+			if not ok then
+				pcall(vim.fn.delete, tmp)
+				on_done("failed to move the composited image into the cache")
+				return
+			end
+			on_done(nil)
+		end)
+	end)
+end
+
+---合成图（可能异步，未就绪时返回 nil）
+---同一批图在不同 buffer / 行里要各自独立，不能共用一个合成图对象
+local function composite_key(group, img)
+	return ("%s:%d:%d"):format(group_key(group), img.buffer or 0, (img.geometry and img.geometry.y) or 0)
+end
+
+local function composite_for(group, img)
+	local key = composite_key(group, img)
+	local cached = M._composites[key]
+	if cached then
+		if vim.api.nvim_win_is_valid(cached.window) and cached.window == img.window and cached.buffer == img.buffer then
+			return cached
 		end
-		acc = acc + ((member.rendered_geometry and member.rendered_geometry.height) or 0)
+		M._composites[key] = nil
 	end
 
-	if #stale == 0 then
-		return
+	local path = cache_dir() .. "/" .. key .. ".png"
+	if vim.uv.fs_stat(path) then
+		local ok, composite = pcall(require("image").from_file, path, {
+			-- 独立 namespace：document.render 只会 clear 自己 namespace 下对不上的图，
+			-- 否则合成图会在每次重排时被当作「已不存在的匹配」清掉
+			id = ("%s-stack"):format(tostring(group[1].id)),
+			namespace = ("%s-stack"):format(tostring(group[1].namespace or "image.nvim")),
+			window = img.window,
+			buffer = img.buffer,
+			with_virtual_padding = true,
+			inline = true,
+		})
+		if ok and composite then
+			M._composites[key] = composite
+			return composite
+		end
+		return nil
 	end
 
-	M._depth = M._depth + 1
-	for _, member in ipairs(stale) do
-		member:render()
+	if not M._building[key] then
+		M._building[key] = true
+		build_composite(group, path, function(err)
+			M._building[key] = nil
+			if err then
+				vim.notify(("buffer-preview fix: %s"):format(err), vim.log.levels.WARN)
+			end
+		end)
 	end
-	M._depth = M._depth - 1
+	return nil
+end
+
+---图组变回单张（或成员变了）时，清掉遗留的合成图
+local function clear_composites(img, keep_key)
+	for key, composite in pairs(M._composites) do
+		if key ~= keep_key and composite.buffer == img.buffer and composite.window == img.window then
+			pcall(composite.clear, composite)
+			-- 关键：只 clear 只是撤掉后端画面，renderer.render() 仍会把它从
+			-- global_state.images 里捡回来重画，所以必须一并注销
+			composite.global_state.images[composite.id] = nil
+			M._composites[key] = nil
+		end
+	end
 end
 
 local function patch_image(img)
@@ -145,6 +219,7 @@ local function patch_image(img)
 
 	local orig_render = img.render
 	img.render = function(self, geometry)
+		trace("enter %s cand=%s", vim.fn.fnamemodify(self.path or "?", ":t"), tostring(is_stack_candidate(self)))
 		if not is_stack_candidate(self) then
 			return orig_render(self, geometry)
 		end
@@ -155,31 +230,69 @@ local function patch_image(img)
 		end
 
 		local row = self.geometry and self.geometry.y
-		local col = self.geometry and self.geometry.x
 		if not row then
 			return orig_render(self, geometry)
 		end
 
-		-- 首轮：左边的兄弟图还在异步转换，高度未知。先别画，等它出来再画，
-		-- 否则会先按 offset 0 画一帧再跳到正确位置。
-		if apply_layout(self, row, col) then
+		local group = group_of(self, row)
+		trace(
+			"render %s row=%s col=%s group=%d",
+			vim.fn.fnamemodify(self.path or "?", ":t"),
+			tostring(row),
+			tostring(self.geometry and self.geometry.x),
+			#group
+		)
+		if #group < 2 then
+			clear_composites(self, nil)
+			return orig_render(self, geometry)
+		end
+
+		-- renderer.render() 才把图登记进 state.images；非首张成员我们不会走原 render，
+		-- 必须自己登记，否则后面的 group_of() 看不到它，永远凑不成一组
+		self.global_state.images[self.id] = self
+
+		local leader = group[1]
+		local col = leader.geometry.x or 0
+
+		if self ~= leader then
+			-- 非首张成员完全不画：整组只由一张合成图代表
+			if not M._composites[composite_key(group, self)] and not leader._bp_stack_scheduled then
+				leader._bp_stack_scheduled = true
+				vim.defer_fn(function()
+					leader._bp_stack_scheduled = false
+					if vim.api.nvim_buf_is_valid(leader.buffer or 0) then
+						leader:render()
+					end
+				end, 20)
+			end
+			return false
+		end
+
+		local composite = composite_for(group, self)
+		trace("  leader composite=%s key=%s", tostring(composite ~= nil), composite_key(group, self))
+		if not composite then
 			local tries = (self._bp_stack_retries or 0) + 1
 			self._bp_stack_retries = tries
-			if tries <= RETRY_LIMIT then
+			if tries <= BUILD_RETRY_LIMIT then
 				vim.defer_fn(function()
-					if self.rendered_geometry and self.rendered_geometry.height then
-						return
-					end
 					self:render()
-				end, 25)
+				end, 40)
+			else
+				self._bp_stack_retries = 0
+				-- 拼图失败就退回单张渲染，至少能看见第一张
+				return orig_render(self, geometry)
 			end
 			return false
 		end
 
 		self._bp_stack_retries = 0
-		local ok = orig_render(self, geometry)
-		settle(self, row)
-		return ok
+		-- 这张图之前若单独画过，先把旧的后端画面撤掉，避免和合成图同时可见
+		if self.is_rendered then
+			self.global_state.backend.clear(self.id, true)
+			self.is_rendered = false
+		end
+		composite:render({ x = col, y = row })
+		return false
 	end
 end
 
