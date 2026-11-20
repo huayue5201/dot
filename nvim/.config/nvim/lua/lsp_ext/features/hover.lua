@@ -82,6 +82,11 @@ local state = {
 	last = nil, -- 上一次鼠标位置，去重 <MouseMove> 洪水
 	symbol_buf = nil, ---@type integer? 画了下划线的 buffer
 	anchor = nil, ---@type table? 当前浮窗对应的对象范围 {buf, 1..4}，用于「同一个对象就不刷新」
+	hover = nil, ---@type string[]? 当前浮窗的原始 hover 行。诊断变化重绘时用它，
+	-- 不能从已渲染的浮窗里反推：markdown 已被 open_floating_preview 规范化，
+	-- 而且诊断与 hover 之间的 `---` 分隔线会被渲染成 `────`，hover-only 时根本不存在
+	sig = nil, ---@type string? 当前浮窗的内容签名。DiagnosticChanged 只在内容真变了才重绘
+	refresh_seq = 0, -- 诊断重绘的防抖序号
 }
 
 ---清掩「鼠标所指符号」的下划线
@@ -102,6 +107,7 @@ local function close()
 		pcall(api.nvim_win_close, state.win, true)
 	end
 	state.win, state.buf, state.want = nil, nil, nil
+	state.anchor, state.hover, state.sig = nil, nil, nil
 	clear_symbol()
 end
 
@@ -440,6 +446,21 @@ local function present(lines)
 	return shown, { wrap = M.config.wrap ~= false, conceallevel = 2 }
 end
 
+---诊断/hover 的内容签名。spell 等来源会反复 vim.diagnostic.set 同一批诊断，
+---DiagnosticChanged 随之高频触发；每次 render 都是 close + reopen（窗口换 id、
+---按 mouse 重新定位），内容没变就是纯闪烁，所以先比对签名。
+local function signature(diags, hover)
+	local parts = {}
+	for _, d in ipairs(diags or {}) do
+		parts[#parts + 1] = (d.severity or 0) .. ":" .. (d.message or "")
+	end
+	parts[#parts + 1] = "--"
+	for _, l in ipairs(hover or {}) do
+		parts[#parts + 1] = l
+	end
+	return table.concat(parts, "\n")
+end
+
 ---组装并打开浮窗。diags / hover 都可以为空，全空则不开。
 local function render(diags, hover)
 	local lines = {}
@@ -517,6 +538,8 @@ local function show(diags, hover, want, range)
 	render(diags, hover)
 	if is_open() then
 		state.want = want
+		state.hover = hover
+		state.sig = signature(diags, hover)
 		state.anchor = {
 			buf = api.nvim_win_get_buf(want.winid),
 			range = range or (state.anchor and state.anchor.range),
@@ -924,7 +947,12 @@ function M.setup()
 		group = group,
 		callback = function(ev)
 			local want = state.want
-			if not is_open() or not want or api.nvim_win_get_buf(want.winid) ~= ev.buf then
+			if
+				not is_open()
+				or not want
+				or not api.nvim_win_is_valid(want.winid)
+				or api.nvim_win_get_buf(want.winid) ~= ev.buf
+			then
 				return
 			end
 			local diags = M.config.show_diagnostics and diagnostics_at(ev.buf, want.line - 1, want.column - 1) or {}
@@ -932,26 +960,34 @@ function M.setup()
 			if m.winid ~= want.winid or m.line ~= want.line or m.column ~= want.column then
 				return
 			end
-			local hover = {}
-			if state.buf and api.nvim_buf_is_valid(state.buf) then
-				-- 保留已有 hover 文本：从当前浮窗内容里取分隔线之后的部分
-				local cur = api.nvim_buf_get_lines(state.buf, 0, -1, false)
-				for i, l in ipairs(cur) do
-					if l:match("^─+$") then
-						hover = vim.list_slice(cur, i + 1)
-						break
-					end
-				end
-			end
-			-- 首行可能有图标/空格，交给 render 重组，这里只去掉分隔线后的空行
-			while #hover > 0 and vim.trim(hover[1]) == "" do
-				table.remove(hover, 1)
-			end
+			-- 用触发时缓存的原始 hover 行重绘。旧实现从浮窗 buffer 里找 `─` 分隔线
+			-- 反推，hover-only（没有诊断，因此没有分隔线）时会得到空 hover，
+			-- 于是每次 DiagnosticChanged（spell 诊断是高频来源）都把浮窗关掉。
+			local hover = state.hover or {}
 			if #diags == 0 and #hover == 0 then
 				close()
 				return
 			end
-			show(diags, hover, want, state.anchor and state.anchor.range)
+			local sig = signature(diags, hover)
+			if sig == state.sig then
+				return
+			end
+			-- 诊断经常成批到达（spell 分片 / LSP 多个 client），50ms 内合并成一次重绘
+			state.refresh_seq = state.refresh_seq + 1
+			local seq = state.refresh_seq
+			vim.defer_fn(function()
+				if seq ~= state.refresh_seq or not is_open() then
+					return
+				end
+				if sig == state.sig then
+					return
+				end
+				local cur = state.want
+				if not cur then
+					return
+				end
+				show(diags, hover, cur, state.anchor and state.anchor.range)
+			end, 50)
 		end,
 	})
 
