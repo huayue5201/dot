@@ -3,6 +3,9 @@
 return {
 	"3rd/image.nvim",
 	config = function()
+		-- FIX(markdown-inline-stack): 表格同一行的多张图会重叠，见 lua/fix/image_nvim_markdown_image_stack.lua
+		require("fix.image_nvim_markdown_image_stack").install()
+
 		require("image").setup({
 			-- 后端渲染引擎：kitty（推荐）、ueberzug 或 sixel
 			backend = "kitty",
@@ -58,7 +61,7 @@ return {
 			-- 图像尺寸限制（像素单位）
 			max_width = nil, -- 最大宽度（像素），nil表示不限制
 			max_height = nil, -- 最大高度（像素），nil表示不限制
-			max_width_window_percentage = nil, -- 最大宽度占窗口宽度的百分比（覆盖max_width）
+			max_width_window_percentage = 100, -- 最大宽度占窗口宽度的百分比（覆盖max_width）：按窗口宽度缩放
 			max_height_window_percentage = 50, -- 最大高度占窗口高度的百分比（50%）
 
 			-- 缩放因子（全局图像缩放比例，1.0为原始大小）
